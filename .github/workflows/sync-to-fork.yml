@@ -17,7 +17,6 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           
-          # Use the secret you created in the Org Repo
-          git remote add fork https://x-access-token:${{ secrets.SYNC_TO_FORK_TOKEN }}@github.com/Keeththi2003/np-frontend.git           
-          # This ensures your fork is exactly the same as the Org main
+          git remote add fork https://x-access-token:${{ secrets.SYNC_TO_FORK_TOKEN }}@github.com/Keeththi2003/np-frontend.git
+          
           git push fork main --force
