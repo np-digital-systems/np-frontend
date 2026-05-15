@@ -6,6 +6,8 @@ on:
 
 jobs:
   push-to-fork:
+    # Only run if this is the ORG repo, not the fork
+    if: github.repository == 'np-digital-systems/np-frontend'
     runs-on: ubuntu-latest
     steps:
       # 1. Checkout the Org Repo (this repo)
