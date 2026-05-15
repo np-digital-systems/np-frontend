@@ -1,0 +1,25 @@
+name: Sync to Deployment Fork
+on:
+  push:
+    branches:
+      - main # This catches both direct pushes AND merged Pull Requests
+
+jobs:
+  push-to-fork:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Org Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Personal Fork
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          
+          # Use the secret you created in the Org Repo
+          git remote add fork https://${{ secrets.SYNC_TO_FORK_TOKEN }}@github.com/Keeththi2003/np-frontend.git
+          
+          # This ensures your fork is exactly the same as the Org main
+          git push fork main --force
