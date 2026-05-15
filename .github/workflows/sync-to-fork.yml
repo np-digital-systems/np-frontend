@@ -2,8 +2,7 @@ name: Sync to Deployment Fork
 on:
   push:
     branches:
-      - main # This catches both direct pushes AND merged Pull Requests
-
+      - main
 jobs:
   push-to-fork:
     runs-on: ubuntu-latest
