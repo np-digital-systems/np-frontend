@@ -3,20 +3,31 @@ on:
   push:
     branches:
       - main
+
 jobs:
   push-to-fork:
     runs-on: ubuntu-latest
     steps:
+      # 1. Checkout the Org Repo (this repo)
       - name: Checkout Org Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Push to Personal Fork
+      # 2. Checkout the Private Fork into a subfolder
+      - name: Checkout Personal Fork
+        uses: actions/checkout@v4
+        with:
+          repository: Keeththi2003/np-frontend
+          token: ${{ secrets.SYNC_TO_FORK_TOKEN }}
+          path: personal-fork
+          fetch-depth: 0
+
+      # 3. Force Push the contents
+      - name: Push Changes
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          
-          git remote add fork https://x-access-token:${{ secrets.SYNC_TO_FORK_TOKEN }}@github.com/Keeththi2003/np-frontend.git
-          
-          git push fork main --force
+          cd personal-fork
+          git remote add upstream https://github.com/${{ github.repository }}.git
+          git fetch upstream main
+          git reset --hard upstream/main
+          git push origin main --force
