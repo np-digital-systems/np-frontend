@@ -1,0 +1,77 @@
+/* Sacred Serenity - Glassmorphism System */
+
+/* ===== Glass Surface Variants ===== */
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Sacred Glow (Ambient Light Shadows) ===== */
+
+.sacred-glow {
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+}
+
+.sacred-glow-strong {
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.25);
+}
+
+.sacred-glow-hover {
+  transition: box-shadow 0.3s ease;
+}
+
+.sacred-glow-hover:hover {
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.25);
+}
+
+/* ===== Glass Cards ===== */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ===== Tonal Surfaces ===== */
+
+.surface-tint {
+  background-color: #faf9f6;
+}
+
+.surface-elevated {
+  background-color: #ffffff;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.08);
+}
