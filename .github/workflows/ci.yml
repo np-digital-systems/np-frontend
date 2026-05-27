@@ -2,11 +2,11 @@ name: Frontend CI
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: main
 
 jobs:
   verify-code:
-    runs-back: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
