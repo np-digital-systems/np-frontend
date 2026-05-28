@@ -169,6 +169,7 @@ export function Footer() {
                 <Clock className="w-4 h-4 text-[#D4AF37] mt-0.5 shrink-0" />
                 <div>
                   <p>{siteConfig.templeHours.morning}</p>
+                  <p>{siteConfig.templeHours.afternoon}</p>
                   <p>{siteConfig.templeHours.evening}</p>
                 </div>
               </li>

@@ -82,6 +82,10 @@ export function ContactSection() {
                   {siteConfig.templeHours.morning}
                 </p>
                 <p className="text-sm text-[#4D4635]">
+                  <span className="text-[#7F7663]">Afternoon:</span>{" "}
+                  {siteConfig.templeHours.afternoon}
+                </p>
+                <p className="text-sm text-[#4D4635]">
                   <span className="text-[#7F7663]">Evening:</span>{" "}
                   {siteConfig.templeHours.evening}
                 </p>
