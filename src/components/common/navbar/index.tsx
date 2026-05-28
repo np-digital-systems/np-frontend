@@ -4,7 +4,7 @@ import { useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Clock3, Menu, Phone, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { mainNavItems } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
@@ -59,8 +59,8 @@ export function Navbar() {
         className={cn(
           "fixed inset-x-0 top-0 z-50 transition-all duration-500",
           isScrolled || isMobileMenuOpen
-            ? "bg-[#FAF9F6]/95 backdrop-blur-xl shadow-[0_8px_32px_rgba(26,28,28,0.08)]"
-            : "bg-transparent"
+            ? "bg-[#FAF9F6]/95 backdrop-blur-xl shadow-[0_8px_32px_rgba(26,28,28,0.08)] "
+            : "bg-transparent "
         )}
       >
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-4 md:px-16 lg:py-5">
@@ -235,9 +235,6 @@ export function Navbar() {
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <span className="font-heading text-xl font-semibold">{item.label}</span>
-                  {/* <span className="rounded-full bg-[#D4AF37]/10 px-3 py-1 text-xs font-medium text-[#735C00] transition-transform duration-300 group-hover:translate-x-0.5">
-                    Go
-                  </span> */}
                 </Link>
               );
             })}
