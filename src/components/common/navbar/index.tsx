@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, MapPin } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { mainNavItems } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
