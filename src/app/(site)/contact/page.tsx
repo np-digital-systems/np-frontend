@@ -142,7 +142,7 @@ export default function ContactPage() {
 
             <div className="relative h-[350px] rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-[#D0C5AF]/20">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3930.8!2d80.0!3d9.8!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sMallakam%2C%20Jaffna!5e0!3m2!1sen!2slk!4v1"
+                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3932.061618582315!2d80.0182781!3d9.7608483!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3affab4e1c493f45%3A0x841075c87fa8270a!2z4K6u4K6y4K-N4K6y4K6-4K6V4K6u4K-NIOCuqOCvgOCusuCuv-Cur-CuruCvjeCuquCuqeCviCDgrqrgrr_grrPgr43grrPgr4jgrq_grr7grrDgr40g4K6G4K6y4K6v4K6u4K-NIHwgTWFsbGFrYW0gTmVlbGl5YW1wYW5haSBQaWxsYWl5YXIgS292aWw!5e0!3m2!1sen!2slk!4v1779983305229!5m2!1sen!2slk"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
