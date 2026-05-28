@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { footerNavItems } from "@/config/navigation";
+import Image from "next/image";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -15,12 +16,18 @@ export function Footer() {
       <div className="h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
 
       <div className="mx-auto max-w-[1280px] px-4 md:px-16 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Temple Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F4C430]">
-                <span className="text-lg text-white font-bold">ॐ</span>
+              <div className="flex items-center justify-center rounded-full">
+                <Image
+                  src="/logo-light.png"
+                  alt={siteConfig.shortName}
+                  width={48}
+                  height={48}
+                  className="object-contain rounded-full"
+                />
               </div>
               <h3 className="font-heading text-lg font-semibold text-white">
                 {siteConfig.shortName}
