@@ -6,7 +6,7 @@ export const siteConfig = {
   url: "https://neeliyampanaipillaiyarkovil.com",
   ogImage: "/images/temple-hero.png",
   links: {
-    facebook: "https://facebook.com/neeliyampanaipillaiyarkovil",
+    facebook: "https://web.facebook.com/niliyampanaipillaiyartontarcapaimallakam",
     instagram: "https://instagram.com/neeliyampanaipillaiyarkovil",
     youtube: "https://youtube.com/@neeliyampanaipillaiyarkovil",
   },
@@ -17,7 +17,7 @@ export const siteConfig = {
     mapUrl: "https://maps.app.goo.gl/hYoV7dwJjD5hjvdQ6",
   },
   templeHours: {
-    morning: "6:30 AM – 08:00 AM",
+    morning: "06:30 AM – 08:00 AM",
     afternoon: "12:00 PM – 01:00 PM",
     evening: "06:00 PM – 07:00 PM",
   },
