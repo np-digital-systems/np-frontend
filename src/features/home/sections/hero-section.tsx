@@ -46,14 +46,14 @@ export function HeroSection() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/contact"
-            className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white font-semibold text-base shadow-[0_8px_24px_rgba(212,175,55,0.3)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.45)] transition-all duration-300 hover:scale-[1.02]"
+            className="group inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white font-semibold text-base shadow-[0_8px_24px_rgba(212,175,55,0.3)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.45)] transition-all duration-300 hover:scale-[1.02]"
           >
             <MapPin className="w-5 h-5" />
             Locate Us
           </Link>
           <Link
             href="/events"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold text-base hover:bg-white/20 transition-all duration-300"
+            className="inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold text-base hover:bg-white/20 transition-all duration-300"
           >
             Upcoming Events
           </Link>
