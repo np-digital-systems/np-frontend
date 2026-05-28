@@ -184,10 +184,11 @@ export function Footer() {
           <p className="text-xs text-white/40">
             Built with devotion by{" "}
             <a
-              href="#"
+              href="https://github.com/Keeththi2003"
+              target="_blank"
               className="text-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
             >
-              NP Digital
+              Keeththi
             </a>
           </p>
         </div>
