@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Menu, X, MapPin } from "lucide-react";
 import { mainNavItems } from "@/config/navigation";
@@ -53,18 +54,19 @@ export function Navbar() {
         >
           <div
             className={cn(
-              "flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300",
+              "flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 overflow-hidden",
               isScrolled
                 ? "bg-gradient-to-br from-[#D4AF37] to-[#F4C430]"
                 : "bg-white/20 backdrop-blur-sm border border-white/30"
             )}
           >
-            <span className={cn(
-              "text-sm font-bold font-heading",
-              isScrolled ? "text-white" : "text-white"
-            )}>
-              ॐ
-            </span>
+            <Image
+              src="/logo-dark.png"
+              alt={siteConfig.shortName}
+              width={34}
+              height={34}
+              className="object-contain"
+            />
           </div>
           <span
             className={cn(
@@ -140,8 +142,14 @@ export function Navbar() {
             className="flex items-center gap-3 mb-8"
             onClick={closeMobileMenu}
           >
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F4C430]">
-              <span className="text-xl text-white font-bold">ॐ</span>
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F4C430] overflow-hidden">
+              <Image
+                src="/images/logo.png"
+                alt={siteConfig.shortName}
+                width={44}
+                height={44}
+                className="object-contain"
+              />
             </div>
             <span className="font-heading text-xl font-semibold text-[#1A1C1C]">
               {siteConfig.shortName}
