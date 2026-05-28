@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, MapPin } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { mainNavItems } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
+import { useMobile } from "@/hooks/use-mobile";
 import { useScroll } from "@/hooks/use-scroll";
 import { useUI } from "@/store/ui.store";
 
@@ -13,6 +15,7 @@ export function Navbar() {
   const { state, dispatch } = useUI();
   const isMobileMenuOpen = state.isMobileMenuOpen;
   const { isScrolled } = useScroll(50);
+  const isMobile = useMobile();
 
   const closeMobileMenu = useCallback(() => {
     dispatch({ type: "CLOSE_MOBILE_MENU" });
@@ -43,28 +46,26 @@ export function Navbar() {
           : "bg-transparent py-5"
       )}
     >
-      <div className="mx-auto max-w-[1280px] px-4 md:px-16 flex items-center justify-between">
-        
-        {/* Logo / Temple Name */}
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 md:px-16">
         <Link
           href="/"
           className="flex items-center gap-2 group"
-          onClick={closeMobileMenu}
         >
           <div
             className={cn(
-              "flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300",
+              "flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 overflow-hidden",
               isScrolled
                 ? "bg-gradient-to-br from-[#D4AF37] to-[#F4C430]"
                 : "bg-white/20 backdrop-blur-sm border border-white/30"
             )}
           >
-            <span className={cn(
-              "text-sm font-bold font-heading",
-              isScrolled ? "text-white" : "text-white"
-            )}>
-              ॐ
-            </span>
+            <Image
+              src="/logo-dark.png"
+              alt={siteConfig.shortName}
+              width={34}
+              height={34}
+              className="object-contain"
+            />
           </div>
           <span
             className={cn(
@@ -94,25 +95,12 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/contact"
-            className={cn(
-              "hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300",
-              "bg-[#8B0000] text-white hover:bg-[#A00000] hover:shadow-[0_4px_16px_rgba(139,0,0,0.3)]"
-            )}
-          >
-            <MapPin className="w-4 h-4" />
-            Donate
-          </Link>
-
-          {/* Mobile Menu Toggle */}
+        {isMobile && (
           <button
             id="mobile-menu-toggle"
             onClick={toggleMobileMenu}
             className={cn(
-              "lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300",
+              "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300",
               isScrolled
                 ? "text-[#1A1C1C] hover:bg-[#FAF9F6]"
                 : "text-white hover:bg-white/10"
@@ -120,28 +108,48 @@ export function Navbar() {
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+           <Menu className="w-5 h-5" />
           </button>
-        </div>
+        )}
       </div>
 
       {/* Mobile Menu Overlay */}
       <div
         className={cn(
-          "fixed inset-0 top-0 bg-white z-40 transition-all duration-500 lg:hidden",
+          "fixed inset-0 z-40 bg-white/96 backdrop-blur-md transition-all duration-500 lg:hidden",
           isMobileMenuOpen
-            ? "opacity-100 pointer-events-auto translate-y-0"
-            : "opacity-0 pointer-events-none -translate-y-4"
+            ? "pointer-events-auto opacity-100 translate-y-0"
+            : "pointer-events-none opacity-0 -translate-y-4"
         )}
       >
-        <div className="flex flex-col items-center justify-center h-full gap-6 px-8">
+        {isMobile && (
+          <button
+            id="mobile-menu-toggle"
+            onClick={toggleMobileMenu}
+            className={cn(
+              "absolute right-8 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#D4AF37]/20 bg-[#FAF9F6] text-[#1A1C1C] shadow-[0_6px_20px_rgba(0,0,0,0.08)] transition-all duration-300 hover:border-[#D4AF37]/40 hover:bg-[#FFF8E1] hover:text-[#735C00]"
+            )}
+            aria-label="Close menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+
+        <div className="flex h-full flex-col items-center justify-center gap-6 px-8 pt-20">
           <Link
             href="/"
-            className="flex items-center gap-3 mb-8"
+            className="mb-8 flex items-center gap-3"
             onClick={closeMobileMenu}
           >
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F4C430]">
-              <span className="text-xl text-white font-bold">ॐ</span>
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F4C430] shadow-[0_8px_24px_rgba(212,175,55,0.25)]">
+              <Image
+                src="/logo-dark.png"
+                alt={siteConfig.shortName}
+                width={44}
+                height={44}
+                className="object-contain rounded-full"
+              />
             </div>
             <span className="font-heading text-xl font-semibold text-[#1A1C1C]">
               {siteConfig.shortName}
@@ -153,21 +161,12 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               onClick={closeMobileMenu}
-              className="text-2xl font-heading font-medium text-[#1A1C1C] hover:text-[#D4AF37] transition-colors duration-300"
+              className="font-heading text-2xl font-medium text-[#1A1C1C] transition-colors duration-300 hover:text-[#D4AF37]"
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               {item.label}
             </Link>
           ))}
-
-          <Link
-            href="/contact"
-            onClick={closeMobileMenu}
-            className="mt-4 inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#8B0000] text-white font-semibold text-lg hover:bg-[#A00000] transition-all duration-300"
-          >
-            <MapPin className="w-5 h-5" />
-            Donate
-          </Link>
         </div>
       </div>
     </header>
