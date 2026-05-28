@@ -41,6 +41,7 @@ export const DONATION_TIERS = [
     description:
       "Support daily temple operations and maintenance of sacred grounds.",
     features: ["Daily Puja Offering", "Name in Prayer List", "Monthly Updates"],
+    isFeatured: false,
   },
   {
     id: "annadhanam",
@@ -69,5 +70,6 @@ export const DONATION_TIERS = [
       "Annual Celebration Invite",
       "Tax Deduction Receipt",
     ],
+    isFeatured: true,
   },
 ] as const;
