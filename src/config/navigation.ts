@@ -1,15 +1,16 @@
 export interface NavItem {
+  id: string;
   label: string;
   href: string;
   description?: string;
 }
 
 export const mainNavItems: NavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Events", href: "/events" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Contact", href: "/contact" },
+  { id: "home", label: "Home", href: "/" },
+  { id: "about", label: "About", href: "/about" },
+  { id: "events", label: "Events", href: "/events" },
+  { id: "gallery", label: "Gallery", href: "/gallery" },
+  { id: "contact", label: "Contact", href: "/contact" },
 ];
 
 export const footerNavItems = {
