@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, ChevronDown } from "lucide-react";
-import { TEMPLE_INFO } from "../constants/temple-info";
-
+import { useTranslations } from 'next-intl';
 export function HeroSection() {
+
+  const t = useTranslations('TempleInfo');  
+  const tHero = useTranslations('Hero');
   return (
     <section
       id="hero-section"
@@ -34,12 +36,12 @@ export function HeroSection() {
 
         {/* Temple Name */}
         <h1 className="font-heading text-4xl md:text-5xl lg:text-[64px] font-bold text-white leading-[1.1] tracking-[-0.02em] mb-6 max-w-4xl mx-auto">
-          {TEMPLE_INFO.name}
+          {t('name')}
         </h1>
 
         {/* Tagline */}
         <p className="text-base md:text-lg text-white/80 font-sans leading-relaxed max-w-2xl mx-auto mb-10">
-          {TEMPLE_INFO.tagline}
+          {t('tagline')}
         </p>
 
         {/* CTA Buttons */}
@@ -49,13 +51,13 @@ export function HeroSection() {
             className="group inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white font-semibold text-base shadow-[0_8px_24px_rgba(212,175,55,0.3)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.45)] transition-all duration-300 hover:scale-[1.02]"
           >
             <MapPin className="w-5 h-5" />
-            Locate Us
+            {tHero('locateUs')}
           </Link>
           <Link
             href="/events"
             className="inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold text-base hover:bg-white/20 transition-all duration-300"
           >
-            Upcoming Events
+            {tHero('upcomingEvents')}
           </Link>
         </div>
       </div>
@@ -63,7 +65,7 @@ export function HeroSection() {
       {/* Scroll Indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-bounce">
         <span className="text-white/50 text-xs font-sans tracking-wider uppercase">
-          Explore
+          {tHero('explore')}
         </span>
         <ChevronDown className="w-5 h-5 text-white/50" />
       </div>

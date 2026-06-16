@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import {Link} from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { Menu, Phone, X } from "lucide-react";
 import { mainNavItems } from "@/config/navigation";
@@ -10,12 +10,18 @@ import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { useScroll } from "@/hooks/use-scroll";
 import { useUI } from "@/store/ui.store";
+import { useTranslations } from 'next-intl';
+import { LanguageToggler } from "@/components/language-toggler";
 
 export function Navbar() {
   const { state, dispatch } = useUI();
   const isMobileMenuOpen = state.isMobileMenuOpen;
   const { isScrolled } = useScroll(50);
   const pathname = usePathname();
+
+  const t = useTranslations('Navbar');
+  const tTempleInfo = useTranslations('TempleInfo');
+
 
   const closeMobileMenu = useCallback(() => {
     dispatch({ type: "CLOSE_MOBILE_MENU" });
@@ -68,7 +74,7 @@ export function Navbar() {
             href="/"
             className="group flex items-center gap-3"
             onClick={closeMobileMenu}
-            aria-label={siteConfig.shortName}
+            aria-label={tTempleInfo('shortName')}
           >
             <div
               className={cn(
@@ -80,21 +86,21 @@ export function Navbar() {
             >
               <Image
                 src="/logo-dark.png"
-                alt={siteConfig.shortName}
+                alt={tTempleInfo('shortName')}
                 width={40}
                 height={40}
                 className="object-contain rounded-full transition-transform duration-300 group-hover:scale-105"
               />
             </div>
             <div className="hidden sm:block">
-              
+
               <p
                 className={cn(
                   "font-heading text-sm font-semibold md:text-base transition-colors duration-300",
                   isDarkOnTop ? "text-white" : "text-[#1A1C1C]"
                 )}
               >
-                {siteConfig.shortName}
+                {tTempleInfo('shortName')}
               </p>
             </div>
           </Link>
@@ -113,31 +119,22 @@ export function Navbar() {
                       ? "text-white/80 hover:bg-white/10 hover:text-white"
                       : "text-[#4D4635] hover:bg-[#FFFFFF] hover:text-[#735C00]",
                     isActive &&
-                      (isDarkOnTop
-                        ? "bg-white/12 text-white"
-                        : "bg-[#FFF8E1] text-[#735C00]")
+                    (isDarkOnTop
+                      ? "bg-white/12 text-white"
+                      : "bg-[#FFF8E1] text-[#735C00]")
                   )}
                   onClick={closeMobileMenu}
                 >
-                  {item.label}
+                  {t(`links.${item.id}`)}
                 </Link>
               );
             })}
           </nav>
 
           <div className="flex items-center gap-2">
-            <a
-              href={`tel:${siteConfig.contact.phone}`}
-              className={cn(
-                "hidden items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 lg:inline-flex",
-                isDarkOnTop
-                  ? "border-white/15 bg-white/8 text-white/85 hover:bg-white/12"
-                  : "border-[#D4AF37]/20 bg-white text-[#4D4635] hover:border-[#D4AF37]/40 hover:text-[#735C00]"
-              )}
-            >
-              <Phone className="h-4 w-4" />
-              Call Temple
-            </a>
+            
+
+            <LanguageToggler isDarkOnTop={isDarkOnTop} />
 
             <button
               id="mobile-menu-toggle"
@@ -188,18 +185,18 @@ export function Navbar() {
         >
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3" onClick={closeMobileMenu}>
-              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#F4C430] shadow-[0_10px_24px_rgba(212,175,55,0.22)]">
+              <div className="flex  items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#F4C430] shadow-[0_10px_24px_rgba(212,175,55,0.22)]">
                 <Image
                   src="/logo-dark.png"
-                  alt={siteConfig.shortName}
+                  alt={tTempleInfo('shortName')}
                   width={34}
                   height={34}
-                  className="object-contain"
+                  className="object-contain rounded-full transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
               <div>
                 <p className="font-heading text-sm font-semibold text-[#1A1C1C]">
-                  {siteConfig.shortName}
+                  {tTempleInfo('shortName')}
                 </p>
               </div>
             </Link>
@@ -214,7 +211,7 @@ export function Navbar() {
             </button>
           </div>
 
-          
+
 
           <nav className="mt-8 flex flex-1 flex-col gap-3 overflow-y-auto pr-1" aria-label="Mobile primary">
             {mainNavItems.map((item, index) => {
@@ -234,7 +231,9 @@ export function Navbar() {
                   )}
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <span className="font-heading text-xl font-semibold">{item.label}</span>
+                  <span className="font-heading text-xl font-semibold">
+                    {t(`links.${item.id}`)}
+                  </span>
                 </Link>
               );
             })}
@@ -246,14 +245,14 @@ export function Navbar() {
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1A1C1C] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#2A2C2C]"
             >
               <Phone className="h-4 w-4" />
-              Call temple
+              {t('callTemple')}
             </a>
             <Link
               href="/contact"
               onClick={closeMobileMenu}
               className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D4AF37]/20 bg-white px-5 py-3 text-sm font-medium text-[#4D4635] transition-colors hover:border-[#D4AF37]/35 hover:text-[#735C00]"
             >
-              Visit us
+              {t('visitUs')}
             </Link>
           </div>
         </aside>
