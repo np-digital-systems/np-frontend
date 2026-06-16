@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import {Link} from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { Menu, Phone, X } from "lucide-react";
 import { mainNavItems } from "@/config/navigation";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useScroll } from "@/hooks/use-scroll";
 import { useUI } from "@/store/ui.store";
 import { useTranslations } from 'next-intl';
+import { LanguageToggler } from "@/components/language-toggler";
 
 export function Navbar() {
   const { state, dispatch } = useUI();
@@ -131,18 +132,9 @@ export function Navbar() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <a
-              href={`tel:${siteConfig.contact.phone}`}
-              className={cn(
-                "hidden items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 lg:inline-flex",
-                isDarkOnTop
-                  ? "border-white/15 bg-white/8 text-white/85 hover:bg-white/12"
-                  : "border-[#D4AF37]/20 bg-white text-[#4D4635] hover:border-[#D4AF37]/40 hover:text-[#735C00]"
-              )}
-            >
-              <Phone className="h-4 w-4" />
-              {t('callTemple')}
-            </a>
+            
+
+            <LanguageToggler isDarkOnTop={isDarkOnTop} />
 
             <button
               id="mobile-menu-toggle"
@@ -193,13 +185,13 @@ export function Navbar() {
         >
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3" onClick={closeMobileMenu}>
-              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#F4C430] shadow-[0_10px_24px_rgba(212,175,55,0.22)]">
+              <div className="flex  items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#F4C430] shadow-[0_10px_24px_rgba(212,175,55,0.22)]">
                 <Image
                   src="/logo-dark.png"
                   alt={tTempleInfo('shortName')}
                   width={34}
                   height={34}
-                  className="object-contain"
+                  className="object-contain rounded-full transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
               <div>
