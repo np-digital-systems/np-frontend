@@ -1,11 +1,18 @@
 {
   "Navbar": {
-    "home": "Home",
-    "events": "Events",
-    "contact": "Contact"
+    "links": {
+      "home": "Home",
+      "about": "About",
+      "events": "Events",
+      "gallery": "Gallery",
+      "contact": "Contact"
+    },
+    "callTemple":"Call Temple",
+    "visitUs":"Visit us"
   },
   "TempleInfo": {
     "name": "Mallakam Neeliyampanai Pillaiyar Kovil",
+    "shortName": "Neeliyampanai Pillaiyar Kovil",
     "tagline": "Where Faith Meets Eternity & Divine Grace Awaits Every Seeker",
     "aboutTitle": "Spiritual Legacy &\nTimeless Devotion",
     "aboutDescription": "Founded on the sacred grounds of Mallakam in the Jaffna peninsula, the Neeliyampathi Pillaiyar Kovil stands as a beacon of spiritual heritage and devotion. Our temple is a sacred sanctuary where the divine presence of Lord Pillaiyar blesses all who enter through its hallowed archway.",
