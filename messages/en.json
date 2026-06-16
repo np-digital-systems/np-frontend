@@ -1,0 +1,11 @@
+{
+  "Navbar": {
+    "home": "Home",
+    "events": "Events",
+    "contact": "Contact"
+  },
+  "Hero": {
+    "title": "Welcome to our Sacred Space",
+    "subtitle": "Join our upcoming spiritual events and pujas."
+  }
+}
