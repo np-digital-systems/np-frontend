@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
-import {NextIntlClientProvider} from 'next-intl';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { Providers } from "./providers";
 import "../globals.css";
 
@@ -43,21 +44,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+
+export default async function RootLayout({
   children,
   params
 }: Readonly<{
   children: React.ReactNode;
   params: { locale: string };
 }>) {
+
+  const locale = params.locale;
+
+  const messages = await getMessages();
+
   return (
     <html
-      lang="ta"
+      lang={locale}
       className={`${inter.variable} ${playfair.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
       </body>
