@@ -1,12 +1,20 @@
+// src/proxy.ts
 import createMiddleware from 'next-intl/middleware';
-import { locales } from './i18n/request';
+import { routing } from './i18n/routing';
 
-export default createMiddleware({
-  locales: locales,      // ['en', 'ta']
-  defaultLocale: 'ta',  // Fallback language
-  localeDetection: false
-});
+// 1. Next.js 16 Rule: Must create the handler instance
+const handleI18nRouting = createMiddleware(routing);
 
+// 2. Next.js 16 Rule: The exported function MUST be named 'proxy'
+export function proxy(request: any) {
+  return handleI18nRouting(request);
+}
+
+// 3. Keep your request routing paths clean
 export const config = {
-  matcher: ['/', '/(en|ta)/:path*', '/((?!_next|_vercel|.*\\..*).*)']
+  matcher: [
+    '/', 
+    '/(en|ta)/:path*',
+    '/((?!_next|_vercel|.*\\..*).*)'
+  ]
 };
