@@ -21,6 +21,7 @@
   },
   "Hero": {
     "locateUs": "Locate Us",
-    "upcomingEvents": "Upcoming Events"
+    "upcomingEvents": "Upcoming Events",
+    "explore": "Explore"
   }
 }

@@ -65,7 +65,7 @@ export function HeroSection() {
       {/* Scroll Indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-bounce">
         <span className="text-white/50 text-xs font-sans tracking-wider uppercase">
-          Explore
+          {tHero('explore')}
         </span>
         <ChevronDown className="w-5 h-5 text-white/50" />
       </div>
