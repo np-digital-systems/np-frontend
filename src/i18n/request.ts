@@ -1,19 +1,19 @@
+// src/i18n/request.ts
 import { getRequestConfig } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-
-export const locales = [ 'ta','en'] as const;
-
-export type Locale = (typeof locales)[number]; 
+import { routing } from './routing';
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  const locale = await requestLocale;
+  // Await the parameter injected by the Next.js router
+  let locale = await requestLocale;
 
-  if (!locale || !locales.includes(locale as Locale)) {
-    notFound();
+  // Professional Guard: If Next.js runs this during build time, 
+  // requestLocale is empty. We gracefully assign the official default.
+  if (!locale || !routing.locales.includes(locale as any)) {
+    locale = routing.defaultLocale;
   }
 
   return {
-    locale: locale as Locale,
+    locale,
     messages: (await import(`../../messages/${locale}.json`)).default
   };
 });
