@@ -7,8 +7,8 @@
       "gallery": "Gallery",
       "contact": "Contact"
     },
-    "callTemple":"Call Temple",
-    "visitUs":"Visit us"
+    "callTemple": "Call Temple",
+    "visitUs": "Visit us"
   },
   "TempleInfo": {
     "name": "Mallakam Neeliyampanai Pillaiyar Kovil",
@@ -19,9 +19,15 @@
     "aboutQuote": "Like a lotus of Realised divine glory of Ganapathy – Mallakam temple is a spiritual fortress that has stood the test of time, nurturing generations of devotees.",
     "history": "With centuries of unbroken tradition, this temple has been the spiritual heart of Mallakam, witnessing and nurturing the faith of countless families across generations."
   },
-  "Hero": {
-    "locateUs": "Locate Us",
-    "upcomingEvents": "Upcoming Events",
-    "explore": "Explore"
+  "Home": {
+    "Hero": {
+      "locateUs": "Locate Us",
+      "upcomingEvents": "Upcoming Events",
+      "explore": "Explore"
+    },
+    "About": {
+      "aboutOurTemple": "About Our Temple",
+      "discoverOurHistory": "Discover Our History"
+    }
   }
 }
