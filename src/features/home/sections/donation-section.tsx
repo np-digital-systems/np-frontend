@@ -3,8 +3,10 @@ import { PageContainer } from "@/components/common/page-container";
 import { SectionHeader } from "@/components/common/section-header";
 import { DonationCard } from "../components/donation-card";
 import { DONATION_TIERS } from "../constants/temple-info";
+import {useTranslations} from "next-intl";
 
 export function DonationSection() {
+  const tDonation=useTranslations("Home.Donation");
   return (
     <PageContainer id="donation-section" className="bg-white relative overflow-hidden">
       {/* Subtle background pattern */}
@@ -21,9 +23,9 @@ export function DonationSection() {
 
       <div className="relative z-10">
         <SectionHeader
-          subtitle="Give with Grace"
-          title="Support Our Sanctuary"
-          description="Your generous contributions directly support the maintenance of our historic temple, fund community programs, and help preserve our spiritual heritage for future generations."
+          subtitle={tDonation("subtitle")}
+          title={tDonation("title")}
+          description={tDonation("description")}
         />
 
         {/* Central temple image */}
@@ -39,7 +41,7 @@ export function DonationSection() {
             {/* Glass overlay card */}
             <div className="absolute inset-x-4 bottom-4 p-4 rounded-xl bg-white/90 backdrop-blur-md shadow-lg">
               <p className="text-center text-sm font-heading font-semibold text-[#735C00]">
-                Every offering is a prayer
+                {tDonation("tag")}
               </p>
             </div>
           </div>

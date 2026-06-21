@@ -47,6 +47,12 @@
       "title":"Sacred Moments",
       "description":"Glimpses of divine celebrations, sacred rituals, and the timeless beauty of our temple grounds.",
       "viewAll":"View Full Gallery"
+    },
+    "Donation":{
+      "subtitle":"Give with Grace",
+      "title":"Support Our Sanctuary",
+      "description":"Your generous contributions directly support the maintenance of our historic temple, fund community programs, and help preserve our spiritual heritage for future generations.",
+      "tag":"Every offering is a prayer"
     }
   }
 }
