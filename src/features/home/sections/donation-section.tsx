@@ -4,11 +4,13 @@ import { SectionHeader } from "@/components/common/section-header";
 import { DonationCard } from "../components/donation-card";
 import { DONATION_TIERS } from "../constants/temple-info";
 import { useLocale, useTranslations } from "next-intl";
+import {type Locale} from "@/i18n/routing";
+
 
 export function DonationSection() {
   const tDonation = useTranslations("Home.Donation");
 
-  const locale = useLocale() as 'en' | 'ta';
+  const locale = useLocale() as Locale;
   const currentTiers = DONATION_TIERS[locale] || DONATION_TIERS.ta;
   return (
     <PageContainer id="donation-section" className="bg-white relative overflow-hidden">

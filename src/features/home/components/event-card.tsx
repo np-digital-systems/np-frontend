@@ -49,14 +49,14 @@ export function EventCard({ event, className }: EventCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
         {/* Category Badge */}
-        <span
+        {/* <span
           className={cn(
             "absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider",
             categoryStyles[event.category] || categoryStyles.special
           )}
         >
           {event.category}
-        </span>
+        </span> */}
       </div>
 
       {/* Content */}
