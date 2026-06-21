@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageContainer } from "@/components/common/page-container";
 import { SpiritualDivider } from "@/components/common/spiritual-divider";
-import { TEMPLE_INFO, TEMPLE_STATS } from "../constants/temple-info";
+import { TEMPLE_STATS } from "../constants/temple-info";
 import { TempleStat } from "../components/temple-stat";
 import { useTranslations } from 'next-intl';
 
@@ -83,7 +83,7 @@ const tTemple = useTranslations('TempleInfo');
           <TempleStat
             key={stat.label}
             value={stat.value}
-            label={stat.label}
+            label={tTemple(`stats.${stat.id}`)}
             icon={stat.icon}
             className={`delay-${(index + 1) * 100}`}
           />
