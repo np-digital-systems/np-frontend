@@ -60,12 +60,7 @@ export function DonationSection() {
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center mt-12 reveal">
-          <p className="text-sm text-[#7F7663] font-sans">
-            All donations are eligible for tax deductions under Section 80G.
-          </p>
-        </div>
+  
       </div>
     </PageContainer>
   );

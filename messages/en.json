@@ -41,6 +41,12 @@
       "discription": "Join us in celebrating sacred festivals and special pujas that connect our community in divine worship.",
       "viewAll": "View All Events",
       "details": "Details"
+    },
+    "Gallery":{
+      "subtitle":"Photo Gallery",
+      "title":"Sacred Moments",
+      "description":"Glimpses of divine celebrations, sacred rituals, and the timeless beauty of our temple grounds.",
+      "viewAll":"View Full Gallery"
     }
   }
 }
