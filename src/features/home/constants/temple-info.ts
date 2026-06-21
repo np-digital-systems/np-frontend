@@ -12,21 +12,25 @@ export const TEMPLE_INFO = {
 
 export const TEMPLE_STATS = [
   {
+    id: "heritage",
     value: "500+",
     label: "Years of Heritage",
     icon: "🏛️",
   },
   {
-    value: "10,000+",
+    id: "devotees",
+    value: "1000+",
     label: "Annual Devotees",
     icon: "🙏",
   },
   {
-    value: "50+",
+    id: "festivals",
+    value: "100+",
     label: "Annual Festivals",
-    icon: "🎆",
+    icon: "🛕",
   },
   {
+    id: "worship",
     value: "365",
     label: "Days of Worship",
     icon: "🕉️",
