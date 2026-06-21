@@ -1,4 +1,3 @@
-// src/proxy.ts
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { type NextRequest } from 'next/server';
@@ -7,7 +6,7 @@ import { type NextRequest } from 'next/server';
 const handleI18nRouting = createMiddleware(routing);
 
 // 2. Next.js 16 Rule: The exported function MUST be named 'proxy'
-export function proxy(request: NextRequest) {
+export default function middleware(request: NextRequest) {
   return handleI18nRouting(request);
 }
 
