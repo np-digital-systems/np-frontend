@@ -34,6 +34,13 @@
     "About": {
       "aboutOurTemple": "About Our Temple",
       "discoverOurHistory": "Discover Our History"
+    },
+    "Events":{
+      "title": "Spiritual Gatherings",
+      "subtitle": "JSacred Calendar of Devotion",
+      "discription": "Join us in celebrating sacred festivals and special pujas that connect our community in divine worship.",
+      "viewAll": "View All Events",
+      "details": "Details"
     }
   }
 }
