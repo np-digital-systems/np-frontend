@@ -3,10 +3,13 @@ import { PageContainer } from "@/components/common/page-container";
 import { SectionHeader } from "@/components/common/section-header";
 import { DonationCard } from "../components/donation-card";
 import { DONATION_TIERS } from "../constants/temple-info";
-import {useTranslations} from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 export function DonationSection() {
-  const tDonation=useTranslations("Home.Donation");
+  const tDonation = useTranslations("Home.Donation");
+
+  const locale = useLocale() as 'en' | 'ta';
+  const currentTiers = DONATION_TIERS[locale] || DONATION_TIERS.ta;
   return (
     <PageContainer id="donation-section" className="bg-white relative overflow-hidden">
       {/* Subtle background pattern */}
@@ -49,7 +52,7 @@ export function DonationSection() {
 
         {/* Donation Tiers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start reveal">
-          {DONATION_TIERS.map((tier, index) => (
+          {currentTiers.map((tier, index) => (
             <DonationCard
               key={tier.id}
               title={tier.title}
@@ -62,7 +65,7 @@ export function DonationSection() {
           ))}
         </div>
 
-  
+
       </div>
     </PageContainer>
   );
