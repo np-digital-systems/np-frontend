@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TempleEvent } from "../types/event.types";
+import {useTranslations} from "next-intl";
 
 interface EventCardProps {
   event: TempleEvent;
@@ -23,7 +24,11 @@ export function EventCard({ event, className }: EventCardProps) {
     monthly: "bg-[#F3E5F5] text-[#6A1B9A]",
   };
 
+   const tEvents=useTranslations("Home.Events");
+
+
   return (
+
     <div
       className={cn(
         "group bg-white rounded-2xl overflow-hidden transition-all duration-500",
@@ -77,17 +82,17 @@ export function EventCard({ event, className }: EventCardProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <Link
+          {/* <Link
             href={`/events/${event.id}`}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#FAF9F6] text-sm font-semibold text-[#735C00] hover:bg-[#D4AF37] hover:text-white transition-all duration-300"
           >
             Details
-          </Link>
+          </Link> */}
           <Link
             href={`/events/${event.id}#register`}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-sm font-semibold text-white hover:shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-all duration-300"
           >
-            Join
+            {tEvents("details")}
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
