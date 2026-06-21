@@ -15,15 +15,15 @@ export const mainNavItems: NavItem[] = [
 
 export const footerNavItems = {
   quickLinks: [
-    { label: "About Temple", href: "/about" },
-    { label: "Upcoming Events", href: "/events" },
-    { label: "Photo Gallery", href: "/gallery" },
-    { label: "Contact Us", href: "/contact" },
+    { id: "about", label: "About Temple", href: "/about" },
+    { id: "events", label: "Upcoming Events", href: "/events" },
+    { id: "gallery", label: "Photo Gallery", href: "/gallery" },
+    { id: "contact", label: "Contact Us", href: "/contact" },
   ],
   services: [
-    { label: "Puja Booking", href: "/bookings" },
-    { label: "Donations", href: "/donations" },
-    { label: "Notices", href: "/notices" },
-    { label: "Temple Calendar", href: "/events" },
+    { id: "puja", label: "Puja Booking", href: "/bookings" },
+    { id: "donations", label: "Donations", href: "/donations" },
+    { id: "notices", label: "Notices", href: "/notices" },
+    { id: "calendar", label: "Temple Calendar", href: "/events" },
   ],
 } as const;
