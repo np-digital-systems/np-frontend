@@ -70,14 +70,14 @@ export function Footer() {
               <div className="flex items-center justify-center rounded-full">
                 <Image
                   src="/logo-light.png"
-                  alt={siteConfig.shortName}
+                  alt={tTempleInfo("shortName")}
                   width={48}
                   height={48}
                   className="object-contain rounded-full"
                 />
               </div>
               <h3 className="font-heading text-lg font-semibold text-white">
-                {siteConfig.shortName}
+                {tTempleInfo("shortName")}
               </h3>
             </div>
             <p className="text-sm text-white/60 leading-relaxed mb-6">
