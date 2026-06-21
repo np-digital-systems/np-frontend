@@ -4,9 +4,13 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { footerNavItems } from "@/config/navigation";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+
+  const tFooter = useTranslations("Footer");
+  const tTempleInfo = useTranslations("TempleInfo");
 
   const socialMediaIcons: Record<string, React.ReactNode> = {
     facebook: (
@@ -77,8 +81,7 @@ export function Footer() {
               </h3>
             </div>
             <p className="text-sm text-white/60 leading-relaxed mb-6">
-              A sacred sanctuary of spirituality, tradition, and timeless
-              devotion in the heart of Mallakam.
+              {tFooter("description")}
             </p>
             <div className="flex gap-4">
               {Object.entries(siteConfig.links).map(([name, url]) => (
@@ -102,7 +105,7 @@ export function Footer() {
           {/* Quick Links */}
           <div>
             <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
-              Quick Links
+              {tFooter("quickLinks")}
             </h4>
             <ul className="space-y-3">
               {footerNavItems.quickLinks.map((item) => (
@@ -111,7 +114,7 @@ export function Footer() {
                     href={item.href}
                     className="text-sm text-white/60 hover:text-[#D4AF37] transition-colors duration-300"
                   >
-                    {item.label}
+                    {tFooter(`links.${item.id}`)}
                   </Link>
                 </li>
               ))}
@@ -121,7 +124,7 @@ export function Footer() {
           {/* Services */}
           <div>
             <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
-              Services
+              {tFooter("services")}
             </h4>
             <ul className="space-y-3">
               {footerNavItems.services.map((item) => (
@@ -130,7 +133,7 @@ export function Footer() {
                     href={item.href}
                     className="text-sm text-white/60 hover:text-[#D4AF37] transition-colors duration-300"
                   >
-                    {item.label}
+                    {tFooter(`links.${item.id}`)}
                   </Link>
                 </li>
               ))}
@@ -140,12 +143,12 @@ export function Footer() {
           {/* Contact Info */}
           <div>
             <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
-              Visit Us
+              {tFooter("contactInfo")}
             </h4>
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-white/60">
                 <MapPin className="w-4 h-4 text-[#D4AF37] mt-0.5 shrink-0" />
-                {siteConfig.contact.address}
+                {tTempleInfo("address")}
               </li>
               <li className="flex items-center gap-3 text-sm text-white/60">
                 <Phone className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -168,9 +171,9 @@ export function Footer() {
               <li className="flex items-start gap-3 text-sm text-white/60">
                 <Clock className="w-4 h-4 text-[#D4AF37] mt-0.5 shrink-0" />
                 <div>
-                  <p>{siteConfig.templeHours.morning}</p>
-                  <p>{siteConfig.templeHours.afternoon}</p>
-                  <p>{siteConfig.templeHours.evening}</p>
+                  <p>{tTempleInfo("templeHours.morning")}</p>
+                  <p>{tTempleInfo("templeHours.afternoon")}</p>
+                  <p>{tTempleInfo("templeHours.evening")}</p>
                 </div>
               </li>
             </ul>
