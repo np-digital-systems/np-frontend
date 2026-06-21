@@ -4,11 +4,15 @@ import { PageContainer } from "@/components/common/page-container";
 import { SectionHeader } from "@/components/common/section-header";
 import { EventCard } from "../components/event-card";
 import { FEATURED_EVENTS } from "../constants/events";
-import {useTranslations} from "next-intl";
+import {useLocale, useTranslations} from "next-intl";
+import {type Locale} from "@/i18n/routing";
 
 export function EventsSection() {
 
   const tEvents=useTranslations("Home.Events");
+
+  const locale = useLocale() as Locale;
+  const currentEvents = FEATURED_EVENTS[locale] || FEATURED_EVENTS.ta;
 
 
   return (
@@ -20,7 +24,7 @@ export function EventsSection() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 reveal">
-        {FEATURED_EVENTS.map((event, index) => (
+        {currentEvents.map((event, index) => (
           <EventCard
             key={event.id}
             event={event}
