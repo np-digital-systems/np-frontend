@@ -18,11 +18,17 @@
     "aboutDescription": "Founded on the sacred grounds of Mallakam in the Jaffna peninsula, the Neeliyampathi Pillaiyar Kovil stands as a beacon of spiritual heritage and devotion. Our temple is a sacred sanctuary where the divine presence of Lord Pillaiyar blesses all who enter through its hallowed archway.",
     "aboutQuote": "Like a lotus of Realised divine glory of Ganapathy – Mallakam temple is a spiritual fortress that has stood the test of time, nurturing generations of devotees.",
     "history": "With centuries of unbroken tradition, this temple has been the spiritual heart of Mallakam, witnessing and nurturing the faith of countless families across generations.",
-    "stats":{
+    "address": "Neeliyampanai, Mallakam, Jaffna, Sri Lanka",
+    "stats": {
       "heritage": "500+ Years of Heritage",
       "devotees": "1000+ Annual Devotees",
       "festivals": "100+ Annual Festivals",
       "worship": "365 Days of Worship"
+    },
+    "templeHours": {
+      "morning": "06:30 AM – 08:00 AM",
+      "afternoon": "12:00 PM – 01:00 PM",
+      "evening": "06:00 PM – 07:00 PM"
     }
   },
   "Home": {
@@ -35,25 +41,39 @@
       "aboutOurTemple": "About Our Temple",
       "discoverOurHistory": "Discover Our History"
     },
-    "Events":{
+    "Events": {
       "title": "Spiritual Gatherings",
       "subtitle": "JSacred Calendar of Devotion",
       "discription": "Join us in celebrating sacred festivals and special pujas that connect our community in divine worship.",
       "viewAll": "View All Events",
       "details": "Details"
     },
-    "Gallery":{
-      "subtitle":"Photo Gallery",
-      "title":"Sacred Moments",
-      "description":"Glimpses of divine celebrations, sacred rituals, and the timeless beauty of our temple grounds.",
-      "viewAll":"View Full Gallery"
+    "Gallery": {
+      "subtitle": "Photo Gallery",
+      "title": "Sacred Moments",
+      "description": "Glimpses of divine celebrations, sacred rituals, and the timeless beauty of our temple grounds.",
+      "viewAll": "View Full Gallery"
     },
-    "Donation":{
-      "subtitle":"Give with Grace",
-      "title":"Support Our Sanctuary",
-      "description":"Your generous contributions directly support the maintenance of our historic temple, fund community programs, and help preserve our spiritual heritage for future generations.",
-      "tag":"Every offering is a prayer",
-      "donateNow":"Donate Now"
+    "Donation": {
+      "subtitle": "Give with Grace",
+      "title": "Support Our Sanctuary",
+      "description": "Your generous contributions directly support the maintenance of our historic temple, fund community programs, and help preserve our spiritual heritage for future generations.",
+      "tag": "Every offering is a prayer",
+      "donateNow": "Donate Now"
+    },
+    "Contact": {
+      "subtitle": "Find Us",
+      "title": "Visit Our Sacred Grounds",
+      "description": "We welcome all devotees and visitors to experience the divine presence of Lord Pillaiyar.",
+      "visitUs": "Visit Us",
+      "templeAddress": "Temple Address",
+      "Phone": "Phone",
+      "Email": "Email",
+      "templeHours": "Temple Hours",
+      "getDirections": "Get Directions",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
     }
   }
 }
