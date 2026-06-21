@@ -10,6 +10,23 @@
     "callTemple": "Call Temple",
     "visitUs": "Visit us"
   },
+  "Footer":{
+    "description": "A sacred sanctuary of spirituality, tradition, and timeless devotion in the heart of Mallakam.",
+    "links":{
+      "about":"About",
+      "events":"Events",
+      "gallery":"Gallery",
+      "contact":"Contact",
+      "puja":"Puja Booking",
+      "donations":"Donations",
+      "notices":"Notices",
+      "calendar":"Temple Calendar"
+    },
+    "quickLinks":"Quick Links",
+    "services":"Services",
+    "visitUs":"Visit Us"
+
+  },
   "TempleInfo": {
     "name": "Mallakam Neeliyampanai Pillaiyar Kovil",
     "shortName": "Neeliyampanai Pillaiyar Kovil",
