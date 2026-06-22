@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface DonationCardProps {
   title: string;
@@ -18,6 +19,8 @@ export function DonationCard({
   isFeatured,
   className,
 }: DonationCardProps) {
+
+  const tDonation=useTranslations("Home.Donation");
   return (
     <div
       className={cn(
@@ -29,11 +32,11 @@ export function DonationCard({
         className
       )}
     >
-      {isFeatured && (
+      {/* {isFeatured && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-xs font-bold text-white uppercase tracking-wider shadow-lg">
           Most Popular
         </span>
-      )}
+      )} */}
 
       <h3
         className={cn(
@@ -44,17 +47,7 @@ export function DonationCard({
         {title}
       </h3>
 
-      <div className="mb-4">
-        <span
-          className={cn(
-            "text-3xl font-heading font-bold",
-            isFeatured ? "text-[#F4C430]" : "text-[#D4AF37]"
-          )}
-        >
-          {amount}
-        </span>
-      </div>
-
+     
       <p
         className={cn(
           "text-sm leading-relaxed mb-6",
@@ -88,7 +81,7 @@ export function DonationCard({
             : "bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white hover:shadow-[0_4px_16px_rgba(212,175,55,0.3)]"
         )}
       >
-        Donate Now
+        {tDonation("donateNow")}
       </button>
     </div>
   );

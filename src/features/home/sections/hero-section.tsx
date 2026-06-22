@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 export function HeroSection() {
 
   const t = useTranslations('TempleInfo');  
-  const tHero = useTranslations('Hero');
+  const tHero = useTranslations('Home.Hero');
   return (
     <section
       id="hero-section"

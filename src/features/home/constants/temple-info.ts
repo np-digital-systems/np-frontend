@@ -12,48 +12,53 @@ export const TEMPLE_INFO = {
 
 export const TEMPLE_STATS = [
   {
+    id: "heritage",
     value: "500+",
     label: "Years of Heritage",
     icon: "🏛️",
   },
   {
-    value: "10,000+",
+    id: "devotees",
+    value: "1000+",
     label: "Annual Devotees",
     icon: "🙏",
   },
   {
-    value: "50+",
+    id: "festivals",
+    value: "100+",
     label: "Annual Festivals",
-    icon: "🎆",
+    icon: "🛕",
   },
   {
+    id: "worship",
     value: "365",
     label: "Days of Worship",
     icon: "🕉️",
   },
 ] as const;
 
-export const DONATION_TIERS = [
+export const DONATION_TIERS_EN = [
   {
     id: "seva",
     title: "Seva Contribution",
     amount: "Rs. 500",
     description:
       "Support daily temple operations and maintenance of sacred grounds.",
-    features: ["Daily Puja Offering", "Name in Prayer List", "Monthly Updates"],
-    isFeatured: false,
+    features: ["Daily Puja Offering", "Name in Prayer List", "Monthly Updates", "Annual Report", "Tax Receipt"],
+    isFeatured: true,
   },
   {
-    id: "annadhanam",
-    title: "Annadhanam",
+    id: "gopuram",
+    title: "Gopuram Thirupani",
     amount: "Rs. 2,500",
     description:
-      "Sponsor a meal service for devotees and visitors to the temple.",
+      "Contribute to the upkeep and beautification of our temple's iconic gopuram.",
     features: [
-      "Feed 100+ Devotees",
-      "Special Prayer Dedication",
-      "Commemorative Certificate",
-      "Annual Report",
+      "Gopuram Dedication",
+      "Name on Donor Plaque",
+      "Exclusive Gopuram Tour",
+      "Annual Festival Invite",
+      "Tax Deduction Receipt",
     ],
     isFeatured: true,
   },
@@ -73,3 +78,56 @@ export const DONATION_TIERS = [
     isFeatured: true,
   },
 ] as const;
+
+export const DONATION_TIERS_TA = [
+  {
+    id: "seva",
+    title: "சேவைப் பங்களிப்பு",
+    amount: "ரூ. 500",
+    description:
+      "தினசரி கோயில் செயல்பாடுகள் மற்றும் புனித வளாகத்தின் பராமரிப்பிற்கு ஆதரவளியுங்கள்.",
+    features: [
+      "தினசரி பூஜை வழிபாடு",
+      "பிரார்த்தனைப் பட்டியலில் பெயர்",
+      "மாதாந்திர அறிவிப்புகள்",
+      "ஆண்டு அறிக்கை",
+      "வரி ரசீது"
+    ],
+    isFeatured: true,
+  },
+  {
+    id: "gopuram",
+    title: "கோபுர திருப்பணி",
+    amount: "ரூ. 2,500",
+    description:
+      "எங்கள் கோயிலின் சின்னமான கோபுரத்தின் பராமரிப்பு மற்றும் அழகுபடுத்தலுக்குப் பங்களிக்கவும்.",
+    features: [
+      "கோபுர சமர்ப்பணம்",
+      "நன்கொடையாளர் பலகையில் பெயர்",
+      "பிரத்தியேக கோபுர உலா",
+      "ஆண்டு திருவிழா அழைப்பு",
+      "வரி விலக்கு ரசீது"
+    ],
+    isFeatured: true,
+  },
+  {
+    id: "restoration",
+    title: "கோயில் புனரமைப்பு",
+    amount: "ரூ. 10,000",
+    description:
+      "எங்கள் பழமையான கோயிலின் பாதுகாப்பு மற்றும் புனரமைப்பிற்குப் பங்களிக்கவும்.",
+    features: [
+      "புனரமைப்பு நிதி",
+      "நன்கொடையாளர் அங்கீகார சுவர்",
+      "சிறப்பு தரிசன அனுமதி",
+      "ஆண்டு விழா அழைப்பு",
+      "வரி விலக்கு ரசீது"
+    ],
+    isFeatured: true,
+  },
+] as const;
+
+export const DONATION_TIERS = {
+  en: DONATION_TIERS_EN,
+  ta: DONATION_TIERS_TA,
+} as const;

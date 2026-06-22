@@ -3,10 +3,16 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageContainer } from "@/components/common/page-container";
 import { SpiritualDivider } from "@/components/common/spiritual-divider";
-import { TEMPLE_INFO, TEMPLE_STATS } from "../constants/temple-info";
+import { TEMPLE_STATS } from "../constants/temple-info";
 import { TempleStat } from "../components/temple-stat";
+import { useTranslations } from 'next-intl';
+
+
 
 export function AboutSection() {
+const t = useTranslations('Home.About');
+const tTemple = useTranslations('TempleInfo');
+
   return (
     <PageContainer id="about-section" className="bg-[#FAF9F6]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -41,21 +47,21 @@ export function AboutSection() {
         {/* Right: Content */}
         <div className="reveal-right">
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#D4AF37] mb-4 font-sans">
-            About Our Temple
+            {t('aboutOurTemple')}
           </p>
 
           <h2 className="font-heading text-3xl md:text-4xl lg:text-[48px] font-semibold text-[#1A1C1C] leading-[1.2] mb-6 whitespace-pre-line">
-            {TEMPLE_INFO.aboutTitle}
+            {tTemple('aboutTitle')}
           </h2>
 
           <p className="text-base md:text-lg text-[#4D4635] leading-relaxed mb-6 font-sans">
-            {TEMPLE_INFO.aboutDescription}
+            {tTemple('aboutDescription')}
           </p>
 
           {/* Sacred Quote */}
           <blockquote className="border-l-3 border-[#D4AF37] pl-5 my-8">
             <p className="font-heading text-lg md:text-xl text-[#4D4635] italic leading-relaxed">
-              &ldquo;{TEMPLE_INFO.aboutQuote}&rdquo;
+              &ldquo;{tTemple('aboutQuote')}&rdquo;
             </p>
           </blockquote>
 
@@ -65,7 +71,7 @@ export function AboutSection() {
             href="/about"
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#D4AF37] hover:text-[#735C00] transition-colors duration-300 group mt-4"
           >
-            Discover Our History
+            {t('discoverOurHistory')}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>
@@ -77,7 +83,7 @@ export function AboutSection() {
           <TempleStat
             key={stat.label}
             value={stat.value}
-            label={stat.label}
+            label={tTemple(`stats.${stat.id}`)}
             icon={stat.icon}
             className={`delay-${(index + 1) * 100}`}
           />
