@@ -97,5 +97,14 @@
   "About":{
     "title":"About Our Temple",
     "subtitle":"A journey through centuries of devotion and spiritual heritage"
+  },
+   "Events":{
+    "title":"Spiritual Gatherings",
+    "subtitle":"Sacred ceremonies and festivals that unite our community in devotion",
+    "section1":{
+      "title":"Temple Calendar",
+      "subtitle":"Upcoming events and Sacred ceremonies",
+      "description":"Discover upcoming spiritual gatherings, festivals, and sacred ceremonies at Neeliyampathi Pillaiyar Kovil."
+    }
   }
 }
