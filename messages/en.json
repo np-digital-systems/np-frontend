@@ -93,5 +93,9 @@
       "afternoon": "Afternoon",
       "evening": "Evening"
     }
+  },
+  "About":{
+    "title":"About Our Temple",
+    "subtitle":"A journey through centuries of devotion and spiritual heritage"
   }
 }
