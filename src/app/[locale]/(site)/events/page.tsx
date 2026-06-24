@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     "Discover upcoming spiritual gatherings, festivals, and sacred ceremonies at Neeliyampathi Pillaiyar Kovil.",
 };
 
+const currentEvents = FEATURED_EVENTS.en
+
+
 export default function EventsPage() {
   return (
     <>
@@ -42,7 +45,7 @@ export default function EventsPage() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {FEATURED_EVENTS.map((event) => (
+          {currentEvents.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>

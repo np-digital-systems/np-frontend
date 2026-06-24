@@ -13,7 +13,7 @@ interface DonationCardProps {
 
 export function DonationCard({
   title,
-  amount,
+  // amount,
   description,
   features,
   isFeatured,

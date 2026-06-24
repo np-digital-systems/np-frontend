@@ -17,12 +17,12 @@ export function EventCard({ event, className }: EventCardProps) {
     year: "numeric",
   });
 
-  const categoryStyles: Record<string, string> = {
-    puja: "bg-[#FFF3E0] text-[#E65100]",
-    festival: "bg-[#FDE8E4] text-[#8B0000]",
-    special: "bg-[#FFF8E1] text-[#735C00]",
-    monthly: "bg-[#F3E5F5] text-[#6A1B9A]",
-  };
+  // const categoryStyles: Record<string, string> = {
+  //   puja: "bg-[#FFF3E0] text-[#E65100]",
+  //   festival: "bg-[#FDE8E4] text-[#8B0000]",
+  //   special: "bg-[#FFF8E1] text-[#735C00]",
+  //   monthly: "bg-[#F3E5F5] text-[#6A1B9A]",
+  // };
 
    const tEvents=useTranslations("Home.Events");
 

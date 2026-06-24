@@ -2,15 +2,19 @@ import { MapPin, Phone, Mail, Clock, ExternalLink } from "lucide-react";
 import { PageContainer } from "@/components/common/page-container";
 import { SectionHeader } from "@/components/common/section-header";
 import { siteConfig } from "@/config/site";
+import { useTranslations } from "next-intl";
 
 export function ContactSection() {
+
+  const tContact = useTranslations("Home.Contact");
+  const templeInfo = useTranslations("TempleInfo");
   return (
     <PageContainer id="contact-section" className="bg-[#FAF9F6]">
       <SectionHeader
-        subtitle="Find Us"
-        title="Visit Our Sacred Grounds"
+        subtitle={tContact("subtitle")}
+        title={tContact("title")}
         align="left"
-        description="We welcome all devotees and visitors to experience the divine presence of Lord Pillaiyar."
+        description={tContact("description")}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
@@ -23,10 +27,10 @@ export function ContactSection() {
             </div>
             <div>
               <h4 className="font-heading text-base font-semibold text-[#1A1C1C] mb-1">
-                Temple Address
+                {tContact("templeAddress")}
               </h4>
               <p className="text-sm text-[#4D4635] leading-relaxed">
-                {siteConfig.contact.address}
+                {templeInfo("address")}
               </p>
             </div>
           </div>
@@ -38,7 +42,7 @@ export function ContactSection() {
             </div>
             <div>
               <h4 className="font-heading text-base font-semibold text-[#1A1C1C] mb-1">
-                Phone
+                {tContact("Phone")}
               </h4>
               <a
                 href={`tel:${siteConfig.contact.phone}`}
@@ -56,7 +60,7 @@ export function ContactSection() {
             </div>
             <div>
               <h4 className="font-heading text-base font-semibold text-[#1A1C1C] mb-1">
-                Email
+                {tContact("Email")}
               </h4>
               <a
                 href={`mailto:${siteConfig.contact.email}`}
@@ -74,20 +78,20 @@ export function ContactSection() {
             </div>
             <div>
               <h4 className="font-heading text-base font-semibold text-[#1A1C1C] mb-1">
-                Temple Hours
+                {tContact("templeHours")}
               </h4>
               <div className="space-y-1">
                 <p className="text-sm text-[#4D4635]">
-                  <span className="text-[#7F7663]">Morning:</span>{" "}
-                  {siteConfig.templeHours.morning}
+                  <span className="text-[#7F7663]">{tContact("morning")}:</span>{" "}
+                  {templeInfo("templeHours.morning")}
                 </p>
                 <p className="text-sm text-[#4D4635]">
-                  <span className="text-[#7F7663]">Afternoon:</span>{" "}
-                  {siteConfig.templeHours.afternoon}
+                  <span className="text-[#7F7663]">{tContact("afternoon")}:</span>{" "}
+                  {templeInfo("templeHours.afternoon")}
                 </p>
                 <p className="text-sm text-[#4D4635]">
-                  <span className="text-[#7F7663]">Evening:</span>{" "}
-                  {siteConfig.templeHours.evening}
+                  <span className="text-[#7F7663]">{tContact("evening")}:</span>{" "}
+                  {templeInfo("templeHours.evening")}
                 </p>
               </div>
             </div>
@@ -101,7 +105,7 @@ export function ContactSection() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white text-sm font-semibold hover:shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-all duration-300"
           >
             <MapPin className="w-4 h-4" />
-            Get Directions
+            {tContact("getDirections")}
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
@@ -123,10 +127,10 @@ export function ContactSection() {
             {/* Map overlay card */}
             <div className="absolute top-4 right-4 p-4 rounded-xl bg-white/95 backdrop-blur-md shadow-lg max-w-[200px]">
               <p className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">
-                {siteConfig.shortName}
+                {templeInfo("shortName")}
               </p>
               <p className="text-xs text-[#7F7663] leading-relaxed">
-                {siteConfig.contact.address}
+                {templeInfo("address")}
               </p>
             </div>
           </div>
