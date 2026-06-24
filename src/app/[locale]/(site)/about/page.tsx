@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { PageContainer } from "@/components/common/page-container";
 import { SpiritualDivider } from "@/components/common/spiritual-divider";
-import { TEMPLE_INFO, TEMPLE_STATS } from "@/features/home/constants/temple-info";
+import { TEMPLE_STATS } from "@/features/home/constants/temple-info";
 import { TempleStat } from "@/features/home/components/temple-stat";
 import { useTranslations } from "next-intl";
 
@@ -67,7 +67,7 @@ export default function AboutPage() {
             <TempleStat
               key={stat.label}
               value={stat.value}
-              label={stat.label}
+              label={tTempleInfo(`stats.${stat.id}`)}
               icon={stat.icon}
             />
           ))}
