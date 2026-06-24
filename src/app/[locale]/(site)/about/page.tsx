@@ -4,6 +4,7 @@ import { PageContainer } from "@/components/common/page-container";
 import { SpiritualDivider } from "@/components/common/spiritual-divider";
 import { TEMPLE_INFO, TEMPLE_STATS } from "@/features/home/constants/temple-info";
 import { TempleStat } from "@/features/home/components/temple-stat";
+import { useTranslations } from "next-intl";
 
 export const metadata: Metadata = {
   title: "About",
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  const tAbout = useTranslations("About");
+  const tTempleInfo = useTranslations("TempleInfo")
   return (
     <>
       {/* Hero Banner */}
@@ -27,10 +30,10 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
         <div className="relative z-10 text-center px-4">
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            About Our Temple
+            {tAbout("title")}
           </h1>
           <p className="text-white/80 text-lg font-sans max-w-xl mx-auto">
-            A journey through centuries of devotion and spiritual heritage
+            {tAbout("subtitle")}
           </p>
         </div>
       </section>
@@ -38,22 +41,24 @@ export default function AboutPage() {
       <PageContainer className="bg-[#FAF9F6]">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-heading text-3xl md:text-4xl font-semibold text-[#1A1C1C] mb-6 text-center">
-            {TEMPLE_INFO.aboutTitle}
+            {tTempleInfo("aboutTitle")}
           </h2>
           <p className="text-base md:text-lg text-[#4D4635] leading-relaxed mb-8 font-sans text-center">
-            {TEMPLE_INFO.aboutDescription}
+            {tTempleInfo("aboutDescription")}
+
           </p>
 
           <SpiritualDivider variant="om" />
 
           <blockquote className="border-l-3 border-[#D4AF37] pl-6 my-8">
             <p className="font-heading text-xl text-[#4D4635] italic leading-relaxed">
-              &ldquo;{TEMPLE_INFO.aboutQuote}&rdquo;
+              &ldquo;{tTempleInfo("aboutQuote")}&rdquo;
             </p>
           </blockquote>
 
           <p className="text-base text-[#4D4635] leading-relaxed font-sans">
-            {TEMPLE_INFO.history}
+            {tTempleInfo("history")}
+
           </p>
         </div>
 
