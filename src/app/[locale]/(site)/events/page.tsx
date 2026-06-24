@@ -4,7 +4,9 @@ import { PageContainer } from "@/components/common/page-container";
 import { SectionHeader } from "@/components/common/section-header";
 import { EventCard } from "@/features/home/components/event-card";
 import { FEATURED_EVENTS } from "@/features/home/constants/events";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { type Locale } from "@/i18n/routing";
+
 
 export const metadata: Metadata = {
   title: "Events",
@@ -12,12 +14,12 @@ export const metadata: Metadata = {
     "Discover upcoming spiritual gatherings, festivals, and sacred ceremonies at Neeliyampathi Pillaiyar Kovil.",
 };
 
-const currentEvents = FEATURED_EVENTS.en
-
 
 export default function EventsPage() {
 
   const tEvents = useTranslations("Events");
+  const locale = useLocale() as Locale;
+  const currentEvents = FEATURED_EVENTS[locale] || FEATURED_EVENTS.ta;
 
   return (
     <>
