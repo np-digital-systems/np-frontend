@@ -115,5 +115,22 @@
        "title":"Glimpses of Divinity",
        "description":"Each photograph captures the sacred atmosphere and timeless beauty of Neeliyampathi Pillaiyar Kovil."
     }
+  },
+  "Contact":{
+    "title":"Visit Our Sacred Grounds",
+    "subtitle":"We welcome all devotees and seekers to experience the divine presence",
+    "form":{
+      "title":"Send Us a Message",
+      "subtitle":"Have a question or want to learn more? We&apos;d love to hear from you.",
+      "fullName":"Full Name",
+      "email":"Email Address",
+      "message":"Message",
+      "subject":"Subject",
+      "sendMeassage":"Send Message"
+    },
+    "templeAddress":"Temple Address",
+    "phone":"Phone",
+    "email":"Email",
+    "hours":"Temple Hours"
   }
 }
