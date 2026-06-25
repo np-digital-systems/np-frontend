@@ -106,5 +106,14 @@
       "subtitle":"Upcoming events and Sacred ceremonies",
       "description":"Discover upcoming spiritual gatherings, festivals, and sacred ceremonies at Neeliyampathi Pillaiyar Kovil."
     }
+  },
+  "Gallery":{
+    "title":"Sacred Moments",
+    "subtitle":"A visual journey through the divine beauty and spiritual essence of our temple",
+    "section1":{
+       "subtitle":"Photo Gallery",
+       "title":"Glimpses of Divinity",
+       "description":"Each photograph captures the sacred atmosphere and timeless beauty of Neeliyampathi Pillaiyar Kovil."
+    }
   }
 }
