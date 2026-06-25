@@ -93,5 +93,44 @@
       "afternoon": "Afternoon",
       "evening": "Evening"
     }
+  },
+  "About":{
+    "title":"About Our Temple",
+    "subtitle":"A journey through centuries of devotion and spiritual heritage"
+  },
+   "Events":{
+    "title":"Spiritual Gatherings",
+    "subtitle":"Sacred ceremonies and festivals that unite our community in devotion",
+    "section1":{
+      "title":"Temple Calendar",
+      "subtitle":"Upcoming events and Sacred ceremonies",
+      "description":"Discover upcoming spiritual gatherings, festivals, and sacred ceremonies at Neeliyampathi Pillaiyar Kovil."
+    }
+  },
+  "Gallery":{
+    "title":"Sacred Moments",
+    "subtitle":"A visual journey through the divine beauty and spiritual essence of our temple",
+    "section1":{
+       "subtitle":"Photo Gallery",
+       "title":"Glimpses of Divinity",
+       "description":"Each photograph captures the sacred atmosphere and timeless beauty of Neeliyampathi Pillaiyar Kovil."
+    }
+  },
+  "Contact":{
+    "title":"Visit Our Sacred Grounds",
+    "subtitle":"We welcome all devotees and seekers to experience the divine presence",
+    "form":{
+      "title":"Send Us a Message",
+      "subtitle":"Have a question or want to learn more? We&apos;d love to hear from you.",
+      "fullName":"Full Name",
+      "email":"Email Address",
+      "message":"Message",
+      "subject":"Subject",
+      "sendMeassage":"Send Message"
+    },
+    "templeAddress":"Temple Address",
+    "phone":"Phone",
+    "email":"Email",
+    "hours":"Temple Hours"
   }
 }

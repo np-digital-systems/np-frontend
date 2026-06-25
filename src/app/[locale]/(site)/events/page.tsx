@@ -4,6 +4,9 @@ import { PageContainer } from "@/components/common/page-container";
 import { SectionHeader } from "@/components/common/section-header";
 import { EventCard } from "@/features/home/components/event-card";
 import { FEATURED_EVENTS } from "@/features/home/constants/events";
+import { useTranslations, useLocale } from "next-intl";
+import { type Locale } from "@/i18n/routing";
+
 
 export const metadata: Metadata = {
   title: "Events",
@@ -11,10 +14,13 @@ export const metadata: Metadata = {
     "Discover upcoming spiritual gatherings, festivals, and sacred ceremonies at Neeliyampathi Pillaiyar Kovil.",
 };
 
-const currentEvents = FEATURED_EVENTS.en
-
 
 export default function EventsPage() {
+
+  const tEvents = useTranslations("Events");
+  const locale = useLocale() as Locale;
+  const currentEvents = FEATURED_EVENTS[locale] || FEATURED_EVENTS.ta;
+
   return (
     <>
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
@@ -29,19 +35,19 @@ export default function EventsPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
         <div className="relative z-10 text-center px-4">
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            Spiritual Gatherings
+            {tEvents("title")}
           </h1>
           <p className="text-white/80 text-lg font-sans max-w-xl mx-auto">
-            Sacred ceremonies and festivals that unite our community in devotion
+            {tEvents("subtitle")}
           </p>
         </div>
       </section>
 
       <PageContainer className="bg-[#FAF9F6]">
         <SectionHeader
-          subtitle="Upcoming Events"
-          title="Temple Calendar"
-          description="Join us for these sacred celebrations and experience the divine grace of Lord Pillaiyar."
+          subtitle={tEvents("section1.subtitle")}
+          title={tEvents("section1.title")}
+          description={tEvents("section1.description")}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">

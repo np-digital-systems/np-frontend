@@ -4,6 +4,7 @@ import { PageContainer } from "@/components/common/page-container";
 import { SectionHeader } from "@/components/common/section-header";
 import { GalleryCard } from "@/features/home/components/gallery-card";
 import { GALLERY_IMAGES } from "@/features/home/constants/gallery";
+import { useTranslations } from "next-intl";
 
 export const metadata: Metadata = {
   title: "Gallery",
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default function GalleryPage() {
+ const tGallery = useTranslations("Gallery");
+
   return (
     <>
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
@@ -26,19 +29,19 @@ export default function GalleryPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
         <div className="relative z-10 text-center px-4">
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            Sacred Moments
+            {tGallery("title")}
           </h1>
           <p className="text-white/80 text-lg font-sans max-w-xl mx-auto">
-            A visual journey through the divine beauty and spiritual essence of our temple
+            {tGallery("subtitle")}
           </p>
         </div>
       </section>
 
       <PageContainer className="bg-[#FAF9F6]">
         <SectionHeader
-          subtitle="Photo Gallery"
-          title="Glimpses of Divinity"
-          description="Each photograph captures the sacred atmosphere and timeless beauty of Neeliyampathi Pillaiyar Kovil."
+          subtitle={tGallery("section1.subtitle")}
+          title={tGallery("section1.title")}
+          description={tGallery("section1.description")}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

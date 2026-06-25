@@ -3,6 +3,7 @@ import Image from "next/image";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import { PageContainer } from "@/components/common/page-container";
 import { siteConfig } from "@/config/site";
+import { useTranslations } from "next-intl";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
+  const tContact = useTranslations("Contact");
+  const tTempleInfo = useTranslations("TempleInfo");
   return (
     <>
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
@@ -25,10 +28,10 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
         <div className="relative z-10 text-center px-4">
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            Visit Our Sacred Grounds
+            {tContact("title")}
           </h1>
           <p className="text-white/80 text-lg font-sans max-w-xl mx-auto">
-            We welcome all devotees and seekers to experience the divine presence
+            {tContact("subtitle")}
           </p>
         </div>
       </section>
@@ -37,10 +40,10 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <div>
             <h2 className="font-heading text-3xl font-semibold text-[#1A1C1C] mb-2">
-              Send Us a Message
+              {tContact("form.title")}
             </h2>
             <p className="text-[#4D4635] font-sans mb-8">
-              Have a question or want to learn more? We&apos;d love to hear from you.
+                  {tContact("form.subtitle")}
             </p>
 
             <form className="space-y-6">
@@ -50,7 +53,7 @@ export default function ContactPage() {
                     htmlFor="contact-name"
                     className="block text-sm font-semibold text-[#1A1C1C] mb-2"
                   >
-                    Full Name
+                    {tContact("form.fullName")}
                   </label>
                   <input
                     id="contact-name"
@@ -64,7 +67,7 @@ export default function ContactPage() {
                     htmlFor="contact-email"
                     className="block text-sm font-semibold text-[#1A1C1C] mb-2"
                   >
-                    Email Address
+                    {tContact("form.email")}
                   </label>
                   <input
                     id="contact-email"
@@ -80,7 +83,7 @@ export default function ContactPage() {
                   htmlFor="contact-subject"
                   className="block text-sm font-semibold text-[#1A1C1C] mb-2"
                 >
-                  Subject
+                  {tContact("form.subject")}
                 </label>
                 <input
                   id="contact-subject"
@@ -95,7 +98,7 @@ export default function ContactPage() {
                   htmlFor="contact-message"
                   className="block text-sm font-semibold text-[#1A1C1C] mb-2"
                 >
-                  Message
+                  {tContact("form.message")}
                 </label>
                 <textarea
                   id="contact-message"
@@ -110,7 +113,7 @@ export default function ContactPage() {
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white font-semibold text-sm hover:shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-all duration-300 hover:scale-[1.01]"
               >
                 <Send className="w-4 h-4" />
-                Send Message
+                {tContact("form.sendMeassage")}
               </button>
             </form>
           </div>
@@ -119,24 +122,24 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
                 <MapPin className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">Address</h4>
-                <p className="text-xs text-[#4D4635]">{siteConfig.contact.address}</p>
+                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("templeAddress")}</h4>
+                <p className="text-xs text-[#4D4635]">{tTempleInfo("address")}</p>
               </div>
               <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
                 <Phone className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">Phone</h4>
+                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("phone")}</h4>
                 <p className="text-xs text-[#4D4635]">{siteConfig.contact.phone}</p>
               </div>
               <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
                 <Mail className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">Email</h4>
+                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("email")}</h4>
                 <p className="text-xs text-[#4D4635]">{siteConfig.contact.email}</p>
               </div>
               <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
                 <Clock className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">Hours</h4>
-                <p className="text-xs text-[#4D4635]">{siteConfig.templeHours.morning}</p>
-                <p className="text-xs text-[#4D4635]">{siteConfig.templeHours.evening}</p>
+                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("hours")}</h4>
+                <p className="text-xs text-[#4D4635]">{tTempleInfo("templeHours.morning")}</p>
+                <p className="text-xs text-[#4D4635]">{tTempleInfo("templeHours.evening")}</p>
               </div>
             </div>
 
