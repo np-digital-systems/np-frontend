@@ -47,11 +47,10 @@ export function HeroSection() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="/contact"
+            href="/about"
             className="group inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white font-semibold text-base shadow-[0_8px_24px_rgba(212,175,55,0.3)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.45)] transition-all duration-300 hover:scale-[1.02]"
           >
-            <MapPin className="w-5 h-5" />
-            {tHero('locateUs')}
+            {tHero('about')}
           </Link>
           <Link
             href="/events"
