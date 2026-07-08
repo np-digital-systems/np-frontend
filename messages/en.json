@@ -51,7 +51,7 @@
   },
   "Home": {
     "Hero": {
-      "locateUs": "Locate Us",
+      "about": "About Us",
       "upcomingEvents": "Upcoming Events",
       "explore": "Explore"
     },
