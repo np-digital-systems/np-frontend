@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useTranslations } from 'next-intl';
 export function HeroSection() {
 
@@ -48,7 +48,7 @@ export function HeroSection() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/about"
-            className="group inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white font-semibold text-base shadow-[0_8px_24px_rgba(212,175,55,0.3)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.45)] transition-all duration-300 hover:scale-[1.02]"
+            className="group inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-gradient-to-r from-[#8B0000] to-[#A62014] text-white font-semibold text-base shadow-[0_8px_24px_rgba(139,0,0,0.32)] hover:shadow-[0_12px_32px_rgba(139,0,0,0.42)] transition-all duration-300 hover:scale-[1.02]"
           >
             {tHero('about')}
           </Link>
