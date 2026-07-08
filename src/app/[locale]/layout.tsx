@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import {
+  Inter,
+  Noto_Sans_Tamil,
+  Noto_Serif_Tamil,
+  Playfair_Display,
+} from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Providers } from "./providers";
@@ -14,6 +19,18 @@ const inter = Inter({
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const notoSansTamil = Noto_Sans_Tamil({
+  variable: "--font-noto-sans-tamil",
+  subsets: ["tamil"],
+  display: "swap",
+});
+
+const notoSerifTamil = Noto_Serif_Tamil({
+  variable: "--font-noto-serif-tamil",
+  subsets: ["tamil"],
   display: "swap",
 });
 
@@ -60,7 +77,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${inter.variable} ${playfair.variable} h-full`}
+      className={`${inter.variable} ${playfair.variable} ${notoSansTamil.variable} ${notoSerifTamil.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">
