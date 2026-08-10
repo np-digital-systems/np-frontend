@@ -1,0 +1,179 @@
+.portal-theme {
+
+  --sidebar-width: 248px;
+  --sidebar-collapsed: 72px;
+  --header-height: 56px;
+  --radius: 0.75rem;
+
+
+  --background: #F5F5F7;
+  --foreground: #1D1D1F;
+
+  --card: #FFFFFF;
+  --card-foreground: #1D1D1F;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #1D1D1F;
+
+  --primary: #0071E3;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #F2F2F7;
+  --secondary-foreground: #1D1D1F;
+
+  --muted: #F2F2F7;
+  --muted-foreground: #6E6E73;
+
+  --accent: #F2F2F7;
+  --accent-foreground: #1D1D1F;
+
+  --destructive: #FF3B30;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #D2D2D7;
+  --input: #D2D2D7;
+  --ring: #0071E3;
+
+  /* ── Charts ───────────────────────────────────────────── */
+
+  --chart-1: #0071E3;
+  --chart-2: #34C759;
+  --chart-3: #FF9F0A;
+  --chart-4: #AF52DE;
+  --chart-5: #FF3B30;
+
+  /* ── Sidebar ──────────────────────────────────────────── */
+
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1D1D1F;
+  --sidebar-primary: #0071E3;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F2F2F7;
+  --sidebar-accent-foreground: #1D1D1F;
+  --sidebar-border: #D2D2D7;
+  --sidebar-ring: #0071E3;
+
+  /* ── Accounting semantic colors ──────────────────────── */
+
+  --success: #34C759;
+  --success-subtle: rgba(52, 199, 89, 0.10);
+
+  --warning: #FF9F0A;
+  --warning-subtle: rgba(255, 159, 10, 0.10);
+
+  --danger: #FF3B30;
+  --danger-subtle: rgba(255, 59, 48, 0.10);
+
+  --info: #0071E3;
+  --info-subtle: rgba(0, 113, 227, 0.08);
+}
+
+
+
+
+.portal-theme.dark {
+
+
+  --background: #000000;
+  --foreground: #F5F5F7;
+
+  --card: #1C1C1E;
+  --card-foreground: #F5F5F7;
+
+  --popover: #1C1C1E;
+  --popover-foreground: #F5F5F7;
+
+  --primary: #0A84FF;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #2C2C2E;
+  --secondary-foreground: #F5F5F7;
+
+  --muted: #2C2C2E;
+  --muted-foreground: #98989D;
+
+  --accent: #2C2C2E;
+  --accent-foreground: #F5F5F7;
+
+  --destructive: #FF453A;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #38383A;
+  --input: #38383A;
+  --ring: #0A84FF;
+
+
+  --chart-1: #0A84FF;
+  --chart-2: #30D158;
+  --chart-3: #FF9F0A;
+  --chart-4: #BF5AF2;
+  --chart-5: #FF453A;
+
+
+  --sidebar: #1C1C1E;
+  --sidebar-foreground: #F5F5F7;
+  --sidebar-primary: #0A84FF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2C2C2E;
+  --sidebar-accent-foreground: #F5F5F7;
+  --sidebar-border: #38383A;
+  --sidebar-ring: #0A84FF;
+
+
+  --success: #30D158;
+  --success-subtle: rgba(48, 209, 88, 0.12);
+
+  --warning: #FF9F0A;
+  --warning-subtle: rgba(255, 159, 10, 0.12);
+
+  --danger: #FF453A;
+  --danger-subtle: rgba(255, 69, 58, 0.12);
+
+  --info: #0A84FF;
+  --info-subtle: rgba(10, 132, 255, 0.12);
+}
+
+
+
+
+.portal-theme {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+.portal-theme {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+
+
+
+.portal-theme .tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+
+
+.portal-theme::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.portal-theme::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.portal-theme::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.portal-theme::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
