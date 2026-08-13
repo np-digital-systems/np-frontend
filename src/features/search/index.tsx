@@ -1,106 +1,54 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, X, ArrowRight, Clock, Hash, ChevronRight } from 'lucide-react'
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
 import {
-  searchIndex, groupResults, QUICK_ACTIONS, RECENT_SEARCHES, RECENTLY_VIEWED,
-  TYPE_FILTERS, TYPE_ICON, BADGE_COLORS,
-  type SearchResult, type SearchType,
+  ArrowRight,
+  CalendarDays,
+  CreditCard,
+  FileText,
+  Landmark,
+  Receipt,
+  Search,
+  User,
+  Users,
+  Wallet,
+  FolderOpen,
+  PiggyBank,
+  CalendarRange,
+  Clock3,
+  X
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@/components/ui/command'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/ui/dialog'
+
+import { Badge } from '@/components/ui/badge'
+
+import {
+  searchIndex,
+  groupResults,
+  QUICK_ACTIONS,
+  RECENT_SEARCHES,
+  RECENTLY_VIEWED,
+  TYPE_FILTERS,
+  BADGE_COLORS,
+  type SearchResult,
+  type SearchType,
 } from './constants/mock-data'
-
-// ── Badge ──────────────────────────────────────────────────────────────────────
-
-function Badge({ label }: { label: string }) {
-  const c = BADGE_COLORS[label] ?? BADGE_COLORS.Inactive
-  return (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
-      style={{ backgroundColor: c.bg, color: c.text }}>
-      {label}
-    </span>
-  )
-}
-
-// ── Result Row ─────────────────────────────────────────────────────────────────
-
-function ResultRow({
-  result, active, onSelect,
-}: {
-  result: SearchResult
-  active: boolean
-  onSelect: (r: SearchResult) => void
-}) {
-  const ref = useRef<HTMLButtonElement>(null)
-  useEffect(() => {
-    if (active) ref.current?.scrollIntoView({ block: 'nearest' })
-  }, [active])
-
-  return (
-    <button ref={ref}
-      onClick={() => onSelect(result)}
-      className="flex items-center gap-3 w-full px-4 py-2.5 text-left"
-      style={{
-        backgroundColor: active ? 'var(--surface-2)' : 'transparent',
-        border: 'none', cursor: 'pointer',
-        borderRadius: 8,
-        transition: 'background-color 80ms ease',
-      }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = active ? 'var(--surface-2)' : 'transparent' }}>
-
-      {/* Type icon */}
-      <span className="text-base shrink-0" style={{ width: 20, textAlign: 'center' }} aria-hidden>
-        {TYPE_ICON[result.type]}
-      </span>
-
-      {/* Main content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-            {result.title}
-          </span>
-          {result.ref && (
-            <span className="text-xs font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>
-              {result.ref}
-            </span>
-          )}
-          {result.badge && <Badge label={result.badge} />}
-        </div>
-        <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-muted)' }}>
-          {result.subtitle}
-          {result.meta ? ` · ${result.meta}` : ''}
-        </p>
-      </div>
-
-      {/* Arrow hint */}
-      {active && (
-        <ChevronRight size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-      )}
-    </button>
-  )
-}
-
-// ── Skeleton ───────────────────────────────────────────────────────────────────
-
-function Skeleton() {
-  return (
-    <div className="px-4 py-3 flex flex-col gap-3">
-      {['Users', 'Events', 'Receipts'].map(g => (
-        <div key={g}>
-          <div className="h-3 w-16 rounded mb-2" style={{ backgroundColor: 'var(--surface-2)' }} />
-          {[1, 2].map(i => (
-            <div key={i} className="flex gap-3 py-2">
-              <div className="h-5 w-5 rounded" style={{ backgroundColor: 'var(--surface-2)' }} />
-              <div className="flex-1">
-                <div className="h-3.5 w-40 rounded mb-1.5" style={{ backgroundColor: 'var(--surface-2)' }} />
-                <div className="h-3 w-28 rounded" style={{ backgroundColor: 'var(--surface-2)', opacity: 0.6 }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ── Main ───────────────────────────────────────────────────────────────────────
 
 interface GlobalSearchProps {
   open: boolean
@@ -108,281 +56,434 @@ interface GlobalSearchProps {
   onNavigate?: (page: string) => void
 }
 
-export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearchProps) {
+const TYPE_ICONS: Partial<Record<SearchType, LucideIcon>> = {
+  User,
+  Event: CalendarDays,
+  Receipt,
+  Payment: CreditCard,
+  Transaction: Wallet,
+  Report: FileText,
+
+  Sanththa: Users,
+  'Fixed Deposit': PiggyBank,
+  'Financial Year': CalendarRange,
+  Fund: Wallet,
+
+  // Add more only when you actually want a
+  // specific icon for that search type.
+}
+
+function SearchResultIcon({
+  type,
+}: {
+  type: SearchType
+}) {
+  const Icon = TYPE_ICONS[type] ?? Search
+
+  return (
+    <span
+      className="
+        flex size-8 shrink-0 items-center justify-center
+        rounded-lg bg-muted text-muted-foreground
+      "
+    >
+      <Icon className="size-4" />
+    </span>
+  )
+}
+function SearchBadge({
+  label,
+}: {
+  label: string
+}) {
+  const config = BADGE_COLORS[label] ?? BADGE_COLORS.Inactive
+
+  return (
+    <Badge
+      variant="secondary"
+      className="border-0 px-1.5 py-0 text-[11px]"
+      style={{
+        backgroundColor: config.bg,
+        color: config.text,
+      }}
+    >
+      {label}
+    </Badge>
+  )
+}
+
+export default function GlobalSearch({
+  open,
+  onClose,
+  onNavigate,
+}: GlobalSearchProps) {
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<SearchType | 'All'>('All')
-  const [loading, setLoading] = useState(false)
-  const [activeIdx, setActiveIdx] = useState(-1)
-  const inputRef = useRef<HTMLInputElement>(null)
 
-  // Simulate brief load on first keystroke
-  const [prevQuery, setPrevQuery] = useState('')
-  useEffect(() => {
-    if (query && !prevQuery) {
-      setLoading(true)
-      const t = setTimeout(() => setLoading(false), 260)
-      return () => clearTimeout(t)
-    }
-    setPrevQuery(query)
-    setActiveIdx(-1)
-  }, [query])
+  const results = useMemo(
+    () => searchIndex(query, typeFilter),
+    [query, typeFilter],
+  )
 
-  useEffect(() => {
-    if (open) {
-      setQuery('')
-      setTypeFilter('All')
-      setActiveIdx(-1)
-      setLoading(false)
-      setTimeout(() => inputRef.current?.focus(), 40)
-    }
-  }, [open])
+  const groups = useMemo(
+    () => groupResults(results),
+    [results],
+  )
 
-  const results = loading ? [] : searchIndex(query, typeFilter)
-  const groups = groupResults(results)
-
-  // Flat list for keyboard nav
-  const flat: SearchResult[] = groups.flatMap(g => g.items)
-
-  const handleSelect = useCallback((r: SearchResult) => {
-    onNavigate?.(r.page)
-    onClose()
-  }, [onNavigate, onClose])
-
-  const handleQuickAction = (page: string) => {
+  const handleNavigate = (page: string) => {
     onNavigate?.(page)
     onClose()
   }
 
-  const handleRecentSelect = (label: string) => {
-    setQuery(label)
-    inputRef.current?.focus()
+  const handleRecentSearch = (value: string) => {
+    setQuery(value)
+  }
+
+  const handleOpenChange = (value: boolean) => {
+    if (!value) {
+      onClose()
+    }
   }
 
   useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return }
-      if (flat.length === 0) return
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        setActiveIdx(i => Math.min(i + 1, flat.length - 1))
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setActiveIdx(i => Math.max(i - 1, 0))
-      } else if (e.key === 'Enter' && activeIdx >= 0) {
-        e.preventDefault()
-        handleSelect(flat[activeIdx])
-      }
+    if (!open) {
+      setQuery('')
+      setTypeFilter('All')
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, flat, activeIdx, handleSelect, onClose])
-
-  if (!open) return null
-
-  const showEmpty = query.length > 1 && !loading && results.length === 0
-  const showResults = !loading && results.length > 0
-  const showDefault = !query
-
-  // running flat index
-  let flatIdx = 0
+  }, [open])
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)' }}
-      onClick={onClose}>
-      <div
-        className="w-full rounded-2xl overflow-hidden flex flex-col"
-        style={{
-          maxWidth: 580,
-          maxHeight: 'min(600px, 80vh)',
-          backgroundColor: 'var(--surface)',
-          border: '1px solid var(--border)',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
-        }}
-        onClick={e => e.stopPropagation()}>
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+    >
+      <DialogContent
+        className="
+          top-[12%]
+          translate-y-0
+          gap-0
+          overflow-hidden
+          border-border
+          bg-background
+          p-0
+          shadow-2xl
+          sm:max-w-[640px]
+        "
+      >
+        <DialogTitle className="sr-only">
+          Global Search
+        </DialogTitle>
 
-        {/* Search input */}
-        <div className="flex items-center gap-3 px-4"
-          style={{ borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <Search size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search users, events, receipts, payments, transactions..."
-            className="flex-1 bg-transparent py-4 text-sm outline-none"
-            style={{ color: 'var(--text-primary)', caretColor: 'var(--accent)' }}
-          />
-          <div className="flex items-center gap-2 shrink-0">
+        <Command
+          shouldFilter={false}
+          className="rounded-xl bg-background"
+        >
+          {/* Search input */}
+          <div className="relative border-b border-border">
+            <CommandInput
+              value={query}
+              onValueChange={setQuery}
+              placeholder="Search users, events, receipts, payments..."
+              className="h-14 border-0 pr-12 text-sm shadow-none focus:ring-0"
+            />
+
             {query && (
-              <button onClick={() => setQuery('')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
-                <X size={14} />
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="
+                  absolute
+                  right-3
+                  top-1/2
+                  flex
+                  size-7
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-md
+                  text-muted-foreground
+                  transition-colors
+                  hover:bg-muted
+                  hover:text-foreground
+                "
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
               </button>
             )}
-            <kbd className="rounded-md px-1.5 text-xs font-medium hidden sm:block"
-              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)', lineHeight: '20px' }}>
-              Esc
-            </kbd>
           </div>
-        </div>
 
-        {/* Type filter pills — only when query exists */}
-        {query && !showEmpty && (
-          <div className="flex items-center gap-1.5 px-4 py-2 overflow-x-auto"
-            style={{ borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-            {TYPE_FILTERS.slice(0, 9).map(t => (
-              <button key={t} onClick={() => setTypeFilter(t)}
-                className="px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap"
-                style={{
-                  backgroundColor: typeFilter === t ? 'var(--accent)' : 'var(--surface-2)',
-                  color: typeFilter === t ? '#fff' : 'var(--text-secondary)',
-                  border: 'none', cursor: 'pointer', flexShrink: 0,
-                }}>
-                {t}
-              </button>
-            ))}
-          </div>
-        )}
+          {/* Filters */}
+          {query && (
+            <div className="flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2">
+              {TYPE_FILTERS.map((type) => {
+                const active = typeFilter === type
 
-        {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1" style={{ overscrollBehavior: 'contain' }}>
-
-          {/* Loading skeleton */}
-          {loading && <Skeleton />}
-
-          {/* No results */}
-          {showEmpty && (
-            <div className="flex flex-col items-center justify-center py-14">
-              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>No records found</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                No results for &ldquo;{query}&rdquo;. Try another search.
-              </p>
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setTypeFilter(type)}
+                    className={`
+                      shrink-0
+                      rounded-full
+                      px-3
+                      py-1
+                      text-xs
+                      font-medium
+                      transition-colors
+                      ${
+                        active
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      }
+                    `}
+                  >
+                    {type}
+                  </button>
+                )
+              })}
             </div>
           )}
 
-          {/* Grouped results */}
-          {showResults && (
-            <div className="px-2 py-2">
-              {groups.map(group => (
-                <div key={group.type} className="mb-1">
-                  <div className="flex items-center gap-2 px-3 py-1.5">
-                    <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                      {group.type}s
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {group.items.length}
-                    </span>
+          <CommandList className="max-h-[520px] px-2 py-2">
+            {/* Search results */}
+            {query && (
+              <>
+                <CommandEmpty className="py-12">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+                      <Search className="size-5 text-muted-foreground" />
+                    </div>
+
+                    <p className="text-sm font-medium">
+                      No results found
+                    </p>
+
+                    <p className="text-xs text-muted-foreground">
+                      Try a different search term.
+                    </p>
                   </div>
-                  {group.items.map(item => {
-                    const isActive = flatIdx === activeIdx
-                    flatIdx++
-                    return (
-                      <ResultRow key={item.id} result={item} active={isActive} onSelect={handleSelect} />
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
-          )}
+                </CommandEmpty>
 
-          {/* Default state: recent + quick actions */}
-          {showDefault && (
-            <div className="px-4 py-3 flex flex-col gap-4">
+                {groups.map((group) => (
+                  <CommandGroup
+                    key={group.type}
+                    heading={`${group.type}s · ${group.items.length}`}
+                  >
+                    {group.items.map((result) => (
+                      <SearchResultItem
+                        key={result.id}
+                        result={result}
+                        onSelect={() => handleNavigate(result.page)}
+                      />
+                    ))}
+                  </CommandGroup>
+                ))}
+              </>
+            )}
 
-              {/* Recent searches */}
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2"
-                  style={{ color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                  Recent
-                </p>
-                <div className="flex flex-col gap-0.5">
-                  {RECENT_SEARCHES.map(s => (
-                    <button key={s} onClick={() => handleRecentSelect(s)}
-                      className="flex items-center gap-3 w-full px-2 py-2 rounded-lg text-sm text-left"
-                      style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent' }}>
-                      <Clock size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Default state */}
+            {!query && (
+              <>
+                <CommandGroup heading="Recent searches">
+                  {RECENT_SEARCHES.map((item) => (
+                    <CommandItem
+                      key={item}
+                      value={item}
+                      onSelect={() => handleRecentSearch(item)}
+                      className="gap-3 rounded-lg px-3 py-2.5"
+                    >
+                      <Clock3 className="size-4 text-muted-foreground" />
 
-              {/* Recently viewed */}
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2"
-                  style={{ color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                  Recently Viewed
-                </p>
-                <div className="flex flex-col gap-0.5">
-                  {RECENTLY_VIEWED.map(item => (
-                    <button key={item.label} onClick={() => handleQuickAction(item.page)}
-                      className="flex items-center gap-3 w-full px-2 py-2 rounded-lg text-sm text-left"
-                      style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent' }}>
-                      <span style={{ width: 16, textAlign: 'center', fontSize: 13, flexShrink: 0 }} aria-hidden>
-                        {TYPE_ICON[item.type]}
+                      <span className="truncate text-sm">
+                        {item}
                       </span>
-                      <span className="flex-1 min-w-0 truncate">{item.label}</span>
-                      <span className="text-xs shrink-0" style={{ color: 'var(--text-muted)' }}>{item.type}</span>
-                    </button>
+                    </CommandItem>
                   ))}
-                </div>
-              </div>
+                </CommandGroup>
 
-              {/* Quick actions */}
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2"
-                  style={{ color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                  Quick Actions
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {QUICK_ACTIONS.map(action => (
-                    <button key={action.label} onClick={() => handleQuickAction(action.page)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-left"
-                      style={{
-                        backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)',
-                        color: 'var(--text-primary)', cursor: 'pointer',
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}>
-                      <ArrowRight size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                      <span className="truncate">{action.label}</span>
-                    </button>
+                <CommandSeparator className="my-2" />
+
+                <CommandGroup heading="Recently viewed">
+                  {RECENTLY_VIEWED.map((item) => (
+                    <CommandItem
+                      key={item.label}
+                      value={item.label}
+                      onSelect={() => handleNavigate(item.page)}
+                      className="gap-3 rounded-lg px-3 py-2.5"
+                    >
+                      <SearchResultIcon type={item.type} />
+
+                      <span className="flex-1 truncate text-sm">
+                        {item.label}
+                      </span>
+
+                      <span className="text-xs text-muted-foreground">
+                        {item.type}
+                      </span>
+                    </CommandItem>
                   ))}
-                </div>
-              </div>
-            </div>
+                </CommandGroup>
+
+                <CommandSeparator className="my-2" />
+
+                <CommandGroup heading="Quick actions">
+                  <div className="grid grid-cols-2 gap-2 px-2">
+                    {QUICK_ACTIONS.map((action) => (
+                      <CommandItem
+                        key={action.label}
+                        value={action.label}
+                        onSelect={() => handleNavigate(action.page)}
+                        className="
+                          h-10
+                          rounded-lg
+                          border
+                          border-border
+                          bg-card
+                          px-3
+                          text-sm
+                          transition-colors
+                          hover:bg-accent
+                        "
+                      >
+                        <ArrowRight className="size-3.5 text-primary" />
+
+                        <span className="truncate">
+                          {action.label}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </div>
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+
+          {/* Footer */}
+          <div
+            className="
+              flex
+              items-center
+              gap-4
+              border-t
+              border-border
+              bg-muted/30
+              px-4
+              py-2
+              text-xs
+              text-muted-foreground
+            "
+          >
+            <Shortcut keys={['↑', '↓']} label="Navigate" />
+            <Shortcut keys={['↵']} label="Open" />
+            <Shortcut keys={['Esc']} label="Close" />
+
+            <span className="ml-auto tabular">
+              {query && results.length > 0
+                ? `${results.length} result${results.length !== 1 ? 's' : ''}`
+                : ''}
+            </span>
+          </div>
+        </Command>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function SearchResultItem({
+  result,
+  onSelect,
+}: {
+  result: SearchResult
+  onSelect: () => void
+}) {
+  return (
+    <CommandItem
+      value={`${result.title} ${result.ref ?? ''} ${result.subtitle}`}
+      onSelect={onSelect}
+      className="
+        group
+        gap-3
+        rounded-lg
+        px-3
+        py-2.5
+      "
+    >
+      <SearchResultIcon type={result.type} />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="truncate text-sm font-medium">
+            {result.title}
+          </span>
+
+          {result.ref && (
+            <span className="shrink-0 font-mono text-xs text-muted-foreground">
+              {result.ref}
+            </span>
+          )}
+
+          {result.badge && (
+            <SearchBadge label={result.badge} />
           )}
         </div>
 
-        {/* Footer shortcuts */}
-        <div className="flex items-center gap-4 px-4 py-2.5 shrink-0"
-          style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-          <span className="flex items-center gap-1 text-xs">
-            <kbd className="rounded px-1 py-0.5" style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: 10 }}>↑</kbd>
-            <kbd className="rounded px-1 py-0.5" style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: 10 }}>↓</kbd>
-            Navigate
-          </span>
-          <span className="flex items-center gap-1 text-xs">
-            <kbd className="rounded px-1 py-0.5" style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: 10 }}>↵</kbd>
-            Open
-          </span>
-          <span className="flex items-center gap-1 text-xs">
-            <kbd className="rounded px-1 py-0.5" style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: 10 }}>Esc</kbd>
-            Close
-          </span>
-          <span className="flex-1" />
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {results.length > 0 ? `${results.length} result${results.length !== 1 ? 's' : ''}` : ''}
-          </span>
-        </div>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          {result.subtitle}
+          {result.meta ? ` · ${result.meta}` : ''}
+        </p>
       </div>
-    </div>
+
+      <ArrowRight
+        className="
+          size-4
+          shrink-0
+          text-muted-foreground
+          opacity-0
+          transition-opacity
+          group-data-[selected=true]:opacity-100
+        "
+      />
+    </CommandItem>
+  )
+}
+
+function Shortcut({
+  keys,
+  label,
+}: {
+  keys: string[]
+  label: string
+}) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className="flex items-center gap-0.5">
+        {keys.map((key) => (
+          <kbd
+            key={key}
+            className="
+              inline-flex
+              h-5
+              min-w-5
+              items-center
+              justify-center
+              rounded
+              border
+              border-border
+              bg-background
+              px-1
+              font-mono
+              text-[10px]
+              font-medium
+            "
+          >
+            {key}
+          </kbd>
+        ))}
+      </span>
+
+      {label}
+    </span>
   )
 }
