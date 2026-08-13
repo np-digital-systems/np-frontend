@@ -1,6 +1,6 @@
 import { MapPin, Phone, Mail, Clock, ExternalLink } from "lucide-react";
-import { PageContainer } from "@/components/common/page-container";
-import { SectionHeader } from "@/components/common/section-header";
+import { PageContainer } from "@/components/common/site/page-container";
+import { SectionHeader } from "@/components/common/site/section-header";
 import { siteConfig } from "@/config/site";
 import { useTranslations } from "next-intl";
 

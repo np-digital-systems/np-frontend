@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { PageContainer } from "@/components/common/page-container";
-import { SectionHeader } from "@/components/common/section-header";
+import { PageContainer } from "@/components/common/site/page-container";
+import { SectionHeader } from "@/components/common/site/section-header";
 import { GalleryCard } from "../components/gallery-card";
 import { GALLERY_IMAGES } from "../constants/gallery";
 import {useTranslations} from "next-intl";

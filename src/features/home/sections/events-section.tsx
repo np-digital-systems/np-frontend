@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { PageContainer } from "@/components/common/page-container";
-import { SectionHeader } from "@/components/common/section-header";
+import { PageContainer } from "@/components/common/site/page-container";
+import { SectionHeader } from "@/components/common/site/section-header";
 import { EventCard } from "../components/event-card";
 import { FEATURED_EVENTS } from "../constants/events";
 import {useLocale, useTranslations} from "next-intl";

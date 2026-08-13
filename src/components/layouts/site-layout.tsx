@@ -1,5 +1,5 @@
-import { Navbar } from "@/components/common/navbar";
-import { Footer } from "@/components/common/footer";
+import { Navbar } from "@/components/common/site/navbar";
+import { Footer } from "@/components/common/site/footer";
 
 interface SiteLayoutProps {
   children: React.ReactNode;

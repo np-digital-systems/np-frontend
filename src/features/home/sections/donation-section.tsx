@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { PageContainer } from "@/components/common/page-container";
-import { SectionHeader } from "@/components/common/section-header";
+import { PageContainer } from "@/components/common/site/page-container";
+import { SectionHeader } from "@/components/common/site/section-header";
 import { DonationCard } from "../components/donation-card";
 import { DONATION_TIERS } from "../constants/temple-info";
 import { useLocale, useTranslations } from "next-intl";
