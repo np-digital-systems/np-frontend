@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import type { PortalNavGroup } from '@/config/navigation';
 
 import { SidebarContent } from './sidebar-content';
@@ -11,22 +9,31 @@ import { SidebarToggle } from './sidebar-toggle';
 
 interface PortalSidebarProps {
   navigation: readonly PortalNavGroup[];
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
 }
 
 export function PortalSidebar({
   navigation,
+  collapsed,
+  onCollapsedChange,
 }: PortalSidebarProps) {
-  const [collapsed, setCollapsed] =
-    useState(false);
-
   return (
     <aside
       className={`
-        relative flex h-screen shrink-0 flex-col
-        border-r border-sidebar-border
+        relative
+        z-40
+        flex
+        h-screen
+        shrink-0
+        flex-col
+        border-r
+        border-sidebar-border
         bg-sidebar
+        text-sidebar-foreground
         transition-[width]
-        duration-200 ease-out
+        duration-200
+        ease-out
         ${collapsed ? 'w-[72px]' : 'w-[248px]'}
       `}
     >
@@ -42,7 +49,7 @@ export function PortalSidebar({
       <SidebarToggle
         collapsed={collapsed}
         onToggle={() =>
-          setCollapsed((value) => !value)
+          onCollapsedChange(!collapsed)
         }
       />
     </aside>

@@ -5,6 +5,8 @@ import {
   PanelLeftOpen,
 } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+
 interface SidebarToggleProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -15,8 +17,10 @@ export function SidebarToggle({
   onToggle,
 }: SidebarToggleProps) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={onToggle}
       aria-label={
         collapsed
@@ -29,17 +33,19 @@ export function SidebarToggle({
           : 'Collapse sidebar'
       }
       className="
-        absolute -right-3 top-5 z-20
-        flex size-6 items-center justify-center
+        absolute
+        -right-3
+        top-5
+        z-50
+        size-6
         rounded-full
-        border border-sidebar-border
+        border
+        border-sidebar-border
         bg-sidebar
         text-sidebar-foreground/60
         shadow-sm
-        transition-colors
         hover:bg-sidebar-accent
         hover:text-sidebar-foreground
-        focus-visible:outline-none
         focus-visible:ring-2
         focus-visible:ring-ring/50
       "
@@ -55,6 +61,6 @@ export function SidebarToggle({
           strokeWidth={1.8}
         />
       )}
-    </button>
+    </Button>
   );
 }
