@@ -1,121 +1,420 @@
+/* ==========================================================================
+   PORTAL DESIGN SYSTEM
+   --------------------------------------------------------------------------
+   Scoped to .portal-theme so the management portal can have its own visual
+   language without affecting the public website.
+
+   Design principles:
+   - Neutral surfaces
+   - Strong typography hierarchy
+   - Subtle borders
+   - Minimal shadows
+   - Consistent 4/8px spacing rhythm
+   - Moderate corner radius
+   - Restrained semantic colors
+   - Accessible light/dark contrast
+   ========================================================================== */
+
 .portal-theme {
-  --background: #F5F5F7;
-  --foreground: #1D1D1F;
+  /* ------------------------------------------------------------------------
+     Layout
+     ------------------------------------------------------------------------ */
 
-  --card: #FFFFFF;
-  --card-foreground: #1D1D1F;
-
-  --primary: #0071E3;
-  --primary-foreground: #FFFFFF;
-
-  --secondary: #F2F2F7;
-  --secondary-foreground: #1D1D1F;
-
-  --muted: #F2F2F7;
-  --muted-foreground: #6E6E73;
-
-  --accent: #0071E3;
-  --accent-foreground: #FFFFFF;
-
-  --destructive: #FF3B30;
-  --destructive-foreground: #FFFFFF;
-
-  --border: #D2D2D7;
-  --input: #D2D2D7;
-  --ring: #0071E3;
-
-  /* Semantic portal tokens */
-  --surface: var(--card);
-  --surface-2: var(--secondary);
-
-  --text-primary: var(--foreground);
-  --text-secondary: var(--muted-foreground);
-  --text-muted: var(--muted-foreground);
-
-  --accent-subtle: rgba(0, 113, 227, 0.08);
-
-  /* Status */
-  --success: #34C759;
-  --success-subtle: rgba(52, 199, 89, 0.10);
-
-  --warning: #FF9F0A;
-  --warning-subtle: rgba(255, 159, 10, 0.10);
-
-  --danger: #FF3B30;
-  --danger-subtle: rgba(255, 59, 48, 0.10);
-
-  --info: #0071E3;
-  --info-subtle: rgba(0, 113, 227, 0.08);
-
-  /* Sidebar */
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1D1D1F;
-  --sidebar-primary: #0071E3;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F2F2F7;
-  --sidebar-accent-foreground: #1D1D1F;
-  --sidebar-border: #D2D2D7;
-  --sidebar-ring: #0071E3;
-
-  /* Portal layout */
   --sidebar-width: 248px;
-  --sidebar-collapsed: 72px;
+  --sidebar-collapsed-width: 72px;
+
   --header-height: 56px;
+
+  --content-max-width: 1600px;
+
+  /* ------------------------------------------------------------------------
+     Shape
+     ------------------------------------------------------------------------ */
+
+  --radius: 0.625rem;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  /* ------------------------------------------------------------------------
+     Core surfaces
+     ------------------------------------------------------------------------ */
+
+  --background: #f7f7f8;
+  --foreground: #18181b;
+
+  --card: #ffffff;
+  --card-foreground: #18181b;
+
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+
+  /* ------------------------------------------------------------------------
+     Brand / action
+     ------------------------------------------------------------------------ */
+
+  --primary: #0a84ff;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f1f1f3;
+  --secondary-foreground: #27272a;
+
+  --accent: #f1f1f3;
+  --accent-foreground: #18181b;
+
+  /* ------------------------------------------------------------------------
+     Muted content
+     ------------------------------------------------------------------------ */
+
+  --muted: #f1f1f3;
+  --muted-foreground: #71717a;
+
+  /* ------------------------------------------------------------------------
+     Destructive
+     ------------------------------------------------------------------------ */
+
+  --destructive: #d92d20;
+  --destructive-foreground: #ffffff;
+
+  /* ------------------------------------------------------------------------
+     Borders / inputs / focus
+     ------------------------------------------------------------------------ */
+
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+
+  --ring: #0a84ff;
+
+  /* ------------------------------------------------------------------------
+     Semantic surfaces
+     ------------------------------------------------------------------------ */
+
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --surface-3: #fafafa;
+
+  /* ------------------------------------------------------------------------
+     Semantic text
+     ------------------------------------------------------------------------ */
+
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --text-disabled: #a1a1aa;
+
+  /* ------------------------------------------------------------------------
+     Interactive states
+     ------------------------------------------------------------------------ */
+
+  --interactive-hover: #f4f4f5;
+  --interactive-active: #e4e4e7;
+
+  --accent-subtle: rgba(10, 132, 255, 0.08);
+  --accent-muted: rgba(10, 132, 255, 0.12);
+
+  /* ------------------------------------------------------------------------
+     Sidebar
+     ------------------------------------------------------------------------ */
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #27272a;
+
+  --sidebar-primary: #0a84ff;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #0a84ff;
+
+  --sidebar-muted: #71717a;
+
+  /* ------------------------------------------------------------------------
+     Status / semantic colors
+     ------------------------------------------------------------------------ */
+
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --success-subtle: rgba(22, 163, 74, 0.1);
+
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --warning-subtle: rgba(217, 119, 6, 0.1);
+
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --danger-subtle: rgba(220, 38, 38, 0.1);
+
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+  --info-subtle: rgba(37, 99, 235, 0.1);
+
+  /* ------------------------------------------------------------------------
+     Charts
+     ------------------------------------------------------------------------ */
+
+  --chart-1: #0a84ff;
+  --chart-2: #16a34a;
+  --chart-3: #d97706;
+  --chart-4: #8b5cf6;
+  --chart-5: #dc2626;
+
+  /* ------------------------------------------------------------------------
+     Shadows
+     ------------------------------------------------------------------------ */
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.04);
+
+  --shadow-sm:
+    0 1px 3px rgb(0 0 0 / 0.05),
+    0 1px 2px rgb(0 0 0 / 0.03);
+
+  --shadow-md:
+    0 4px 12px rgb(0 0 0 / 0.06),
+    0 1px 3px rgb(0 0 0 / 0.04);
+
+  --shadow-lg:
+    0 10px 24px rgb(0 0 0 / 0.08),
+    0 2px 6px rgb(0 0 0 / 0.04);
 }
 
-.portal-theme.dark {
-  --background: #000000;
-  --foreground: #F5F5F7;
 
-  --card: #1C1C1E;
-  --card-foreground: #F5F5F7;
+/* ==========================================================================
+   PORTAL DARK THEME
 
-  --primary: #0A84FF;
-  --primary-foreground: #FFFFFF;
+   Works with either:
 
-  --secondary: #2C2C2E;
-  --secondary-foreground: #F5F5F7;
+   <div class="portal-theme dark">
 
-  --muted: #2C2C2E;
-  --muted-foreground: #98989D;
+   or:
 
-  --accent: #0A84FF;
-  --accent-foreground: #FFFFFF;
+   <div class="dark">
+     <div class="portal-theme">
+   ========================================================================== */
 
-  --destructive: #FF453A;
-  --destructive-foreground: #FFFFFF;
+.portal-theme.dark,
+.dark .portal-theme {
+  /* ------------------------------------------------------------------------
+     Core surfaces
+     ------------------------------------------------------------------------ */
 
-  --border: #38383A;
-  --input: #38383A;
-  --ring: #0A84FF;
+  --background: #0b0b0d;
+  --foreground: #f4f4f5;
 
-  --surface: var(--card);
-  --surface-2: var(--secondary);
+  --card: #141416;
+  --card-foreground: #f4f4f5;
 
-  --text-primary: var(--foreground);
-  --text-secondary: var(--muted-foreground);
-  --text-muted: var(--muted-foreground);
+  --popover: #18181b;
+  --popover-foreground: #f4f4f5;
+
+  /* ------------------------------------------------------------------------
+     Brand / action
+     ------------------------------------------------------------------------ */
+
+  --primary: #0a84ff;
+  --primary-foreground: #ffffff;
+
+  --secondary: #27272a;
+  --secondary-foreground: #f4f4f5;
+
+  --accent: #27272a;
+  --accent-foreground: #f4f4f5;
+
+  /* ------------------------------------------------------------------------
+     Muted
+     ------------------------------------------------------------------------ */
+
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  /* ------------------------------------------------------------------------
+     Destructive
+     ------------------------------------------------------------------------ */
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* ------------------------------------------------------------------------
+     Borders / inputs / focus
+     ------------------------------------------------------------------------ */
+
+  --border: #27272a;
+  --input: #3f3f46;
+
+  --ring: #0a84ff;
+
+  /* ------------------------------------------------------------------------
+     Semantic surfaces
+     ------------------------------------------------------------------------ */
+
+  --surface: #141416;
+  --surface-2: #1c1c1f;
+  --surface-3: #111113;
+
+  /* ------------------------------------------------------------------------
+     Semantic text
+     ------------------------------------------------------------------------ */
+
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-disabled: #52525b;
+
+  /* ------------------------------------------------------------------------
+     Interactive states
+     ------------------------------------------------------------------------ */
+
+  --interactive-hover: #1c1c1f;
+  --interactive-active: #27272a;
 
   --accent-subtle: rgba(10, 132, 255, 0.12);
+  --accent-muted: rgba(10, 132, 255, 0.16);
 
-  --success: #30D158;
-  --success-subtle: rgba(48, 209, 88, 0.12);
+  /* ------------------------------------------------------------------------
+     Sidebar
+     ------------------------------------------------------------------------ */
 
-  --warning: #FF9F0A;
-  --warning-subtle: rgba(255, 159, 10, 0.12);
+  --sidebar: #111113;
+  --sidebar-foreground: #e4e4e7;
 
-  --danger: #FF453A;
-  --danger-subtle: rgba(255, 69, 58, 0.12);
+  --sidebar-primary: #0a84ff;
+  --sidebar-primary-foreground: #ffffff;
 
-  --info: #0A84FF;
-  --info-subtle: rgba(10, 132, 255, 0.12);
+  --sidebar-accent: #1c1c1f;
+  --sidebar-accent-foreground: #f4f4f5;
 
-  --sidebar: #1C1C1E;
-  --sidebar-foreground: #F5F5F7;
-  --sidebar-primary: #0A84FF;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #2C2C2E;
-  --sidebar-accent-foreground: #F5F5F7;
-  --sidebar-border: #38383A;
-  --sidebar-ring: #0A84FF;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #0a84ff;
+
+  --sidebar-muted: #71717a;
+
+  /* ------------------------------------------------------------------------
+     Semantic colors
+     ------------------------------------------------------------------------ */
+
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --success-subtle: rgba(34, 197, 94, 0.12);
+
+  --warning: #f59e0b;
+  --warning-foreground: #18181b;
+  --warning-subtle: rgba(245, 158, 11, 0.12);
+
+  --danger: #ef4444;
+  --danger-foreground: #ffffff;
+  --danger-subtle: rgba(239, 68, 68, 0.12);
+
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+  --info-subtle: rgba(59, 130, 246, 0.12);
+
+  /* ------------------------------------------------------------------------
+     Charts
+     ------------------------------------------------------------------------ */
+
+  --chart-1: #0a84ff;
+  --chart-2: #22c55e;
+  --chart-3: #f59e0b;
+  --chart-4: #a78bfa;
+  --chart-5: #ef4444;
+
+  /* ------------------------------------------------------------------------
+     Shadows
+
+     Dark interfaces generally need weaker shadows and rely more on
+     borders/surface contrast.
+     ------------------------------------------------------------------------ */
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.25);
+
+  --shadow-sm:
+    0 1px 3px rgb(0 0 0 / 0.3),
+    0 1px 2px rgb(0 0 0 / 0.2);
+
+  --shadow-md:
+    0 6px 16px rgb(0 0 0 / 0.3),
+    0 2px 4px rgb(0 0 0 / 0.2);
+
+  --shadow-lg:
+    0 12px 32px rgb(0 0 0 / 0.4),
+    0 4px 8px rgb(0 0 0 / 0.25);
+}
+
+
+/* ==========================================================================
+   PORTAL BASE
+   ========================================================================== */
+
+.portal-theme {
+  min-height: 100%;
+  background-color: var(--background);
+  color: var(--foreground);
+
+  /*
+   * Inter is supplied by next/font in your application layout.
+   * Do not import Google Fonts from CSS.
+   */
+  font-family:
+    var(--font-inter),
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-feature-settings:
+    "cv11",
+    "ss01";
+
+  font-synthesis: none;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  text-rendering: optimizeLegibility;
+}
+
+
+/* ==========================================================================
+   PORTAL TYPOGRAPHY
+   ========================================================================== */
+
+.portal-theme .tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+
+/* ==========================================================================
+   PORTAL SCROLLBARS
+   ========================================================================== */
+
+.portal-theme {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.portal-theme::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.portal-theme::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.portal-theme::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.portal-theme::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
 }
