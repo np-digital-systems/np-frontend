@@ -90,8 +90,7 @@ export const footerNavItems = {
 
 
 // Portal Navigation
-
-export type NavIcon =
+export type PortalIcon =
   | 'dashboard'
   | 'calendar'
   | 'tag'
@@ -116,37 +115,43 @@ export type NavIcon =
   | 'calendar-range'
   | 'settings'
   | 'clipboard';
+
 export interface PortalNavItem {
-  readonly id: string
-  readonly icon: NavIcon
-  readonly label: string
-  readonly href: string
-  readonly allowedRoles?: readonly UserRole[]
+  id: string;
+  label: string;
+  href: string;
+  icon: PortalIcon;
+  description?: string;
+  allowedRoles?: readonly UserRole[];
 }
 
 export interface PortalNavGroup {
-  readonly id: string
-  readonly label: string
-  readonly items: readonly PortalNavItem[]
+  id: string;
+  label: string;
+  items: readonly PortalNavItem[];
+  defaultOpen?: boolean;
 }
 
-export const portalNavigation = [
+export const portalNavigation: readonly PortalNavGroup[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
+    defaultOpen: true,
     items: [
       {
         id: 'dashboard',
         label: 'Dashboard',
         href: '/dashboard',
         icon: 'dashboard',
+        allowedRoles: ['admin', 'accountant', 'cashier', 'user'],
       },
     ],
   },
 
   {
-    id: 'event-management',
+    id: 'events',
     label: 'Event Management',
+    defaultOpen: true,
     items: [
       {
         id: 'event-calendar',
@@ -182,6 +187,7 @@ export const portalNavigation = [
   {
     id: 'accounting',
     label: 'Accounting',
+    defaultOpen: true,
     items: [
       {
         id: 'account-overview',
@@ -222,7 +228,7 @@ export const portalNavigation = [
         id: 'bank-accounts',
         label: 'Bank Accounts',
         href: '/accounting/bank-accounts',
-        icon: 'book',
+        icon: 'landmark',
         allowedRoles: ['admin', 'accountant'],
       },
       {
@@ -250,15 +256,16 @@ export const portalNavigation = [
         id: 'reports',
         label: 'Reports',
         href: '/accounting/reports',
-        icon: 'folder',
+        icon: 'report',
         allowedRoles: ['admin', 'accountant'],
       },
     ],
   },
 
   {
-    id: 'financial-management',
+    id: 'finance',
     label: 'Financial Management',
+    defaultOpen: true,
     items: [
       {
         id: 'funds',
@@ -292,8 +299,9 @@ export const portalNavigation = [
   },
 
   {
-    id: 'temple-contributions',
+    id: 'contributions',
     label: 'Temple Contributions',
+    defaultOpen: true,
     items: [
       {
         id: 'sanththa',
@@ -308,6 +316,7 @@ export const portalNavigation = [
   {
     id: 'administration',
     label: 'Administration',
+    defaultOpen: true,
     items: [
       {
         id: 'users',
@@ -317,7 +326,7 @@ export const portalNavigation = [
         allowedRoles: ['admin'],
       },
       {
-        id: 'roles-permissions',
+        id: 'roles',
         label: 'Roles & Permissions',
         href: '/administration/roles',
         icon: 'shield',
@@ -346,4 +355,4 @@ export const portalNavigation = [
       },
     ],
   },
-] satisfies readonly PortalNavGroup[]
+];

@@ -1,30 +1,30 @@
-import type { UserRole } from '@/features/auth/types/user-role';
-
-import type {
-  PortalNavGroup,
-  PortalNavItem,
+import {
+  portalNavigation,
+  type PortalNavGroup,
+  type PortalNavItem,
 } from '@/config/navigation';
 
-export function canAccessNavigationItem(
+import type { UserRole } from '@/features/auth/types/user-role';
+
+export function canAccessNavItem(
   item: PortalNavItem,
   role: UserRole,
 ): boolean {
-  if (!item.allowedRoles || item.allowedRoles.length === 0) {
+  if (!item.allowedRoles) {
     return true;
   }
 
   return item.allowedRoles.includes(role);
 }
 
-export function getVisiblePortalNavigation(
-  navigation: PortalNavGroup[],
+export function getPortalNavigation(
   role: UserRole,
 ): PortalNavGroup[] {
-  return navigation
+  return portalNavigation
     .map((group) => ({
       ...group,
       items: group.items.filter((item) =>
-        canAccessNavigationItem(item, role),
+        canAccessNavItem(item, role),
       ),
     }))
     .filter((group) => group.items.length > 0);
