@@ -7,6 +7,7 @@ import { PortalBreadcrumbs } from './portal-breadcrumbs'
 import { PortalSearch } from './portal-search'
 import { FinancialYearSelector } from './financial-year-selector'
 import { NotificationMenu } from './notification-menu'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserMenu } from './user-menu'
 
 
@@ -61,30 +62,7 @@ export function PortalHeader() {
           {/* Notifications */}
           <NotificationMenu />
 
-          {/* Theme */}
-          <button
-            type="button"
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            aria-label={
-              isDark
-                ? 'Switch to light mode'
-                : 'Switch to dark mode'
-            }
-            className="
-              flex size-9 items-center justify-center
-              rounded-lg
-              text-muted-foreground
-              transition-colors
-              hover:bg-muted
-              hover:text-foreground
-            "
-          >
-            {isDark ? (
-              <Sun className="size-[17px]" />
-            ) : (
-              <Moon className="size-[17px]" />
-            )}
-          </button>
+          <ThemeToggle/>
 
           <div className="mx-1.5 hidden h-5 w-px bg-border sm:block" />
 
