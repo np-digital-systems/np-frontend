@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
-import { PageContainer } from "@/components/common/site/page-container";
+import { PageContainer } from "@/components/site/page-container";
 import { siteConfig } from "@/config/site";
 import { useTranslations } from "next-intl";
 

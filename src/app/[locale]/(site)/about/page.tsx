@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { PageContainer } from "@/components/common/site/page-container";
-import { SpiritualDivider } from "@/components/common/site/spiritual-divider";
+import { PageContainer } from "@/components/site/page-container";
+import { SpiritualDivider } from "@/components/site/spiritual-divider";
 import { TEMPLE_STATS } from "@/features/home/constants/temple-info";
 import { TempleStat } from "@/features/home/components/temple-stat";
 import { useTranslations } from "next-intl";

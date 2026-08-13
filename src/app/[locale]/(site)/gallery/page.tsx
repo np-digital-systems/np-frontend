@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { PageContainer } from "@/components/common/site/page-container";
-import { SectionHeader } from "@/components/common/site/section-header";
+import { PageContainer } from "@/components/site/page-container";
+import { SectionHeader } from "@/components/site/section-header";
 import { GalleryCard } from "@/features/home/components/gallery-card";
 import { GALLERY_IMAGES } from "@/features/home/constants/gallery";
 import { useTranslations } from "next-intl";

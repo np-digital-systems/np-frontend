@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { PageContainer } from "@/components/common/site/page-container";
-import { SectionHeader } from "@/components/common/site/section-header";
+import { PageContainer } from "@/components/site/page-container";
+import { SectionHeader } from "@/components/site/section-header";
 import { EventCard } from "@/features/home/components/event-card";
 import { FEATURED_EVENTS } from "@/features/home/constants/events";
 import { useTranslations, useLocale } from "next-intl";
