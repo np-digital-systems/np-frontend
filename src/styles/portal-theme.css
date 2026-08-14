@@ -381,6 +381,19 @@
   text-rendering: optimizeLegibility;
 }
 
+.portal-theme {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+.portal-theme h1,
+.portal-theme h2,
+.portal-theme h3,
+.portal-theme h4,
+.portal-theme h5,
+.portal-theme h6 {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
 
 /* ==========================================================================
    PORTAL TYPOGRAPHY
