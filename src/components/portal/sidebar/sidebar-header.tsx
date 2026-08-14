@@ -12,7 +12,8 @@ export function SidebarHeader({
   return (
     <div
       className={`
-        flex h-16 shrink-0 items-center
+        flex         h-[var(--header-height)]
+ shrink-0 items-center
         border-b border-sidebar-border
         px-4
         transition-all duration-200
