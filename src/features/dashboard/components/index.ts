@@ -1,6 +1,12 @@
-export { Card, CardHeader } from './card';
+export { Card, CardHeader, CardBody, CardFooter } from './card';
+export { StatCard } from './stat-card';
+export { StatusBadge } from './status-badge';
 export { LinkButton } from './link-button';
-export { Badge } from './badge';
-export { KpiCard } from './kpi-card';
-export { Skeleton } from './skeleton';
+export { QuickActions, type QuickAction } from './quick-actions';
 export { ChartTooltip } from './chart-tooltip';
+export { DetailGrid } from './detail-grid';
+export { PageHeader } from './page-header';
+export { DashboardShell } from './dashboard-shell';
+export { EmptyState } from './empty-state';
+export { Skeleton } from './skeleton';
+export { SegmentedControl } from './segmented-control';
