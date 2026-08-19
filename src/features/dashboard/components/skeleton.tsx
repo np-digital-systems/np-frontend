@@ -1,21 +1,14 @@
-import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface SkeletonProps {
-  h?: number;
-  w?: number | string;
-  radius?: number;
+  className?: string;
 }
 
-export function Skeleton({ h = 16, w = '100%', radius = 6 }: SkeletonProps) {
+export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
-      style={{
-        height: h,
-        width: w,
-        borderRadius: radius,
-        backgroundColor: 'var(--surface-2)',
-        animation: 'pulse 1.5s ease-in-out infinite',
-      }}
+      className={cn('animate-pulse rounded-md bg-surface-2', className)}
+      aria-hidden
     />
   );
 }
