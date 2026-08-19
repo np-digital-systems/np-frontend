@@ -1,4 +1,4 @@
-export { DashboardHeader } from './dashboard-header';
-export { AdminDashboard } from './admin-dashboard';
-export { AccountantDashboard } from './accountant-dashboard';
-export { CashierDashboard } from './cashier-dashboard';
+export { AdminDashboard } from './admin';
+export { AccountantDashboard } from './accountant';
+export { CashierDashboard } from './cashier';
+export { MemberDashboard } from './member';
