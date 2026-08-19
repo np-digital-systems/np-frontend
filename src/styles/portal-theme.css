@@ -1,21 +1,23 @@
 /* ==========================================================================
    PORTAL DESIGN SYSTEM
    --------------------------------------------------------------------------
-   Scoped to .portal-theme so the management portal can have its own visual
-   language without affecting the public website.
+   Design tokens for the management portal only. Scoped to `.portal-theme`.
 
-   Design principles:
-   - Neutral surfaces
-   - Strong typography hierarchy
-   - Subtle borders
-   - Minimal shadows
-   - Consistent 4/8px spacing rhythm
-   - Moderate corner radius
-   - Restrained semantic colors
-   - Accessible light/dark contrast
+   This file is imported into the `theme-portal` cascade layer, declared AFTER
+   `theme-site`, so these tokens always win inside `.portal-theme` regardless
+   of selector specificity or import order. Never add site tokens here.
+
+   Visual language — restrained, system-native, information-dense:
+
+   - Achromatic grays. Colour is reserved for meaning, never decoration.
+   - One decisive accent (system blue) for interactive affordances.
+   - Hairline borders; elevation comes from surface value, not shadow.
+   - Tight optical tracking on large text, neutral tracking on body.
+   - Tabular numerals everywhere a figure can be compared vertically.
    ========================================================================== */
 
 .portal-theme {
+
   /* ------------------------------------------------------------------------
      Layout
      ------------------------------------------------------------------------ */
@@ -23,12 +25,16 @@
   --sidebar-width: 248px;
   --sidebar-collapsed-width: 72px;
 
-  --header-height: 56px;
+  --header-height: 52px;
 
-  --content-max-width: 1600px;
+  --content-max-width: 1440px;
+
 
   /* ------------------------------------------------------------------------
      Shape
+
+     Slightly softer than stock shadcn. Apple's HIG leans on continuous
+     corners; a 10px radius on cards reads closest at this density.
      ------------------------------------------------------------------------ */
 
   --radius: 0.625rem;
@@ -40,177 +46,213 @@
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
 
+
   /* ------------------------------------------------------------------------
-     Core surfaces
+     Core surfaces — light
+
+     #f5f5f7 is the canvas; cards sit above it in pure white. The value gap
+     is what separates them, so cards need almost no shadow.
      ------------------------------------------------------------------------ */
 
-  --background: #f7f7f8;
-  --foreground: #18181b;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
 
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #1d1d1f;
 
   --popover: #ffffff;
-  --popover-foreground: #18181b;
+  --popover-foreground: #1d1d1f;
+
 
   /* ------------------------------------------------------------------------
      Brand / action
      ------------------------------------------------------------------------ */
 
-  --primary: #0a84ff;
+  --primary: #0071e3;
   --primary-foreground: #ffffff;
+  --primary-hover: #0077ed;
+  --primary-subtle: rgba(0, 113, 227, 0.08);
+  --primary-muted: rgba(0, 113, 227, 0.14);
 
-  --secondary: #f1f1f3;
-  --secondary-foreground: #27272a;
+  --secondary: #f5f5f7;
+  --secondary-foreground: #1d1d1f;
 
-  --accent: #f1f1f3;
-  --accent-foreground: #18181b;
+  /* shadcn semantics: `accent` is a subtle hover SURFACE, not a brand colour.
+     Use `--primary` for anything that should read as the accent hue. */
+  --accent: #f0f0f2;
+  --accent-foreground: #1d1d1f;
+
 
   /* ------------------------------------------------------------------------
      Muted content
      ------------------------------------------------------------------------ */
 
-  --muted: #f1f1f3;
-  --muted-foreground: #71717a;
+  --muted: #f0f0f2;
+  --muted-foreground: #6e6e73;
+
 
   /* ------------------------------------------------------------------------
      Destructive
      ------------------------------------------------------------------------ */
 
-  --destructive: #d92d20;
+  --destructive: #d70015;
   --destructive-foreground: #ffffff;
+
 
   /* ------------------------------------------------------------------------
      Borders / inputs / focus
      ------------------------------------------------------------------------ */
 
-  --border: #e4e4e7;
-  --input: #d4d4d8;
+  --border: #e3e3e6;
+  --border-strong: #d2d2d7;
+  --input: #d2d2d7;
 
-  --ring: #0a84ff;
+  --ring: #0071e3;
+
 
   /* ------------------------------------------------------------------------
      Semantic surfaces
      ------------------------------------------------------------------------ */
 
   --surface: #ffffff;
-  --surface-2: #f4f4f5;
+  --surface-2: #f5f5f7;
   --surface-3: #fafafa;
+
 
   /* ------------------------------------------------------------------------
      Semantic text
+
+     Four steps only. More than four and hierarchy stops reading.
      ------------------------------------------------------------------------ */
 
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #71717a;
-  --text-disabled: #a1a1aa;
+  --text-primary: #1d1d1f;
+  --text-secondary: #424245;
+  --text-muted: #6e6e73;
+  --text-disabled: #a1a1a6;
+
 
   /* ------------------------------------------------------------------------
      Interactive states
      ------------------------------------------------------------------------ */
 
-  --interactive-hover: #f4f4f5;
-  --interactive-active: #e4e4e7;
+  --interactive-hover: #f0f0f2;
+  --interactive-active: #e8e8ed;
 
-  --accent-subtle: rgba(10, 132, 255, 0.08);
-  --accent-muted: rgba(10, 132, 255, 0.12);
+  --accent-subtle: rgba(0, 113, 227, 0.08);
+  --accent-muted: rgba(0, 113, 227, 0.14);
+
 
   /* ------------------------------------------------------------------------
      Sidebar
      ------------------------------------------------------------------------ */
 
   --sidebar: #ffffff;
-  --sidebar-foreground: #27272a;
+  --sidebar-foreground: #424245;
 
-  --sidebar-primary: #0a84ff;
+  --sidebar-primary: #0071e3;
   --sidebar-primary-foreground: #ffffff;
 
-  --sidebar-accent: #f4f4f5;
-  --sidebar-accent-foreground: #18181b;
+  --sidebar-accent: #f0f0f2;
+  --sidebar-accent-foreground: #1d1d1f;
 
-  --sidebar-border: #e4e4e7;
-  --sidebar-ring: #0a84ff;
+  --sidebar-border: #e3e3e6;
+  --sidebar-ring: #0071e3;
 
-  --sidebar-muted: #71717a;
+  --sidebar-muted: #86868b;
+
 
   /* ------------------------------------------------------------------------
-     Status / semantic colors
+     Status
+
+     Deliberately desaturated against stock Tailwind. Financial UI shows a
+     lot of status at once; saturated chips turn a dense table into noise.
      ------------------------------------------------------------------------ */
 
-  --success: #16a34a;
+  --success: #1d8348;
   --success-foreground: #ffffff;
-  --success-subtle: rgba(22, 163, 74, 0.1);
+  --success-subtle: rgba(29, 131, 72, 0.1);
 
-  --warning: #d97706;
+  --warning: #b25000;
   --warning-foreground: #ffffff;
-  --warning-subtle: rgba(217, 119, 6, 0.1);
+  --warning-subtle: rgba(178, 80, 0, 0.1);
 
-  --danger: #dc2626;
+  --danger: #d70015;
   --danger-foreground: #ffffff;
-  --danger-subtle: rgba(220, 38, 38, 0.1);
+  --danger-subtle: rgba(215, 0, 21, 0.09);
 
-  --info: #2563eb;
+  --info: #0071e3;
   --info-foreground: #ffffff;
-  --info-subtle: rgba(37, 99, 235, 0.1);
+  --info-subtle: rgba(0, 113, 227, 0.09);
+
+  --neutral-subtle: rgba(0, 0, 0, 0.05);
+
 
   /* ------------------------------------------------------------------------
      Charts
+
+     Ordered by how often a series appears, not by hue wheel position.
      ------------------------------------------------------------------------ */
 
-  --chart-1: #0a84ff;
-  --chart-2: #16a34a;
-  --chart-3: #d97706;
-  --chart-4: #8b5cf6;
-  --chart-5: #dc2626;
+  --chart-1: #0071e3;
+  --chart-2: #1d8348;
+  --chart-3: #b25000;
+  --chart-4: #7d3cc4;
+  --chart-5: #d70015;
+
+  --chart-grid: rgba(0, 0, 0, 0.07);
+
 
   /* ------------------------------------------------------------------------
-     Shadows
+     Elevation
+
+     Barely-there. On a light canvas the border does most of the separating.
      ------------------------------------------------------------------------ */
 
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.03);
 
   --shadow-sm:
-    0 1px 3px rgb(0 0 0 / 0.05),
-    0 1px 2px rgb(0 0 0 / 0.03);
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 1px 1px rgb(0 0 0 / 0.03);
 
   --shadow-md:
     0 4px 12px rgb(0 0 0 / 0.06),
-    0 1px 3px rgb(0 0 0 / 0.04);
+    0 1px 2px rgb(0 0 0 / 0.04);
 
   --shadow-lg:
-    0 10px 24px rgb(0 0 0 / 0.08),
-    0 2px 6px rgb(0 0 0 / 0.04);
+    0 12px 32px rgb(0 0 0 / 0.1),
+    0 2px 6px rgb(0 0 0 / 0.05);
 }
 
 
 /* ==========================================================================
-   PORTAL DARK THEME
+   PORTAL — DARK
 
-   Works with either:
+   Matches either shape:
 
-   <div class="portal-theme dark">
-
-   or:
-
-   <div class="dark">
-     <div class="portal-theme">
+     <div class="portal-theme dark">
+     <html class="dark"> … <div class="portal-theme">
    ========================================================================== */
 
 .portal-theme.dark,
 .dark .portal-theme {
+
   /* ------------------------------------------------------------------------
      Core surfaces
+
+     True black canvas with raised graphite cards — the same figure/ground
+     split Apple and X use in dark mode. Cards read as objects on a void
+     rather than as lighter patches of the same sheet.
      ------------------------------------------------------------------------ */
 
-  --background: #0b0b0d;
-  --foreground: #f4f4f5;
+  --background: #000000;
+  --foreground: #f5f5f7;
 
-  --card: #141416;
-  --card-foreground: #f4f4f5;
+  --card: #1c1c1e;
+  --card-foreground: #f5f5f7;
 
-  --popover: #18181b;
-  --popover-foreground: #f4f4f5;
+  --popover: #1c1c1e;
+  --popover-foreground: #f5f5f7;
+
 
   /* ------------------------------------------------------------------------
      Brand / action
@@ -218,131 +260,152 @@
 
   --primary: #0a84ff;
   --primary-foreground: #ffffff;
+  --primary-hover: #339cff;
+  --primary-subtle: rgba(10, 132, 255, 0.14);
+  --primary-muted: rgba(10, 132, 255, 0.22);
 
-  --secondary: #27272a;
-  --secondary-foreground: #f4f4f5;
+  --secondary: #1c1c1e;
+  --secondary-foreground: #f5f5f7;
 
-  --accent: #27272a;
-  --accent-foreground: #f4f4f5;
+  --accent: #2c2c2e;
+  --accent-foreground: #f5f5f7;
+
 
   /* ------------------------------------------------------------------------
-     Muted
+     Muted content
      ------------------------------------------------------------------------ */
 
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
+  --muted: #2c2c2e;
+  --muted-foreground: #98989d;
+
 
   /* ------------------------------------------------------------------------
      Destructive
      ------------------------------------------------------------------------ */
 
-  --destructive: #ef4444;
+  --destructive: #ff453a;
   --destructive-foreground: #ffffff;
+
 
   /* ------------------------------------------------------------------------
      Borders / inputs / focus
+
+     Translucent white so borders sit correctly on every surface value
+     instead of banding against one specific background.
      ------------------------------------------------------------------------ */
 
-  --border: #27272a;
-  --input: #3f3f46;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.16);
 
   --ring: #0a84ff;
+
 
   /* ------------------------------------------------------------------------
      Semantic surfaces
      ------------------------------------------------------------------------ */
 
-  --surface: #141416;
-  --surface-2: #1c1c1f;
-  --surface-3: #111113;
+  --surface: #1c1c1e;
+  --surface-2: #2c2c2e;
+  --surface-3: #141416;
+
 
   /* ------------------------------------------------------------------------
      Semantic text
      ------------------------------------------------------------------------ */
 
-  --text-primary: #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --text-disabled: #52525b;
+  --text-primary: #f5f5f7;
+  --text-secondary: #c7c7cc;
+  --text-muted: #98989d;
+  --text-disabled: #636366;
+
 
   /* ------------------------------------------------------------------------
      Interactive states
      ------------------------------------------------------------------------ */
 
-  --interactive-hover: #1c1c1f;
-  --interactive-active: #27272a;
+  --interactive-hover: rgba(255, 255, 255, 0.06);
+  --interactive-active: rgba(255, 255, 255, 0.1);
 
-  --accent-subtle: rgba(10, 132, 255, 0.12);
-  --accent-muted: rgba(10, 132, 255, 0.16);
+  --accent-subtle: rgba(10, 132, 255, 0.14);
+  --accent-muted: rgba(10, 132, 255, 0.22);
+
 
   /* ------------------------------------------------------------------------
      Sidebar
      ------------------------------------------------------------------------ */
 
-  --sidebar: #111113;
-  --sidebar-foreground: #e4e4e7;
+  --sidebar: #000000;
+  --sidebar-foreground: #c7c7cc;
 
   --sidebar-primary: #0a84ff;
   --sidebar-primary-foreground: #ffffff;
 
-  --sidebar-accent: #1c1c1f;
-  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-accent: rgba(255, 255, 255, 0.07);
+  --sidebar-accent-foreground: #f5f5f7;
 
-  --sidebar-border: #27272a;
+  --sidebar-border: rgba(255, 255, 255, 0.09);
   --sidebar-ring: #0a84ff;
 
-  --sidebar-muted: #71717a;
+  --sidebar-muted: #8e8e93;
+
 
   /* ------------------------------------------------------------------------
-     Semantic colors
+     Status
      ------------------------------------------------------------------------ */
 
-  --success: #22c55e;
-  --success-foreground: #ffffff;
-  --success-subtle: rgba(34, 197, 94, 0.12);
+  --success: #30d158;
+  --success-foreground: #00250f;
+  --success-subtle: rgba(48, 209, 88, 0.16);
 
-  --warning: #f59e0b;
-  --warning-foreground: #18181b;
-  --warning-subtle: rgba(245, 158, 11, 0.12);
+  --warning: #ff9f0a;
+  --warning-foreground: #241600;
+  --warning-subtle: rgba(255, 159, 10, 0.16);
 
-  --danger: #ef4444;
-  --danger-foreground: #ffffff;
-  --danger-subtle: rgba(239, 68, 68, 0.12);
+  --danger: #ff453a;
+  --danger-foreground: #2b0000;
+  --danger-subtle: rgba(255, 69, 58, 0.16);
 
-  --info: #3b82f6;
+  --info: #0a84ff;
   --info-foreground: #ffffff;
-  --info-subtle: rgba(59, 130, 246, 0.12);
+  --info-subtle: rgba(10, 132, 255, 0.16);
+
+  --neutral-subtle: rgba(255, 255, 255, 0.08);
+
 
   /* ------------------------------------------------------------------------
      Charts
      ------------------------------------------------------------------------ */
 
   --chart-1: #0a84ff;
-  --chart-2: #22c55e;
-  --chart-3: #f59e0b;
-  --chart-4: #a78bfa;
-  --chart-5: #ef4444;
+  --chart-2: #30d158;
+  --chart-3: #ff9f0a;
+  --chart-4: #bf5af2;
+  --chart-5: #ff453a;
+
+  --chart-grid: rgba(255, 255, 255, 0.08);
+
 
   /* ------------------------------------------------------------------------
-     Shadows
+     Elevation
 
-     Dark interfaces generally need weaker shadows and rely more on
-     borders/surface contrast.
+     Dark UI reads depth from surface value, not shadow. Keep these low or
+     cards acquire a muddy halo.
      ------------------------------------------------------------------------ */
 
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.25);
+  --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.4);
 
   --shadow-sm:
-    0 1px 3px rgb(0 0 0 / 0.3),
-    0 1px 2px rgb(0 0 0 / 0.2);
+    0 1px 2px rgb(0 0 0 / 0.5),
+    0 1px 1px rgb(0 0 0 / 0.3);
 
   --shadow-md:
-    0 6px 16px rgb(0 0 0 / 0.3),
-    0 2px 4px rgb(0 0 0 / 0.2);
+    0 4px 14px rgb(0 0 0 / 0.5),
+    0 1px 3px rgb(0 0 0 / 0.35);
 
   --shadow-lg:
-    0 12px 32px rgb(0 0 0 / 0.4),
-    0 4px 8px rgb(0 0 0 / 0.25);
+    0 16px 40px rgb(0 0 0 / 0.6),
+    0 4px 10px rgb(0 0 0 / 0.4);
 }
 
 
@@ -352,13 +415,12 @@
 
 .portal-theme {
   min-height: 100%;
+
   background-color: var(--background);
   color: var(--foreground);
 
-  /*
-   * Inter is supplied by next/font in your application layout.
-   * Do not import Google Fonts from CSS.
-   */
+  /* Inter is loaded by next/font in the root layout and exposed as
+     --font-inter. Do not @import Google Fonts from CSS. */
   font-family:
     var(--font-inter),
     Inter,
@@ -369,6 +431,8 @@
     "Segoe UI",
     sans-serif;
 
+  /* cv11 gives Inter a single-storey `a`/`g`, ss01 the alternate `i`/`l`.
+     Together they land close to SF's skeleton. */
   font-feature-settings:
     "cv11",
     "ss01";
@@ -381,27 +445,79 @@
   text-rendering: optimizeLegibility;
 }
 
-.portal-theme {
-  font-family: var(--font-inter), system-ui, sans-serif;
+
+/* The public site sets a serif display face on all headings in @layer base.
+   The portal is a system-UI surface — headings stay in the UI face. */
+.portal-theme :is(h1, h2, h3, h4, h5, h6) {
+  font-family: inherit;
+  text-wrap: balance;
 }
 
-.portal-theme h1,
-.portal-theme h2,
-.portal-theme h3,
-.portal-theme h4,
-.portal-theme h5,
-.portal-theme h6 {
-  font-family: var(--font-inter), system-ui, sans-serif;
+
+/* Tamil copy inside the portal keeps the UI face for Latin glyphs and falls
+   back to Noto Sans Tamil for Tamil ones. */
+html[lang="ta"] .portal-theme,
+html[lang="ta"] .portal-theme :is(h1, h2, h3, h4, h5, h6) {
+  font-family:
+    var(--font-inter),
+    var(--font-noto-sans-tamil),
+    system-ui,
+    sans-serif;
+
+  letter-spacing: 0;
 }
 
 
 /* ==========================================================================
    PORTAL TYPOGRAPHY
+
+   Optical tracking: large text needs negative tracking to stop looking
+   loose, small text needs positive tracking to stay legible. Applied via
+   utilities rather than a global rule so it stays opt-in.
    ========================================================================== */
 
+.portal-theme .text-display {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+
+.portal-theme .text-title {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  letter-spacing: -0.019em;
+  font-weight: 600;
+}
+
+.portal-theme .text-metric {
+  font-size: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.portal-theme .text-overline {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Figures that are compared down a column must not shift width per digit. */
 .portal-theme .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+}
+
+/* Reference codes (PV-2026-0025) read as identifiers, not prose. */
+.portal-theme .ref {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: 0.01em;
 }
 
 
@@ -409,25 +525,53 @@
    PORTAL SCROLLBARS
    ========================================================================== */
 
-.portal-theme {
+.portal-theme,
+.portal-theme * {
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
-.portal-theme::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.portal-theme ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.portal-theme::-webkit-scrollbar-track {
+.portal-theme ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.portal-theme::-webkit-scrollbar-thumb {
-  background: var(--border);
+.portal-theme ::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
   border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
-.portal-theme::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+.portal-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-disabled);
+  background-clip: content-box;
+}
+
+
+/* ==========================================================================
+   PORTAL MOTION
+
+   Short, eased, and dropped entirely for users who ask for less motion.
+   ========================================================================== */
+
+.portal-theme {
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-theme *,
+  .portal-theme *::before,
+  .portal-theme *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
