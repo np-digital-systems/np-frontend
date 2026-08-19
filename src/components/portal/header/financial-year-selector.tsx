@@ -33,14 +33,14 @@ export function FinancialYearSelector() {
       <button
         type="button"
         onClick={() => setOpen(value => !value)}
-        className="
-          flex h-9 items-center gap-2
-          rounded-lg
-          px-2.5
-          text-sm
-          transition-colors
-          hover:bg-muted
-        "
+        className={cn(
+          'flex h-9 items-center gap-2',
+          'rounded-lg',
+          'px-2.5',
+          'text-sm',
+          'transition-colors',
+          'hover:bg-muted',
+        )}
         aria-expanded={open}
         aria-haspopup="menu"
       >
@@ -74,17 +74,17 @@ export function FinancialYearSelector() {
       {open && (
         <div
           role="menu"
-          className="
-            absolute right-0 top-full z-50 mt-2
-            w-44
-            overflow-hidden
-            rounded-xl
-            border
-            border-border
-            bg-popover
-            p-1
-            shadow-lg
-          "
+          className={cn(
+            'absolute right-0 top-full z-50 mt-2',
+            'w-44',
+            'overflow-hidden',
+            'rounded-xl',
+            'border',
+            'border-border',
+            'bg-popover',
+            'p-1',
+            'shadow-lg',
+          )}
         >
           {financialYears.map(item => {
             const isSelected =
@@ -99,15 +99,15 @@ export function FinancialYearSelector() {
                   setSelected(item)
                   setOpen(false)
                 }}
-                className="
-                  flex w-full items-center
-                  justify-between
-                  rounded-lg
-                  px-3 py-2
-                  text-sm
-                  transition-colors
-                  hover:bg-muted
-                "
+                className={cn(
+                  'flex w-full items-center',
+                  'justify-between',
+                  'rounded-lg',
+                  'px-3 py-2',
+                  'text-sm',
+                  'transition-colors',
+                  'hover:bg-muted',
+                )}
               >
                 <div className="flex items-center gap-2">
                   <span className="tabular">

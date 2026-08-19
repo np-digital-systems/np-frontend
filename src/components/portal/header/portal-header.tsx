@@ -1,7 +1,6 @@
 'use client'
 
-import { Menu, Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Menu } from 'lucide-react'
 
 import { PortalBreadcrumbs } from './portal-breadcrumbs'
 import { PortalSearch } from './portal-search'
@@ -10,21 +9,26 @@ import { NotificationMenu } from './notification-menu'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserMenu } from './user-menu'
 
+import type { PortalUser } from '@/features/auth/types/user'
 
-export function PortalHeader() {
-  const { resolvedTheme, setTheme } = useTheme()
+import { cn } from '@/lib/utils';
 
-  const isDark = resolvedTheme === 'dark'
 
+interface PortalHeaderProps {
+  user: PortalUser
+}
+
+
+export function PortalHeader({ user }: PortalHeaderProps) {
   return (
     <header
-      className="
-        sticky top-0 z-30
-        h-[var(--header-height)]
-        border-b border-border
-        bg-background/80
-        backdrop-blur-xl
-      "
+      className={cn(
+        'sticky top-0 z-30',
+        'h-[var(--header-height)]',
+        'border-b border-border',
+        'bg-background/80',
+        'backdrop-blur-xl',
+      )}
     >
       <div className="flex h-full items-center justify-between px-4 lg:px-6">
         {/* Left */}
@@ -33,15 +37,15 @@ export function PortalHeader() {
           <button
             type="button"
             aria-label="Open navigation"
-            className="
-              flex size-9 items-center justify-center
-              rounded-lg
-              text-muted-foreground
-              transition-colors
-              hover:bg-muted
-              hover:text-foreground
-              lg:hidden
-            "
+            className={cn(
+              'flex size-9 items-center justify-center',
+              'rounded-lg',
+              'text-muted-foreground',
+              'transition-colors',
+              'hover:bg-muted',
+              'hover:text-foreground',
+              'lg:hidden',
+            )}
           >
             <Menu className="size-[18px]" />
           </button>
@@ -67,7 +71,7 @@ export function PortalHeader() {
           <div className="mx-1.5 hidden h-5 w-px bg-border sm:block" />
 
           {/* User */}
-          <UserMenu />
+          <UserMenu user={user} />
         </div>
       </div>
     </header>

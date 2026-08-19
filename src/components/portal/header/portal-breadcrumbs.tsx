@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ChevronRight, Home } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
+import { cn } from '@/lib/utils';
+
 const routeLabels: Record<string, string> = {
   dashboard: 'Dashboard',
 
@@ -79,12 +81,12 @@ export function PortalBreadcrumbs() {
     >
       <Link
         href={`/${segments[0] ?? 'en'}/dashboard`}
-        className="
-          flex shrink-0 items-center
-          text-muted-foreground
-          transition-colors
-          hover:text-foreground
-        "
+        className={cn(
+          'flex shrink-0 items-center',
+          'text-muted-foreground',
+          'transition-colors',
+          'hover:text-foreground',
+        )}
       >
         <Home className="size-4" />
         <span className="sr-only">Dashboard</span>
@@ -102,34 +104,34 @@ export function PortalBreadcrumbs() {
                 className="flex min-w-0 items-center"
               >
                 <ChevronRight
-                  className="
-                    mx-2 size-3.5
-                    shrink-0
-                    text-muted-foreground/50
-                  "
+                  className={cn(
+                    'mx-2 size-3.5',
+                    'shrink-0',
+                    'text-muted-foreground/50',
+                  )}
                 />
 
                 {isLast ? (
                   <span
-                    className="
-                      truncate
-                      text-sm font-medium
-                      text-foreground
-                    "
+                    className={cn(
+                      'truncate',
+                      'text-sm font-medium',
+                      'text-foreground',
+                    )}
                   >
                     {item.label}
                   </span>
                 ) : (
                   <Link
                     href={item.href}
-                    className="
-                      hidden
-                      text-sm
-                      text-muted-foreground
-                      transition-colors
-                      hover:text-foreground
-                      sm:block
-                    "
+                    className={cn(
+                      'hidden',
+                      'text-sm',
+                      'text-muted-foreground',
+                      'transition-colors',
+                      'hover:text-foreground',
+                      'sm:block',
+                    )}
                   >
                     {item.label}
                   </Link>

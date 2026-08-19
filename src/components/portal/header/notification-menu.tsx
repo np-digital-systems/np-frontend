@@ -50,17 +50,17 @@ export function NotificationMenu() {
               ? `${unreadCount} unread notifications`
               : 'Notifications'
           }
-          className="
-            relative
-            size-9
-            rounded-lg
-            text-muted-foreground
-            transition-colors
-            hover:bg-muted
-            hover:text-foreground
-            focus-visible:ring-2
-            focus-visible:ring-ring/50
-          "
+          className={cn(
+            'relative',
+            'size-9',
+            'rounded-lg',
+            'text-muted-foreground',
+            'transition-colors',
+            'hover:bg-muted',
+            'hover:text-foreground',
+            'focus-visible:ring-2',
+            'focus-visible:ring-ring/50',
+          )}
         >
           <Bell
             className="size-[17px]"
@@ -70,23 +70,23 @@ export function NotificationMenu() {
           {unreadCount > 0 && (
             <span
               aria-hidden="true"
-              className="
-                absolute
-                right-1
-                top-1
-                flex
-                size-3.5
-                items-center
-                justify-center
-                rounded-full
-                bg-destructive
-                text-[8px]
-                font-semibold
-                leading-none
-                text-destructive-foreground
-                ring-2
-                ring-background
-              "
+              className={cn(
+                'absolute',
+                'right-1',
+                'top-1',
+                'flex',
+                'size-3.5',
+                'items-center',
+                'justify-center',
+                'rounded-full',
+                'bg-destructive',
+                'text-[8px]',
+                'font-semibold',
+                'leading-none',
+                'text-destructive-foreground',
+                'ring-2',
+                'ring-background',
+              )}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
@@ -98,60 +98,60 @@ export function NotificationMenu() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="
-          w-[360px]
-          max-w-[calc(100vw-2rem)]
-          overflow-hidden
-          rounded-xl
-          border-border
-          bg-popover
-          p-0
-          text-popover-foreground
-          shadow-lg
-          font-sans
-        "
+        className={cn(
+          'w-[360px]',
+          'max-w-[calc(100vw-2rem)]',
+          'overflow-hidden',
+          'rounded-xl',
+          'border-border',
+          'bg-popover',
+          'p-0',
+          'text-popover-foreground',
+          'shadow-lg',
+          'font-sans',
+        )}
       >
         {/* Header */}
         <div
-          className="
-            flex
-            items-center
-            justify-between
-            border-b
-            border-border
-            px-4
-            py-3
-          "
+          className={cn(
+            'flex',
+            'items-center',
+            'justify-between',
+            'border-b',
+            'border-border',
+            'px-4',
+            'py-3',
+          )}
         >
           <div className="flex items-center gap-2">
             <div
-              className="
-                text-sm
-                font-semibold
-                leading-5
-                tracking-[-0.01em]
-              "
+              className={cn(
+                'text-sm',
+                'font-semibold',
+                'leading-5',
+                'tracking-[-0.01em]',
+              )}
             >
               Notifications
             </div>
 
             {unreadCount > 0 && (
               <span
-                className="
-                  inline-flex
-                  min-w-5
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-primary/10
-                  px-1.5
-                  py-0.5
-                  text-[10px]
-                  font-semibold
-                  leading-4
-                  tabular-nums
-                  text-primary
-                "
+                className={cn(
+                  'inline-flex',
+                  'min-w-5',
+                  'items-center',
+                  'justify-center',
+                  'rounded-full',
+                  'bg-primary/10',
+                  'px-1.5',
+                  'py-0.5',
+                  'text-[10px]',
+                  'font-semibold',
+                  'leading-4',
+                  'tabular-nums',
+                  'text-primary',
+                )}
               >
                 {unreadCount}
               </span>
@@ -164,16 +164,16 @@ export function NotificationMenu() {
               variant="ghost"
               size="sm"
               onClick={markAllRead}
-              className="
-                h-7
-                rounded-md
-                px-2
-                text-xs
-                font-medium
-                text-muted-foreground
-                hover:bg-muted
-                hover:text-foreground
-              "
+              className={cn(
+                'h-7',
+                'rounded-md',
+                'px-2',
+                'text-xs',
+                'font-medium',
+                'text-muted-foreground',
+                'hover:bg-muted',
+                'hover:text-foreground',
+              )}
             >
               <CheckCheck
                 className="mr-1.5 size-3.5"
@@ -207,25 +207,25 @@ export function NotificationMenu() {
 
         {/* Footer */}
         <div
-          className="
-            border-t
-            border-border
-            p-2
-          "
+          className={cn(
+            'border-t',
+            'border-border',
+            'p-2',
+          )}
         >
           <Button
             type="button"
             variant="ghost"
-            className="
-              h-8
-              w-full
-              rounded-md
-              text-xs
-              font-medium
-              text-muted-foreground
-              hover:bg-muted
-              hover:text-foreground
-            "
+            className={cn(
+              'h-8',
+              'w-full',
+              'rounded-md',
+              'text-xs',
+              'font-medium',
+              'text-muted-foreground',
+              'hover:bg-muted',
+              'hover:text-foreground',
+            )}
           >
             View all notifications
           </Button>
@@ -279,12 +279,12 @@ function NotificationItem({
       {/* Priority dot */}
       <span
         aria-hidden="true"
-        className="
-          mt-[7px]
-          size-1.5
-          shrink-0
-          rounded-full
-        "
+        className={cn(
+          'mt-[7px]',
+          'size-1.5',
+          'shrink-0',
+          'rounded-full',
+        )}
         style={{
           backgroundColor: priorityColor,
         }}
@@ -311,14 +311,14 @@ function NotificationItem({
         </span>
 
         <span
-          className="
-            mt-0.5
-            block
-            truncate
-            text-xs
-            leading-4
-            text-muted-foreground
-          "
+          className={cn(
+            'mt-0.5',
+            'block',
+            'truncate',
+            'text-xs',
+            'leading-4',
+            'text-muted-foreground',
+          )}
         >
           {notification.entityRef
             ? `${notification.entityRef} · `
@@ -327,13 +327,13 @@ function NotificationItem({
         </span>
 
         <span
-          className="
-            mt-0.5
-            block
-            text-[11px]
-            leading-4
-            text-muted-foreground/80
-          "
+          className={cn(
+            'mt-0.5',
+            'block',
+            'text-[11px]',
+            'leading-4',
+            'text-muted-foreground/80',
+          )}
         >
           {relativeTime(notification.timestamp)}
         </span>
@@ -343,13 +343,13 @@ function NotificationItem({
       {!notification.read && (
         <span
           aria-hidden="true"
-          className="
-            mt-[7px]
-            size-1.5
-            shrink-0
-            rounded-full
-            bg-primary
-          "
+          className={cn(
+            'mt-[7px]',
+            'size-1.5',
+            'shrink-0',
+            'rounded-full',
+            'bg-primary',
+          )}
         />
       )}
     </Button>
@@ -363,23 +363,23 @@ function NotificationItem({
 function EmptyNotifications() {
   return (
     <div
-      className="
-        px-4
-        py-10
-        text-center
-      "
+      className={cn(
+        'px-4',
+        'py-10',
+        'text-center',
+      )}
     >
       <div
-        className="
-          mx-auto
-          mb-3
-          flex
-          size-9
-          items-center
-          justify-center
-          rounded-full
-          bg-muted
-        "
+        className={cn(
+          'mx-auto',
+          'mb-3',
+          'flex',
+          'size-9',
+          'items-center',
+          'justify-center',
+          'rounded-full',
+          'bg-muted',
+        )}
       >
         <Bell
           className="size-4 text-muted-foreground"
@@ -388,23 +388,23 @@ function EmptyNotifications() {
       </div>
 
       <div
-        className="
-          text-sm
-          font-medium
-          leading-5
-          text-foreground
-        "
+        className={cn(
+          'text-sm',
+          'font-medium',
+          'leading-5',
+          'text-foreground',
+        )}
       >
         You&apos;re all caught up
       </div>
 
       <p
-        className="
-          mt-1
-          text-xs
-          leading-4
-          text-muted-foreground
-        "
+        className={cn(
+          'mt-1',
+          'text-xs',
+          'leading-4',
+          'text-muted-foreground',
+        )}
       >
         No new notifications.
       </p>

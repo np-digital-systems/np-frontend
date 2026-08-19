@@ -11,11 +11,8 @@ import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
-type UserRole =
-  | 'admin'
-  | 'accountant'
-  | 'cashier'
-  | 'user'
+import type { PortalUser } from '@/features/auth/types/user'
+import type { UserRole } from '@/features/auth/types/user-role'
 
 const roleConfig: Record<
   UserRole,
@@ -49,15 +46,12 @@ const roleConfig: Record<
   },
 }
 
-export function UserMenu() {
-  const [open, setOpen] = useState(false)
+interface UserMenuProps {
+  user: PortalUser
+}
 
-  // Temporary until authentication is connected.
-  const user = {
-    name: 'K. Keeththigan',
-    initials: 'KK',
-    role: 'accountant' as UserRole,
-  }
+export function UserMenu({ user }: UserMenuProps) {
+  const [open, setOpen] = useState(false)
 
   const role = roleConfig[user.role]
 
@@ -67,24 +61,24 @@ export function UserMenu() {
         type="button"
         onClick={() => setOpen(value => !value)}
         aria-expanded={open}
-        className="
-          flex h-9 items-center gap-2
-          rounded-lg
-          px-1.5
-          transition-colors
-          hover:bg-muted
-        "
+        className={cn(
+          'flex h-9 items-center gap-2',
+          'rounded-lg',
+          'px-1.5',
+          'transition-colors',
+          'hover:bg-muted',
+        )}
       >
         <div
-          className="
-            flex size-7 shrink-0
-            items-center justify-center
-            rounded-full
-            bg-primary
-            text-[11px]
-            font-semibold
-            text-primary-foreground
-          "
+          className={cn(
+            'flex size-7 shrink-0',
+            'items-center justify-center',
+            'rounded-full',
+            'bg-primary',
+            'text-[11px]',
+            'font-semibold',
+            'text-primary-foreground',
+          )}
         >
           {user.initials}
         </div>
@@ -105,36 +99,36 @@ export function UserMenu() {
 
       {open && (
         <div
-          className="
-            absolute right-0 top-full z-50 mt-2
-            w-60
-            overflow-hidden
-            rounded-xl
-            border
-            border-border
-            bg-popover
-            p-1
-            shadow-xl
-          "
+          className={cn(
+            'absolute right-0 top-full z-50 mt-2',
+            'w-60',
+            'overflow-hidden',
+            'rounded-xl',
+            'border',
+            'border-border',
+            'bg-popover',
+            'p-1',
+            'shadow-xl',
+          )}
         >
           {/* User */}
           <div
-            className="
-              mb-1
-              flex items-center gap-3
-              rounded-lg
-              px-3 py-3
-            "
+            className={cn(
+              'mb-1',
+              'flex items-center gap-3',
+              'rounded-lg',
+              'px-3 py-3',
+            )}
           >
             <div
-              className="
-                flex size-9 shrink-0
-                items-center justify-center
-                rounded-full
-                bg-primary
-                text-xs font-semibold
-                text-primary-foreground
-              "
+              className={cn(
+                'flex size-9 shrink-0',
+                'items-center justify-center',
+                'rounded-full',
+                'bg-primary',
+                'text-xs font-semibold',
+                'text-primary-foreground',
+              )}
             >
               {user.initials}
             </div>

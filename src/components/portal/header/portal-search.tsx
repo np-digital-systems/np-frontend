@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react'
 
 import GlobalSearch from '@/features/search'
 
+import { cn } from '@/lib/utils';
+
 export function PortalSearch() {
   const [open, setOpen] = useState(false)
 
@@ -38,23 +40,23 @@ export function PortalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="
-          hidden
-          h-9
-          w-56
-          items-center
-          gap-2
-          rounded-lg
-          border
-          border-border
-          bg-muted/60
-          px-3
-          text-sm
-          text-muted-foreground
-          transition-colors
-          hover:bg-muted
-          sm:flex
-        "
+        className={cn(
+          'hidden',
+          'h-9',
+          'w-56',
+          'items-center',
+          'gap-2',
+          'rounded-lg',
+          'border',
+          'border-border',
+          'bg-muted/60',
+          'px-3',
+          'text-sm',
+          'text-muted-foreground',
+          'transition-colors',
+          'hover:bg-muted',
+          'sm:flex',
+        )}
       >
         <Search className="size-4 shrink-0" />
 
@@ -63,19 +65,19 @@ export function PortalSearch() {
         </span>
 
         <kbd
-          className="
-            hidden
-            rounded-md
-            border
-            border-border
-            bg-background
-            px-1.5
-            py-0.5
-            font-mono
-            text-[10px]
-            text-muted-foreground
-            md:inline-block
-          "
+          className={cn(
+            'hidden',
+            'rounded-md',
+            'border',
+            'border-border',
+            'bg-background',
+            'px-1.5',
+            'py-0.5',
+            'font-mono',
+            'text-[10px]',
+            'text-muted-foreground',
+            'md:inline-block',
+          )}
         >
           ⌘K
         </kbd>
@@ -86,15 +88,15 @@ export function PortalSearch() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Search"
-        className="
-          flex size-9 items-center justify-center
-          rounded-lg
-          text-muted-foreground
-          transition-colors
-          hover:bg-muted
-          hover:text-foreground
-          sm:hidden
-        "
+        className={cn(
+          'flex size-9 items-center justify-center',
+          'rounded-lg',
+          'text-muted-foreground',
+          'transition-colors',
+          'hover:bg-muted',
+          'hover:text-foreground',
+          'sm:hidden',
+        )}
       >
         <Search className="size-[17px]" />
       </button>
