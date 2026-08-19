@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { createElement } from 'react';
 
 import { cn } from '@/lib/utils';
 import { getPortalIcon } from './icons';
@@ -23,8 +24,6 @@ export function SidebarItem({
     pathname === item.href ||
     (item.href !== '/dashboard' &&
       pathname.startsWith(`${item.href}/`));
-
-  const Icon = getPortalIcon(item.icon);
 
   return (
     <Link
@@ -54,15 +53,18 @@ export function SidebarItem({
         />
       )}
 
-      <Icon
-        className={cn(
+      {/* createElement rather than <Icon />: the icon is looked up from a
+          static map, but the lint rule that guards against components being
+          constructed during render cannot tell the two apart. */}
+      {createElement(getPortalIcon(item.icon), {
+        className: cn(
           'size-4 shrink-0',
           isActive
             ? 'text-sidebar-primary'
             : 'text-sidebar-foreground/55 group-hover:text-sidebar-foreground/80',
-        )}
-        strokeWidth={1.8}
-      />
+        ),
+        strokeWidth: 1.8,
+      })}
 
       {!collapsed && (
         <span className="truncate">

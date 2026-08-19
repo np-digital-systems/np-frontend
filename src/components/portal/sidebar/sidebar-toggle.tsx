@@ -7,6 +7,8 @@ import {
 
 import { Button } from '@/components/ui/button';
 
+import { cn } from '@/lib/utils';
+
 interface SidebarToggleProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -32,23 +34,23 @@ export function SidebarToggle({
           ? 'Expand sidebar'
           : 'Collapse sidebar'
       }
-      className="
-        absolute
-        -right-3
-        top-5
-        z-50
-        size-6
-        rounded-full
-        border
-        border-sidebar-border
-        bg-sidebar
-        text-sidebar-foreground/60
-        shadow-sm
-        hover:bg-sidebar-accent
-        hover:text-sidebar-foreground
-        focus-visible:ring-2
-        focus-visible:ring-ring/50
-      "
+      className={cn(
+        'absolute',
+        '-right-3',
+        'top-5',
+        'z-50',
+        'size-6',
+        'rounded-full',
+        'border',
+        'border-sidebar-border',
+        'bg-sidebar',
+        'text-sidebar-foreground/60',
+        'shadow-sm',
+        'hover:bg-sidebar-accent',
+        'hover:text-sidebar-foreground',
+        'focus-visible:ring-2',
+        'focus-visible:ring-ring/50',
+      )}
     >
       {collapsed ? (
         <PanelLeftOpen

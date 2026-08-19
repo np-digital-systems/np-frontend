@@ -2,6 +2,8 @@ import type { PortalNavGroup } from '@/config/navigation';
 
 import { SidebarGroup } from './sidebar-group';
 
+import { cn } from '@/lib/utils';
+
 interface SidebarContentProps {
   navigation: readonly PortalNavGroup[];
   collapsed: boolean;
@@ -14,11 +16,11 @@ export function SidebarContent({
   return (
     <nav
       aria-label="Portal navigation"
-      className="
-        flex-1 overflow-y-auto
-        px-2 py-3
-        scrollbar-hide
-      "
+      className={cn(
+        'flex-1 overflow-y-auto',
+        'px-2 py-3',
+        'scrollbar-hide',
+      )}
     >
       <div className="space-y-4">
         {navigation.map((group) => (

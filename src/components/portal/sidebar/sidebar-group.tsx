@@ -7,6 +7,8 @@ import type { PortalNavGroup } from '@/config/navigation';
 
 import { SidebarItem } from './sidebar-item';
 
+import { cn } from '@/lib/utils';
+
 interface SidebarGroupProps {
   group: PortalNavGroup;
   collapsed: boolean;
@@ -40,17 +42,17 @@ export function SidebarGroup({
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="
-          flex h-7 w-full items-center justify-between
-          rounded-md px-3
-          text-[10px] font-semibold uppercase tracking-[0.08em]
-          text-sidebar-foreground/40
-          transition-colors
-          hover:text-sidebar-foreground/65
-          focus-visible:outline-none
-          focus-visible:ring-2
-          focus-visible:ring-ring/50
-        "
+        className={cn(
+          'flex h-7 w-full items-center justify-between',
+          'rounded-md px-3',
+          'text-[10px] font-semibold uppercase tracking-[0.08em]',
+          'text-sidebar-foreground/40',
+          'transition-colors',
+          'hover:text-sidebar-foreground/65',
+          'focus-visible:outline-none',
+          'focus-visible:ring-2',
+          'focus-visible:ring-ring/50',
+        )}
       >
         <span>{group.label}</span>
 

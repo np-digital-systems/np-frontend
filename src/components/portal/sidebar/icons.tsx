@@ -6,7 +6,6 @@ import {
   CalendarDays,
   CalendarRange,
   CheckSquare,
-  CircleDollarSign,
   ClipboardList,
   CreditCard,
   FolderOpen,
