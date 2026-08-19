@@ -1,39 +1,41 @@
-import React from 'react';
+'use client';
+
+import { formatCurrency } from '../lib/dashboard-data';
+
+interface TooltipEntry {
+  name?: string;
+  value?: number | string;
+  color?: string;
+}
 
 interface ChartTooltipProps {
   active?: boolean;
-  payload?: Array<{
-    name: string;
-    value: number;
-    color: string;
-  }>;
+  payload?: readonly TooltipEntry[];
   label?: string;
 }
 
 export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
+
   return (
-    <div
-      className="rounded-xl px-3 py-2.5 text-xs"
-      style={{
-        backgroundColor: 'var(--surface)',
-        border: '1px solid var(--border)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-        color: 'var(--text-primary)',
-      }}
-    >
-      <p className="font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
-        {label}
-      </p>
-      {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2">
-          <span className="rounded-full" style={{ width: 6, height: 6, backgroundColor: p.color }} />
-          <span style={{ color: 'var(--text-secondary)' }}>{p.name}:</span>
-          <span className="font-semibold tabular">
-            ₹{Number(p.value).toLocaleString('en-IN')}
-          </span>
-        </div>
-      ))}
+    <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-lg">
+      <p className="mb-1.5 text-[11px] font-medium text-text-muted">{label}</p>
+
+      <div className="space-y-1">
+        {payload.map((entry) => (
+          <div key={entry.name} className="flex items-center gap-2 text-xs">
+            <span
+              className="size-1.5 shrink-0 rounded-full"
+              style={{ backgroundColor: entry.color }}
+              aria-hidden
+            />
+            <span className="text-text-secondary">{entry.name}</span>
+            <span className="ml-auto font-semibold text-text-primary tabular">
+              {formatCurrency(Number(entry.value ?? 0))}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

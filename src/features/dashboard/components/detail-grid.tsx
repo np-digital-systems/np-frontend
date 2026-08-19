@@ -1,0 +1,22 @@
+interface DetailGridProps {
+  items: readonly { label: string; value: string }[];
+}
+
+/**
+ * Label/value pairs under a record summary.
+ *
+ * Rendered as a description list so the pairing survives for screen readers
+ * instead of reading as a run of loose text.
+ */
+export function DetailGrid({ items }: DetailGridProps) {
+  return (
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
+      {items.map(({ label, value }) => (
+        <div key={label} className="flex items-baseline gap-1.5 min-w-0">
+          <dt className="shrink-0 text-[11px] text-text-muted">{label}</dt>
+          <dd className="truncate text-[11px] text-text-secondary">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
