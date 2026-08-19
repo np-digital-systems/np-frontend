@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import type { PortalNavGroup } from '@/config/navigation';
+import type { PortalUser } from '@/features/auth/types/user';
 
 import { PortalHeader } from '@/components/portal/header';
 import { PortalSidebar } from '@/components/portal/sidebar';
@@ -10,14 +11,15 @@ import { PortalSidebar } from '@/components/portal/sidebar';
 interface PortalShellProps {
   children: React.ReactNode;
   navigation: readonly PortalNavGroup[];
+  user: PortalUser;
 }
 
 export function PortalShell({
   children,
   navigation,
+  user,
 }: PortalShellProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] =
-    useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex min-h-screen">
@@ -28,11 +30,9 @@ export function PortalShell({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <PortalHeader />
+        <PortalHeader user={user} />
 
-        <main className="min-w-0 flex-1">
-          {children}
-        </main>
+        <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>
   );
