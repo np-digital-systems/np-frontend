@@ -1,5 +1,6 @@
 
 
+import type { Permission } from '@/features/auth/types/permission'
 import type { UserRole } from '@/features/auth/types/user-role'
 
 
@@ -122,6 +123,16 @@ export interface PortalNavItem {
   href: string;
   icon: PortalIcon;
   description?: string;
+
+  /**
+   * Preferred gate: the capability the destination itself checks.
+   *
+   * Naming the permission instead of listing roles means the sidebar and the
+   * page can never disagree — re-mapping a role in ROLE_PERMISSIONS moves
+   * both at once. `allowedRoles` remains for destinations that have not been
+   * given a capability yet.
+   */
+  requiredPermission?: Permission;
   allowedRoles?: readonly UserRole[];
 }
 
@@ -158,28 +169,32 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         label: 'Event Calendar',
         href: '/events',
         icon: 'calendar',
-        allowedRoles: ['admin', 'accountant', 'cashier'],
+        description: 'Scheduled poojas and festivals for the year',
+        requiredPermission: 'event:view',
       },
       {
         id: 'event-types',
         label: 'Event Types',
         href: '/events/types',
         icon: 'tag',
-        allowedRoles: ['admin'],
+        description: 'Master registry of recurring event categories',
+        requiredPermission: 'event-type:manage',
       },
       {
         id: 'yearly-schedule',
         label: 'Yearly Schedule',
         href: '/events/schedule',
         icon: 'calendar-days',
-        allowedRoles: ['admin', 'accountant', 'cashier'],
+        description: 'Instance slots planned against each event type',
+        requiredPermission: 'event:export',
       },
       {
         id: 'sponsors',
         label: 'Sponsors',
         href: '/events/sponsors',
         icon: 'handshake',
-        allowedRoles: ['admin'],
+        description: 'Traditional sponsor assignments per instance',
+        requiredPermission: 'event-sponsor:view',
       },
     ],
   },
