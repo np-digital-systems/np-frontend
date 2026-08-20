@@ -178,6 +178,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-selected: var(--sidebar-selected);
 
 
   /* ------------------------------------------------------------------------
