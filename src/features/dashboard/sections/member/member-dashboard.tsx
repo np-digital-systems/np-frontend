@@ -8,6 +8,8 @@ import {
   QuickActions,
   type QuickAction,
 } from '../../components';
+import { EVENT_ROUTES } from '@/features/events/lib/routes';
+
 import type { DashboardProps } from '../../types';
 import { UpcomingEvents } from '../shared';
 
@@ -20,7 +22,7 @@ import { UpcomingEvents } from '../shared';
  * a mis-written condition.
  */
 const QUICK_ACTIONS: readonly QuickAction[] = [
-  { label: 'Temple Calendar', href: '/events', icon: Calendar },
+  { label: 'Temple Calendar', href: EVENT_ROUTES.calendar, icon: Calendar },
   { label: 'Make a Donation', href: '/donations', icon: Heart },
 ];
 
