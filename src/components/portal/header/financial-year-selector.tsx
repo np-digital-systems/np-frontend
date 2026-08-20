@@ -1,139 +1,104 @@
 'use client'
 
-import { Check, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
-const financialYears = [
-  {
-    year: '2026',
-    status: 'Open',
-  },
-  {
-    year: '2025',
-    status: 'Closed',
-  },
-  {
-    year: '2024',
-    status: 'Closed',
-  },
-] as const
+interface FinancialYearOption {
+  readonly year: string
+  readonly status: 'Open' | 'Closed'
+}
 
-type FinancialYear = (typeof financialYears)[number]
+const FINANCIAL_YEARS: readonly FinancialYearOption[] = [
+  { year: '2026', status: 'Open' },
+  { year: '2025', status: 'Closed' },
+  { year: '2024', status: 'Closed' },
+]
 
+function statusClass(status: FinancialYearOption['status']) {
+  return status === 'Open'
+    ? 'bg-success-subtle text-success'
+    : 'bg-neutral-subtle text-text-muted'
+}
+
+/**
+ * Which financial year the whole portal is reading.
+ *
+ * A radio group, not a list of buttons — exactly one year is active at a
+ * time, and the menu should say so to assistive tech as well as visually.
+ */
 export function FinancialYearSelector() {
-  const [open, setOpen] = useState(false)
+  const [year, setYear] = useState(FINANCIAL_YEARS[0].year)
 
-  const [selected, setSelected] =
-    useState<FinancialYear>(financialYears[0])
+  const selected =
+    FINANCIAL_YEARS.find((item) => item.year === year) ?? FINANCIAL_YEARS[0]
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(value => !value)}
-        className={cn(
-          'flex h-9 items-center gap-2',
-          'rounded-lg',
-          'px-2.5',
-          'text-sm',
-          'transition-colors',
-          'hover:bg-muted',
-        )}
-        aria-expanded={open}
-        aria-haspopup="menu"
-      >
-        <span className="hidden text-xs text-muted-foreground sm:block">
-          FY
-        </span>
-
-        <span className="tabular font-medium text-foreground">
-          {selected.year}
-        </span>
-
-        <span
-          className={cn(
-            'hidden rounded-full px-1.5 py-0.5 text-[10px] font-medium sm:inline',
-            selected.status === 'Open'
-              ? 'bg-success-subtle text-success'
-              : 'bg-muted text-muted-foreground',
-          )}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-9 gap-2 rounded-lg px-2.5"
+          aria-label={`Financial year ${selected.year}, ${selected.status}`}
         >
-          {selected.status}
-        </span>
+          <span className="hidden text-[11px] text-muted-foreground sm:block">
+            FY
+          </span>
 
-        <ChevronDown
-          className={cn(
-            'size-3.5 text-muted-foreground transition-transform',
-            open && 'rotate-180',
-          )}
-        />
-      </button>
+          <span className="text-[13px] font-medium tabular">
+            {selected.year}
+          </span>
 
-      {open && (
-        <div
-          role="menu"
-          className={cn(
-            'absolute right-0 top-full z-50 mt-2',
-            'w-44',
-            'overflow-hidden',
-            'rounded-xl',
-            'border',
-            'border-border',
-            'bg-popover',
-            'p-1',
-            'shadow-lg',
-          )}
-        >
-          {financialYears.map(item => {
-            const isSelected =
-              selected.year === item.year
+          <span
+            className={cn(
+              'hidden rounded-full px-1.5 py-0.5 text-[10px] font-medium sm:inline',
+              statusClass(selected.status),
+            )}
+          >
+            {selected.status}
+          </span>
 
-            return (
-              <button
-                key={item.year}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setSelected(item)
-                  setOpen(false)
-                }}
+          <ChevronDown className="size-3.5 text-muted-foreground transition-transform group-aria-expanded/button:rotate-180" />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" sideOffset={8} className="w-52 rounded-xl p-1.5 shadow-lg">
+        <DropdownMenuLabel className="px-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+          Financial Year
+        </DropdownMenuLabel>
+
+        <DropdownMenuRadioGroup value={year} onValueChange={setYear}>
+          {FINANCIAL_YEARS.map((item) => (
+            <DropdownMenuRadioItem
+              key={item.year}
+              value={item.year}
+              className="h-8 text-[13px]"
+            >
+              <span className="tabular">FY {item.year}</span>
+
+              <span
                 className={cn(
-                  'flex w-full items-center',
-                  'justify-between',
-                  'rounded-lg',
-                  'px-3 py-2',
-                  'text-sm',
-                  'transition-colors',
-                  'hover:bg-muted',
+                  'ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                  statusClass(item.status),
                 )}
               >
-                <div className="flex items-center gap-2">
-                  <span className="tabular">
-                    FY {item.year}
-                  </span>
-
-                  <span
-                    className={cn(
-                      'rounded-full px-1.5 py-0.5 text-[10px]',
-                      item.status === 'Open'
-                        ? 'bg-success-subtle text-success'
-                        : 'bg-muted text-muted-foreground',
-                    )}
-                  >
-                    {item.status}
-                  </span>
-                </div>
-
-                {isSelected && (
-                  <Check className="size-4 text-primary" />
-                )}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
+                {item.status}
+              </span>
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

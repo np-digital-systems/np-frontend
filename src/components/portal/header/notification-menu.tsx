@@ -1,15 +1,14 @@
 'use client'
 
 import { Bell, CheckCheck } from 'lucide-react'
+import Link from 'next/link'
 import { useState } from 'react'
 
 import {
   NOTIFICATIONS,
-  PRIORITY_CFG,
+  PRIORITY_TONE,
   relativeTime,
 } from '@/features/notification/constants/mock-data'
-
-import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -17,75 +16,51 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+
+const TONE_DOT = {
+  neutral: 'bg-text-disabled',
+  info: 'bg-info',
+  warning: 'bg-warning',
+  danger: 'bg-danger',
+} as const
 
 export function NotificationMenu() {
-  const [notifications, setNotifications] =
-    useState(NOTIFICATIONS)
+  const [notifications, setNotifications] = useState(NOTIFICATIONS)
 
-  const unreadCount = notifications.filter(
-    notification => !notification.read,
-  ).length
+  const unreadCount = notifications.filter((item) => !item.read).length
 
   const preview = notifications.slice(0, 5)
 
   function markAllRead() {
-    setNotifications(items =>
-      items.map(item => ({
-        ...item,
-        read: true,
-      })),
-    )
+    setNotifications((items) => items.map((item) => ({ ...item, read: true })))
   }
 
   return (
     <Popover>
-      {/* Trigger */}
       <PopoverTrigger asChild>
         <Button
           type="button"
           variant="ghost"
-          size="icon"
+          size="icon-lg"
+          className="relative rounded-lg"
           aria-label={
             unreadCount > 0
-              ? `${unreadCount} unread notifications`
+              ? `Notifications, ${unreadCount} unread`
               : 'Notifications'
           }
-          className={cn(
-            'relative',
-            'size-9',
-            'rounded-lg',
-            'text-muted-foreground',
-            'transition-colors',
-            'hover:bg-muted',
-            'hover:text-foreground',
-            'focus-visible:ring-2',
-            'focus-visible:ring-ring/50',
-          )}
         >
-          <Bell
-            className="size-[17px]"
-            strokeWidth={1.8}
-          />
+          <Bell className="size-[17px]" strokeWidth={1.8} />
 
           {unreadCount > 0 && (
             <span
-              aria-hidden="true"
+              aria-hidden
               className={cn(
-                'absolute',
-                'right-1',
-                'top-1',
-                'flex',
-                'size-3.5',
-                'items-center',
-                'justify-center',
-                'rounded-full',
-                'bg-destructive',
-                'text-[8px]',
-                'font-semibold',
-                'leading-none',
-                'text-destructive-foreground',
-                'ring-2',
-                'ring-background',
+                'absolute right-1 top-1 flex size-3.5 items-center justify-center',
+                'rounded-full bg-danger text-[8px] font-semibold leading-none',
+                'text-danger-foreground ring-2 ring-background tabular',
               )}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -94,65 +69,19 @@ export function NotificationMenu() {
         </Button>
       </PopoverTrigger>
 
-      {/* Popover */}
       <PopoverContent
         align="end"
         sideOffset={8}
-        className={cn(
-          'w-[360px]',
-          'max-w-[calc(100vw-2rem)]',
-          'overflow-hidden',
-          'rounded-xl',
-          'border-border',
-          'bg-popover',
-          'p-0',
-          'text-popover-foreground',
-          'shadow-lg',
-          'font-sans',
-        )}
+        className="w-[380px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-xl p-0 shadow-lg"
       >
-        {/* Header */}
-        <div
-          className={cn(
-            'flex',
-            'items-center',
-            'justify-between',
-            'border-b',
-            'border-border',
-            'px-4',
-            'py-3',
-          )}
-        >
+        <header className="flex items-center justify-between gap-2 px-4 py-3">
           <div className="flex items-center gap-2">
-            <div
-              className={cn(
-                'text-sm',
-                'font-semibold',
-                'leading-5',
-                'tracking-[-0.01em]',
-              )}
-            >
+            <h2 className="text-[13px] font-semibold tracking-[-0.01em]">
               Notifications
-            </div>
+            </h2>
 
             {unreadCount > 0 && (
-              <span
-                className={cn(
-                  'inline-flex',
-                  'min-w-5',
-                  'items-center',
-                  'justify-center',
-                  'rounded-full',
-                  'bg-primary/10',
-                  'px-1.5',
-                  'py-0.5',
-                  'text-[10px]',
-                  'font-semibold',
-                  'leading-4',
-                  'tabular-nums',
-                  'text-primary',
-                )}
-              >
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary-subtle px-1.5 py-0.5 text-[10px] font-semibold text-primary tabular">
                 {unreadCount}
               </span>
             )}
@@ -164,70 +93,89 @@ export function NotificationMenu() {
               variant="ghost"
               size="sm"
               onClick={markAllRead}
-              className={cn(
-                'h-7',
-                'rounded-md',
-                'px-2',
-                'text-xs',
-                'font-medium',
-                'text-muted-foreground',
-                'hover:bg-muted',
-                'hover:text-foreground',
-              )}
+              className="h-7 gap-1.5 px-2 text-xs text-muted-foreground"
             >
-              <CheckCheck
-                className="mr-1.5 size-3.5"
-                strokeWidth={1.8}
-              />
-
+              <CheckCheck className="size-3.5" strokeWidth={1.8} />
               Mark all read
             </Button>
           )}
-        </div>
+        </header>
 
-        {/* Notification list */}
-        <div className="max-h-[420px] overflow-y-auto">
-          {preview.length === 0 ? (
-            <EmptyNotifications />
-          ) : (
-            preview.map(notification => {
-              const config =
-                PRIORITY_CFG[notification.priority]
+        <Separator />
 
-              return (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  priorityColor={config.dot}
-                />
-              )
-            })
-          )}
-        </div>
+        {preview.length === 0 ? (
+          <EmptyNotifications />
+        ) : (
+          <ScrollArea className="max-h-[380px]">
+            <ul>
+              {preview.map((notification, index) => (
+                <li key={notification.id}>
+                  {index > 0 && <Separator />}
 
-        {/* Footer */}
-        <div
-          className={cn(
-            'border-t',
-            'border-border',
-            'p-2',
-          )}
-        >
+                  <Link
+                    href="/notifications"
+                    className={cn(
+                      'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors',
+                      'hover:bg-interactive-hover',
+                      'focus-visible:bg-interactive-hover focus-visible:outline-none',
+                      !notification.read && 'bg-primary-subtle/40',
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'mt-1.5 size-1.5 shrink-0 rounded-full',
+                        TONE_DOT[PRIORITY_TONE[notification.priority]],
+                      )}
+                    />
+
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={cn(
+                          'block truncate text-[13px] leading-5 text-foreground',
+                          notification.read ? 'font-normal' : 'font-medium',
+                        )}
+                      >
+                        {notification.title}
+                      </span>
+
+                      <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                        {notification.entityRef && (
+                          <span className="text-primary ref">
+                            {notification.entityRef}
+                          </span>
+                        )}
+                        {notification.entityRef ? ' · ' : ''}
+                        {notification.category}
+                      </span>
+
+                      <span className="mt-0.5 block text-[11px] text-text-disabled">
+                        {relativeTime(notification.timestamp)}
+                      </span>
+                    </span>
+
+                    {!notification.read && (
+                      <span
+                        aria-hidden
+                        className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary"
+                      />
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+        )}
+
+        <Separator />
+
+        <div className="p-1.5">
           <Button
-            type="button"
+            asChild
             variant="ghost"
-            className={cn(
-              'h-8',
-              'w-full',
-              'rounded-md',
-              'text-xs',
-              'font-medium',
-              'text-muted-foreground',
-              'hover:bg-muted',
-              'hover:text-foreground',
-            )}
+            className="h-8 w-full text-xs font-medium text-muted-foreground"
           >
-            View all notifications
+            <Link href="/notifications">View all notifications</Link>
           </Button>
         </div>
       </PopoverContent>
@@ -235,179 +183,18 @@ export function NotificationMenu() {
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/* Notification Item                                                          */
-/* -------------------------------------------------------------------------- */
-
-interface NotificationItemProps {
-  notification: (typeof NOTIFICATIONS)[number]
-  priorityColor: string
-}
-
-function NotificationItem({
-  notification,
-  priorityColor,
-}: NotificationItemProps) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      className={cn(
-        `
-          relative
-          h-auto
-          min-h-[72px]
-          w-full
-          justify-start
-          gap-3
-          rounded-none
-          border-b
-          border-border
-          px-4
-          py-3
-          text-left
-          font-sans
-          whitespace-normal
-          transition-colors
-          hover:bg-muted/60
-          focus-visible:bg-muted/60
-        `,
-        !notification.read &&
-          'bg-primary/[0.025]',
-      )}
-    >
-      {/* Priority dot */}
-      <span
-        aria-hidden="true"
-        className={cn(
-          'mt-[7px]',
-          'size-1.5',
-          'shrink-0',
-          'rounded-full',
-        )}
-        style={{
-          backgroundColor: priorityColor,
-        }}
-      />
-
-      {/* Content */}
-      <span className="min-w-0 flex-1">
-        <span
-          className={cn(
-            `
-              block
-              truncate
-              text-[13px]
-              leading-5
-              tracking-[-0.005em]
-              text-foreground
-            `,
-            notification.read
-              ? 'font-normal'
-              : 'font-medium',
-          )}
-        >
-          {notification.title}
-        </span>
-
-        <span
-          className={cn(
-            'mt-0.5',
-            'block',
-            'truncate',
-            'text-xs',
-            'leading-4',
-            'text-muted-foreground',
-          )}
-        >
-          {notification.entityRef
-            ? `${notification.entityRef} · `
-            : ''}
-          {notification.category}
-        </span>
-
-        <span
-          className={cn(
-            'mt-0.5',
-            'block',
-            'text-[11px]',
-            'leading-4',
-            'text-muted-foreground/80',
-          )}
-        >
-          {relativeTime(notification.timestamp)}
-        </span>
-      </span>
-
-      {/* Unread indicator */}
-      {!notification.read && (
-        <span
-          aria-hidden="true"
-          className={cn(
-            'mt-[7px]',
-            'size-1.5',
-            'shrink-0',
-            'rounded-full',
-            'bg-primary',
-          )}
-        />
-      )}
-    </Button>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* Empty State                                                                */
-/* -------------------------------------------------------------------------- */
-
 function EmptyNotifications() {
   return (
-    <div
-      className={cn(
-        'px-4',
-        'py-10',
-        'text-center',
-      )}
-    >
-      <div
-        className={cn(
-          'mx-auto',
-          'mb-3',
-          'flex',
-          'size-9',
-          'items-center',
-          'justify-center',
-          'rounded-full',
-          'bg-muted',
-        )}
-      >
-        <Bell
-          className="size-4 text-muted-foreground"
-          strokeWidth={1.8}
-        />
+    <div className="px-4 py-10 text-center">
+      <div className="mx-auto mb-3 flex size-9 items-center justify-center rounded-full bg-muted">
+        <Bell className="size-4 text-muted-foreground" strokeWidth={1.8} />
       </div>
 
-      <div
-        className={cn(
-          'text-sm',
-          'font-medium',
-          'leading-5',
-          'text-foreground',
-        )}
-      >
+      <p className="text-[13px] font-medium text-foreground">
         You&apos;re all caught up
-      </div>
-
-      <p
-        className={cn(
-          'mt-1',
-          'text-xs',
-          'leading-4',
-          'text-muted-foreground',
-        )}
-      >
-        No new notifications.
       </p>
+
+      <p className="mt-1 text-xs text-muted-foreground">No new notifications.</p>
     </div>
   )
 }
