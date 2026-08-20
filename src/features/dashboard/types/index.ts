@@ -1,15 +1,7 @@
 import type { PortalUser } from '@/features/auth/types/user';
 
-export type BadgeStatus =
-  | 'Draft'
-  | 'Submitted'
-  | 'Pending Approval'
-  | 'Approved'
-  | 'Rejected'
-  | 'Posted'
-  | 'Cancelled'
-  | 'Scheduled'
-  | 'Active';
+/** Re-exported from the shared portal vocabulary — see `@/components/portal/ui`. */
+export type { BadgeStatus } from '@/components/portal/ui';
 
 /** Every role dashboard receives the same contract. */
 export interface DashboardProps {
