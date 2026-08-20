@@ -21,8 +21,18 @@ export const ROLE_PERMISSIONS = {
     'fund:view',
     'fund:manage',
     'report:generate',
+
     'event:view',
-    'event:manage',
+    'event:create',
+    'event:update',
+    'event:delete',
+    'event:complete',
+    'event:export',
+    'event-type:manage',
+    'event-schedule:view',
+    'event-sponsor:view',
+    'event-sponsor:manage',
+
     'user:manage',
     'audit:view',
     'settings:manage',
@@ -40,7 +50,13 @@ export const ROLE_PERMISSIONS = {
     'fund:view',
     'fund:manage',
     'report:generate',
+
+    // Read-only on events: the calendar and the sponsor directory feed
+    // financial reporting, but the temple's schedule is the admin's to set.
     'event:view',
+    'event:export',
+    'event-schedule:view',
+    'event-sponsor:view',
   ],
 
   // A cashier drafts and submits, but never approves its own work.
@@ -51,9 +67,14 @@ export const ROLE_PERMISSIONS = {
     'voucher:create',
     'voucher:submit',
     'cash-book:view',
+
+    // Needs to know which pooja a receipt belongs to and who sponsored it.
     'event:view',
+    'event-schedule:view',
+    'event-sponsor:view',
   ],
 
+  // A devotee sees the temple calendar and nothing operational behind it.
   user: ['dashboard:view', 'event:view'],
 } as const satisfies Record<UserRole, readonly Permission[]>;
 
