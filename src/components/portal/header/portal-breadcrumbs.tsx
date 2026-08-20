@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 const routeLabels: Record<string, string> = {
   dashboard: 'Dashboard',
 
-  events: 'Events',
+  'event-management': 'Event Management',
   types: 'Event Types',
   schedule: 'Yearly Schedule',
   sponsors: 'Sponsors',
