@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-import type { BadgeStatus } from '../types';
+import type { BadgeStatus } from './types';
 
 const badge = cva(
   'inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap',
@@ -35,6 +35,9 @@ const STATUS_TONE: Record<BadgeStatus, Tone> = {
   'Pending Approval': 'warning',
   Approved: 'success',
   Active: 'success',
+  Completed: 'success',
+  Today: 'warning',
+  Unassigned: 'neutral',
   Rejected: 'danger',
 };
 
