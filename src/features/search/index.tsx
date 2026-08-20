@@ -1,18 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ArrowRight,
   CalendarDays,
   CreditCard,
   FileText,
-  Landmark,
   Receipt,
   Search,
   User,
   Users,
   Wallet,
-  FolderOpen,
   PiggyBank,
   CalendarRange,
   Clock3,
@@ -38,6 +36,8 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 
+import { cn } from '@/lib/utils'
+
 import {
   searchIndex,
   groupResults,
@@ -45,7 +45,7 @@ import {
   RECENT_SEARCHES,
   RECENTLY_VIEWED,
   TYPE_FILTERS,
-  BADGE_COLORS,
+  BADGE_TONE,
   type SearchResult,
   type SearchType,
 } from './constants/mock-data'
@@ -91,21 +91,27 @@ function SearchResultIcon({
     </span>
   )
 }
+const BADGE_TONE_CLASS = {
+  neutral: 'bg-neutral-subtle text-text-muted',
+  info: 'bg-info-subtle text-info',
+  success: 'bg-success-subtle text-success',
+  warning: 'bg-warning-subtle text-warning',
+} as const
+
 function SearchBadge({
   label,
 }: {
   label: string
 }) {
-  const config = BADGE_COLORS[label] ?? BADGE_COLORS.Inactive
+  const tone = BADGE_TONE[label] ?? 'neutral'
 
   return (
     <Badge
       variant="secondary"
-      className="border-0 px-1.5 py-0 text-[11px]"
-      style={{
-        backgroundColor: config.bg,
-        color: config.text,
-      }}
+      className={cn(
+        'border-0 px-1.5 py-0 text-[11px] font-medium',
+        BADGE_TONE_CLASS[tone],
+      )}
     >
       {label}
     </Badge>
@@ -139,45 +145,37 @@ export default function GlobalSearch({
     setQuery(value)
   }
 
+  // Reset where the close happens rather than in an effect watching `open`:
+  // a setState inside an effect body triggers a second render pass for no
+  // reason, and the state is only ever stale at this one moment.
   const handleOpenChange = (value: boolean) => {
-    if (!value) {
-      onClose()
-    }
-  }
+    if (value) return
 
-  useEffect(() => {
-    if (!open) {
-      setQuery('')
-      setTypeFilter('All')
-    }
-  }, [open])
+    setQuery('')
+    setTypeFilter('All')
+    onClose()
+  }
 
   return (
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
     >
+      {/* The palette floats above the page, so it takes the elevated popover
+          surface. On `bg-background` it was pure black on a dimmed black
+          page and the panel edge disappeared. */}
       <DialogContent
-        className="
-          top-[12%]
-          translate-y-0
-          gap-0
-          overflow-hidden
-          border-border
-          bg-background
-          p-0
-          shadow-2xl
-          sm:max-w-[640px]
-        "
+        className={cn(
+          'top-[12%] translate-y-0 gap-0 overflow-hidden p-0',
+          'border border-border bg-popover shadow-2xl',
+          'sm:max-w-[640px]',
+        )}
       >
         <DialogTitle className="sr-only">
           Global Search
         </DialogTitle>
 
-        <Command
-          shouldFilter={false}
-          className="rounded-xl bg-background"
-        >
+        <Command shouldFilter={false} className="rounded-xl bg-transparent">
           {/* Search input */}
           <div className="relative border-b border-border">
             <CommandInput
