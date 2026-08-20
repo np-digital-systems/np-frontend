@@ -290,11 +290,18 @@ export const NOTIFICATIONS: Notification[] = [
   },
 ]
 
-export const PRIORITY_CFG: Record<NotificationPriority, { bg: string; text: string; dot: string }> = {
-  Information: { bg: 'var(--surface-2)', text: 'var(--text-muted)', dot: 'var(--text-muted)' },
-  Reminder:    { bg: 'rgba(0,113,227,0.08)', text: 'var(--accent)', dot: 'var(--accent)' },
-  Warning:     { bg: 'rgba(255,159,10,0.10)', text: '#FF9F0A', dot: '#FF9F0A' },
-  Critical:    { bg: 'rgba(255,69,58,0.10)', text: 'var(--danger)', dot: 'var(--danger)' },
+/**
+ * Priority expressed as a semantic tone, not a colour.
+ *
+ * The previous version hard-coded hex values and `var(--accent)` — which in
+ * this token system is a subtle hover SURFACE, not a hue, so reminders came
+ * out near-invisible. Components map the tone to theme classes themselves.
+ */
+export const PRIORITY_TONE: Record<NotificationPriority, 'neutral' | 'info' | 'warning' | 'danger'> = {
+  Information: 'neutral',
+  Reminder: 'info',
+  Warning: 'warning',
+  Critical: 'danger',
 }
 
 export const CATEGORY_TABS = ['All', 'Unread', 'Approvals', 'Accounting', 'Events', 'System'] as const

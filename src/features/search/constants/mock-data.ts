@@ -128,20 +128,29 @@ export const TYPE_ICON: Record<SearchType, string> = {
   Report:         '📊',
 }
 
-export const BADGE_COLORS: Record<string, { bg: string; text: string }> = {
-  Active:          { bg: 'rgba(52,199,89,0.10)',  text: '#34C759' },
-  Posted:          { bg: 'rgba(52,199,89,0.10)',  text: '#34C759' },
-  Paid:            { bg: 'rgba(52,199,89,0.10)',  text: '#34C759' },
-  Open:            { bg: 'rgba(52,199,89,0.10)',  text: '#34C759' },
-  Completed:       { bg: 'rgba(52,199,89,0.10)',  text: '#34C759' },
-  Upcoming:        { bg: 'rgba(0,113,227,0.10)',  text: '#0071E3' },
-  Planned:         { bg: 'rgba(0,113,227,0.10)',  text: '#0071E3' },
-  Setup:           { bg: 'rgba(0,113,227,0.10)',  text: '#0071E3' },
-  'In Progress':   { bg: 'rgba(0,113,227,0.10)',  text: '#0071E3' },
-  'Pending Approval': { bg: 'rgba(255,159,10,0.10)', text: '#FF9F0A' },
-  Outstanding:     { bg: 'rgba(255,159,10,0.10)', text: '#FF9F0A' },
-  Inactive:        { bg: 'var(--surface-2)',       text: 'var(--text-muted)' },
-  Closed:          { bg: 'var(--surface-2)',       text: 'var(--text-muted)' },
+/**
+ * Status expressed as a semantic tone, not a colour.
+ *
+ * These used to be literal iOS hex values, so they ignored the portal theme
+ * entirely and sat at the wrong contrast in light mode. Components map the
+ * tone onto theme classes.
+ */
+export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning'
+
+export const BADGE_TONE: Record<string, BadgeTone> = {
+  Active: 'success',
+  Posted: 'success',
+  Paid: 'success',
+  Open: 'success',
+  Completed: 'success',
+  Upcoming: 'info',
+  Planned: 'info',
+  Setup: 'info',
+  'In Progress': 'info',
+  'Pending Approval': 'warning',
+  Outstanding: 'warning',
+  Inactive: 'neutral',
+  Closed: 'neutral',
 }
 
 export function searchIndex(query: string, typeFilter: SearchType | 'All'): SearchResult[] {
