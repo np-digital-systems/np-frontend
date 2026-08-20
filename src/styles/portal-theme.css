@@ -14,9 +14,25 @@
    - Hairline borders; elevation comes from surface value, not shadow.
    - Tight optical tracking on large text, neutral tracking on body.
    - Tabular numerals everywhere a figure can be compared vertically.
+
+   WHY THE `body:has()` SELECTOR
+   -----------------------------
+   Radix renders Popover / Dialog / DropdownMenu / Tooltip content through a
+   React portal attached to `document.body` — which is OUTSIDE the
+   `.portal-theme` wrapper. Those subtrees therefore resolved the SITE tokens
+   and came out in the website's gold palette while the page behind them was
+   neutral.
+
+   Matching `body:has(.portal-theme)` puts the portal tokens on `<body>`
+   itself whenever a portal screen is mounted, so anything portalled to the
+   body inherits them. On public-site routes no `.portal-theme` element
+   exists, the selector does not match, and the site keeps its own tokens.
+
+   This is why portalled shadcn components need no per-component patching.
    ========================================================================== */
 
-.portal-theme {
+.portal-theme,
+body:has(.portal-theme) {
 
   /* ------------------------------------------------------------------------
      Layout
@@ -146,8 +162,11 @@
      Sidebar
      ------------------------------------------------------------------------ */
 
+  /* Nav labels take the PRIMARY label colour, the way Finder and Mail set
+     their sidebars. The previous secondary grey, then dimmed again with
+     opacity at the call site, is what made the rail read as disabled. */
   --sidebar: #ffffff;
-  --sidebar-foreground: #424245;
+  --sidebar-foreground: #1d1d1f;
 
   --sidebar-primary: #0071e3;
   --sidebar-primary-foreground: #ffffff;
@@ -158,7 +177,11 @@
   --sidebar-border: #e3e3e6;
   --sidebar-ring: #0071e3;
 
+  /* Group headings and icons — Apple's secondary label. */
   --sidebar-muted: #86868b;
+
+  /* Selected row: tinted fill, not a grey block. */
+  --sidebar-selected: rgba(0, 113, 227, 0.1);
 
 
   /* ------------------------------------------------------------------------
@@ -234,7 +257,8 @@
    ========================================================================== */
 
 .portal-theme.dark,
-.dark .portal-theme {
+.dark .portal-theme,
+.dark body:has(.portal-theme) {
 
   /* ------------------------------------------------------------------------
      Core surfaces
@@ -336,18 +360,20 @@
      ------------------------------------------------------------------------ */
 
   --sidebar: #000000;
-  --sidebar-foreground: #c7c7cc;
+  --sidebar-foreground: #f5f5f7;
 
   --sidebar-primary: #0a84ff;
   --sidebar-primary-foreground: #ffffff;
 
-  --sidebar-accent: rgba(255, 255, 255, 0.07);
-  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #ffffff;
 
   --sidebar-border: rgba(255, 255, 255, 0.09);
   --sidebar-ring: #0a84ff;
 
   --sidebar-muted: #8e8e93;
+
+  --sidebar-selected: rgba(10, 132, 255, 0.18);
 
 
   /* ------------------------------------------------------------------------
@@ -413,12 +439,10 @@
    PORTAL BASE
    ========================================================================== */
 
-.portal-theme {
-  min-height: 100%;
-
-  background-color: var(--background);
-  color: var(--foreground);
-
+/* The typeface applies to portalled content too, so a dropdown or dialog
+   rendered on <body> is set in the UI face rather than the site's stack. */
+.portal-theme,
+body:has(.portal-theme) {
   /* Inter is loaded by next/font in the root layout and exposed as
      --font-inter. Do not @import Google Fonts from CSS. */
   font-family:
@@ -445,10 +469,19 @@
   text-rendering: optimizeLegibility;
 }
 
+.portal-theme {
+  min-height: 100%;
+
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 
 /* The public site sets a serif display face on all headings in @layer base.
-   The portal is a system-UI surface — headings stay in the UI face. */
-.portal-theme :is(h1, h2, h3, h4, h5, h6) {
+   The portal is a system-UI surface — headings stay in the UI face. Portalled
+   dialogs carry headings too, hence the second selector. */
+.portal-theme :is(h1, h2, h3, h4, h5, h6),
+body:has(.portal-theme) [data-slot$="-content"] :is(h1, h2, h3, h4, h5, h6) {
   font-family: inherit;
   text-wrap: balance;
 }
