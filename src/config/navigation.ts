@@ -1,5 +1,7 @@
 
 
+import { EVENT_ROUTES } from '@/features/events/lib/routes'
+
 import type { Permission } from '@/features/auth/types/permission'
 import type { UserRole } from '@/features/auth/types/user-role'
 
@@ -167,7 +169,7 @@ export const portalNavigation: readonly PortalNavGroup[] = [
       {
         id: 'event-calendar',
         label: 'Event Calendar',
-        href: '/events',
+        href: EVENT_ROUTES.calendar,
         icon: 'calendar',
         description: 'Scheduled poojas and festivals for the year',
         requiredPermission: 'event:view',
@@ -175,7 +177,7 @@ export const portalNavigation: readonly PortalNavGroup[] = [
       {
         id: 'event-types',
         label: 'Event Types',
-        href: '/events/types',
+        href: EVENT_ROUTES.types,
         icon: 'tag',
         description: 'Master registry of recurring event categories',
         requiredPermission: 'event-type:manage',
@@ -183,15 +185,15 @@ export const portalNavigation: readonly PortalNavGroup[] = [
       {
         id: 'yearly-schedule',
         label: 'Yearly Schedule',
-        href: '/events/schedule',
+        href: EVENT_ROUTES.schedule,
         icon: 'calendar-days',
         description: 'Instance slots planned against each event type',
-        requiredPermission: 'event:export',
+        requiredPermission: 'event-schedule:view',
       },
       {
         id: 'sponsors',
         label: 'Sponsors',
-        href: '/events/sponsors',
+        href: EVENT_ROUTES.sponsors,
         icon: 'handshake',
         description: 'Traditional sponsor assignments per instance',
         requiredPermission: 'event-sponsor:view',
