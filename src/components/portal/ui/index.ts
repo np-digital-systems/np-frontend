@@ -16,5 +16,9 @@ export {
   type DataColumn,
 } from './data-table';
 export { ReadOnlyNotice, AccessDenied } from './permission-notice';
+export { ChartTooltip } from './chart-tooltip';
+export { FormField } from './form-field';
+export { ConfirmDialog } from './confirm-dialog';
+export { PeriodChart } from './period-chart';
 
-export type { BadgeStatus } from './types';
+export type { BadgeStatus, PeriodPoint } from './types';

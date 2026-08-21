@@ -18,3 +18,15 @@ export type BadgeStatus =
   | 'Completed'
   | 'Unassigned'
   | 'Today';
+
+/**
+ * One plotted period — a month, a quarter, a year.
+ *
+ * Amounts stay numeric here and are formatted at the axis, so the same
+ * series can be drawn compactly on an axis and in full in a tooltip.
+ */
+export interface PeriodPoint {
+  readonly label: string;
+  readonly income: number;
+  readonly expenses: number;
+}

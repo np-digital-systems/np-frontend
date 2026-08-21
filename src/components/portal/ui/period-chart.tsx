@@ -13,9 +13,12 @@ import {
   YAxis,
 } from 'recharts';
 
-import { Card, CardHeader, ChartTooltip, SegmentedControl } from '../../components';
-import type { PeriodPoint } from '../../constants/mock-data';
-import { formatCompact, formatCurrency } from '../../lib/dashboard-data';
+import { formatCompact, formatCurrency } from '@/lib/format';
+
+import { Card, CardHeader } from './card';
+import { ChartTooltip } from './chart-tooltip';
+import { SegmentedControl } from './segmented-control';
+import type { PeriodPoint } from './types';
 
 interface PeriodChartProps<T extends string> {
   title: string;
