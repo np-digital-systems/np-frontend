@@ -1,3 +1,5 @@
+import { TIME_ZONE } from '@/lib/format';
+
 import type { FinancialYear } from '../types';
 
 /**
@@ -7,8 +9,6 @@ import type { FinancialYear } from '../types';
  * disagree at hydration; resolving it once at the feature boundary keeps a
  * single value for the whole tree.
  */
-
-const TIME_ZONE = 'Asia/Colombo';
 
 export function getGreeting(now: Date = new Date()): string {
   const hour = Number(
@@ -39,23 +39,5 @@ export function getFinancialYear(): FinancialYear {
   return { label: '2026', status: 'Open' };
 }
 
-/** Indian-format currency, the notation every figure in the portal uses. */
-export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-export function formatCompact(value: number): string {
-  if (Math.abs(value) >= 100000) {
-    return `₹${(value / 100000).toFixed(1)}L`;
-  }
-
-  if (Math.abs(value) >= 1000) {
-    return `₹${Math.round(value / 1000)}k`;
-  }
-
-  return `₹${value}`;
-}
+/** Money notation is shared portal-wide — see `@/lib/format`. */
+export { formatCurrency, formatCompact } from '@/lib/format';

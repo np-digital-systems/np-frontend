@@ -7,6 +7,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  ConfirmDialog,
   DataCell,
   DataRow,
   DataTable,
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/input-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { ConfirmDialog } from '../../components/confirm-dialog';
 import { EventName } from '../../components/event-name';
 import { FrequencyBadge } from '../../components/frequency-badge';
 import {
