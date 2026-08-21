@@ -1,14 +1,33 @@
 import type { BadgeStatus } from '@/components/portal/ui';
+import { formatMonthLabel, monthKey } from '@/lib/format';
 
 import type {
   EventRecord,
-  EventType,
   EventsSummary,
+  EventType,
   FrequencyType,
   TempleEvent,
 } from '../types';
 
-const TIME_ZONE = 'Asia/Colombo';
+/* -------------------------------------------------------------------------
+   Dates and times
+
+   Formatting is shared portal-wide — see `@/lib/format`. Re-exported here so
+   the events screens keep importing everything they need from one module.
+   ------------------------------------------------------------------------- */
+
+export {
+  formatLongDate as formatEventDate,
+  formatShortDate,
+  formatTime,
+  formatTimeRange,
+  formatWeekday,
+  formatMonthLabel,
+  monthKey,
+  monthName,
+  getToday,
+  getActiveYear,
+} from '@/lib/format';
 
 /* -------------------------------------------------------------------------
    Frequency vocabulary
@@ -77,7 +96,10 @@ export function describeInstance(
     case 'weekly':
       return `Week ${instanceIdentifier}`;
     case 'monthly_twice':
-      return LUNAR_OCCURRENCE[instanceIdentifier] ?? `Occurrence ${instanceIdentifier}`;
+      return (
+        LUNAR_OCCURRENCE[instanceIdentifier] ??
+        `Occurrence ${instanceIdentifier}`
+      );
     case 'multi_day':
       return `Day ${instanceIdentifier}`;
     case 'monthly_once':
@@ -105,102 +127,6 @@ export function shortInstance(
 }
 
 /* -------------------------------------------------------------------------
-   Dates and times
-   ------------------------------------------------------------------------- */
-
-/** Today in Colombo as `yyyy-mm-dd`, resolved on the server. */
-export function getToday(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: TIME_ZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(now);
-}
-
-export function getActiveYear(today: string = getToday()): number {
-  return Number(today.slice(0, 4));
-}
-
-/**
- * Formats an ISO date without ever constructing a local `Date`.
- *
- * `new Date('2026-06-25')` is parsed as UTC midnight and then rendered in
- * the viewer's zone, which slides the date back a day west of Greenwich.
- * Splitting the string keeps the calendar date the admin actually typed.
- */
-function parts(iso: string) {
-  const [year, month, day] = iso.split('-').map(Number);
-  return { year, month, day };
-}
-
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const;
-
-const WEEKDAY_NAMES = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-] as const;
-
-export function formatEventDate(iso: string): string {
-  const { year, month, day } = parts(iso);
-  return `${day} ${MONTH_NAMES[month - 1]} ${year}`;
-}
-
-export function formatShortDate(iso: string): string {
-  const { month, day } = parts(iso);
-  return `${String(day).padStart(2, '0')} ${MONTH_NAMES[month - 1].slice(0, 3)}`;
-}
-
-export function formatWeekday(iso: string): string {
-  const { year, month, day } = parts(iso);
-  return WEEKDAY_NAMES[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
-}
-
-export function monthKey(iso: string): string {
-  return iso.slice(0, 7);
-}
-
-export function formatMonthLabel(key: string): string {
-  const [year, month] = key.split('-').map(Number);
-  return `${MONTH_NAMES[month - 1]} ${year}`;
-}
-
-export function monthName(month: number): string {
-  return MONTH_NAMES[month - 1];
-}
-
-/** `18:30` → `6:30 PM`, the notation the printed temple calendar uses. */
-export function formatTime(time: string): string {
-  const [rawHour, minute] = time.split(':').map(Number);
-  const suffix = rawHour >= 12 ? 'PM' : 'AM';
-  const hour = rawHour % 12 === 0 ? 12 : rawHour % 12;
-
-  return `${hour}:${String(minute).padStart(2, '0')} ${suffix}`;
-}
-
-export function formatTimeRange(start: string, end: string | null): string {
-  return end ? `${formatTime(start)} – ${formatTime(end)}` : formatTime(start);
-}
-
-/* -------------------------------------------------------------------------
    Derived state
    ------------------------------------------------------------------------- */
 
@@ -211,10 +137,7 @@ export function formatTimeRange(start: string, end: string | null): string {
  * completed, happening today, still ahead — follows from those two, so a
  * status can never drift out of step with the calendar.
  */
-export function deriveStatus(
-  event: TempleEvent,
-  today: string,
-): BadgeStatus {
+export function deriveStatus(event: TempleEvent, today: string): BadgeStatus {
   if (event.isCompleted) return 'Completed';
   if (event.scheduledDate === today) return 'Today';
   if (event.scheduledDate < today) return 'Pending Approval';

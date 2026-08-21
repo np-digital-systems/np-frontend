@@ -1,4 +1,8 @@
+import type { PeriodPoint } from '@/components/portal/ui';
+
 import type { BadgeStatus } from '../types';
+
+export type { PeriodPoint };
 
 /**
  * Placeholder data for the dashboard.
@@ -8,12 +12,6 @@ import type { BadgeStatus } from '../types';
  * service means deleting this file, not rewriting the components that read
  * it. Formatting happens at the edge, in `lib/dashboard-data.ts`.
  */
-
-export interface PeriodPoint {
-  readonly label: string;
-  readonly income: number;
-  readonly expenses: number;
-}
 
 export const MONTHLY_DATA: readonly PeriodPoint[] = [
   { label: 'Mar', income: 285000, expenses: 142000 },
