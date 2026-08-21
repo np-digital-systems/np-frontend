@@ -1,6 +1,8 @@
 
 
 import { ACCOUNTING_ROUTES } from '@/features/accounting/lib/routes'
+import { ADMIN_ROUTES } from '@/features/administration/lib/routes'
+import { CONTRIBUTION_ROUTES } from '@/features/contributions/lib/routes'
 import { FINANCE_ROUTES } from '@/features/finance/lib/routes'
 import { EVENT_ROUTES } from '@/features/events/lib/routes'
 
@@ -339,9 +341,10 @@ export const portalNavigation: readonly PortalNavGroup[] = [
       {
         id: 'sanththa',
         label: 'Sanththa',
-        href: '/contributions/sanththa',
+        href: CONTRIBUTION_ROUTES.sanththa,
         icon: 'users',
-        allowedRoles: ['admin', 'accountant', 'cashier'],
+        description: 'The members’ subscription register and its dues',
+        requiredPermission: 'contribution:view',
       },
     ],
   },
@@ -354,37 +357,42 @@ export const portalNavigation: readonly PortalNavGroup[] = [
       {
         id: 'users',
         label: 'Users',
-        href: '/administration/users',
+        href: ADMIN_ROUTES.users,
         icon: 'user',
-        allowedRoles: ['admin'],
+        description: 'Portal accounts and their active sessions',
+        requiredPermission: 'user:manage',
       },
       {
         id: 'roles',
         label: 'Roles & Permissions',
-        href: '/administration/roles',
+        href: ADMIN_ROUTES.roles,
         icon: 'shield',
-        allowedRoles: ['admin'],
+        description: 'What each role is allowed to do',
+        requiredPermission: 'role:manage',
       },
       {
         id: 'audit-log',
         label: 'Audit Log',
-        href: '/administration/audit-log',
+        href: ADMIN_ROUTES.auditLog,
         icon: 'clipboard',
-        allowedRoles: ['admin'],
+        description: 'Who did what, and when',
+        requiredPermission: 'audit:view',
       },
       {
         id: 'financial-years',
         label: 'Financial Years',
-        href: '/administration/financial-years',
+        href: ADMIN_ROUTES.financialYears,
         icon: 'calendar-range',
-        allowedRoles: ['admin', 'accountant'],
+        description: 'The year the books are kept in',
+        requiredPermission: 'financial-year:view',
       },
       {
         id: 'settings',
         label: 'Settings',
-        href: '/administration/settings',
+        href: ADMIN_ROUTES.settings,
         icon: 'settings',
-        allowedRoles: ['admin'],
+        description: 'Temple details and portal defaults',
+        requiredPermission: 'settings:manage',
       },
     ],
   },
