@@ -92,8 +92,26 @@ export const PERMISSIONS = [
   'event-sponsor:view',
   'event-sponsor:manage',
 
+  /*
+   * Temple contributions.
+   *
+   * Sanththa is the members' subscription register. A cashier takes the
+   * money at the counter, so recording a payment is theirs; who is on the
+   * register at all is the temple's own record-keeping.
+   */
+  'contribution:view',
+  'contribution:record',
+  'contribution:manage',
+
   // Administration
   'user:manage',
+
+  'role:manage',
+
+  'financial-year:view',
+  /** Opening and closing a year — irreversible, and it locks the books. */
+  'financial-year:manage',
+
   'audit:view',
   'settings:manage',
 ] as const;
