@@ -11,15 +11,40 @@ import type { UserRole } from '@/features/auth/types/user-role';
 export const ROLE_PERMISSIONS = {
   admin: [
     'dashboard:view',
+
+    'account:view',
+    'account:manage',
+
     'transaction:view',
     'transaction:create',
+    'transaction:export',
+
+    'receipt-voucher:view',
+    'receipt-voucher:create',
+    'payment-voucher:view',
+    'payment-voucher:create',
     'voucher:create',
     'voucher:submit',
     'voucher:approve',
+    'voucher:post',
+    'voucher:manage-all',
+
     'cash-book:view',
     'bank-book:view',
+
+    'bank-account:view',
+    'bank-account:manage',
+
     'fund:view',
     'fund:manage',
+    'project:view',
+    'project:manage',
+    'fixed-deposit:view',
+    'fixed-deposit:manage',
+    'asset:view',
+    'asset:manage',
+    'asset:dispose',
+
     'report:generate',
 
     'event:view',
@@ -40,15 +65,42 @@ export const ROLE_PERMISSIONS = {
 
   accountant: [
     'dashboard:view',
+
+    // The bookkeeper owns the chart of accounts and the approval decision,
+    // but opening or closing a bank account is the temple's act, not theirs.
+    'account:view',
+    'account:manage',
+
     'transaction:view',
     'transaction:create',
+    'transaction:export',
+
+    'receipt-voucher:view',
+    'receipt-voucher:create',
+    'payment-voucher:view',
+    'payment-voucher:create',
     'voucher:create',
     'voucher:submit',
     'voucher:approve',
+    'voucher:post',
+    'voucher:manage-all',
+
     'cash-book:view',
     'bank-book:view',
+
+    'bank-account:view',
+
     'fund:view',
     'fund:manage',
+    'project:view',
+    'project:manage',
+
+    // Sees the temple's deposits and property and keeps their books; placing
+    // a deposit or writing an asset off is the administrator's decision.
+    'fixed-deposit:view',
+    'asset:view',
+    'asset:manage',
+
     'report:generate',
 
     // Read-only on events: the calendar and the sponsor directory feed
@@ -62,10 +114,20 @@ export const ROLE_PERMISSIONS = {
   // A cashier drafts and submits, but never approves its own work.
   cashier: [
     'dashboard:view',
+
     'transaction:view',
     'transaction:create',
+
+    // "Income and expense entry creation" — drafts both kinds and submits
+    // them, but holds no approve, no post, and no reach over anyone else's
+    // vouchers.
+    'receipt-voucher:view',
+    'receipt-voucher:create',
+    'payment-voucher:view',
+    'payment-voucher:create',
     'voucher:create',
     'voucher:submit',
+
     'cash-book:view',
 
     // Needs to know which pooja a receipt belongs to and who sponsored it.
