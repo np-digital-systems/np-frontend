@@ -1,8 +1,7 @@
 export { EventName } from './event-name';
 export { FrequencyBadge } from './frequency-badge';
 export { SponsorCell } from './sponsor-cell';
-export { FormField } from './form-field';
-export { ConfirmDialog } from './confirm-dialog';
+export { FormField, ConfirmDialog } from '@/components/portal/ui';
 export { EventFormDialog, type EventDraft } from './event-form-dialog';
 export {
   EventTypeFormDialog,

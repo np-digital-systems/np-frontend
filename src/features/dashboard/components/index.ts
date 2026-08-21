@@ -18,9 +18,8 @@ export {
   EmptyState,
   Skeleton,
   SegmentedControl,
+  ChartTooltip,
 } from '@/components/portal/ui';
-
-export { ChartTooltip } from './chart-tooltip';
 export { PageHeader } from './page-header';
 export { DashboardShell } from './dashboard-shell';
 export { QuickActions, type QuickAction } from './quick-actions';
