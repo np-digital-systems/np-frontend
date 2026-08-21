@@ -7,6 +7,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  ConfirmDialog,
   DataCell,
   DataRow,
   DataTable,
@@ -22,7 +23,6 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group';
 
-import { ConfirmDialog } from '../../components/confirm-dialog';
 import { EventName } from '../../components/event-name';
 import {
   EventTypeFormDialog,

@@ -5,6 +5,7 @@ import { CalendarPlus, Download } from 'lucide-react';
 
 import {
   Card,
+  ConfirmDialog,
   PortalPageHeader,
   ReadOnlyNotice,
   SegmentedControl,
@@ -12,7 +13,6 @@ import {
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
 
-import { ConfirmDialog } from '../../components/confirm-dialog';
 import {
   EventFormDialog,
   type EventDraft,
