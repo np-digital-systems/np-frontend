@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
+import { FormField } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,7 +31,6 @@ import {
 } from '../lib/event-data';
 import type { EventRecord, EventType, SponsorUser } from '../types';
 
-import { FormField } from './form-field';
 
 /** What the form collects — the writable columns of `events`, nothing more. */
 export interface EventDraft {

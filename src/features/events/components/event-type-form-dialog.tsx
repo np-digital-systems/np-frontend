@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { FormField } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,7 +29,6 @@ import {
 } from '../lib/event-data';
 import type { EventType, FrequencyType } from '../types';
 
-import { FormField } from './form-field';
 
 export interface EventTypeDraft {
   name: string;

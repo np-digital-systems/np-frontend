@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
+import { FormField } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,7 +28,6 @@ import {
 } from '../lib/event-data';
 import type { EventType, SponsorAssignment, SponsorUser } from '../types';
 
-import { FormField } from './form-field';
 
 /** The writable columns of `event_type_sponsors`. */
 export interface SponsorDraft {
