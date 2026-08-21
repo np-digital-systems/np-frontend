@@ -14,7 +14,7 @@ import {
   ReadOnlyNotice,
   StatCard,
 } from '@/components/portal/ui';
-import { ACCOUNTING_ROUTES } from '@/features/accounting';
+import { ACCOUNTING_ROUTES } from '@/features/accounting/lib/routes';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +24,7 @@ import {
 } from '../../components/fund-form-dialog';
 import { UtilisationBar } from '../../components/utilisation-bar';
 import type { FinanceAccess } from '../../lib/finance-access';
-import { formatCurrency, formatShortDate } from '../../lib/finance-data';
+import { formatCurrency } from '../../lib/finance-data';
 import { FINANCE_ROUTES } from '../../lib/routes';
 import type { FundDetail, FundRecord } from '../../types';
 
