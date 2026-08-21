@@ -58,7 +58,14 @@ export const ROLE_PERMISSIONS = {
     'event-sponsor:view',
     'event-sponsor:manage',
 
+    'contribution:view',
+    'contribution:record',
+    'contribution:manage',
+
     'user:manage',
+    'role:manage',
+    'financial-year:view',
+    'financial-year:manage',
     'audit:view',
     'settings:manage',
   ],
@@ -109,6 +116,14 @@ export const ROLE_PERMISSIONS = {
     'event:export',
     'event-schedule:view',
     'event-sponsor:view',
+
+    // Keeps the subscription register and reads the year's boundaries;
+    // opening or closing a financial year locks the books, so that stays
+    // with the admin.
+    'contribution:view',
+    'contribution:record',
+    'contribution:manage',
+    'financial-year:view',
   ],
 
   // A cashier drafts and submits, but never approves its own work.
@@ -134,6 +149,11 @@ export const ROLE_PERMISSIONS = {
     'event:view',
     'event-schedule:view',
     'event-sponsor:view',
+
+    // Takes the subscription at the counter and issues the receipt, but does
+    // not decide who is on the register.
+    'contribution:view',
+    'contribution:record',
   ],
 
   // A devotee sees the temple calendar and nothing operational behind it.
