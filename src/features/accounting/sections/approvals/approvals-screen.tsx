@@ -45,17 +45,7 @@ interface ApprovalsScreenProps {
   year: number;
 }
 
-/**
- * The approval centre.
- *
- * Everything an approver has to decide on, in one queue, regardless of which
- * register it was raised in. Approved entries stay visible on their own tab
- * because approving is not the last step — somebody still has to post them,
- * and an approved-but-unposted voucher is money the ledger does not know
- * about yet.
- *
- * TODO: replace the local mutations with calls to the vouchers API.
- */
+/** TODO: replace the local mutations with calls to the vouchers API. */
 export function ApprovalsScreen({
   initialVouchers,
   access,
@@ -247,13 +237,6 @@ interface ApprovalCardProps {
   onReject: () => void;
 }
 
-/**
- * A pending voucher as a card rather than a table row.
- *
- * An approval is a decision, not a scan: the approver needs the fund, the
- * project, the payee and who raised it visible at once, which a row cannot
- * carry without becoming unreadable.
- */
 function ApprovalCard({
   voucher,
   access,
