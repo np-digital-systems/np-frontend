@@ -1,11 +1,3 @@
-/**
- * Capability model.
- *
- * UI never branches on a role name directly — it asks whether the current
- * user *can do a thing*. Roles are an implementation detail of who gets
- * which capabilities, so re-mapping a role (or adding a new one) touches
- * this file and nothing else.
- */
 export const PERMISSIONS = [
   'dashboard:view',
 
@@ -36,8 +28,7 @@ export const PERMISSIONS = [
   'voucher:approve',
   'voucher:post',
 
-  /** Act on a voucher somebody else created. Without it, only your own. */
-  'voucher:manage-all',
+    'voucher:manage-all',
 
   'cash-book:view',
   'bank-book:view',
@@ -65,8 +56,7 @@ export const PERMISSIONS = [
 
   'asset:view',
   'asset:manage',
-  /** Disposal or write-off — parts the temple from something it owns. */
-  'asset:dispose',
+    'asset:dispose',
 
   'report:generate',
 
@@ -109,8 +99,7 @@ export const PERMISSIONS = [
   'role:manage',
 
   'financial-year:view',
-  /** Opening and closing a year — irreversible, and it locks the books. */
-  'financial-year:manage',
+    'financial-year:manage',
 
   'audit:view',
   'settings:manage',

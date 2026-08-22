@@ -1,13 +1,6 @@
 import type { Permission } from '@/features/auth/types/permission';
 import type { UserRole } from '@/features/auth/types/user-role';
 
-/**
- * Role → capability matrix.
- *
- * The single place that answers "what is this role allowed to do".
- * Keep it exhaustive: `satisfies` below fails the build if a role is added
- * to UserRole without being granted a capability set here.
- */
 export const ROLE_PERMISSIONS = {
   admin: [
     'dashboard:view',
