@@ -22,10 +22,6 @@ const badge = cva(
 
 type Tone = NonNullable<VariantProps<typeof badge>['tone']>;
 
-/**
- * Status is carried by tone, but tone alone is not an accessible signal —
- * the label always spells the status out, and the dot is decorative.
- */
 const STATUS_TONE: Record<BadgeStatus, Tone> = {
   Draft: 'neutral',
   Cancelled: 'neutral',

@@ -7,23 +7,14 @@ import { Card } from './card';
 interface StatCardProps {
   label: string;
   value: string;
-  /** Secondary line under the figure — period, account count, etc. */
-  caption?: string;
+    caption?: string;
   trend?: {
     value: string;
     direction: 'up' | 'down';
-    /** Whether "up" is good. Expenses rising is not an improvement. */
-    isPositive: boolean;
+        isPositive: boolean;
   };
 }
 
-/**
- * A single headline figure.
- *
- * The number is the loudest thing in the card: tabular so a row of cards
- * aligns digit-for-digit, and optically tightened because large text set at
- * default tracking reads loose.
- */
 export function StatCard({ label, value, caption, trend }: StatCardProps) {
   const TrendIcon = trend?.direction === 'up' ? ArrowUpRight : ArrowDownRight;
 

@@ -4,22 +4,12 @@ import { cn } from '@/lib/utils';
 
 interface PortalPageHeaderProps {
   title: string;
-  /** One line on what this screen is for. */
-  description?: string;
-  /** Small meta chips under the title — record counts, the active year. */
-  meta?: readonly ReactNode[];
-  /** Primary and secondary actions, already filtered by capability. */
-  actions?: ReactNode;
+    description?: string;
+    meta?: readonly ReactNode[];
+    actions?: ReactNode;
   className?: string;
 }
 
-/**
- * Masthead for a portal working screen.
- *
- * The dashboard has its own greeting header; every other page uses this one,
- * so a record screen never has to invent its own title rhythm. Actions are
- * passed in already gated — this component never asks who is looking.
- */
 export function PortalPageHeader({
   title,
   description,
