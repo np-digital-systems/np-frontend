@@ -41,21 +41,11 @@ interface SponsorsScreenProps {
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
   access: EventAccess;
-  /** Dated events for the year still without a sponsor — the actionable gap. */
-  unsponsoredEvents: number;
+    unsponsoredEvents: number;
   year: number;
 }
 
-/**
- * Standing sponsor assignments.
- *
- * These are the temple's traditional commitments — the family that sponsors
- * the tenth festival day every year — kept separately from the dated events
- * they seed. Read access is wider than write: an accountant and a cashier
- * both need to know who sponsors what, neither may change it.
- *
- * TODO: replace the local mutations with calls to the sponsors API.
- */
+/** TODO: replace the local mutations with calls to the sponsors API. */
 export function SponsorsScreen({
   initialAssignments,
   eventTypes,

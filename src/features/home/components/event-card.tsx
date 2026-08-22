@@ -26,7 +26,6 @@ export function EventCard({ event, className }: EventCardProps) {
 
    const tEvents=useTranslations("Home.Events");
 
-
   return (
 
     <div

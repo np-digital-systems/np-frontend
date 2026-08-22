@@ -13,14 +13,6 @@ import { redactAssignments, redactSponsors } from '../../lib/event-privacy';
 
 import { SponsorsScreen } from './sponsors-screen';
 
-/**
- * Sponsors boundary.
- *
- * Gated on `event-sponsor:view`, which admin, accountant and cashier all
- * hold — knowing who sponsors a pooja is part of taking a receipt for it.
- * Writing, and seeing a sponsor's phone and email, needs
- * `event-sponsor:manage`, which only the admin has.
- */
 export async function SponsorsFeature() {
   const user = await getCurrentUser();
   const access = getEventAccess(user.role);
