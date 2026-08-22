@@ -7,10 +7,6 @@ interface CardProps {
   className?: string;
 }
 
-/**
- * Surface primitive. Separation comes from the value step between
- * `--surface` and `--background` plus a hairline border — not from shadow.
- */
 export function Card({ children, className }: CardProps) {
   return (
     <div
