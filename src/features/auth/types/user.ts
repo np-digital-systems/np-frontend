@@ -6,6 +6,5 @@ export interface PortalUser {
   readonly email: string;
   readonly role: UserRole;
 
-  /** Initials shown in the avatar when no photo is set. */
-  readonly initials: string;
+    readonly initials: string;
 }
