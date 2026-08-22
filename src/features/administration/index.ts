@@ -1,16 +1,11 @@
-/**
- * Administration feature — public surface.
- *
- * Accounts, the role matrix, the audit trail, the financial year and the
- * portal's own settings: the screens that decide how everything else in the
- * portal behaves.
- */
 export {
   UsersFeature,
   RolesFeature,
   AuditLogFeature,
   FinancialYearsFeature,
   SettingsFeature,
+  ProfileFeature,
+  SessionsFeature,
 } from './sections';
 
 export {

@@ -1,10 +1,3 @@
-/**
- * Accounting feature — public surface.
- *
- * Routes mount the ten feature boundaries below; everything else is an
- * implementation detail of this folder. Each boundary is a server component:
- * it resolves identity, capabilities and data before any client code runs.
- */
 export {
   AccountOverviewFeature,
   ChartOfAccountsFeature,

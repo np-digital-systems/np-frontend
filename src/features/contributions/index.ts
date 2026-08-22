@@ -1,9 +1,3 @@
-/**
- * Temple contributions feature — public surface.
- *
- * Sanththa is the members' subscription register: who has pledged what, what
- * has been collected and who is behind.
- */
 export { SanththaFeature } from './sections/sanththa/sanththa-feature';
 
 export {

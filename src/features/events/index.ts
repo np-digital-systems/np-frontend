@@ -1,11 +1,3 @@
-/**
- * Events feature — public surface.
- *
- * Routes mount the four feature boundaries below; everything else is an
- * implementation detail of this folder. The boundaries are server
- * components: they resolve identity, capabilities and data before any
- * client code runs.
- */
 export {
   EventsCalendarFeature,
   EventTypesFeature,

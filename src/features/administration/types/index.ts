@@ -1,19 +1,6 @@
 import type { Permission } from '@/features/auth/types/permission';
 import type { UserRole } from '@/features/auth/types/user-role';
 
-/**
- * The administration domain.
- *
- * Accounts, the role matrix, the audit trail, the financial year and the
- * portal's own settings — the things that decide how everything else in the
- * portal behaves.
- */
-
-/* -------------------------------------------------------------------------
-   Users and sessions
-   ------------------------------------------------------------------------- */
-
-/** `users` — a portal account. */
 export interface AdminUser {
   readonly id: string;
   readonly fullName: string;
@@ -27,7 +14,6 @@ export interface AdminUser {
   readonly createdAt: string;
 }
 
-/** `user_sessions` — one signed-in device. */
 export interface UserSession {
   readonly id: string;
   readonly userId: string;
@@ -38,24 +24,11 @@ export interface UserSession {
   readonly revokedAt: string | null;
 }
 
-/** A user with their sessions and activity resolved. */
 export interface UserRecord extends AdminUser {
   readonly activeSessions: readonly UserSession[];
-  /** True when the account has never been signed into. */
-  readonly hasNeverSignedIn: boolean;
+    readonly hasNeverSignedIn: boolean;
 }
 
-/* -------------------------------------------------------------------------
-   Roles
-   ------------------------------------------------------------------------- */
-
-/**
- * A permission grouped for display.
- *
- * The grid would be unreadable as one flat list of sixty capabilities, so
- * they are bucketed by the module they govern — which is also how somebody
- * reasons about them: "what can an accountant do in accounting".
- */
 export interface PermissionGroup {
   readonly id: string;
   readonly label: string;
@@ -63,20 +36,14 @@ export interface PermissionGroup {
   readonly permissions: readonly Permission[];
 }
 
-/** One role in the matrix, with what it holds and who has it. */
 export interface RoleRecord {
   readonly role: UserRole;
   readonly label: string;
   readonly description: string;
   readonly permissions: readonly Permission[];
   readonly userCount: number;
-  /** A role the portal cannot function without — never left with no holder. */
-  readonly isSystemRole: boolean;
+    readonly isSystemRole: boolean;
 }
-
-/* -------------------------------------------------------------------------
-   Audit log
-   ------------------------------------------------------------------------- */
 
 export type AuditAction =
   | 'create'
@@ -89,7 +56,6 @@ export type AuditAction =
   | 'logout'
   | 'permission-change';
 
-/** `audit_log` — an append-only record of what was done. */
 export interface AuditEntry {
   readonly id: number;
   readonly at: string;
@@ -97,10 +63,8 @@ export interface AuditEntry {
   readonly actorName: string;
   readonly actorRole: UserRole;
   readonly action: AuditAction;
-  /** What kind of thing was acted on: "Voucher", "User", "Event". */
-  readonly entity: string;
-  /** Its human reference, when it has one. */
-  readonly entityRef: string | null;
+    readonly entity: string;
+    readonly entityRef: string | null;
   readonly summary: string;
   readonly ipAddress: string;
 }
@@ -111,21 +75,15 @@ export interface AuditDay {
   readonly entries: readonly AuditEntry[];
 }
 
-/* -------------------------------------------------------------------------
-   Financial years
-   ------------------------------------------------------------------------- */
-
 export type FinancialYearStatus = 'open' | 'closed' | 'upcoming';
 
-/** `financial_years` — the period the books are kept in. */
 export interface FinancialYear {
   readonly id: number;
   readonly label: string;
   readonly startsOn: string;
   readonly endsOn: string;
   readonly status: FinancialYearStatus;
-  /** Only one year is the one new entries post into. */
-  readonly isCurrent: boolean;
+    readonly isCurrent: boolean;
   readonly closedOn: string | null;
   readonly closedBy: string | null;
   readonly openingBalance: number;
@@ -138,10 +96,6 @@ export interface FinancialYearRecord extends FinancialYear {
   readonly surplus: number;
   readonly closingBalance: number;
 }
-
-/* -------------------------------------------------------------------------
-   Settings
-   ------------------------------------------------------------------------- */
 
 export interface TempleProfile {
   readonly name: string;
@@ -163,12 +117,9 @@ export interface LocaleSettings {
 export interface AccountingSettings {
   readonly receiptPrefix: string;
   readonly paymentPrefix: string;
-  /** Month the financial year starts in, 1–12. */
-  readonly yearStartMonth: number;
-  /** Payments above this need a second approver. */
-  readonly approvalThreshold: number;
-  /** Whether an approver may post their own approval straight to the ledger. */
-  readonly requireSeparatePoster: boolean;
+    readonly yearStartMonth: number;
+    readonly approvalThreshold: number;
+    readonly requireSeparatePoster: boolean;
 }
 
 export interface NotificationSettings {
