@@ -36,15 +36,7 @@ interface BankAccountsScreenProps {
   year: number;
 }
 
-/**
- * The temple's bank and fixed-deposit accounts.
- *
- * Cards rather than a table: there are a handful of accounts and each one
- * carries several facts that matter together — the bank, the branch, the
- * masked number and the balance — which a row would flatten into noise.
- *
- * TODO: replace the local mutations with calls to the bank accounts API.
- */
+/** TODO: replace the local mutations with calls to the bank accounts API. */
 export function BankAccountsScreen({
   initialBanks,
   access,

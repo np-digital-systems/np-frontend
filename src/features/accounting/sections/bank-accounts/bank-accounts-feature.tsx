@@ -7,13 +7,6 @@ import { getBankAccountRecords } from '../../lib/accounting-service';
 
 import { BankAccountsScreen } from './bank-accounts-screen';
 
-/**
- * Bank accounts boundary.
- *
- * An accountant needs to see the accounts to reconcile against them; opening
- * or closing one is a decision about the temple's affairs, not bookkeeping,
- * so `bank-account:manage` stays with the admin.
- */
 export async function BankAccountsFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);
