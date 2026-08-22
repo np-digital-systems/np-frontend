@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,6 +30,7 @@ import {
   MEMBER_STATUS_LABELS,
   formatCurrency,
 } from '../lib/contributions-data';
+import { memberSchema } from '../lib/contributions-schemas';
 import type {
   MemberRecord,
   MemberStatus,
@@ -92,13 +94,6 @@ interface MemberFormDialogProps {
   onSubmit: (draft: MemberDraft) => void;
 }
 
-/**
- * Add or amend a member on the register.
- *
- * The yearly total under the amount field is the number the member and the
- * temple actually talk about — "two thousand a month" is a pledge of twenty
- * four thousand, and seeing both at once stops a frequency being set wrong.
- */
 export function MemberFormDialog({
   open,
   onOpenChange,
@@ -137,50 +132,31 @@ export function MemberFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const memberNo = draft.memberNo.trim().toUpperCase();
+    const result = validate(memberSchema, draft);
 
-    if (!memberNo) {
-      setError('A membership number is required.');
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (
-      existing.some(
-        (entry) =>
-          entry.memberNo.toUpperCase() === memberNo && entry.id !== member?.id,
-      )
-    ) {
-      setError(`Membership number ${memberNo} is already in use.`);
-      return;
-    }
-
-    if (!draft.fullName.trim()) {
-      setError('A member name is required.');
-      return;
-    }
-
-    if (draft.subscriptionAmount <= 0) {
-      setError('The subscription amount must be greater than zero.');
-      return;
-    }
-
-    if (draft.joinedOn > today) {
+    if (result.data.joinedOn > today) {
       setError('A member cannot join in the future.');
       return;
     }
 
+    const clash = existing.some(
+      (entry) =>
+        entry.memberNo.toUpperCase() === result.data.memberNo &&
+        entry.id !== member?.id,
+    );
+
+    if (clash) {
+      setError(`Membership number ${result.data.memberNo} is already in use.`);
+      return;
+    }
+
     setError(null);
-
-    onSubmit({
-      ...draft,
-      memberNo,
-      fullName: draft.fullName.trim(),
-      nameTa: draft.nameTa.trim(),
-      phone: draft.phone.trim(),
-      address: draft.address.trim(),
-      notes: draft.notes.trim(),
-    });
-
+    onSubmit(result.data);
     onOpenChange(false);
   }
 

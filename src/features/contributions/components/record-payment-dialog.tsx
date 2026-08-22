@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
   formatCurrency,
   formatPeriod,
 } from '../lib/contributions-data';
+import { paymentSchema } from '../lib/contributions-schemas';
 import type { MemberRecord } from '../types';
 
 export interface PaymentDraft {
@@ -44,20 +46,11 @@ interface RecordPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   member: MemberRecord | null;
-  /** Periods of the year this member has not paid for, oldest first. */
-  unpaidPeriods: readonly string[];
+    unpaidPeriods: readonly string[];
   today: string;
   onSubmit: (draft: PaymentDraft) => void;
 }
 
-/**
- * Take a subscription payment.
- *
- * The period defaults to the oldest one outstanding, because a collector
- * taking money at the counter is almost always clearing the earliest arrear
- * rather than paying ahead — and getting that wrong leaves a gap in the
- * middle of the year that nobody notices until the audit.
- */
 export function RecordPaymentDialog({
   open,
   onOpenChange,
@@ -100,23 +93,20 @@ export function RecordPaymentDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.period) {
-      setError('Choose the period this payment covers.');
+    const result = validate(paymentSchema, draft);
+
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (draft.amount <= 0) {
-      setError('The amount must be greater than zero.');
-      return;
-    }
-
-    if (draft.paidOn > today) {
+    if (result.data.paidOn > today) {
       setError('A payment cannot be recorded in the future.');
       return;
     }
 
     setError(null);
-    onSubmit(draft);
+    onSubmit(result.data);
     onOpenChange(false);
   }
 
