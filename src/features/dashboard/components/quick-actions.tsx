@@ -13,12 +13,6 @@ interface QuickActionsProps {
   actions: readonly QuickAction[];
 }
 
-/**
- * The handful of things this role starts its day by doing.
- *
- * Which actions appear is decided by the role dashboard that renders this,
- * so a cashier never sees an approval shortcut it cannot use.
- */
 export function QuickActions({ actions }: QuickActionsProps) {
   if (actions.length === 0) return null;
 

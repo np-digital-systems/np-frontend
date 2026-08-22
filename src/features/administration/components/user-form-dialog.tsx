@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,6 +26,7 @@ import { Switch } from '@/components/ui/switch';
 import { USER_ROLES, type UserRole } from '@/features/auth/types/user-role';
 
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '../lib/administration-data';
+import { userSchema } from '../lib/administration-schemas';
 import type { UserRecord } from '../types';
 
 export interface UserDraft {
@@ -66,22 +68,11 @@ interface UserFormDialogProps {
   onOpenChange: (open: boolean) => void;
   user: UserRecord | null;
   existing: readonly UserRecord[];
-  /** The signed-in user, so the form can refuse self-demotion. */
-  currentUserId: string;
-  /** Administrators still active — the portal must never lose its last one. */
-  adminCount: number;
+    currentUserId: string;
+    adminCount: number;
   onSubmit: (draft: UserDraft) => void;
 }
 
-/**
- * Create or amend a portal account.
- *
- * Two things this form will not let happen, because both lock people out
- * permanently: an administrator demoting or deactivating themselves, and the
- * last active administrator losing the role. Password handling is absent by
- * design — a password is set through a reset link, never typed into an
- * admin screen.
- */
 export function UserFormDialog({
   open,
   onOpenChange,
@@ -115,25 +106,21 @@ export function UserFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.fullName.trim()) {
-      setError('A name is required.');
+    const result = validate(userSchema, draft);
+
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    const email = draft.email.trim().toLowerCase();
+    const clash = existing.some(
+      (entry) =>
+        entry.email.toLowerCase() === result.data.email &&
+        entry.id !== user?.id,
+    );
 
-    if (!email || !email.includes('@')) {
-      setError('A valid email address is required — it is how they sign in.');
-      return;
-    }
-
-    if (
-      existing.some(
-        (entry) =>
-          entry.email.toLowerCase() === email && entry.id !== user?.id,
-      )
-    ) {
-      setError(`${email} is already registered to another account.`);
+    if (clash) {
+      setError(`${result.data.email} is already registered to another account.`);
       return;
     }
 
@@ -152,16 +139,7 @@ export function UserFormDialog({
     }
 
     setError(null);
-
-    onSubmit({
-      ...draft,
-      fullName: draft.fullName.trim(),
-      nameTa: draft.nameTa.trim(),
-      email,
-      phone: draft.phone.trim(),
-      address: draft.address.trim(),
-    });
-
+    onSubmit(result.data);
     onOpenChange(false);
   }
 

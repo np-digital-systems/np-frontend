@@ -6,12 +6,6 @@ interface DashboardShellProps {
   children: ReactNode;
 }
 
-/**
- * Dashboard page frame.
- *
- * The frame itself is shared with every other portal screen; this alias
- * exists so the dashboard sections keep reading in their own vocabulary.
- */
 export function DashboardShell({ children }: DashboardShellProps) {
   return <PageShell>{children}</PageShell>;
 }
