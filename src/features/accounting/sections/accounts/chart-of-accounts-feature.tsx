@@ -7,13 +7,6 @@ import { getAccountRecords } from '../../lib/accounting-service';
 
 import { ChartOfAccountsScreen } from './chart-of-accounts-screen';
 
-/**
- * Chart of accounts boundary.
- *
- * `account:view` stops at the accountant: a cashier picks an account when
- * raising a voucher but has no business restructuring the chart, and the
- * balances on this screen are the temple's whole financial position.
- */
 export async function ChartOfAccountsFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);
