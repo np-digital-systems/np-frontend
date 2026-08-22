@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,6 +33,7 @@ import {
   formatCurrency,
   yearsBetween,
 } from '../lib/finance-data';
+import { assetSchema } from '../lib/finance-schemas';
 import type {
   AssetCategory,
   AssetCondition,
@@ -55,13 +57,11 @@ export interface AssetDraft {
   notes: string;
 }
 
-/** Categories a temple carries at cost rather than writing down. */
 const NON_DEPRECIATING: readonly AssetCategory[] = [
   'land-building',
   'jewellery',
 ];
 
-/** The rate the register defaults to for each kind of thing. */
 const DEFAULT_RATE: Record<AssetCategory, number> = {
   'land-building': 0,
   jewellery: 0,
@@ -72,7 +72,6 @@ const DEFAULT_RATE: Record<AssetCategory, number> = {
   vehicle: 15,
 };
 
-/** Statuses a live asset can hold — disposal has its own action. */
 const LIVE_STATUSES: readonly AssetStatus[] = [
   'in-use',
   'in-storage',
@@ -127,14 +126,6 @@ interface AssetFormDialogProps {
   onSubmit: (draft: AssetDraft) => void;
 }
 
-/**
- * Add or amend an asset record.
- *
- * The depreciation rate follows the category by default, because the temple
- * treats whole classes of thing the same way — land and gold are carried at
- * cost, equipment is written down over its life — and getting that wrong is
- * how a register stops matching the accounts.
- */
 export function AssetFormDialog({
   open,
   onOpenChange,
@@ -185,53 +176,30 @@ export function AssetFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const tag = draft.tag.trim().toUpperCase();
+    const result = validate(assetSchema, draft);
 
-    if (!tag) {
-      setError('An asset tag is required — it is what is written on the item.');
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (
-      existing.some(
-        (entry) => entry.tag.toUpperCase() === tag && entry.id !== asset?.id,
-      )
-    ) {
-      setError(`Tag ${tag} is already in use.`);
-      return;
-    }
-
-    if (!draft.name.trim()) {
-      setError('An asset name is required.');
-      return;
-    }
-
-    if (draft.cost <= 0) {
-      setError('The acquisition cost must be greater than zero.');
-      return;
-    }
-
-    if (draft.acquiredOn > today) {
+    if (result.data.acquiredOn > today) {
       setError('An asset cannot be acquired in the future.');
       return;
     }
 
-    if (draft.depreciationRate < 0 || draft.depreciationRate > 100) {
-      setError('The depreciation rate must be between 0 and 100 percent.');
+    const clash = existing.some(
+      (entry) =>
+        entry.tag.toUpperCase() === result.data.tag && entry.id !== asset?.id,
+    );
+
+    if (clash) {
+      setError(`Tag ${result.data.tag} is already in use.`);
       return;
     }
 
     setError(null);
-
-    onSubmit({
-      ...draft,
-      tag,
-      name: draft.name.trim(),
-      nameTa: draft.nameTa.trim(),
-      location: draft.location.trim(),
-      notes: draft.notes.trim(),
-    });
-
+    onSubmit(result.data);
     onOpenChange(false);
   }
 
