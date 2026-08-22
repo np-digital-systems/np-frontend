@@ -200,9 +200,9 @@ export const FINANCIAL_YEARS: readonly FinancialYear[] = [
 export const PORTAL_SETTINGS: PortalSettings = {
   temple: {
     name: 'Neeliyampathi Pillaiyar Kovil',
-    nameTa: 'நீலியம்பதி பிள்ளையார் கோவில்',
+    nameTa: 'நீலியம்பனை பிள்ளையார் கோவில்',
     registrationNo: 'JF/RT/2004/118',
-    address: 'நல்லூர் வீதி, யாழ்ப்பாணம், இலங்கை',
+    address: 'நீலியம்பனை ,மல்லாகம் , யாழ்ப்பாணம், இலங்கை',
     phone: '021 222 3344',
     email: 'info@neeliyampathipillaiyarkovil.com',
     website: 'www.neeliyampathipillaiyarkovil.com',
