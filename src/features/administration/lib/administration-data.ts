@@ -7,19 +7,16 @@ import type {
   PermissionGroup,
 } from '../types';
 
-/** Money notation and dates are shared portal-wide — see `@/lib/format`. */
 export {
   formatCurrency,
   formatLongDate,
   formatShortDate,
+  formatStamp,
   monthName,
   getToday,
   getActiveYear,
+  timeAgo,
 } from '@/lib/format';
-
-/* -------------------------------------------------------------------------
-   Roles
-   ------------------------------------------------------------------------- */
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Administrator',
@@ -37,21 +34,8 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   user: 'A registered devotee. Sees the temple calendar and nothing operational.',
 };
 
-/**
- * Which roles the portal cannot be left without.
- *
- * An administrator is the only role that can restore any of the others, so
- * removing the last one would lock everybody out of the portal permanently.
- */
 export const SYSTEM_ROLES: readonly UserRole[] = ['admin'];
 
-/**
- * Permissions bucketed by the module they govern.
- *
- * Sixty capabilities as one flat list is unreadable; grouped by module it
- * answers the question people actually bring to this screen — "what can an
- * accountant do in accounting".
- */
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   {
     id: 'general',
@@ -143,13 +127,6 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
 ];
 
-/**
- * A readable name for a capability.
- *
- * Derived from the permission string rather than kept as a second list that
- * can fall out of step with it: `voucher:manage-all` reads as "Voucher ·
- * Manage all".
- */
 export function describePermission(permission: Permission): {
   subject: string;
   action: string;
@@ -168,10 +145,6 @@ function titleise(value: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
-
-/* -------------------------------------------------------------------------
-   Audit
-   ------------------------------------------------------------------------- */
 
 export const AUDIT_ACTIONS: readonly AuditAction[] = [
   'create',
@@ -197,58 +170,9 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   'permission-change': 'Permissions changed',
 };
 
-/* -------------------------------------------------------------------------
-   Financial years
-   ------------------------------------------------------------------------- */
-
 export const YEAR_STATUS_LABELS: Record<FinancialYearStatus, string> = {
   open: 'Open',
   closed: 'Closed',
   upcoming: 'Upcoming',
 };
 
-/* -------------------------------------------------------------------------
-   Sessions
-   ------------------------------------------------------------------------- */
-
-/** `2026-08-21T09:30:00` → `21 Aug 2026, 9:30 AM`. */
-export function formatStamp(stamp: string): string {
-  const [date, time = ''] = stamp.split('T');
-  const [year, month, day] = date.split('-').map(Number);
-  const [rawHour, minute] = time.split(':');
-
-  const MONTHS = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  const datePart = `${day} ${MONTHS[month - 1]} ${year}`;
-
-  if (!rawHour) return datePart;
-
-  const hour24 = Number(rawHour);
-  const suffix = hour24 >= 12 ? 'PM' : 'AM';
-  const hour = hour24 % 12 === 0 ? 12 : hour24 % 12;
-
-  return `${datePart}, ${hour}:${minute} ${suffix}`;
-}
-
-/** "2 hours ago", "3 days ago" — for a last-seen column. */
-export function timeAgo(stamp: string, now: string): string {
-  const then = Date.parse(stamp);
-  const current = Date.parse(`${now}T23:59:59`);
-
-  if (Number.isNaN(then)) return '—';
-
-  const minutes = Math.max(Math.round((current - then) / 60_000), 0);
-
-  if (minutes < 60) return `${minutes}m ago`;
-
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = Math.round(hours / 24);
-  if (days < 30) return `${days}d ago`;
-
-  return `${Math.round(days / 30)}mo ago`;
-}

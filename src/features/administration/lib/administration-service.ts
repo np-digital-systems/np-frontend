@@ -24,20 +24,7 @@ import {
   SYSTEM_ROLES,
 } from './administration-data';
 
-/**
- * The read layer for administration.
- *
- * The role matrix is not mock data: it is read from `ROLE_PERMISSIONS`, the
- * same constant every capability check in the portal runs against. So this
- * screen shows what the portal is actually enforcing rather than a second
- * copy of it that can drift.
- *
- * TODO: replace the remaining module-level constants with API calls.
- */
-
-/* -------------------------------------------------------------------------
-   Users
-   ------------------------------------------------------------------------- */
+/** TODO: replace the remaining module-level constants with API calls. */
 
 export function getUserRecords(
   today: string = getToday(),
@@ -74,11 +61,6 @@ export function countUsersByRole(): Record<UserRole, number> {
   return counts;
 }
 
-/* -------------------------------------------------------------------------
-   Roles
-   ------------------------------------------------------------------------- */
-
-/** The live capability matrix, read from what the portal enforces. */
 export function getRoleRecords(): readonly RoleRecord[] {
   const counts = countUsersByRole();
 
@@ -92,20 +74,10 @@ export function getRoleRecords(): readonly RoleRecord[] {
   }));
 }
 
-/* -------------------------------------------------------------------------
-   Audit log
-   ------------------------------------------------------------------------- */
-
 export function getAuditEntries(): readonly AuditEntry[] {
   return [...AUDIT_ENTRIES].sort((a, b) => (a.at < b.at ? 1 : -1));
 }
 
-/**
- * The trail grouped into days.
- *
- * An audit log is read as "what happened on the 20th", so the day band is
- * the unit — a flat list forces the reader to parse timestamps to find one.
- */
 export function groupAuditByDay(
   entries: readonly AuditEntry[],
 ): readonly AuditDay[] {
@@ -129,10 +101,6 @@ export function groupAuditByDay(
   }));
 }
 
-/* -------------------------------------------------------------------------
-   Financial years
-   ------------------------------------------------------------------------- */
-
 export function getFinancialYearRecords(): readonly FinancialYearRecord[] {
   return FINANCIAL_YEARS.map((year) => ({
     ...year,
@@ -140,10 +108,6 @@ export function getFinancialYearRecords(): readonly FinancialYearRecord[] {
     closingBalance: year.openingBalance + year.income - year.expenses,
   })).sort((a, b) => (a.label < b.label ? 1 : -1));
 }
-
-/* -------------------------------------------------------------------------
-   Settings
-   ------------------------------------------------------------------------- */
 
 export function getPortalSettings(): PortalSettings {
   return PORTAL_SETTINGS;

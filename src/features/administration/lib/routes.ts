@@ -1,4 +1,3 @@
-/** Portal routes for the administration module. */
 export const ADMIN_ROUTES = {
   users: '/administration/users',
   roles: '/administration/roles',
