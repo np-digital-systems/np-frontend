@@ -12,22 +12,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+
+import { rejectionSchema } from '../lib/accounting-schemas';
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 
 interface RejectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** The voucher being sent back, for the confirmation copy. */
-  reference: string | null;
+    reference: string | null;
   onConfirm: (reason: string) => void;
 }
 
-/**
- * Rejecting requires a reason.
- *
- * A voucher comes back to whoever drafted it; "Rejected" with no cause is
- * an instruction to guess, so the reason is mandatory rather than optional.
- */
 export function RejectDialog({
   open,
   onOpenChange,
@@ -49,12 +45,14 @@ export function RejectDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!reason.trim()) {
+    const result = validate(rejectionSchema, { reason });
+
+    if (!result.ok) {
       setError('Say why this entry is being sent back.');
       return;
     }
 
-    onConfirm(reason.trim());
+    onConfirm(result.data.reason);
     onOpenChange(false);
   }
 

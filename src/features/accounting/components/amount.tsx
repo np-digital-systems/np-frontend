@@ -4,13 +4,8 @@ import { formatCurrency } from '../lib/accounting-data';
 
 interface AmountProps {
   value: number | null;
-  /**
-   * How the figure reads in context: money in, money out, or a position
-   * that is simply what it is.
-   */
-  tone?: 'in' | 'out' | 'neutral' | 'muted';
-  /** Renders an em dash instead of a zero, for an empty ledger column. */
-  dashIfEmpty?: boolean;
+    tone?: 'in' | 'out' | 'neutral' | 'muted';
+    dashIfEmpty?: boolean;
   className?: string;
 }
 
@@ -21,12 +16,6 @@ const TONES = {
   muted: 'text-text-secondary',
 } as const;
 
-/**
- * A figure in a column.
- *
- * Always tabular so decimal places line up down the page — the entire point
- * of a ledger view — and always right-aligned by the cell that holds it.
- */
 export function Amount({
   value,
   tone = 'neutral',

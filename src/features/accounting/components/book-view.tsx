@@ -22,16 +22,9 @@ interface BookSummaryCardsProps {
   summary: BookSummary;
   inflowLabel: string;
   outflowLabel: string;
-  /** What the period the figures cover is — a month, or the whole year. */
-  periodLabel: string;
+    periodLabel: string;
 }
 
-/**
- * Opening, movement, closing — the four figures a book exists to state.
- *
- * Ordered as they are read in a physical book, so the closing balance is the
- * last thing on the row rather than buried in the middle.
- */
 export function BookSummaryCards({
   summary,
   inflowLabel,
@@ -79,19 +72,11 @@ interface BookTableProps {
   summary: BookSummary;
   inflowLabel: string;
   outflowLabel: string;
-  /** Bank books carry a cheque number; the cash book has nowhere to put one. */
-  showCheque?: boolean;
+    showCheque?: boolean;
   emptyTitle: string;
   emptyDescription: string;
 }
 
-/**
- * A book: movements in date order with the balance each one left behind.
- *
- * Rows read newest-first like every other register in the portal, and the
- * opening balance is pinned as the last row so the column of balances still
- * resolves to something the reader can follow to its origin.
- */
 export function BookTable({
   rows,
   summary,

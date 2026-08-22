@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,6 +25,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 
 import { BANK_ACCOUNT_TYPE_LABELS } from '../lib/accounting-data';
+import { bankAccountSchema } from '../lib/accounting-schemas';
 import type { BankAccount, BankAccountType } from '../types';
 
 export interface BankAccountDraft {
@@ -72,13 +74,6 @@ interface BankAccountFormDialogProps {
   onSubmit: (draft: BankAccountDraft) => void;
 }
 
-/**
- * Open or amend a bank account record.
- *
- * The account number is entered and stored masked. A temple portal has no
- * reason to hold a full account number in a browser, and once it is masked
- * at the source there is no field for a leak to come out of.
- */
 export function BankAccountFormDialog({
   open,
   onOpenChange,
@@ -107,32 +102,19 @@ export function BankAccountFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.label.trim()) {
-      setError('Give the account a label staff will recognise.');
-      return;
-    }
+    const result = validate(bankAccountSchema, draft);
 
-    if (!draft.bankName.trim()) {
-      setError('The bank name is required.');
-      return;
-    }
-
-    const digits = draft.accountNumber.replace(/\D/g, '');
-
-    if (digits.length < 4) {
-      setError('Enter at least the last four digits of the account number.');
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
     setError(null);
 
     onSubmit({
-      ...draft,
-      label: draft.label.trim(),
-      bankName: draft.bankName.trim(),
-      branch: draft.branch.trim(),
+      ...result.data,
       // Only the last four digits are ever kept.
-      accountNumber: `•••• •••• ${digits.slice(-4)}`,
+      accountNumber: `•••• •••• ${result.data.accountNumber.replace(/\D/g, '').slice(-4)}`,
     });
 
     onOpenChange(false);

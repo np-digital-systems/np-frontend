@@ -27,13 +27,6 @@ interface VoucherDetailDialogProps {
   voucher: VoucherRecord | null;
 }
 
-/**
- * Everything recorded about one voucher, including how it got here.
- *
- * The trail matters more than the fields: an approver deciding on a payment
- * needs to see who raised it and when, and a rejected entry has to carry the
- * objection where the drafter cannot miss it.
- */
 export function VoucherDetailDialog({
   open,
   onOpenChange,
@@ -145,7 +138,6 @@ interface TrailStep {
   readonly tone: 'done' | 'rejected';
 }
 
-/** The audit trail, built from whichever timestamps the voucher carries. */
 function Trail({ voucher }: { voucher: VoucherRecord }) {
   const steps: TrailStep[] = [
     {
@@ -228,7 +220,6 @@ function Trail({ voucher }: { voucher: VoucherRecord }) {
   );
 }
 
-/** `2026-08-19T14:10:00` → `19 August 2026, 2:10 PM`. */
 function formatStamp(stamp: string): string {
   const [date, time = ''] = stamp.split('T');
   const [rawHour, minute] = time.split(':');
