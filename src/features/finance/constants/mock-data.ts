@@ -1,21 +1,5 @@
 import type { Asset, FixedDeposit } from '../types';
 
-/**
- * Placeholder data for financial management.
- *
- * Shaped exactly like the `fixed_deposits` and `assets` tables. Nothing
- * derived is stored: interest, maturity value, depreciation and book value
- * are all computed in `finance-service.ts` from the columns below, so a
- * figure on screen can never be a stale copy of one.
- *
- * Funds and projects are not here — they are accounting masters, read from
- * that module.
- */
-
-/* -------------------------------------------------------------------------
-   fixed_deposits
-   ------------------------------------------------------------------------- */
-
 export const FIXED_DEPOSITS: readonly FixedDeposit[] = [
   {
     id: 1,
@@ -114,10 +98,6 @@ export const FIXED_DEPOSITS: readonly FixedDeposit[] = [
     notes: 'Closed on maturity; proceeds drawn for the well restoration.',
   },
 ];
-
-/* -------------------------------------------------------------------------
-   assets
-   ------------------------------------------------------------------------- */
 
 export const ASSETS: readonly Asset[] = [
   {
