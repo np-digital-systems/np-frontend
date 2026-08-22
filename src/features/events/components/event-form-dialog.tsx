@@ -232,7 +232,7 @@ export function EventFormDialog({
               <Input
                 id="custom-instance-name"
                 value={draft.customInstanceName}
-                placeholder="ஆபரணம், தேர், முதலாம் நாள்…"
+                placeholder="சப்பரம், தேர்…"
                 onChange={(changeEvent) =>
                   update('customInstanceName', changeEvent.target.value)
                 }
