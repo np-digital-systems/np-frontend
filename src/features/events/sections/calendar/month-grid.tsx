@@ -20,13 +20,6 @@ interface MonthGridProps {
   onSelect: (event: EventRecord) => void;
 }
 
-/**
- * The same filtered events, laid out as a month.
- *
- * A list answers "what is coming up"; the grid answers "how crowded is this
- * week" — which is the question a multi-day festival makes urgent. Both
- * views read the same filtered array, so they can never disagree.
- */
 export function MonthGrid({
   events,
   year,
@@ -152,8 +145,7 @@ export function MonthGrid({
 
 interface EventChipProps {
   event: EventRecord;
-  /** Only roles that can edit get a clickable chip; others get static text. */
-  interactive: boolean;
+    interactive: boolean;
   onSelect: (event: EventRecord) => void;
 }
 
