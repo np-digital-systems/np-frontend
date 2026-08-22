@@ -7,12 +7,6 @@ import { getCashBook } from '../../lib/accounting-service';
 
 import { CashBookScreen } from './cash-book-screen';
 
-/**
- * Cash book boundary.
- *
- * `cash-book:view` reaches the cashier: they hold the cash box, so they are
- * the one person who has to be able to check the book against it.
- */
 export async function CashBookFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);
