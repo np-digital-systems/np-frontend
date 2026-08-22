@@ -71,26 +71,28 @@ export const footerNavItems = {
     },
   ],
 
+  // Only destinations that exist. Puja booking and a public notices page
+  // have not been built; adding them back means adding the routes too.
   services: [
-    {
-      id: 'puja',
-      label: 'Puja Booking',
-      href: '/bookings',
-    },
-    {
-      id: 'donations',
-      label: 'Donations',
-      href: '/donations',
-    },
-    {
-      id: 'notices',
-      label: 'Notices',
-      href: '/notices',
-    },
     {
       id: 'calendar',
       label: 'Temple Calendar',
       href: '/events',
+    },
+    {
+      id: 'donations',
+      label: 'Donations',
+      href: '/#donation-section',
+    },
+    {
+      id: 'gallery',
+      label: 'Photo Gallery',
+      href: '/gallery',
+    },
+    {
+      id: 'contact',
+      label: 'Visit the Temple',
+      href: '/contact',
     },
   ],
 } as const
