@@ -11,13 +11,6 @@ import {
 
 import { ReportsScreen } from './reports-screen';
 
-/**
- * Reports boundary.
- *
- * `report:generate` is the capability that says a role speaks for the
- * temple's figures to somebody outside it — a committee, an auditor, a
- * donor. That is the admin and the accountant.
- */
 export async function ReportsFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);

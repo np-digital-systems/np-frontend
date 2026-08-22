@@ -47,14 +47,6 @@ interface OverviewScreenProps {
   year: number;
 }
 
-/**
- * The financial position, on one screen.
- *
- * This is the answer to "where does the temple stand" — everything here is
- * derived from posted entries, and anything still awaiting a decision is
- * shown separately so it can never be mistaken for money already accounted
- * for.
- */
 export function OverviewScreen({
   summary,
   funds,
@@ -167,10 +159,6 @@ export function OverviewScreen({
     </>
   );
 }
-
-/* -------------------------------------------------------------------------
-   Panels
-   ------------------------------------------------------------------------- */
 
 function PendingPanel({
   pending,
@@ -305,12 +293,6 @@ function Figure({
   );
 }
 
-/**
- * How much of what came in has gone out again.
- *
- * A fund with a healthy balance can still be spending faster than it
- * receives, which the balance alone does not say.
- */
 function Utilisation({ fund }: { fund: FundPosition }) {
   const available = fund.opening + fund.income;
   const used = available === 0 ? 0 : Math.min(fund.expenses / available, 1);

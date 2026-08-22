@@ -50,8 +50,7 @@ interface ReportsScreenProps {
   trialBalance: readonly TrialBalanceRow[];
   funds: readonly FundPosition[];
   year: number;
-  /** Months with posted activity, so the period picker offers real choices. */
-  throughMonth: number;
+    throughMonth: number;
 }
 
 interface ReportDefinition {
@@ -61,13 +60,6 @@ interface ReportDefinition {
   readonly icon: LucideIcon;
 }
 
-/**
- * The catalogue of statements the temple actually files.
- *
- * Listing them explicitly — rather than offering a generic "export" — is
- * what makes this screen useful to a treasurer who has to produce a specific
- * document for a specific audience.
- */
 const REPORTS: readonly ReportDefinition[] = [
   {
     id: 'income-expenditure',
@@ -119,14 +111,6 @@ const REPORTS: readonly ReportDefinition[] = [
   },
 ];
 
-/**
- * Statements and registers.
- *
- * Two of them — income & expenditure and the trial balance — are rendered
- * inline rather than only offered as a download, because they are the two a
- * treasurer checks constantly and downloading a file to read a total is
- * friction with no purpose.
- */
 export function ReportsScreen({
   statement,
   trialBalance,

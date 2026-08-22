@@ -11,12 +11,6 @@ import {
 
 import { TransactionsScreen } from './transactions-screen';
 
-/**
- * Transactions boundary.
- *
- * `transaction:view` reaches every accounting role including the cashier —
- * seeing what has actually posted is how they reconcile their own day.
- */
 export async function TransactionsFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);
