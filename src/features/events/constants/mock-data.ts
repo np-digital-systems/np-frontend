@@ -5,20 +5,7 @@ import type {
   TempleEvent,
 } from '../types';
 
-/**
- * Placeholder data for the events module.
- *
- * Shaped exactly like the `event_types`, `event_type_sponsors` and `events`
- * tables so wiring the real API means deleting this file, not rewriting the
- * screens that read it. Nothing here is pre-formatted — dates stay ISO,
- * times stay 24-hour, and presentation happens in `lib/event-data.ts`.
- */
-
 const NOW = '2026-01-12T09:00:00';
-
-/* -------------------------------------------------------------------------
-   event_types
-   ------------------------------------------------------------------------- */
 
 export const EVENT_TYPES: readonly EventType[] = [
   {
@@ -77,10 +64,6 @@ export const EVENT_TYPES: readonly EventType[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------
-   users (the sponsor-eligible subset)
-   ------------------------------------------------------------------------- */
-
 export const SPONSOR_USERS: readonly SponsorUser[] = [
   {
     id: 'usr_101',
@@ -125,10 +108,6 @@ export const SPONSOR_USERS: readonly SponsorUser[] = [
     address: 'கொழும்பு 06',
   },
 ];
-
-/* -------------------------------------------------------------------------
-   event_type_sponsors — standing assignments, not dated occurrences
-   ------------------------------------------------------------------------- */
 
 export const EVENT_TYPE_SPONSORS: readonly EventTypeSponsor[] = [
   {
@@ -212,10 +191,6 @@ export const EVENT_TYPE_SPONSORS: readonly EventTypeSponsor[] = [
     createdAt: NOW,
   },
 ];
-
-/* -------------------------------------------------------------------------
-   events — the working calendar for the active year
-   ------------------------------------------------------------------------- */
 
 export const TEMPLE_EVENTS: readonly TempleEvent[] = [
   {

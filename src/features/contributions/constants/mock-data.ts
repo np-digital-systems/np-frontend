@@ -1,14 +1,5 @@
 import type { SanththaMember, SanththaPayment } from '../types';
 
-/**
- * Placeholder data for the Sanththa register.
- *
- * Shaped like the `sanththa_members` and `sanththa_payments` tables. Dues,
- * arrears and collection rates are all derived from these two in
- * `contributions-service.ts` — nothing about a member's standing is stored,
- * so a member cannot be marked paid while owing money.
- */
-
 export const SANTHTHA_MEMBERS: readonly SanththaMember[] = [
   { id: 1, memberNo: 'S-001', fullName: 'M. Ganesan & Family', nameTa: 'ம. கணேசன் மற்றும் குடும்பத்தினர்', phone: '077 111 2222', address: 'நல்லூர், யாழ்ப்பாணம்', subscriptionAmount: 1_500, frequency: 'monthly', joinedOn: '2018-04-01', status: 'active', notes: null },
   { id: 2, memberNo: 'S-002', fullName: 'Abirami Ramanathan', nameTa: 'செல்வி. அபிராமி இராமநாதன்', phone: '077 333 4444', address: 'வெள்ளவத்தை, கொழும்பு', subscriptionAmount: 18_000, frequency: 'annual', joinedOn: '2019-01-15', status: 'active', notes: 'Pays the full year each Thai month.' },
@@ -24,13 +15,6 @@ export const SANTHTHA_MEMBERS: readonly SanththaMember[] = [
   { id: 12, memberNo: 'S-012', fullName: 'Nirmala Sundaram', nameTa: 'நிர்மலா சுந்தரம்', phone: '078 121 3141', address: 'கொக்குவில்', subscriptionAmount: 1_500, frequency: 'monthly', joinedOn: '2024-09-01', status: 'active', notes: null },
 ];
 
-/**
- * Payments for the active year.
- *
- * Deliberately uneven: some members are square, some are a few months
- * behind, one annual subscriber has not paid at all — which is what makes
- * the arrears figures on the screen worth reading.
- */
 export const SANTHTHA_PAYMENTS: readonly SanththaPayment[] = [
   // S-001 — monthly ₹1,500, paid through August
   ...monthlyRun(1, 1_500, 1, 8, 'RV-2026-0101', 'R. Murugan'),
@@ -66,10 +50,6 @@ export const SANTHTHA_PAYMENTS: readonly SanththaPayment[] = [
   ...monthlyRun(12, 1_500, 1, 7, null, 'R. Murugan'),
 ];
 
-/**
- * Builds a run of monthly payments, so the seed reads as "paid January
- * through August" rather than as eight near-identical object literals.
- */
 function monthlyRun(
   memberId: number,
   amount: number,

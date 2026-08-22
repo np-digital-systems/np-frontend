@@ -6,19 +6,6 @@ import type {
   UserSession,
 } from '../types';
 
-/**
- * Placeholder data for the administration module.
- *
- * Shaped like the `users`, `user_sessions`, `audit_log`, `financial_years`
- * and settings tables. Password hashes and refresh-token hashes are
- * deliberately absent: they have no business leaving the server, so there is
- * nowhere in this module for them to leak from.
- */
-
-/* -------------------------------------------------------------------------
-   users
-   ------------------------------------------------------------------------- */
-
 export const ADMIN_USERS: readonly AdminUser[] = [
   {
     id: 'usr_001',
@@ -130,13 +117,6 @@ export const ADMIN_USERS: readonly AdminUser[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------
-   user_sessions
-
-   Only the metadata a person needs to recognise and revoke a session. The
-   refresh-token hash stays in the database.
-   ------------------------------------------------------------------------- */
-
 export const USER_SESSIONS: readonly UserSession[] = [
   { id: 'ses_01', userId: 'usr_001', deviceName: 'Chrome on macOS', ipAddress: '192.168.1.100', createdAt: '2026-08-21T08:15:00', expiresAt: '2026-09-20T08:15:00', revokedAt: null },
   { id: 'ses_02', userId: 'usr_001', deviceName: 'Safari on iPhone', ipAddress: '203.115.24.88', createdAt: '2026-08-19T19:02:00', expiresAt: '2026-09-18T19:02:00', revokedAt: null },
@@ -148,10 +128,6 @@ export const USER_SESSIONS: readonly UserSession[] = [
   { id: 'ses_08', userId: 'usr_017', deviceName: 'Temple counter PC', ipAddress: '192.168.1.112', createdAt: '2026-08-18T18:20:00', expiresAt: '2026-09-17T18:20:00', revokedAt: null },
   { id: 'ses_09', userId: 'usr_007', deviceName: 'Chrome on Windows', ipAddress: '192.168.1.109', createdAt: '2025-12-20T16:00:00', expiresAt: '2026-01-19T16:00:00', revokedAt: '2026-01-02T09:00:00' },
 ];
-
-/* -------------------------------------------------------------------------
-   audit_log
-   ------------------------------------------------------------------------- */
 
 export const AUDIT_ENTRIES: readonly AuditEntry[] = [
   { id: 1, at: '2026-08-21T10:45:00', actorId: 'usr_014', actorName: 'R. Murugan', actorRole: 'cashier', action: 'create', entity: 'Payment Voucher', entityRef: 'PV-2026-0092', summary: 'Drafted annadhanam provisions for Aadi Velli, ₹22,800', ipAddress: '192.168.1.112' },
@@ -175,10 +151,6 @@ export const AUDIT_ENTRIES: readonly AuditEntry[] = [
   { id: 19, at: '2026-08-12T16:00:00', actorId: 'usr_002', actorName: 'E. Senthilkumar', actorRole: 'admin', action: 'delete', entity: 'Receipt Voucher', entityRef: 'RV-2026-0151', summary: 'Cancelled festival pledge — donor withdrew', ipAddress: '192.168.1.101' },
   { id: 20, at: '2026-08-10T07:15:00', actorId: 'usr_014', actorName: 'R. Murugan', actorRole: 'cashier', action: 'create', entity: 'Payment Voucher', entityRef: 'PV-2026-0084', summary: 'Drafted flowers and pooja materials for August, ₹18,400', ipAddress: '192.168.1.112' },
 ];
-
-/* -------------------------------------------------------------------------
-   financial_years
-   ------------------------------------------------------------------------- */
 
 export const FINANCIAL_YEARS: readonly FinancialYear[] = [
   {
@@ -224,10 +196,6 @@ export const FINANCIAL_YEARS: readonly FinancialYear[] = [
     voucherCount: 186,
   },
 ];
-
-/* -------------------------------------------------------------------------
-   settings
-   ------------------------------------------------------------------------- */
 
 export const PORTAL_SETTINGS: PortalSettings = {
   temple: {

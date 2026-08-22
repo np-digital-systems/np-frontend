@@ -290,13 +290,6 @@ export const NOTIFICATIONS: Notification[] = [
   },
 ]
 
-/**
- * Priority expressed as a semantic tone, not a colour.
- *
- * The previous version hard-coded hex values and `var(--accent)` — which in
- * this token system is a subtle hover SURFACE, not a hue, so reminders came
- * out near-invisible. Components map the tone to theme classes themselves.
- */
 export const PRIORITY_TONE: Record<NotificationPriority, 'neutral' | 'info' | 'warning' | 'danger'> = {
   Information: 'neutral',
   Reminder: 'info',
