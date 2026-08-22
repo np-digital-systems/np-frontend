@@ -26,7 +26,6 @@ import type {
 
 import { ScheduleGroupCard } from './schedule-group-card';
 
-/** Above this many instances a type lists only its touched slots. */
 const DENSE_THRESHOLD = 12;
 
 interface YearlyScheduleScreenProps {
@@ -39,18 +38,7 @@ interface YearlyScheduleScreenProps {
   year: number;
 }
 
-/**
- * The year seen as planning slots rather than as a flat calendar.
- *
- * The calendar screen answers "what happens on the 25th"; this one answers
- * "which of the twelve festival days still has no date and no sponsor" —
- * the question that actually drives an admin's planning session.
- *
- * The slot skeleton comes from the server and stays fixed; only the dated
- * occurrences are held as state, so scheduling a slot fills it in place.
- *
- * TODO: replace the local mutations with calls to the events API.
- */
+/** TODO: replace the local mutations with calls to the events API. */
 export function YearlyScheduleScreen({
   groups,
   initialEvents,
@@ -65,14 +53,7 @@ export function YearlyScheduleScreen({
   const [editing, setEditing] = useState<EventRecord | null>(null);
   const [prefill, setPrefill] = useState<EventRecord | null>(null);
 
-  /**
-   * Slots re-joined against the live events array.
-   *
-   * A dense type's visible slots are whatever has been touched, so a newly
-   * scheduled instance has to widen the list — hence the union rather than
-   * a straight read of the server's skeleton.
-   */
-  const resolved = useMemo(
+    const resolved = useMemo(
     () =>
       groups.map((group) => {
         const typeEvents = events.filter(
@@ -133,11 +114,7 @@ export function YearlyScheduleScreen({
     };
   }, [resolved, events]);
 
-  /**
-   * Opening the form from a slot pre-fills the type and instance it belongs
-   * to — the admin picked the slot already, retyping it would be busywork.
-   */
-  function handleSchedule(slot: ScheduleSlot, eventType: EventType) {
+    function handleSchedule(slot: ScheduleSlot, eventType: EventType) {
     if (slot.event) {
       setPrefill(null);
       setEditing(slot.event);
