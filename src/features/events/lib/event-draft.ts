@@ -4,12 +4,6 @@ import type { EventRecord, EventType, SponsorUser } from '../types';
 import { describeInstance, deriveStatus } from './event-data';
 
 /**
- * Turns what the form collected into the resolved record the tables render.
- *
- * The server normally does this join; when an admin creates or edits an
- * event the screen has to produce the same shape locally so the row appears
- * immediately instead of after a round trip.
- *
  * TODO: once the API exists this becomes an optimistic update, replaced by
  * whatever the POST/PATCH returns.
  */

@@ -5,16 +5,6 @@ import type {
   SponsorUser,
 } from '../types';
 
-/**
- * Contact-detail redaction.
- *
- * A role that cannot see a sponsor's phone and email must not be *sent*
- * them — a server component's props travel to the browser in the RSC
- * payload, so a conditional in the markup hides the field from the eye and
- * from nothing else. Every boundary that hands sponsor data to a client
- * component passes it through here first.
- */
-
 function redact(sponsor: SponsorUser): SponsorUser {
   return { ...sponsor, phone: null, email: null };
 }

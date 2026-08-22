@@ -1,51 +1,45 @@
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns';
+
 export interface CalendarDay {
-  /** ISO `yyyy-mm-dd` — the key events are matched on. */
-  readonly iso: string;
+    readonly iso: string;
   readonly day: number;
-  /** False for the leading and trailing days borrowed from adjacent months. */
-  readonly inMonth: boolean;
+    readonly inMonth: boolean;
 }
 
-function iso(year: number, month: number, day: number): string {
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
-/**
- * Six weeks of days covering the given month, Sunday-first.
- *
- * Built with `Date.UTC` throughout: a local `Date` would shift the grid by a
- * day for viewers west of Greenwich, which silently files an event under
- * the wrong square.
- *
- * The row count is fixed at six so the grid does not change height as the
- * user pages through months.
- */
 export function buildMonthGrid(
   year: number,
   month: number,
 ): readonly (readonly CalendarDay[])[] {
-  const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const daysInPrevMonth = new Date(Date.UTC(year, month - 1, 0)).getUTCDate();
+  const anchor = parseISO(`${year}-${String(month).padStart(2, '0')}-01`);
 
-  const prevMonth = month === 1 ? 12 : month - 1;
-  const prevYear = month === 1 ? year - 1 : year;
-  const nextMonth = month === 12 ? 1 : month + 1;
-  const nextYear = month === 12 ? year + 1 : year;
+  const days = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(anchor)),
+    end: endOfWeek(endOfMonth(anchor)),
+  }).map((date) => ({
+    iso: format(date, 'yyyy-MM-dd'),
+    day: date.getDate(),
+    inMonth: date.getMonth() === anchor.getMonth(),
+  }));
 
-  const days: CalendarDay[] = [];
+  // A month can span five or six weeks; padding to six keeps the height fixed.
+  while (days.length < 42) {
+    const last = parseISO(days[days.length - 1].iso);
+    const next = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1);
 
-  for (let index = firstWeekday - 1; index >= 0; index -= 1) {
-    const day = daysInPrevMonth - index;
-    days.push({ iso: iso(prevYear, prevMonth, day), day, inMonth: false });
-  }
-
-  for (let day = 1; day <= daysInMonth; day += 1) {
-    days.push({ iso: iso(year, month, day), day, inMonth: true });
-  }
-
-  for (let day = 1; days.length < 42; day += 1) {
-    days.push({ iso: iso(nextYear, nextMonth, day), day, inMonth: false });
+    days.push({
+      iso: format(next, 'yyyy-MM-dd'),
+      day: next.getDate(),
+      inMonth: false,
+    });
   }
 
   return Array.from({ length: 6 }, (_, week) =>
@@ -58,12 +52,12 @@ export function shiftMonth(
   month: number,
   delta: number,
 ): { year: number; month: number } {
-  const zeroBased = month - 1 + delta;
+  const shifted = addMonths(
+    parseISO(`${year}-${String(month).padStart(2, '0')}-01`),
+    delta,
+  );
 
-  return {
-    year: year + Math.floor(zeroBased / 12),
-    month: ((zeroBased % 12) + 12) % 12 + 1,
-  };
+  return { year: shifted.getFullYear(), month: shifted.getMonth() + 1 };
 }
 
 export const WEEKDAY_INITIALS = [
