@@ -214,7 +214,7 @@ export function SponsorFormDialog({
               <Input
                 id="sponsor-instance-name"
                 value={draft.customInstanceName}
-                placeholder="ஆபரணம், தேர்…"
+                placeholder="சப்பரம், தேர்…"
                 onChange={(changeEvent) =>
                   setDraft((current) => ({
                     ...current,
