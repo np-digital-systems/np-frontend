@@ -8,7 +8,6 @@ import type {
   VoucherStatus,
 } from '../types';
 
-/** Money notation and dates are shared portal-wide — see `@/lib/format`. */
 export {
   formatCurrency,
   formatCompact,
@@ -52,7 +51,6 @@ export const PAYMENT_MODE_LABELS: Record<PaymentMode, string> = {
   online: 'Online',
 };
 
-/** Which modes move money through a bank account rather than the cash box. */
 export function isBankMode(mode: PaymentMode): boolean {
   return mode !== 'cash';
 }
@@ -72,10 +70,6 @@ export const VOUCHER_STATUSES: readonly VoucherStatus[] = [
   'Cancelled',
 ];
 
-/**
- * A voucher status is already part of the portal's shared status vocabulary,
- * so it renders through the same badge as everything else.
- */
 export function statusToBadge(status: VoucherStatus): BadgeStatus {
   return status;
 }
@@ -85,7 +79,6 @@ export const VOUCHER_KIND_LABELS: Record<VoucherKind, string> = {
   payment: 'Payment Voucher',
 };
 
-/** Receipts name a payer, payments name a payee. */
 export function partyLabel(kind: VoucherKind): string {
   return kind === 'receipt' ? 'Received From' : 'Paid To';
 }
@@ -94,13 +87,6 @@ export function referencePrefix(kind: VoucherKind): string {
   return kind === 'receipt' ? 'RV' : 'PV';
 }
 
-/**
- * The next reference in the series.
- *
- * Real numbering is the server's job — a client-side guess would collide
- * under any concurrency. This exists so a locally created voucher has
- * something plausible to show until the API answers.
- */
 export function nextReference(
   kind: VoucherKind,
   year: number,

@@ -3,12 +3,6 @@ import type { PortalUser } from '@/features/auth/types/user';
 import type { VoucherRecord, VoucherStatus } from '../types';
 
 /**
- * The approval chain, as state transitions.
- *
- * Kept apart from the components so every screen that can move a voucher —
- * the two registers and the approval centre — moves it the same way, and so
- * the trail (who decided, when, why) is written in exactly one place.
- *
  * TODO: these become API calls. The signatures are already the shape those
  * calls take, so only the bodies change.
  */
@@ -20,7 +14,6 @@ export type VoucherAction =
   | 'post'
   | 'cancel';
 
-/** Where each action leaves the voucher. */
 const NEXT_STATUS: Record<VoucherAction, VoucherStatus> = {
   submit: 'Pending Approval',
   approve: 'Approved',
@@ -71,12 +64,10 @@ export function applyAction(
   }
 }
 
-/** Statuses that still count as live work rather than settled history. */
 export function isOpen(status: VoucherStatus): boolean {
   return status === 'Draft' || status === 'Pending Approval';
 }
 
-/** What the status means, spelled out where a badge alone is too terse. */
 export const STATUS_MEANING: Record<VoucherStatus, string> = {
   Draft: 'Not yet submitted. Visible only as a working entry.',
   'Pending Approval': 'Waiting on an approver. Has not reached the ledger.',

@@ -13,19 +13,19 @@ import type {
   Account,
   AccountRecord,
   AccountRef,
-  BankAccountRef,
-  FundRef,
-  ProjectRef,
   AccountingSummary,
   BankAccount,
   BankAccountRecord,
+  BankAccountRef,
   BookRow,
   BookSummary,
   Fund,
   FundPosition,
+  FundRef,
   IncomeStatement,
   LedgerRecord,
   Project,
+  ProjectRef,
   StatementLine,
   TrialBalanceRow,
   Voucher,
@@ -33,17 +33,8 @@ import type {
 } from '../types';
 
 /**
- * The read layer for the accounting module.
- *
- * Everything a screen needs is assembled here, on the server, with foreign
- * keys resolved. Each function is the seam a real `fetch` will slot into.
- *
- * The ledger, the cash book, the bank book and every statement are *derived*
- * from the vouchers that reached `Posted` rather than stored alongside them.
- * A voucher and its ledger line therefore cannot drift apart, and "why is
- * this number what it is" always has one answer.
- *
- * TODO: replace the module-level constants with calls to the accounting API.
+ * TODO: replace the module-level constants with calls to the accounting
+ * API.
  */
 
 function indexBy<T, K extends string | number>(
@@ -57,15 +48,6 @@ const accountsById = indexBy(ACCOUNTS, (account) => account.id);
 const fundsById = indexBy(FUNDS, (fund) => fund.id);
 const projectsById = indexBy(PROJECTS, (project) => project.id);
 const banksById = indexBy(BANK_ACCOUNTS, (bank) => bank.id);
-
-/* -------------------------------------------------------------------------
-   Display references
-
-   A joined record carries only what is needed to *name* its foreign key.
-   Everything else — an account's year balance, a fund's opening figure, a
-   bank account's number — stays behind the capability that guards it, so a
-   role reading the ledger never receives the chart of accounts by accident.
-   ------------------------------------------------------------------------- */
 
 function accountRef(account: Account): AccountRef {
   return {
@@ -99,32 +81,14 @@ function bankRef(bank: BankAccount): BankAccountRef {
   };
 }
 
-/* -------------------------------------------------------------------------
-   Masters
-   ------------------------------------------------------------------------- */
-
 export function getAccounts(): readonly Account[] {
   return ACCOUNTS;
 }
 
-/**
- * Whether a debit increases this class of account.
- *
- * Assets and expenses grow on the debit side; liabilities, equity and income
- * grow on the credit side. Getting this wrong is how a report ends up
- * showing income as a negative number.
- */
 function debitIncreases(type: AccountRecord['type']): boolean {
   return type === 'asset' || type === 'expense';
 }
 
-/**
- * Accounts with their parent joined, activity counted and balance derived.
- *
- * The balance is never read from the master row: it is the opening balance
- * plus this year's postings in the account's natural direction. A group head
- * has no postings of its own, so it rolls up whatever sits beneath it.
- */
 export function getAccountRecords(): readonly AccountRecord[] {
   const ledger = getLedger();
 
@@ -177,29 +141,20 @@ export function getAccountRecords(): readonly AccountRecord[] {
   });
 }
 
-/**
- * Heads an entry can be posted to — never a group, and never with balances.
- *
- * This is what a voucher form needs; the chart of accounts screen asks for
- * the full records separately, behind `account:view`.
- */
 export function getPostableAccounts(): readonly AccountRef[] {
   return ACCOUNTS.filter(
     (account) => account.parentId !== null && account.isActive,
   ).map(accountRef);
 }
 
-/** Fund names for a picker, without the year's figures attached. */
 export function getFundOptions(): readonly FundRef[] {
   return FUNDS.filter((fund) => fund.isActive).map(fundRef);
 }
 
-/** Project names for a picker, without their budgets attached. */
 export function getProjectOptions(): readonly ProjectRef[] {
   return PROJECTS.map(projectRef);
 }
 
-/** Bank account labels for a picker, without balances or numbers. */
 export function getBankAccountOptions(): readonly BankAccountRef[] {
   return BANK_ACCOUNTS.map(bankRef);
 }
@@ -222,10 +177,6 @@ export function getProjects(): readonly Project[] {
 export function getBankAccounts(): readonly BankAccount[] {
   return BANK_ACCOUNTS;
 }
-
-/* -------------------------------------------------------------------------
-   Vouchers
-   ------------------------------------------------------------------------- */
 
 function resolve(entry: Voucher): VoucherRecord {
   const account = accountsById.get(entry.accountId);
@@ -252,7 +203,6 @@ function resolve(entry: Voucher): VoucherRecord {
   };
 }
 
-/** Newest first: a register is read from the most recent entry backwards. */
 function byDateDescending(a: VoucherRecord, b: VoucherRecord): number {
   if (a.date !== b.date) return a.date < b.date ? 1 : -1;
   return b.id - a.id;
@@ -272,14 +222,6 @@ export function getPendingVouchers(): readonly VoucherRecord[] {
   return getVouchers().filter((entry) => entry.status === 'Pending Approval');
 }
 
-/* -------------------------------------------------------------------------
-   Ledger
-
-   A receipt credits its income account, a payment debits its expense
-   account. Only posted vouchers appear — that is what "the ledger" means.
-   ------------------------------------------------------------------------- */
-
-/** Which asset head the money physically moved through. */
 function contraAccountId(voucher: Voucher): number {
   if (voucher.mode === 'cash') return CASH_ACCOUNT_ID;
 
@@ -290,15 +232,6 @@ function contraAccountId(voucher: Voucher): number {
   return bank?.ledgerAccountId ?? CASH_ACCOUNT_ID;
 }
 
-/**
- * The posted ledger, in double entry.
- *
- * Each posted voucher becomes two lines: the income or expense head it was
- * raised against, and the cash or bank head the money actually moved
- * through. Both legs carry the same voucher, so the trial balance balances
- * by construction rather than by hope, and the cash and bank books fall out
- * of the ledger instead of being kept as parallel lists that can drift.
- */
 export function getLedger(): readonly LedgerRecord[] {
   const entries: LedgerRecord[] = [];
 
@@ -352,21 +285,6 @@ export function getLedger(): readonly LedgerRecord[] {
   );
 }
 
-/* -------------------------------------------------------------------------
-   Books
-
-   A book is the ledger narrowed to one place money sits, replayed forward so
-   every row carries the balance it left behind. Replaying is why the rows
-   are built oldest-first and only then reversed for display.
-   ------------------------------------------------------------------------- */
-
-/**
- * A book replays one asset account forward.
- *
- * On an asset head a *debit* is money arriving and a credit is money
- * leaving — the opposite of how the same columns read on an income head,
- * which is why the mapping happens here rather than at the call site.
- */
 function buildBook(
   entries: readonly LedgerRecord[],
   opening: number,
@@ -407,7 +325,6 @@ function chequeNoOf(voucherId: number): string | null {
   return VOUCHERS.find((entry) => entry.id === voucherId)?.chequeNo ?? null;
 }
 
-/** Every cash movement, in date order, with the running cash balance. */
 export function getCashBook(): {
   rows: readonly BookRow[];
   summary: BookSummary;
@@ -421,7 +338,6 @@ export function getCashBook(): {
   );
 }
 
-/** One bank account's statement, with its own opening balance. */
 export function getBankBook(bankAccountId: number): {
   rows: readonly BookRow[];
   summary: BookSummary;
@@ -442,12 +358,6 @@ export function getBankBook(bankAccountId: number): {
   );
 }
 
-/**
- * Bank accounts with their balance read from their own book.
- *
- * Storing a balance alongside the ledger is how the two end up disagreeing;
- * this way the card and the statement are the same number by construction.
- */
 export function getBankAccountRecords(): readonly BankAccountRecord[] {
   return BANK_ACCOUNTS.map((bank) => ({
     ...bank,
@@ -455,16 +365,6 @@ export function getBankAccountRecords(): readonly BankAccountRecord[] {
   }));
 }
 
-/* -------------------------------------------------------------------------
-   Summaries and statements
-   ------------------------------------------------------------------------- */
-
-/**
- * Income and expenditure come from the account *class*, not the column.
- *
- * In double entry both sides of every voucher carry a debit and a credit, so
- * summing a column across the whole ledger would double-count the year.
- */
 function totalOn(
   ledger: readonly LedgerRecord[],
   type: 'income' | 'expense',
@@ -528,7 +428,6 @@ function statementLines(
   return { lines, total };
 }
 
-/** Income & expenditure for the year, account by account. */
 export function getIncomeStatement(): IncomeStatement {
   const ledger = getLedger();
 
@@ -544,7 +443,6 @@ export function getIncomeStatement(): IncomeStatement {
   };
 }
 
-/** Trial balance across every posting head that moved this year. */
 export function getTrialBalance(): readonly TrialBalanceRow[] {
   const ledger = getLedger();
   const rows = new Map<number, { debit: number; credit: number }>();
@@ -570,21 +468,11 @@ export function getActiveFinancialYear(): string {
   return getToday().slice(0, 4);
 }
 
-/* -------------------------------------------------------------------------
-   Chart series
-   ------------------------------------------------------------------------- */
-
 const MONTH_ABBR = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ] as const;
 
-/**
- * Income and expenditure per month, up to the current one.
- *
- * Plotting the whole year would draw four empty columns for months that have
- * not happened yet and make the trend read as a collapse.
- */
 export function getMonthlySeries(today: string = getToday()): PeriodPoint[] {
   const ledger = getLedger();
   const throughMonth = Number(today.slice(5, 7));
@@ -602,7 +490,6 @@ export function getMonthlySeries(today: string = getToday()): PeriodPoint[] {
   });
 }
 
-/** The same series rolled up into quarters. */
 export function getQuarterlySeries(today: string = getToday()): PeriodPoint[] {
   const monthly = getMonthlySeries(today);
 

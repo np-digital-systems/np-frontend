@@ -2,15 +2,6 @@ import { monthKey } from '@/lib/format';
 
 import type { BookRow, BookSummary } from '../types';
 
-/**
- * Narrow a book to one month without lying about the opening balance.
- *
- * A book's rows already carry the running balance they left behind, so the
- * opening balance for any slice is recoverable from its first row: reverse
- * that row's own movement out of it. Taking the book's year-opening figure
- * instead would show January's opening against August's transactions, which
- * is the classic way a filtered cash book stops reconciling.
- */
 export function sliceBook(
   rows: readonly BookRow[],
   month: string | 'all',
@@ -57,7 +48,6 @@ export function sliceBook(
   };
 }
 
-/** Months a book has activity in, newest first. */
 export function bookMonths(rows: readonly BookRow[]): readonly string[] {
   return [...new Set(rows.map((row) => monthKey(row.date)))].sort().reverse();
 }
