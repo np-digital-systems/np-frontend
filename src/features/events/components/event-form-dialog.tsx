@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,10 +30,9 @@ import {
   INSTANCE_MEANING,
   describeInstance,
 } from '../lib/event-data';
+import { eventSchema } from '../lib/event-schemas';
 import type { EventRecord, EventType, SponsorUser } from '../types';
 
-
-/** What the form collects — the writable columns of `events`, nothing more. */
 export interface EventDraft {
   eventTypeId: number;
   instanceIdentifier: number;
@@ -81,31 +81,14 @@ function draftFrom(
 interface EventFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Null opens an empty form; a record seeds the fields. */
-  event: EventRecord | null;
-  /**
-   * Whether this is a create or an edit.
-   *
-   * Defaults to whatever `event` implies, but the schedule screen seeds the
-   * form from a slot that has no record yet — so the copy has to be told
-   * it is still creating something.
-   */
-  mode?: 'create' | 'edit';
+    event: EventRecord | null;
+    mode?: 'create' | 'edit';
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
-  /** Whether this role may flip an event to completed. */
-  canComplete: boolean;
+    canComplete: boolean;
   onSubmit: (draft: EventDraft) => void;
 }
 
-/**
- * Create or edit one calendar occurrence.
- *
- * The instance field is the interesting one: what a number means there
- * depends entirely on the selected type's frequency, so the hint, the
- * maximum and the live preview all re-derive from the current selection
- * rather than leaving the admin to remember the convention.
- */
 export function EventFormDialog({
   open,
   onOpenChange,
@@ -122,19 +105,7 @@ export function EventFormDialog({
   );
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Re-seed when the dialog is opened for a different record.
-   *
-   * The component stays mounted between openings, so without this the form
-   * would still hold the previous event's values. Adjusting state during
-   * render — rather than in an effect — is React's own answer here: it
-   * re-renders before anything is painted instead of cascading a second
-   * pass afterwards.
-   *
-   * The schedule screen seeds the form from a slot with no id yet, so the
-   * key carries the type and instance too.
-   */
-  const seed = [
+    const seed = [
     open,
     event?.id ?? 'new',
     event?.eventTypeId ?? '',
@@ -176,28 +147,22 @@ export function EventFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.scheduledDate) {
-      setError('Pick the date this event is scheduled for.');
+    const result = validate(eventSchema, draft);
+
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (!draft.startTime) {
-      setError('A start time is required.');
-      return;
-    }
-
-    if (draft.endTime && draft.endTime <= draft.startTime) {
-      setError('The end time must come after the start time.');
-      return;
-    }
-
-    if (draft.instanceIdentifier < 1 || draft.instanceIdentifier > maxInstance) {
-      setError(`Instance must be between 1 and ${maxInstance} for this event type.`);
+    if (result.data.instanceIdentifier > maxInstance) {
+      setError(
+        `Instance must be between 1 and ${maxInstance} for this event type.`,
+      );
       return;
     }
 
     setError(null);
-    onSubmit(draft);
+    onSubmit(result.data);
     onOpenChange(false);
   }
 

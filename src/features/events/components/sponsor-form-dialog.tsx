@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,10 +27,9 @@ import {
   INSTANCE_MEANING,
   describeInstance,
 } from '../lib/event-data';
+import { sponsorAssignmentSchema } from '../lib/event-schemas';
 import type { EventType, SponsorAssignment, SponsorUser } from '../types';
 
-
-/** The writable columns of `event_type_sponsors`. */
 export interface SponsorDraft {
   eventTypeId: number;
   instanceIdentifier: number;
@@ -65,19 +65,10 @@ interface SponsorFormDialogProps {
   assignment: SponsorAssignment | null;
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
-  /** Existing slots, so a second sponsor cannot be added to one slot. */
-  taken: readonly { eventTypeId: number; instanceIdentifier: number; id: number }[];
+    taken: readonly { eventTypeId: number; instanceIdentifier: number; id: number }[];
   onSubmit: (draft: SponsorDraft) => void;
 }
 
-/**
- * Assign a devotee to a recurring instance.
- *
- * This writes a *standing* assignment, not a dated event: "the family that
- * sponsors the tenth festival day every year". The unique constraint on
- * (event_type_id, instance_identifier) is enforced here too, so the clash
- * is caught before a round trip rather than as a database error.
- */
 export function SponsorFormDialog({
   open,
   onOpenChange,
@@ -118,20 +109,24 @@ export function SponsorFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.userId) {
-      setError('Choose the devotee or trust sponsoring this instance.');
+    const result = validate(sponsorAssignmentSchema, draft);
+
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (draft.instanceIdentifier < 1 || draft.instanceIdentifier > maxInstance) {
-      setError(`Instance must be between 1 and ${maxInstance} for this event type.`);
+    if (result.data.instanceIdentifier > maxInstance) {
+      setError(
+        `Instance must be between 1 and ${maxInstance} for this event type.`,
+      );
       return;
     }
 
     const clash = taken.find(
       (slot) =>
-        slot.eventTypeId === draft.eventTypeId &&
-        slot.instanceIdentifier === draft.instanceIdentifier &&
+        slot.eventTypeId === result.data.eventTypeId &&
+        slot.instanceIdentifier === result.data.instanceIdentifier &&
         slot.id !== assignment?.id,
     );
 
@@ -143,10 +138,7 @@ export function SponsorFormDialog({
     }
 
     setError(null);
-    onSubmit({
-      ...draft,
-      customInstanceName: draft.customInstanceName.trim(),
-    });
+    onSubmit(result.data);
     onOpenChange(false);
   }
 
