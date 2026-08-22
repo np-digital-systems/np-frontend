@@ -78,19 +78,7 @@ interface VoucherRegisterProps {
   year: number;
 }
 
-/**
- * The receipt and payment registers, which are the same screen.
- *
- * They differ in wording, in which party column they show and in the
- * capability that opens them — not in structure, so building them twice
- * would mean fixing every bug twice.
- *
- * Every row action is gated twice over: by the role's capability *and* by
- * the voucher's own state and ownership, because "a cashier may create
- * vouchers" does not mean "this cashier may edit this one".
- *
- * TODO: replace the local mutations with calls to the vouchers API.
- */
+/** TODO: replace the local mutations with calls to the vouchers API. */
 export function VoucherRegister({
   kind,
   title,
@@ -495,12 +483,6 @@ interface RowActionsProps {
   onDelete: () => void;
 }
 
-/**
- * Only the actions actually available on *this* voucher are rendered.
- *
- * A disabled item a role can never enable is noise; an item missing because
- * the voucher has moved on is information.
- */
 function RowActions({
   voucher,
   access,
@@ -519,11 +501,7 @@ function RowActions({
   const mayPost = canPostVoucher(voucher, access);
   const mayDelete = canDeleteVoucher(voucher, access, user);
 
-  /**
-   * An approver looking at their own pending entry gets told why the button
-   * is absent, rather than being left to wonder.
-   */
-  const blockedBySelfApproval =
+    const blockedBySelfApproval =
     access.canApprove &&
     voucher.status === 'Pending Approval' &&
     voucher.createdBy.id === user.id;
