@@ -13,17 +13,9 @@ import { EVENT_ROUTES } from '@/features/events/lib/routes';
 import type { DashboardProps } from '../../types';
 import { UpcomingEvents } from '../shared';
 
-/**
- * Member dashboard — the devotee-facing view.
- *
- * A member has no accounting capabilities at all, so this dashboard shows
- * nothing financial. Rendering it as its own tree (rather than hiding cards
- * inside a shared one) means there is no chance of a figure leaking through
- * a mis-written condition.
- */
 const QUICK_ACTIONS: readonly QuickAction[] = [
   { label: 'Temple Calendar', href: EVENT_ROUTES.calendar, icon: Calendar },
-  { label: 'Make a Donation', href: '/donations', icon: Heart },
+  { label: 'Make a Donation', href: '/#donation-section', icon: Heart },
 ];
 
 export function MemberDashboard({
