@@ -85,16 +85,7 @@ interface AssetsScreenProps {
   year: number;
 }
 
-/**
- * The asset register.
- *
- * Two questions, kept separate: what the temple owns and what condition it is
- * in, which is the maintenance committee's concern, and what it is worth on
- * the books, which is the auditor's. The table answers both without mixing
- * them into one column.
- *
- * TODO: replace the local mutations with calls to the assets API.
- */
+/** TODO: replace the local mutations with calls to the assets API. */
 export function AssetsScreen({
   initialAssets,
   categoryTotals,
@@ -147,8 +138,7 @@ export function AssetsScreen({
     };
   }, [assets]);
 
-  /** Recomputes the derived figures for one asset after an edit. */
-  function reshape(
+    function reshape(
     base: AssetRecord | null,
     draft: AssetDraft,
     fundName: string,

@@ -7,13 +7,6 @@ import { getFundRecords, getProjectRecords } from '../../lib/finance-service';
 
 import { ProjectsScreen } from './projects-screen';
 
-/**
- * Projects boundary.
- *
- * A project is a budget-tracking construct rather than a decision about the
- * temple's money, so `project:manage` sits with the accountant alongside the
- * chart of accounts — the bookkeeping side of the line this module draws.
- */
 export async function ProjectsFeature() {
   const user = await getCurrentUser();
   const access = getFinanceAccess(user.role);

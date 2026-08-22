@@ -11,14 +11,6 @@ import {
 
 import { AssetsScreen } from './assets-screen';
 
-/**
- * Assets boundary.
- *
- * Capitalising and depreciating an asset is bookkeeping, so an accountant
- * holds `asset:manage`. Disposal is not — it parts the temple from something
- * it owns — so `asset:dispose` stays with the admin and the register hides
- * that one action rather than the whole screen.
- */
 export async function AssetsFeature() {
   const user = await getCurrentUser();
   const access = getFinanceAccess(user.role);

@@ -52,15 +52,7 @@ interface ProjectsScreenProps {
   year: number;
 }
 
-/**
- * Projects — budget against actual.
- *
- * The one question this screen exists to answer is whether a piece of work
- * is going to run past what was agreed for it, so the utilisation bar and
- * the remaining figure carry the page and everything else supports them.
- *
- * TODO: replace the local mutations with calls to the projects API.
- */
+/** TODO: replace the local mutations with calls to the projects API. */
 export function ProjectsScreen({
   initialProjects,
   funds,
