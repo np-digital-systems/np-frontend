@@ -11,12 +11,6 @@ import type {
 import { periodsDueSoFar, periodsInYear } from './contributions-data';
 
 /**
- * The read layer for the Sanththa register.
- *
- * A member's standing — what they owe, whether they are behind — is derived
- * from their pledge and their payments every time it is asked for. Storing
- * it would mean a member could be marked square while owing eight months.
- *
  * TODO: replace the module-level constants with calls to the contributions
  * API.
  */
@@ -104,7 +98,6 @@ export function getSanththaSummary(
   };
 }
 
-/** What was collected each month of the active year, for the trend strip. */
 export function getCollectionTrend(
   today: string = getToday(),
 ): readonly CollectionPoint[] {
@@ -130,7 +123,6 @@ export function getCollectionTrend(
   });
 }
 
-/** The subscription periods of the year a member has not yet paid for. */
 export function getUnpaidPeriods(
   member: MemberRecord,
   year: number,

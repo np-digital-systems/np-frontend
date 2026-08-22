@@ -1,13 +1,5 @@
 import type { MemberRecord } from '../types';
 
-/**
- * Contact-detail redaction.
- *
- * A role that cannot see a member's phone and address must not be *sent*
- * them — a server component's props travel to the browser in the RSC
- * payload, so a conditional in the markup hides the field from the eye and
- * from nothing else.
- */
 export function redactMembers(
   members: readonly MemberRecord[],
   canSeeContact: boolean,

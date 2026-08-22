@@ -1,6 +1,5 @@
 import type { MemberStatus, SubscriptionFrequency } from '../types';
 
-/** Money notation and dates are shared portal-wide — see `@/lib/format`. */
 export {
   formatCurrency,
   formatCompact,
@@ -33,19 +32,10 @@ export const MEMBER_STATUS_LABELS: Record<MemberStatus, string> = {
   inactive: 'Inactive',
 };
 
-/** How many times a subscription falls due in a full year. */
 export function periodsInYear(frequency: SubscriptionFrequency): number {
   return frequency === 'monthly' ? 12 : 1;
 }
 
-/**
- * The periods a member is expected to have paid by now.
- *
- * A monthly subscriber is not in arrears for December in August, so dues are
- * counted to the current month rather than to the end of the year — which is
- * the difference between a register that flags real arrears and one that
- * flags everybody.
- */
 export function periodsDueSoFar(
   frequency: SubscriptionFrequency,
   today: string,
@@ -67,7 +57,6 @@ export function periodsDueSoFar(
   return Math.max(currentMonth - startMonth + 1, 0);
 }
 
-/** The period label a payment covers: `2026` or `2026-08`. */
 export function periodLabel(
   frequency: SubscriptionFrequency,
   year: number,
@@ -78,7 +67,6 @@ export function periodLabel(
     : `${year}-${String(month).padStart(2, '0')}`;
 }
 
-/** `2026-08` → `August 2026`; `2026` → `Year 2026`. */
 export function formatPeriod(period: string): string {
   if (!period.includes('-')) return `Year ${period}`;
 
