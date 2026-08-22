@@ -52,7 +52,6 @@ interface AuditLogScreenProps {
   today: string;
 }
 
-/** Each action gets a mark and a tone, so a trail can be scanned by shape. */
 const ACTION_STYLE: Record<
   AuditAction,
   { icon: LucideIcon; tone: string }
@@ -68,14 +67,6 @@ const ACTION_STYLE: Record<
   'permission-change': { icon: Shield, tone: 'bg-warning-subtle text-warning' },
 };
 
-/**
- * The audit trail.
- *
- * Append-only by nature: there is no edit and no delete on this screen, and
- * there never should be — a log somebody can tidy is not evidence of
- * anything. Grouped by day because that is how it is read: "what happened on
- * the twentieth".
- */
 export function AuditLogScreen({ entries, today }: AuditLogScreenProps) {
   const [query, setQuery] = useState('');
   const [action, setAction] = useState<AuditAction | 'all'>('all');
@@ -107,8 +98,7 @@ export function AuditLogScreen({ entries, today }: AuditLogScreenProps) {
     });
   }, [entries, query, action, actor, role]);
 
-  /** Grouped here rather than on the server so filtering regroups with it. */
-  const days = useMemo(() => {
+    const days = useMemo(() => {
     const buckets = new Map<string, AuditEntry[]>();
 
     for (const entry of filtered) {

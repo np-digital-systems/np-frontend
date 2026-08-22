@@ -7,12 +7,6 @@ import { getUserRecords } from '../../lib/administration-service';
 
 import { UsersScreen } from './users-screen';
 
-/**
- * Users boundary.
- *
- * `user:manage` is the admin's alone: this screen decides who can reach the
- * portal at all, and what they can do once they are in.
- */
 export async function UsersFeature() {
   const user = await getCurrentUser();
   const access = getAdministrationAccess(user.role);

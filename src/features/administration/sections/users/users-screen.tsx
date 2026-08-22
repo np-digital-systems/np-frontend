@@ -63,15 +63,7 @@ interface UsersScreenProps {
   today: string;
 }
 
-/**
- * Portal accounts.
- *
- * Accounts are never deleted — a user who raised a voucher is part of its
- * audit trail forever — so the destructive action here is deactivation,
- * which signs them out everywhere and keeps the history intact.
- *
- * TODO: replace the local mutations with calls to the users API.
- */
+/** TODO: replace the local mutations with calls to the users API. */
 export function UsersScreen({
   initialUsers,
   currentUserId,
@@ -520,13 +512,6 @@ function RoleChip({ role }: { role: UserRole }) {
   );
 }
 
-/**
- * Every open session in one place.
- *
- * The per-user count answers "is this account in use"; this panel answers
- * the question that actually matters after a laptop goes missing — which
- * devices are signed in right now, and from where.
- */
 function SessionsPanel({
   users,
   today,

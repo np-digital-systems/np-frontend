@@ -35,14 +35,6 @@ interface RolesScreenProps {
 }
 
 /**
- * The role matrix.
- *
- * What this grid shows is not a copy of the permission model — it is read
- * from `ROLE_PERMISSIONS`, the same constant every capability check in the
- * portal runs against. So a cell that is ticked here is a thing that role
- * can genuinely do right now, which is the only way this screen is worth
- * trusting.
- *
  * TODO: persisting a change needs the roles API. Until then edits are held
  * locally and the reset button puts the grid back to what the portal
  * enforces.
@@ -293,12 +285,6 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
   );
 }
 
-/**
- * What each role is for, in a sentence.
- *
- * The grid says what a role *can* do; this says what it is *meant* to do,
- * which is what somebody needs before deciding whether a tick belongs there.
- */
 function RoleSummary({ roles }: { roles: readonly RoleRecord[] }) {
   return (
     <Card>

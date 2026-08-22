@@ -44,13 +44,6 @@ const STATUS_TONE: Record<FinancialYearStatus, string> = {
 };
 
 /**
- * The financial years the books are kept in.
- *
- * Closing a year is the most consequential button in the portal: it locks
- * every voucher in that year against further change and carries its closing
- * balance forward as next year's opening. So it asks twice, says exactly
- * what will happen, and refuses while anything is still awaiting approval.
- *
  * TODO: replace the local mutations with calls to the financial-years API.
  */
 export function FinancialYearsScreen({
@@ -348,12 +341,6 @@ export function FinancialYearsScreen({
   );
 }
 
-/**
- * The open year, given its own card.
- *
- * Everything else on this screen is history; this is the one people act
- * against, and it carries the figure the whole portal is currently reporting.
- */
 function CurrentYearCard({
   year,
   today,

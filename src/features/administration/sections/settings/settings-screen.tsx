@@ -37,16 +37,9 @@ interface SettingsScreenProps {
 }
 
 /**
- * Portal settings.
- *
- * Four groups, kept as tabs because they belong to different people even
- * though one role edits them: the temple's identity, how figures and dates
- * are rendered, the rules the accounting module enforces, and who gets told
- * about what.
- *
- * TODO: replace the local state with calls to the settings API. Nothing here
- * persists yet, which is why the save button tracks a dirty count rather
- * than pretending to have written.
+ * TODO: replace the local state with calls to the settings API. Nothing
+ * here persists yet, which is why the save button tracks a dirty count
+ * rather than pretending to have written.
  */
 export function SettingsScreen({ initialSettings }: SettingsScreenProps) {
   const [settings, setSettings] = useState<PortalSettings>(initialSettings);
@@ -136,10 +129,6 @@ export function SettingsScreen({ initialSettings }: SettingsScreenProps) {
   );
 }
 
-/* -------------------------------------------------------------------------
-   Temple profile
-   ------------------------------------------------------------------------- */
-
 function TempleSection({
   profile,
   onChange,
@@ -225,10 +214,6 @@ function TempleSection({
     </Card>
   );
 }
-
-/* -------------------------------------------------------------------------
-   Locale
-   ------------------------------------------------------------------------- */
 
 const TIME_ZONES = ['Asia/Colombo', 'Asia/Kolkata', 'UTC'] as const;
 
@@ -338,10 +323,6 @@ function LocaleSection({
     </Card>
   );
 }
-
-/* -------------------------------------------------------------------------
-   Accounting
-   ------------------------------------------------------------------------- */
 
 function AccountingSection({
   accounting,
@@ -466,10 +447,6 @@ function AccountingSection({
     </Card>
   );
 }
-
-/* -------------------------------------------------------------------------
-   Notifications
-   ------------------------------------------------------------------------- */
 
 const NOTIFICATION_ROWS: readonly {
   key: keyof NotificationSettings;

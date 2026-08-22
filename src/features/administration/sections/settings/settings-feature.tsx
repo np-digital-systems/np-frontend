@@ -6,13 +6,6 @@ import { getPortalSettings } from '../../lib/administration-service';
 
 import { SettingsScreen } from './settings-screen';
 
-/**
- * Settings boundary.
- *
- * These values change how every other screen behaves — voucher numbering,
- * the approval threshold, the currency every figure is rendered in — so
- * `settings:manage` is the admin's alone.
- */
 export async function SettingsFeature() {
   const user = await getCurrentUser();
   const access = getAdministrationAccess(user.role);

@@ -7,13 +7,6 @@ import { getAuditEntries } from '../../lib/administration-service';
 
 import { AuditLogScreen } from './audit-log-screen';
 
-/**
- * Audit log boundary.
- *
- * `audit:view` is the admin's alone. The trail records what everybody else
- * did, including who changed whose permissions, so anyone who could read it
- * selectively could also learn where the gaps in oversight are.
- */
 export async function AuditLogFeature() {
   const user = await getCurrentUser();
   const access = getAdministrationAccess(user.role);

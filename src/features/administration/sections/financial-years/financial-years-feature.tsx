@@ -7,13 +7,6 @@ import { getFinancialYearRecords } from '../../lib/administration-service';
 
 import { FinancialYearsScreen } from './financial-years-screen';
 
-/**
- * Financial years boundary.
- *
- * The one administration screen an accountant reaches: the year is the
- * boundary of the books they keep, so they need to see it. Opening or
- * closing one locks every voucher inside it, which stays with the admin.
- */
 export async function FinancialYearsFeature() {
   const user = await getCurrentUser();
   const access = getAdministrationAccess(user.role);
