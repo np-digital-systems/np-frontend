@@ -77,16 +77,7 @@ interface SanththaScreenProps {
   year: number;
 }
 
-/**
- * The Sanththa register.
- *
- * Two jobs at once: it is the temple's membership roll, and it is the list a
- * collector works down. So the arrears column carries the page — a member
- * who is behind is the only row anybody needs to act on — while the roll
- * itself stays complete, lapsed and inactive members included.
- *
- * TODO: replace the local mutations with calls to the contributions API.
- */
+/** TODO: replace the local mutations with calls to the contributions API. */
 export function SanththaScreen({
   initialMembers,
   summary,
@@ -120,8 +111,7 @@ export function SanththaScreen({
     });
   }, [members, query, status, paid]);
 
-  /** Live totals, recomputed as payments land rather than read from props. */
-  const live = useMemo(() => {
+    const live = useMemo(() => {
     const expected = members.reduce(
       (sum, member) => sum + member.dueForYear,
       0,
@@ -155,8 +145,7 @@ export function SanththaScreen({
 
   const peak = Math.max(...trend.map((point) => point.amount), 1);
 
-  /** Re-derives a member's standing after their pledge or payments change. */
-  function reshape(
+    function reshape(
     base: MemberRecord | null,
     patch: Partial<MemberRecord>,
   ): MemberRecord {
@@ -249,8 +238,7 @@ export function SanththaScreen({
     setCollecting(null);
   }
 
-  /** The periods of the year this member still owes for, oldest first. */
-  function unpaidPeriodsFor(member: MemberRecord): readonly string[] {
+    function unpaidPeriodsFor(member: MemberRecord): readonly string[] {
     const paidPeriods = new Set(
       member.payments.map((payment) => payment.period),
     );
@@ -695,13 +683,6 @@ export function SanththaScreen({
   );
 }
 
-/**
- * Periods of the year at a glance.
- *
- * Twelve dots read faster than "8 of 12" for the question a collector
- * actually asks — which months are missing — and the ones not yet due are
- * drawn hollow so nobody chases a member for December in August.
- */
 function PeriodDots({
   paid,
   expected,

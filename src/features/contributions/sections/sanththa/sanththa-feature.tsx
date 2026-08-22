@@ -12,14 +12,6 @@ import { redactMembers } from '../../lib/contributions-privacy';
 
 import { SanththaScreen } from './sanththa-screen';
 
-/**
- * Sanththa boundary.
- *
- * `contribution:view` reaches the cashier, because collecting the
- * subscription at the counter is their daily work. Contact details are
- * stripped for anyone who does not keep the register — a collector needs to
- * know who owes what, not where every member lives.
- */
 export async function SanththaFeature() {
   const user = await getCurrentUser();
   const access = getContributionAccess(user.role);
