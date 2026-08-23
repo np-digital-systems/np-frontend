@@ -11,9 +11,11 @@ import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 export const TIME_ZONE = 'Asia/Colombo';
 
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-IN', {
+  return new Intl.NumberFormat('en-LK', {
     style: 'currency',
-    currency: 'INR',
+    currency: 'LKR',
+    // "Rs" rather than "LKR", matching how the temple writes its books.
+    currencyDisplay: 'narrowSymbol',
     maximumFractionDigits: 0,
   }).format(value);
 }
