@@ -19,6 +19,8 @@ import { cn } from '@/lib/utils';
 import type { UserSession } from '../../types';
 
 interface SessionsScreenProps {
+  /** Hides the page header when rendered inside the Settings tabs. */
+  embedded?: boolean;
   initialSessions: readonly UserSession[];
     currentSessionId: string;
   today: string;
@@ -26,6 +28,7 @@ interface SessionsScreenProps {
 
 /** TODO: replace the local mutations with calls to the sessions API. */
 export function SessionsScreen({
+  embedded = false,
   initialSessions,
   currentSessionId,
   today,
@@ -39,28 +42,30 @@ export function SessionsScreen({
 
   return (
     <>
-      <PortalPageHeader
-        title="My Sessions"
-        description="Every device signed in to your account. Revoke anything you do not recognise."
-        meta={[
-          <span key="count" className="tabular">
-            {sessions.length} active
-          </span>,
-          others.length > 0 ? (
-            <span key="others" className="tabular">
-              {others.length} other {others.length === 1 ? 'device' : 'devices'}
-            </span>
-          ) : null,
-        ].filter(Boolean)}
-        actions={
-          others.length > 0 && (
-            <Button variant="outline" onClick={() => setRevokingAll(true)}>
-              <LogOut />
-              Sign out other devices
-            </Button>
-          )
-        }
-      />
+      {!embedded && (
+        <PortalPageHeader
+          title="My Sessions"
+          description="Every device signed in to your account. Revoke anything you do not recognise."
+          meta={[
+            <span key="count" className="tabular">
+              {sessions.length} active
+            </span>,
+            others.length > 0 ? (
+              <span key="others" className="tabular">
+                {others.length} other {others.length === 1 ? 'device' : 'devices'}
+              </span>
+            ) : null,
+          ].filter(Boolean)}
+          actions={
+            others.length > 0 && (
+              <Button variant="outline" onClick={() => setRevokingAll(true)}>
+                <LogOut />
+                Sign out other devices
+              </Button>
+            )
+          }
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
