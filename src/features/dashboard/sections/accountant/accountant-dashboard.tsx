@@ -25,8 +25,8 @@ import { ApprovalQueue } from './approval-queue';
 import { FundSummary } from './fund-summary';
 
 const QUICK_ACTIONS: readonly QuickAction[] = [
-  { label: 'New Receipt', href: '/accounting/receipts', icon: Receipt },
-  { label: 'New Payment', href: '/accounting/payments', icon: CreditCard },
+  { label: 'New Receipt', href: '/accounting/receipts?new=1', icon: Receipt },
+  { label: 'New Payment', href: '/accounting/payments?new=1', icon: CreditCard },
   { label: 'Cash Book', href: '/accounting/cash-book', icon: BookOpen },
   { label: 'Generate Report', href: '/accounting/reports', icon: FileText },
 ];
