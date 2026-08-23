@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Download, MoreHorizontal, Plus, Receipt } from 'lucide-react';
 
 import {
@@ -48,6 +49,8 @@ import type {
   AccountRef,
   BankAccountRef,
   FundRef,
+  PoojaRef,
+  PoojaTypeRef,
   ProjectRef,
   VoucherKind,
   VoucherRecord,
@@ -73,6 +76,8 @@ interface VoucherRegisterProps {
   funds: readonly FundRef[];
   projects: readonly ProjectRef[];
   bankAccounts: readonly BankAccountRef[];
+  poojaTypes: readonly PoojaTypeRef[];
+  poojas: readonly PoojaRef[];
   access: AccountingAccess;
   user: PortalUser;
   year: number;
@@ -88,6 +93,8 @@ export function VoucherRegister({
   funds,
   projects,
   bankAccounts,
+  poojaTypes,
+  poojas,
   access,
   user,
   year,
@@ -98,9 +105,17 @@ export function VoucherRegister({
     EMPTY_VOUCHER_FILTERS,
   );
 
-  const [formOpen, setFormOpen] = useState(false);
+  const params = useSearchParams();
+
+  // Dashboard shortcuts and approval links land here with intent in the URL.
+  const [formOpen, setFormOpen] = useState(() => params.get('new') === '1');
   const [editing, setEditing] = useState<VoucherRecord | null>(null);
-  const [viewing, setViewing] = useState<VoucherRecord | null>(null);
+  const [viewing, setViewing] = useState<VoucherRecord | null>(() => {
+    const ref = params.get('ref');
+    return ref
+      ? initialVouchers.find((entry) => entry.ref === ref) ?? null
+      : null;
+  });
   const [rejecting, setRejecting] = useState<VoucherRecord | null>(null);
   const [deleting, setDeleting] = useState<VoucherRecord | null>(null);
 
@@ -152,7 +167,10 @@ export function VoucherRegister({
       bankAccountId: draft.bankAccountId,
       chequeNo: draft.chequeNo || null,
       party: draft.party,
-      eventRef: base?.eventRef ?? null,
+      eventRef: draft.eventRef ?? base?.eventRef ?? null,
+      eventTypeId: draft.eventTypeId,
+      eventId: draft.eventId,
+      manualVoucherNo: draft.manualVoucherNo || null,
       status: base?.status ?? 'Draft',
       notes: draft.notes || null,
       createdBy: base?.createdBy ?? { id: user.id, name: user.name },
@@ -304,6 +322,12 @@ export function VoucherRegister({
                       {voucher.ref}
                     </button>
 
+                    {voucher.manualVoucherNo && (
+                      <span className="mt-0.5 block text-[11px] text-text-muted ref">
+                        Book #{voucher.manualVoucherNo}
+                      </span>
+                    )}
+
                     {voucher.createdBy.id === user.id && (
                       <span className="ml-2 rounded bg-neutral-subtle px-1 py-0.5 text-[10px] text-text-muted">
                         Mine
@@ -425,6 +449,8 @@ export function VoucherRegister({
           funds={funds}
           projects={projects}
           bankAccounts={bankAccounts}
+          poojaTypes={poojaTypes}
+          poojas={poojas}
           onSubmit={(draft) => handleSave(draft, false)}
           onSubmitForApproval={
             access.canSubmit ? (draft) => handleSave(draft, true) : undefined

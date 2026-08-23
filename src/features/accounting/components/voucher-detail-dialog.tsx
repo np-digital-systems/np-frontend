@@ -59,6 +59,12 @@ export function VoucherDetailDialog({
 
             <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
               <Detail label="Date" value={formatLongDate(voucher.date)} />
+              {voucher.manualVoucherNo && (
+                <Detail
+                  label="Manual Voucher No"
+                  value={voucher.manualVoucherNo}
+                />
+              )}
               <Detail label={partyLabel(voucher.kind)} value={voucher.party} />
               <Detail
                 label="Ledger Account"
