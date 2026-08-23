@@ -29,7 +29,7 @@ export function CashierDashboard({
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
-          href="/accounting/receipts/new"
+          href="/accounting/receipts?new=1"
           className={cn(
             'inline-flex h-11 items-center justify-center gap-2 rounded-xl',
             'bg-primary px-6 text-[13px] font-semibold text-primary-foreground',
@@ -42,7 +42,7 @@ export function CashierDashboard({
         </Link>
 
         <Link
-          href="/accounting/payments/new"
+          href="/accounting/payments?new=1"
           className={cn(
             'inline-flex h-11 items-center justify-center gap-2 rounded-xl',
             'border border-border bg-surface px-6',
