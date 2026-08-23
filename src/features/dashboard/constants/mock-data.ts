@@ -62,7 +62,7 @@ export const PENDING_APPROVALS: readonly ApprovalItem[] = [
     type: 'Payment Voucher',
     amount: 15000,
     payee: 'Melam Group',
-    fund: 'Festival Fund',
+    fund: 'Pooja Fund',
     project: 'Annual Festival 2026',
     createdBy: 'Cashier',
   },
@@ -80,7 +80,7 @@ export const PENDING_APPROVALS: readonly ApprovalItem[] = [
     type: 'Payment Voucher',
     amount: 4200,
     payee: 'Flower Mart',
-    fund: 'Festival Fund',
+    fund: 'Pooja Fund',
     project: 'Navarathiri 2026',
     createdBy: 'Cashier',
   },
@@ -114,7 +114,7 @@ export interface Fund {
 
 export const FUNDS: readonly Fund[] = [
   { name: 'General Temple Fund', income: 820000, expenses: 465000, balance: 355000 },
-  { name: 'Festival Fund', income: 1075000, expenses: 666000, balance: 409000 },
+  { name: 'Pooja Fund', income: 1075000, expenses: 666000, balance: 409000 },
   { name: 'Thiruppani Fund', income: 570000, expenses: 313000, balance: 257000 },
 ];
 
@@ -201,7 +201,7 @@ export const TRANSACTIONS: readonly Transaction[] = [
     date: '12 Aug',
     ref: 'RV-2026-0125',
     description: 'Festival Donation',
-    fund: 'Festival Fund',
+    fund: 'Pooja Fund',
     project: 'Navarathiri 2026',
     debit: null,
     credit: 25000,
@@ -211,7 +211,7 @@ export const TRANSACTIONS: readonly Transaction[] = [
     date: '12 Aug',
     ref: 'PV-2026-0074',
     description: 'Melam Payment',
-    fund: 'Festival Fund',
+    fund: 'Pooja Fund',
     project: 'Annual Festival 2026',
     debit: 15000,
     credit: null,

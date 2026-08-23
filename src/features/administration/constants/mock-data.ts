@@ -210,7 +210,6 @@ export const PORTAL_SETTINGS: PortalSettings = {
   locale: {
     defaultLanguage: 'ta',
     timeZone: 'Asia/Colombo',
-    currency: 'INR',
     dateFormat: 'dd-mon-yyyy',
   },
   accounting: {

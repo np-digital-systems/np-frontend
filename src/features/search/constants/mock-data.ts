@@ -25,10 +25,10 @@ export const SEARCH_INDEX: SearchResult[] = [
   { id: 'u6', type: 'User', title: 'P. Sivarajah', subtitle: 'DEVOTEE · 077 555 1234', meta: 'Active', page: 'Users', keywords: ['sivarajah', 'devotee', 'user'] },
 
   // ── Events ──
-  { id: 'e1', type: 'Event', title: 'Navarathiri 2026', ref: 'EVT-2026-001', subtitle: '01 Oct – 09 Oct 2026 · Festival Fund', badge: 'Upcoming', page: 'Event Calendar', keywords: ['navarathiri', 'festival', '2026', 'oct', 'event'] },
-  { id: 'e2', type: 'Event', title: 'Annual Festival 2026', ref: 'EVT-2026-002', subtitle: '15 Nov – 17 Nov 2026 · Festival Fund', badge: 'Planned', page: 'Event Calendar', keywords: ['annual', 'festival', '2026', 'nov', 'event'] },
+  { id: 'e1', type: 'Event', title: 'Navarathiri 2026', ref: 'EVT-2026-001', subtitle: '01 Oct – 09 Oct 2026 · Pooja Fund', badge: 'Upcoming', page: 'Event Calendar', keywords: ['navarathiri', 'festival', '2026', 'oct', 'event'] },
+  { id: 'e2', type: 'Event', title: 'Annual Festival 2026', ref: 'EVT-2026-002', subtitle: '15 Nov – 17 Nov 2026 · Pooja Fund', badge: 'Planned', page: 'Event Calendar', keywords: ['annual', 'festival', '2026', 'nov', 'event'] },
   { id: 'e3', type: 'Event', title: 'Thai Pongal 2026', ref: 'EVT-2026-003', subtitle: '14 Jan 2026 · General Temple Fund', badge: 'Completed', page: 'Event Calendar', keywords: ['pongal', 'thai', '2026', 'jan', 'event'] },
-  { id: 'e4', type: 'Event', title: 'Mahasivarathiri 2026', ref: 'EVT-2026-004', subtitle: '26 Feb 2026 · Festival Fund', badge: 'Completed', page: 'Event Calendar', keywords: ['mahasivarathiri', 'siva', '2026', 'event'] },
+  { id: 'e4', type: 'Event', title: 'Mahasivarathiri 2026', ref: 'EVT-2026-004', subtitle: '26 Feb 2026 · Pooja Fund', badge: 'Completed', page: 'Event Calendar', keywords: ['mahasivarathiri', 'siva', '2026', 'event'] },
 
   // ── Receipts ──
   { id: 'rv1', type: 'Receipt', title: 'RV-2026-0125', ref: 'RB-04-125', subtitle: 'M. Ganesan · Rs. 25,000', badge: 'Posted', page: 'Receipt Vouchers', keywords: ['rv-2026-0125', 'rb-04-125', 'ganesan', '25000', 'receipt'] },
@@ -42,13 +42,13 @@ export const SEARCH_INDEX: SearchResult[] = [
   { id: 'pv3', type: 'Payment', title: 'PV-2026-0318', ref: 'PV Book 01/318', subtitle: 'Electricity Board · Rs. 18,500', badge: 'Posted', meta: 'Temple Operations', page: 'Payment Vouchers', keywords: ['pv-2026-0318', 'electricity', '18500', 'payment', 'operations'] },
 
   // ── Transactions ──
-  { id: 'txn1', type: 'Transaction', title: 'TXN-2026-00385', subtitle: 'Rs. 25,000 · Festival Fund', badge: 'Posted', meta: 'Navarathiri 2026', page: 'Transactions', keywords: ['txn-2026-00385', '25000', 'festival', 'navarathiri', 'transaction'] },
+  { id: 'txn1', type: 'Transaction', title: 'TXN-2026-00385', subtitle: 'Rs. 25,000 · Pooja Fund', badge: 'Posted', meta: 'Navarathiri 2026', page: 'Transactions', keywords: ['txn-2026-00385', '25000', 'festival', 'navarathiri', 'transaction'] },
   { id: 'txn2', type: 'Transaction', title: 'TXN-2026-00386', subtitle: 'Rs. 150,000 · Thiruppani Fund', badge: 'Posted', meta: 'Rajagopuram Thiruppani', page: 'Transactions', keywords: ['txn-2026-00386', '150000', 'thiruppani', 'rajagopuram', 'transaction'] },
   { id: 'txn3', type: 'Transaction', title: 'TXN-2026-00142', subtitle: 'Rs. 5,000 · General Fund', badge: 'Posted', meta: 'Sanththa Income', page: 'Transactions', keywords: ['txn-2026-00142', '5000', 'sanththa', 'general', 'transaction'] },
 
   // ── Funds ──
   { id: 'f1', type: 'Fund', title: 'General Temple Fund', ref: 'GENERAL', subtitle: 'FY 2026 · Rs. 1,240,000', badge: 'Active', page: 'Funds', keywords: ['general', 'temple', 'fund', '2026'] },
-  { id: 'f2', type: 'Fund', title: 'Festival Fund', ref: 'FESTIVAL', subtitle: 'FY 2026 · Rs. 2,850,000', badge: 'Active', page: 'Funds', keywords: ['festival', 'fund', '2026'] },
+  { id: 'f2', type: 'Fund', title: 'Pooja Fund', ref: 'FESTIVAL', subtitle: 'FY 2026 · Rs. 2,850,000', badge: 'Active', page: 'Funds', keywords: ['festival', 'fund', '2026'] },
   { id: 'f3', type: 'Fund', title: 'Thiruppani Fund', ref: 'THIRUPPANI', subtitle: 'FY 2026 · Rs. 4,200,000', badge: 'Active', page: 'Funds', keywords: ['thiruppani', 'fund', '2026'] },
 
   // ── Projects ──
@@ -76,8 +76,8 @@ export const SEARCH_INDEX: SearchResult[] = [
   { id: 'fy3', type: 'Financial Year', title: '2027', subtitle: '01 Jan 2027 – 31 Dec 2027', badge: 'Setup', page: 'Financial Years', keywords: ['2027', 'financial year', 'setup'] },
 
   // ── Reports ──
-  { id: 'rp1', type: 'Report', title: 'Navarathiri 2026 Financial Report', subtitle: 'Event Report · Festival Fund', page: 'Reports', keywords: ['navarathiri', 'report', 'festival', '2026'] },
-  { id: 'rp2', type: 'Report', title: 'Festival Fund Report 2026', subtitle: 'Fund Report · 2026', page: 'Reports', keywords: ['festival', 'fund', 'report', '2026'] },
+  { id: 'rp1', type: 'Report', title: 'Navarathiri 2026 Financial Report', subtitle: 'Event Report · Pooja Fund', page: 'Reports', keywords: ['navarathiri', 'report', 'festival', '2026'] },
+  { id: 'rp2', type: 'Report', title: 'Pooja Fund Report 2026', subtitle: 'Fund Report · 2026', page: 'Reports', keywords: ['festival', 'fund', 'report', '2026'] },
   { id: 'rp3', type: 'Report', title: 'Income & Expenditure 2026', subtitle: 'Overview Report · 2026', page: 'Reports', keywords: ['income', 'expenditure', 'report', '2026', 'overview'] },
   { id: 'rp4', type: 'Report', title: 'Sanththa Collection Report 2026', subtitle: 'Sanththa Report · 2026', page: 'Reports', keywords: ['sanththa', 'collection', 'report', '2026'] },
 ]
@@ -103,7 +103,7 @@ export const RECENT_SEARCHES = ['M. Ganesan', 'RV-2026-0125', 'Navarathiri 2026'
 export const RECENTLY_VIEWED: { label: string; type: SearchType; page: string }[] = [
   { label: 'M. Ganesan',          type: 'User',         page: 'Users' },
   { label: 'PV-2026-0074',        type: 'Payment',      page: 'Payment Vouchers' },
-  { label: 'Festival Fund',        type: 'Fund',         page: 'Funds' },
+  { label: 'Pooja Fund',        type: 'Fund',         page: 'Funds' },
   { label: 'FD-2026-001',         type: 'Fixed Deposit', page: 'Fixed Deposits' },
   { label: 'Navarathiri 2026',    type: 'Event',        page: 'Event Calendar' },
 ]
