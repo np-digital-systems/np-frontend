@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Inbox } from 'lucide-react';
 
 import {
@@ -54,7 +55,14 @@ export function ApprovalsScreen({
 }: ApprovalsScreenProps) {
   const [vouchers, setVouchers] =
     useState<readonly VoucherRecord[]>(initialVouchers);
-  const [viewing, setViewing] = useState<VoucherRecord | null>(null);
+  const params = useSearchParams();
+
+  const [viewing, setViewing] = useState<VoucherRecord | null>(() => {
+    const ref = params.get('ref');
+    return ref
+      ? initialVouchers.find((entry) => entry.ref === ref) ?? null
+      : null;
+  });
   const [rejecting, setRejecting] = useState<VoucherRecord | null>(null);
 
   const queues = useMemo(
