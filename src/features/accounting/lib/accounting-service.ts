@@ -1,4 +1,5 @@
 import type { PeriodPoint } from '@/components/portal/ui';
+import { getEventTypes, getEvents } from '@/features/events';
 import { getToday } from '@/lib/format';
 
 import {
@@ -28,6 +29,8 @@ import type {
   ProjectRef,
   StatementLine,
   TrialBalanceRow,
+  PoojaRef,
+  PoojaTypeRef,
   Voucher,
   VoucherRecord,
 } from '../types';
@@ -502,4 +505,24 @@ export function getQuarterlySeries(today: string = getToday()): PeriodPoint[] {
       expenses: quarter.reduce((sum, point) => sum + point.expenses, 0),
     };
   });
+}
+
+/* Pooja options for the voucher form, mapped from the events calendar. */
+
+export function getPoojaTypes(): readonly PoojaTypeRef[] {
+  return getEventTypes().map((type) => ({
+    id: type.id,
+    name: type.name,
+    nameEn: type.nameEn,
+  }));
+}
+
+export function getPoojas(): readonly PoojaRef[] {
+  return getEvents().map((event) => ({
+    id: event.id,
+    eventTypeId: event.eventTypeId,
+    label: event.instanceLabel,
+    date: event.scheduledDate,
+    sponsorName: event.sponsor?.fullName ?? null,
+  }));
 }

@@ -34,6 +34,9 @@ export const voucherSchema = z
     bankAccountId: z.number().int().positive().nullable(),
     chequeNo: optionalText(32),
     party: requiredText('This field'),
+    manualVoucherNo: optionalText(32),
+    eventTypeId: z.number().int().positive().nullable(),
+    eventId: z.number().int().positive().nullable(),
     notes: optionalText(1000),
   })
   .refine(
@@ -50,6 +53,12 @@ export const voucherSchema = z
       path: ['chequeNo'],
     },
   );
+
+/** Pooja sponsorship needs the pooja identified before the entry means anything. */
+export function poojaRefinement(isSponsorshipAccount: boolean) {
+  return (draft: { eventTypeId: number | null; eventId: number | null }) =>
+    !isSponsorshipAccount || (draft.eventTypeId !== null && draft.eventId !== null);
+}
 
 export const accountSchema = z
   .object({
