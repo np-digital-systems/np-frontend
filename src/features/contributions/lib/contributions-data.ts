@@ -16,6 +16,16 @@ import type { PaymentMode } from '../types';
  */
 export const YEARLY_SUBSCRIPTION = 1_500;
 
+/**
+ * Where a subscription lands in the books.
+ *
+ * Every sanththa payment is income to this head, against the general fund —
+ * it is membership, not a donation to any particular work.
+ */
+export const SANTHTHA_ACCOUNT_CODE = '4009';
+export const SANTHTHA_ACCOUNT_NAME = 'Sanththa Subscriptions';
+export const SANTHTHA_FUND_NAME = 'General Temple Fund';
+
 export const PAYMENT_MODES: readonly PaymentMode[] = ['cash', 'bank', 'online'];
 
 export const PAYMENT_MODE_LABELS: Record<PaymentMode, string> = {

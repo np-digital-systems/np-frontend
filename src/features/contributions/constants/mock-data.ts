@@ -17,14 +17,14 @@ export const SANTHTHA_MEMBERS: readonly SanththaMember[] = [
 
 /** At most one row per member per year — the subscription is paid once. */
 export const SANTHTHA_PAYMENTS: readonly SanththaPayment[] = [
-  { id: 1, memberId: 1, year: 2026, amount: 1_500, paidOn: '2026-01-12', receiptRef: 'RV-2026-0101', mode: 'cash', collectedBy: 'R. Murugan' },
-  { id: 2, memberId: 2, year: 2026, amount: 1_500, paidOn: '2026-01-18', receiptRef: 'RV-2026-0103', mode: 'bank', collectedBy: 'S. Vijayan' },
-  { id: 3, memberId: 4, year: 2026, amount: 1_500, paidOn: '2026-01-06', receiptRef: 'RV-2026-0102', mode: 'bank', collectedBy: 'S. Vijayan' },
-  { id: 4, memberId: 5, year: 2026, amount: 1_500, paidOn: '2026-02-03', receiptRef: null, mode: 'cash', collectedBy: 'R. Murugan' },
-  { id: 5, memberId: 6, year: 2026, amount: 1_500, paidOn: '2026-02-11', receiptRef: 'RV-2026-0109', mode: 'bank', collectedBy: 'S. Vijayan' },
-  { id: 6, memberId: 7, year: 2026, amount: 1_500, paidOn: '2026-04-20', receiptRef: null, mode: 'cash', collectedBy: 'R. Murugan' },
-  { id: 7, memberId: 9, year: 2026, amount: 1_500, paidOn: '2026-05-09', receiptRef: 'RV-2026-0119', mode: 'online', collectedBy: 'S. Vijayan' },
-  { id: 8, memberId: 12, year: 2026, amount: 1_500, paidOn: '2026-07-02', receiptRef: null, mode: 'cash', collectedBy: 'R. Murugan' },
+  { id: 1, memberId: 1, year: 2026, amount: 1_500, paidOn: '2026-01-12', receiptRef: 'RV-2026-0160', mode: 'cash', collectedBy: 'R. Murugan' },
+  { id: 2, memberId: 2, year: 2026, amount: 1_500, paidOn: '2026-01-18', receiptRef: 'RV-2026-0161', mode: 'bank', collectedBy: 'S. Vijayan' },
+  { id: 3, memberId: 4, year: 2026, amount: 1_500, paidOn: '2026-01-06', receiptRef: 'RV-2026-0162', mode: 'bank', collectedBy: 'S. Vijayan' },
+  { id: 4, memberId: 5, year: 2026, amount: 1_500, paidOn: '2026-02-03', receiptRef: 'RV-2026-0163', mode: 'cash', collectedBy: 'R. Murugan' },
+  { id: 5, memberId: 6, year: 2026, amount: 1_500, paidOn: '2026-02-11', receiptRef: 'RV-2026-0164', mode: 'bank', collectedBy: 'S. Vijayan' },
+  { id: 6, memberId: 7, year: 2026, amount: 1_500, paidOn: '2026-04-20', receiptRef: 'RV-2026-0165', mode: 'cash', collectedBy: 'R. Murugan' },
+  { id: 7, memberId: 9, year: 2026, amount: 1_500, paidOn: '2026-05-09', receiptRef: 'RV-2026-0166', mode: 'online', collectedBy: 'S. Vijayan' },
+  { id: 8, memberId: 12, year: 2026, amount: 1_500, paidOn: '2026-07-02', receiptRef: 'RV-2026-0167', mode: 'cash', collectedBy: 'R. Murugan' },
 
   // Previous year, so the year filter has something to switch to.
   { id: 9, memberId: 1, year: 2025, amount: 1_500, paidOn: '2025-02-14', receiptRef: null, mode: 'cash', collectedBy: 'R. Murugan' },

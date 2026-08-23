@@ -25,6 +25,9 @@ import { validate } from '@/lib/validation';
 import {
   PAYMENT_MODES,
   PAYMENT_MODE_LABELS,
+  SANTHTHA_ACCOUNT_CODE,
+  SANTHTHA_ACCOUNT_NAME,
+  SANTHTHA_FUND_NAME,
   YEARLY_SUBSCRIPTION,
   formatCurrency,
   getToday,
@@ -181,6 +184,14 @@ export function RecordPaymentDialog({
               />
             </FormField>
           </div>
+
+          <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text-secondary">
+            Posts to{' '}
+            <span className="font-medium text-text-primary">
+              {SANTHTHA_ACCOUNT_CODE} · {SANTHTHA_ACCOUNT_NAME}
+            </span>{' '}
+            against the {SANTHTHA_FUND_NAME}.
+          </p>
 
           {error && (
             <p

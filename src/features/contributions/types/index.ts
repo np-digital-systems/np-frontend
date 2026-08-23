@@ -28,6 +28,7 @@ export interface SanththaPayment {
   readonly year: number;
   readonly amount: number;
   readonly paidOn: string;
+  /** The receipt voucher this subscription was collected on. */
   readonly receiptRef: string | null;
   readonly mode: PaymentMode;
   readonly collectedBy: string;
