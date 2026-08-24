@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 import { FormField } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ import {
   formatCurrency,
   getToday,
 } from '../lib/contributions-data';
+import { recordSanththaPayment } from '../lib/contributions-actions';
 import { paymentSchema } from '../lib/contributions-schemas';
 import type { MemberRecord, PaymentMode } from '../types';
 
@@ -39,7 +40,6 @@ export interface PaymentDraft {
   amount: number;
   paidOn: string;
   mode: PaymentMode;
-  receiptRef: string;
 }
 
 interface RecordPaymentDialogProps {
@@ -47,7 +47,8 @@ interface RecordPaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   member: MemberRecord | null;
   year: number;
-  onSubmit: (draft: PaymentDraft) => void;
+  /** Receives the reference of the receipt voucher the server raised. */
+  onRecorded: (receiptRef: string) => void;
 }
 
 /** Records the one subscription a member owes for the year. */
@@ -56,15 +57,15 @@ export function RecordPaymentDialog({
   onOpenChange,
   member,
   year,
-  onSubmit,
+  onRecorded,
 }: RecordPaymentDialogProps) {
   const [draft, setDraft] = useState<PaymentDraft>({
     amount: YEARLY_SUBSCRIPTION,
     paidOn: getToday(),
     mode: 'cash',
-    receiptRef: '',
   });
   const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   const seed = `${open}|${member?.id ?? ''}`;
   const [lastSeed, setLastSeed] = useState(seed);
@@ -75,7 +76,6 @@ export function RecordPaymentDialog({
       amount: YEARLY_SUBSCRIPTION,
       paidOn: getToday(),
       mode: 'cash',
-      receiptRef: '',
     });
     setError(null);
   }
@@ -83,16 +83,32 @@ export function RecordPaymentDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const result = validate(paymentSchema, draft);
+    if (!member) return;
 
-    if (!result.ok) {
-      setError(result.message);
+    const parsed = validate(paymentSchema, draft);
+
+    if (!parsed.ok) {
+      setError(parsed.message);
       return;
     }
 
     setError(null);
-    onSubmit(draft);
-    onOpenChange(false);
+
+    startTransition(async () => {
+      const result = await recordSanththaPayment({
+        memberId: member.id,
+        year,
+        ...draft,
+      });
+
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+
+      onRecorded(result.receiptRef);
+      onOpenChange(false);
+    });
   }
 
   return (
@@ -170,27 +186,19 @@ export function RecordPaymentDialog({
               </Select>
             </FormField>
 
-            <FormField id="payment-receipt" label="Receipt No">
-              <Input
-                id="payment-receipt"
-                value={draft.receiptRef}
-                placeholder="RV-2026-0101"
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    receiptRef: event.target.value,
-                  }))
-                }
-              />
-            </FormField>
+
           </div>
 
           <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text-secondary">
-            Posts to{' '}
+            Raises a posted receipt voucher to{' '}
             <span className="font-medium text-text-primary">
               {SANTHTHA_ACCOUNT_CODE} · {SANTHTHA_ACCOUNT_NAME}
             </span>{' '}
-            against the {SANTHTHA_FUND_NAME}.
+            against the {SANTHTHA_FUND_NAME}, received from{' '}
+            <span className="font-medium text-text-primary">
+              {member?.fullName ?? 'the member'}
+            </span>
+            . The receipt number is allocated when it is saved.
           </p>
 
           {error && (
@@ -210,7 +218,9 @@ export function RecordPaymentDialog({
             >
               Cancel
             </Button>
-            <Button type="submit">Record Payment</Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? 'Recording…' : 'Record Payment'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
