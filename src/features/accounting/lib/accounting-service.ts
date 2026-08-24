@@ -2,13 +2,14 @@ import type { PeriodPoint } from '@/components/portal/ui';
 import { getEventTypes, getEvents } from '@/features/events';
 import { getToday } from '@/lib/format';
 
+import { allVouchers } from './voucher-store';
+
 import {
   ACCOUNTS,
   BANK_ACCOUNTS,
   CASH_ACCOUNT_ID,
   FUNDS,
   PROJECTS,
-  VOUCHERS,
 } from '../constants/mock-data';
 import type {
   Account,
@@ -212,7 +213,7 @@ function byDateDescending(a: VoucherRecord, b: VoucherRecord): number {
 }
 
 export function getVouchers(): readonly VoucherRecord[] {
-  return VOUCHERS.map(resolve).sort(byDateDescending);
+  return allVouchers().map(resolve).sort(byDateDescending);
 }
 
 export function getVouchersOfKind(
@@ -238,7 +239,7 @@ function contraAccountId(voucher: Voucher): number {
 export function getLedger(): readonly LedgerRecord[] {
   const entries: LedgerRecord[] = [];
 
-  for (const voucher of VOUCHERS) {
+  for (const voucher of allVouchers()) {
     if (voucher.status !== 'Posted') continue;
 
     const resolved = resolve(voucher);
@@ -325,7 +326,7 @@ function buildBook(
 }
 
 function chequeNoOf(voucherId: number): string | null {
-  return VOUCHERS.find((entry) => entry.id === voucherId)?.chequeNo ?? null;
+  return allVouchers().find((entry) => entry.id === voucherId)?.chequeNo ?? null;
 }
 
 export function getCashBook(): {
@@ -385,7 +386,7 @@ export function getSummary(): AccountingSummary {
   const income = totalOn(ledger, 'income');
   const expenses = totalOn(ledger, 'expense');
 
-  const pending = VOUCHERS.filter(
+  const pending = allVouchers().filter(
     (entry) => entry.status === 'Pending Approval',
   );
 
