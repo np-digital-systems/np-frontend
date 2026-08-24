@@ -2,6 +2,7 @@
 
 import { LogOut, MonitorSmartphone, Settings, User } from 'lucide-react'
 import Link from 'next/link'
+import { useLocale } from 'next-intl'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -14,38 +15,32 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
+import { signOut } from '@/features/auth/lib/auth-actions'
+import { ROLE_LABELS } from '@/features/auth/lib/auth-data'
 import type { PortalUser } from '@/features/auth/types/user'
 import type { UserRole } from '@/features/auth/types/user-role'
 
 /**
  * Role chips stay muted on purpose. A saturated pill next to the avatar
- * competes with the header's only real accent — the unread badge.
+ * competes with the header's only real accent — the unread badge. The wording
+ * comes from the auth feature so the chip and the login screen agree.
  */
-const ROLE_LABEL: Record<UserRole, { label: string; className: string }> = {
-  admin: {
-    label: 'Administrator',
-    className: 'bg-primary-subtle text-primary',
-  },
-  accountant: {
-    label: 'Accountant',
-    className: 'bg-info-subtle text-info',
-  },
-  cashier: {
-    label: 'Cashier',
-    className: 'bg-success-subtle text-success',
-  },
-  user: {
-    label: 'Member',
-    className: 'bg-neutral-subtle text-text-muted',
-  },
+const ROLE_CHIP: Record<UserRole, string> = {
+  admin: 'bg-primary-subtle text-primary',
+  accountant: 'bg-info-subtle text-info',
+  cashier: 'bg-success-subtle text-success',
+  user: 'bg-neutral-subtle text-text-muted',
 }
+
+/** Fixed rather than `useId`: the header renders exactly one user menu. */
+const SIGN_OUT_FORM_ID = 'portal-sign-out'
 
 interface UserMenuProps {
   user: PortalUser
 }
 
 export function UserMenu({ user }: UserMenuProps) {
-  const role = ROLE_LABEL[user.role]
+  const locale = useLocale()
 
   return (
     <DropdownMenu>
@@ -92,10 +87,10 @@ export function UserMenu({ user }: UserMenuProps) {
             <span
               className={cn(
                 'mt-1.5 inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium',
-                role.className,
+                ROLE_CHIP[user.role],
               )}
             >
-              {role.label}
+              {ROLE_LABELS[user.role]}
             </span>
           </div>
         </div>
@@ -125,11 +120,27 @@ export function UserMenu({ user }: UserMenuProps) {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem variant="destructive" className="h-8 px-2 text-[13px]">
-          <LogOut />
-          Sign out
+        <DropdownMenuItem
+          asChild
+          variant="destructive"
+          className="h-8 px-2 text-[13px]"
+        >
+          {/*
+            The form lives outside the menu because Radix unmounts the content
+            the moment an item is chosen — a submit button inside it would go
+            with it. Submitting by `form` id keeps the action attached to a
+            node that survives the close.
+          */}
+          <button type="submit" form={SIGN_OUT_FORM_ID}>
+            <LogOut />
+            Sign out
+          </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
+
+      <form id={SIGN_OUT_FORM_ID} action={signOut} className="hidden">
+        <input type="hidden" name="locale" value={locale} />
+      </form>
     </DropdownMenu>
   )
 }
