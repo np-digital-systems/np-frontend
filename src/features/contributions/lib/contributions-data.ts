@@ -23,6 +23,8 @@ export const YEARLY_SUBSCRIPTION = 1_500;
  * it is membership, not a donation to any particular work.
  */
 export const SANTHTHA_ACCOUNT_CODE = '4009';
+export const SANTHTHA_ACCOUNT_ID = 409;
+export const SANTHTHA_FUND_ID = 1;
 export const SANTHTHA_ACCOUNT_NAME = 'Sanththa Subscriptions';
 export const SANTHTHA_FUND_NAME = 'General Temple Fund';
 

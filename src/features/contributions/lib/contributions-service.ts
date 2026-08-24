@@ -1,9 +1,10 @@
 import { getActiveYear, getToday } from '@/lib/format';
 
-import { SANTHTHA_MEMBERS, SANTHTHA_PAYMENTS } from '../constants/mock-data';
+import { SANTHTHA_MEMBERS } from '../constants/mock-data';
 import type { MemberRecord, SanththaSummary } from '../types';
 
 import { YEARLY_SUBSCRIPTION } from './contributions-data';
+import { allPayments } from './sanththa-store';
 
 /** TODO: replace the constants with calls to the sanththa API. */
 
@@ -12,7 +13,7 @@ export function getMemberRecords(
 ): readonly MemberRecord[] {
   return SANTHTHA_MEMBERS.map((member) => {
     const payment =
-      SANTHTHA_PAYMENTS.find(
+      allPayments().find(
         (entry) => entry.memberId === member.id && entry.year === year,
       ) ?? null;
 
@@ -43,7 +44,7 @@ export function summarise(
 /** Years that have any payment, newest first, always including this one. */
 export function getYears(): readonly number[] {
   const current = getActiveYear(getToday());
-  const years = new Set(SANTHTHA_PAYMENTS.map((entry) => entry.year));
+  const years = new Set(allPayments().map((entry) => entry.year));
 
   years.add(current);
 
