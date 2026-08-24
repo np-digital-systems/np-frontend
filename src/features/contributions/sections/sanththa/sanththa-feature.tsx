@@ -37,7 +37,6 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
         years={years}
         year={selected}
         access={access}
-        user={user}
       />
     </PageShell>
   );

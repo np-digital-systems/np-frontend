@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { PortalUser } from '@/features/auth/types/user';
 import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
@@ -36,10 +35,7 @@ import {
   MemberFormDialog,
   type MemberDraft,
 } from '../../components/member-form-dialog';
-import {
-  RecordPaymentDialog,
-  type PaymentDraft,
-} from '../../components/record-payment-dialog';
+import { RecordPaymentDialog } from '../../components/record-payment-dialog';
 import type { ContributionAccess } from '../../lib/contributions-access';
 import { REGISTER_READ_ONLY_MESSAGE } from '../../lib/contributions-access';
 import {
@@ -58,7 +54,6 @@ interface SanththaScreenProps {
   years: readonly number[];
   year: number;
   access: ContributionAccess;
-  user: PortalUser;
 }
 
 /**
@@ -74,12 +69,25 @@ export function SanththaScreen({
   years,
   year,
   access,
-  user,
 }: SanththaScreenProps) {
   const router = useRouter();
 
   const [members, setMembers] =
     useState<readonly MemberRecord[]>(initialMembers);
+
+  /*
+   * Recording a subscription happens on the server, so the register comes back
+   * as a new `initialMembers`. Adopting it during render keeps the table in
+   * step with the ledger; the price is that unsaved local member edits — which
+   * are placeholders anyway — are dropped when that happens.
+   */
+  const [lastServerMembers, setLastServerMembers] = useState(initialMembers);
+
+  if (lastServerMembers !== initialMembers) {
+    setLastServerMembers(initialMembers);
+    setMembers(initialMembers);
+  }
+
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
 
@@ -138,31 +146,14 @@ export function SanththaScreen({
     });
   }
 
-  function handlePayment(draft: PaymentDraft) {
-    if (!paying) return;
-
-    setMembers((current) =>
-      current.map((member) =>
-        member.id === paying.id
-          ? {
-              ...member,
-              hasPaid: true,
-              payment: {
-                id: Date.now(),
-                memberId: member.id,
-                year,
-                amount: draft.amount,
-                paidOn: draft.paidOn,
-                receiptRef: draft.receiptRef || null,
-                mode: draft.mode,
-                collectedBy: user.name,
-              },
-            }
-          : member,
-      ),
-    );
-
+  /**
+   * The payment and its receipt voucher are already written by the time this
+   * runs, so there is nothing to patch in — the refresh pulls the register back
+   * from the same source the accounts read.
+   */
+  function handleRecorded() {
     setPaying(null);
+    router.refresh();
   }
 
   const columns: DataColumn[] = [
@@ -438,7 +429,7 @@ export function SanththaScreen({
           onOpenChange={(open) => !open && setPaying(null)}
           member={paying}
           year={year}
-          onSubmit={handlePayment}
+          onRecorded={handleRecorded}
         />
       )}
     </>
