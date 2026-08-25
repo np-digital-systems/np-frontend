@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 import { formatCurrency } from '../lib/finance-data';
+import { fundSchema } from '../lib/finance-schemas';
 import type { FundRecord } from '../types';
 
 export interface FundDraft {
@@ -47,14 +49,6 @@ interface FundFormDialogProps {
   onSubmit: (draft: FundDraft) => void;
 }
 
-/**
- * Create or amend a fund.
- *
- * The opening balance is the one figure here that is not derived, so it is
- * also the one that can silently break a reconciliation — hence the warning
- * when an existing fund's opening balance is changed after entries have
- * already been posted against it.
- */
 export function FundFormDialog({
   open,
   onOpenChange,
@@ -84,31 +78,26 @@ export function FundFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const name = draft.name.trim();
+    const result = validate(fundSchema, draft);
 
-    if (!name) {
-      setError('A fund name is required.');
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (
-      existing.some(
-        (entry) =>
-          entry.name.toLowerCase() === name.toLowerCase() &&
-          entry.id !== fund?.id,
-      )
-    ) {
-      setError(`A fund called “${name}” already exists.`);
-      return;
-    }
+    const clash = existing.some(
+      (entry) =>
+        entry.name.toLowerCase() === result.data.name.toLowerCase() &&
+        entry.id !== fund?.id,
+    );
 
-    if (draft.opening < 0) {
-      setError('An opening balance cannot be negative.');
+    if (clash) {
+      setError(`A fund called “${result.data.name}” already exists.`);
       return;
     }
 
     setError(null);
-    onSubmit({ ...draft, name, nameTa: draft.nameTa.trim() });
+    onSubmit(result.data);
     onOpenChange(false);
   }
 

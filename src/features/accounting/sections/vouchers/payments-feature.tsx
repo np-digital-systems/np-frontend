@@ -12,13 +12,6 @@ import {
   getVouchersOfKind,
 } from '../../lib/accounting-service';
 
-/**
- * Payment vouchers boundary.
- *
- * Money going out commits the temple to a payee, so while a cashier may
- * draft one, only an approver can move it forward — a distinction the
- * register enforces per row rather than by hiding the screen.
- */
 export async function PaymentVouchersFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);

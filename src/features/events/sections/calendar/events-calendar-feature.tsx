@@ -12,13 +12,6 @@ import { redactEvents, redactSponsors } from '../../lib/event-privacy';
 
 import { EventsCalendar } from './events-calendar';
 
-/**
- * Events calendar boundary.
- *
- * A server component: identity, capabilities, "today" and the joined data
- * are all resolved here, once, and handed down. The client screen below
- * never asks who is looking — it is told what it may offer.
- */
 export async function EventsCalendarFeature() {
   const user = await getCurrentUser();
   const access = getEventAccess(user.role);

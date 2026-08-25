@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,11 +26,13 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   INTEREST_PAYOUTS,
   INTEREST_PAYOUT_LABELS,
+  addMonthsIso,
   formatCurrency,
   formatLongDate,
   simpleInterest,
   yearsBetween,
 } from '../lib/finance-data';
+import { depositSchema } from '../lib/finance-schemas';
 import type { DepositRecord, FundRecord, InterestPayout } from '../types';
 
 export interface DepositDraft {
@@ -79,18 +82,8 @@ function draftFrom(
   };
 }
 
-/**
- * Maturity is derived from the term, never typed.
- *
- * A certificate states a placement date and a tenure; letting someone enter
- * a maturity date separately is how a deposit ends up with a term that does
- * not match the dates on either side of it.
- */
 export function maturityDate(placedOn: string, tenureMonths: number): string {
-  const [year, month, day] = placedOn.split('-').map(Number);
-  const target = new Date(Date.UTC(year, month - 1 + tenureMonths, day));
-
-  return target.toISOString().slice(0, 10);
+  return addMonthsIso(placedOn, tenureMonths);
 }
 
 interface DepositFormDialogProps {
@@ -102,13 +95,6 @@ interface DepositFormDialogProps {
   onSubmit: (draft: DepositDraft) => void;
 }
 
-/**
- * Place or amend a fixed deposit.
- *
- * The projection under the form is the point of the screen: an admin
- * deciding a term wants to see what it returns before committing the
- * temple's money to it.
- */
 export function DepositFormDialog({
   open,
   onOpenChange,
@@ -156,54 +142,26 @@ export function DepositFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const certificateNo = draft.certificateNo.trim();
+    const result = validate(depositSchema, draft);
 
-    if (!certificateNo) {
-      setError('The certificate number is required.');
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (
-      existing.some(
-        (entry) =>
-          entry.certificateNo.toLowerCase() === certificateNo.toLowerCase() &&
-          entry.id !== deposit?.id,
-      )
-    ) {
-      setError(`Certificate ${certificateNo} is already recorded.`);
-      return;
-    }
+    const clash = existing.some(
+      (entry) =>
+        entry.certificateNo.toLowerCase() ===
+          result.data.certificateNo.toLowerCase() && entry.id !== deposit?.id,
+    );
 
-    if (!draft.bankName.trim()) {
-      setError('The bank name is required.');
-      return;
-    }
-
-    if (draft.principal <= 0) {
-      setError('The principal must be greater than zero.');
-      return;
-    }
-
-    if (draft.interestRate <= 0 || draft.interestRate > 100) {
-      setError('Enter the annual interest rate as a percentage, e.g. 12.5.');
-      return;
-    }
-
-    if (draft.tenureMonths < 1) {
-      setError('The tenure must be at least one month.');
+    if (clash) {
+      setError(`Certificate ${result.data.certificateNo} is already recorded.`);
       return;
     }
 
     setError(null);
-
-    onSubmit({
-      ...draft,
-      certificateNo,
-      bankName: draft.bankName.trim(),
-      branch: draft.branch.trim(),
-      notes: draft.notes.trim(),
-    });
-
+    onSubmit(result.data);
     onOpenChange(false);
   }
 

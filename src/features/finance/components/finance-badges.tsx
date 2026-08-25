@@ -34,10 +34,6 @@ const chip = cva(
   },
 );
 
-/* -------------------------------------------------------------------------
-   Projects
-   ------------------------------------------------------------------------- */
-
 const PROJECT_TONE = {
   planning: 'info',
   active: 'success',
@@ -58,10 +54,6 @@ export function ProjectStatusBadge({
     </span>
   );
 }
-
-/* -------------------------------------------------------------------------
-   Fixed deposits
-   ------------------------------------------------------------------------- */
 
 const DEPOSIT_TONE = {
   active: 'success',
@@ -84,10 +76,6 @@ export function DepositStatusBadge({
   );
 }
 
-/* -------------------------------------------------------------------------
-   Assets
-   ------------------------------------------------------------------------- */
-
 export function AssetCategoryBadge({
   category,
   className,
@@ -102,10 +90,6 @@ export function AssetCategoryBadge({
   );
 }
 
-/**
- * Condition is the field that decides whether something needs money spent on
- * it, so it earns a tone rather than sitting as plain text.
- */
 const CONDITION_TONE = {
   good: 'success',
   fair: 'info',

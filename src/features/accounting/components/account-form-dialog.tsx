@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,6 +25,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABELS } from '../lib/accounting-data';
+import { ACCOUNT_CODE_PREFIX, accountSchema } from '../lib/accounting-schemas';
 import type { Account, AccountType } from '../types';
 
 export interface AccountDraft {
@@ -36,15 +38,6 @@ export interface AccountDraft {
 }
 
 const NO_PARENT = '__none__';
-
-/** The class each code range belongs to, as the temple's chart is numbered. */
-const CODE_PREFIX: Record<AccountType, string> = {
-  asset: '1',
-  liability: '2',
-  equity: '3',
-  income: '4',
-  expense: '5',
-};
 
 function draftFrom(account: Account | null): AccountDraft {
   if (account) {
@@ -72,19 +65,11 @@ interface AccountFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   account: Account | null;
-  /** Group heads only — an entry never posts to something with children. */
-  parents: readonly Account[];
+    parents: readonly Account[];
   existing: readonly Account[];
   onSubmit: (draft: AccountDraft) => void;
 }
 
-/**
- * Create or edit a ledger account.
- *
- * The code carries meaning — its first digit is the account class — so the
- * form checks that the code and the chosen type agree rather than letting an
- * income account be filed at 5001 where every report would misplace it.
- */
 export function AccountFormDialog({
   open,
   onOpenChange,
@@ -112,46 +97,24 @@ export function AccountFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const code = draft.code.trim();
+    const result = validate(accountSchema, draft);
 
-    if (!code) {
-      setError('An account code is required.');
-      return;
-    }
-
-    if (!/^\d{4}$/.test(code)) {
-      setError('The account code must be four digits, e.g. 5012.');
-      return;
-    }
-
-    if (!code.startsWith(CODE_PREFIX[draft.type])) {
-      setError(
-        `${ACCOUNT_TYPE_LABELS[draft.type]} accounts are numbered in the ${CODE_PREFIX[draft.type]}000 range.`,
-      );
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
     if (
       existing.some(
-        (entry) => entry.code === code && entry.id !== account?.id,
+        (entry) => entry.code === result.data.code && entry.id !== account?.id,
       )
     ) {
-      setError(`Account code ${code} is already in use.`);
-      return;
-    }
-
-    if (!draft.name.trim()) {
-      setError('An account name is required.');
+      setError(`Account code ${result.data.code} is already in use.`);
       return;
     }
 
     setError(null);
-    onSubmit({
-      ...draft,
-      code,
-      name: draft.name.trim(),
-      nameTa: draft.nameTa.trim(),
-    });
+    onSubmit(result.data);
     onOpenChange(false);
   }
 
@@ -178,7 +141,7 @@ export function AccountFormDialog({
               id="account-type"
               label="Account Class"
               required
-              hint={`Numbered in the ${CODE_PREFIX[draft.type]}000 range.`}
+              hint={`Numbered in the ${ACCOUNT_CODE_PREFIX[draft.type]}000 range.`}
             >
               <Select
                 value={draft.type}
@@ -211,7 +174,7 @@ export function AccountFormDialog({
                 id="account-code"
                 value={draft.code}
                 inputMode="numeric"
-                placeholder={`${CODE_PREFIX[draft.type]}012`}
+                placeholder={`${ACCOUNT_CODE_PREFIX[draft.type]}012`}
                 onChange={(changeEvent) =>
                   update('code', changeEvent.target.value)
                 }

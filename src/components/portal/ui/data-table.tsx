@@ -5,11 +5,9 @@ import { cn } from '@/lib/utils';
 export interface DataColumn {
   readonly key: string;
   readonly label: string;
-  /** Figures and dates read better right-aligned against a decimal column. */
-  readonly align?: 'left' | 'right' | 'center';
+    readonly align?: 'left' | 'right' | 'center';
   readonly className?: string;
-  /** Column exists for its controls, so the heading is for screen readers. */
-  readonly srOnly?: boolean;
+    readonly srOnly?: boolean;
 }
 
 const ALIGN = {
@@ -21,18 +19,10 @@ const ALIGN = {
 interface DataTableProps {
   columns: readonly DataColumn[];
   children: ReactNode;
-  /** Below this the table scrolls inside its own box, never widening the page. */
-  minWidth?: number;
+    minWidth?: number;
   className?: string;
 }
 
-/**
- * The portal's one table shell.
- *
- * Every record list in the portal was re-deriving the same header row, the
- * same hairline dividers and the same overflow container. Centralising it
- * means a density change lands everywhere at once instead of drifting.
- */
 export function DataTable({
   columns,
   children,
@@ -92,8 +82,7 @@ export function DataRow({ children, className }: DataRowProps) {
 interface DataCellProps {
   children: ReactNode;
   align?: 'left' | 'right' | 'center';
-  /** Keeps dates, times and references on one line. */
-  nowrap?: boolean;
+    nowrap?: boolean;
   className?: string;
 }
 
@@ -122,7 +111,6 @@ interface DataTableEmptyProps {
   children: ReactNode;
 }
 
-/** Empty state that keeps the table's own frame instead of replacing it. */
 export function DataTableEmpty({ colSpan, children }: DataTableEmptyProps) {
   return (
     <tr>

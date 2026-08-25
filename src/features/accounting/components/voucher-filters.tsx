@@ -28,8 +28,7 @@ export interface VoucherFilterState {
   readonly status: VoucherStatus | 'all' | 'open';
   readonly fundId: number | 'all';
   readonly mode: PaymentMode | 'all';
-  /** Only entries the signed-in user raised. */
-  readonly mineOnly: boolean;
+    readonly mineOnly: boolean;
 }
 
 export const EMPTY_VOUCHER_FILTERS: VoucherFilterState = {
@@ -52,10 +51,6 @@ export function hasActiveVoucherFilters(
   );
 }
 
-/**
- * Filtering lives beside the state it filters, not inside the toolbar, so
- * the register and its totals row read one definition of "matches".
- */
 export function applyVoucherFilters(
   vouchers: readonly VoucherRecord[],
   filters: VoucherFilterState,
@@ -101,8 +96,7 @@ interface VoucherFiltersProps {
   filters: VoucherFilterState;
   onChange: (filters: VoucherFilterState) => void;
   funds: readonly FundRef[];
-  /** Hidden for a role that can only ever see its own entries anyway. */
-  showMineToggle?: boolean;
+    showMineToggle?: boolean;
   trailing?: React.ReactNode;
 }
 

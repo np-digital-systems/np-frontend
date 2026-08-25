@@ -20,11 +20,6 @@ const chip = cva(
   },
 );
 
-/**
- * Frequency is the single most load-bearing fact about an event type — it
- * decides what `instance_identifier` even means — so it gets its own tone
- * rather than being another grey chip in the row.
- */
 const FREQUENCY_TONE = {
   weekly: 'recurring',
   monthly_once: 'recurring',

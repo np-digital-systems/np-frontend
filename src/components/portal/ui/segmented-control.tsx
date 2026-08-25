@@ -6,17 +6,9 @@ interface SegmentedControlProps<T extends string> {
   options: readonly T[];
   value: T;
   onChange: (value: T) => void;
-  /** Describes the control for assistive tech, e.g. "Chart period". */
-  label: string;
+    label: string;
 }
 
-/**
- * Apple-style segmented control.
- *
- * A `radiogroup` rather than a row of buttons: the options are mutually
- * exclusive choices of one setting, so arrow-key semantics and the selected
- * state both come for free.
- */
 export function SegmentedControl<T extends string>({
   options,
   value,

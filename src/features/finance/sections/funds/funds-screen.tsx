@@ -34,15 +34,7 @@ interface FundsScreenProps {
   year: number;
 }
 
-/**
- * The temple's funds.
- *
- * The accounting overview answers "what is the balance"; this screen answers
- * "what is this fund actually doing" — what it took in, what it paid out, by
- * which head, and how much of what was available is already spent.
- *
- * TODO: replace the local mutations with calls to the funds API.
- */
+/** TODO: replace the local mutations with calls to the funds API. */
 export function FundsScreen({
   initialDetails,
   access,
@@ -224,12 +216,6 @@ interface FundCardProps {
   onEdit: () => void;
 }
 
-/**
- * One fund, opened out.
- *
- * The position sits above the breakdown because the balance is what most
- * readers came for; the heads underneath explain how it got there.
- */
 function FundCard({ detail, access, onEdit }: FundCardProps) {
   const { fund } = detail;
   const available = fund.opening + fund.income;

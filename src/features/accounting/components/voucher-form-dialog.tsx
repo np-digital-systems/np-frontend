@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
+import { voucherSchema } from '../lib/accounting-schemas';
 import {
   ACCOUNT_TYPE_LABELS,
   PAYMENT_MODES,
@@ -43,7 +45,6 @@ import type {
   VoucherRecord,
 } from '../types';
 
-/** The writable columns of a voucher — nothing from the approval chain. */
 export interface VoucherDraft {
   date: string;
   description: string;
@@ -115,18 +116,9 @@ interface VoucherFormDialogProps {
   projects: readonly ProjectRef[];
   bankAccounts: readonly BankAccountRef[];
   onSubmit: (draft: VoucherDraft) => void;
-  /** Save and immediately send for approval, when the role may submit. */
-  onSubmitForApproval?: (draft: VoucherDraft) => void;
+    onSubmitForApproval?: (draft: VoucherDraft) => void;
 }
 
-/**
- * Create or edit a receipt or payment voucher.
- *
- * The two kinds share a form because they share a shape; only the party
- * label, the default account side and the wording change. Bank fields appear
- * only when the mode actually moves money through a bank, so a cash receipt
- * is four fields rather than nine.
- */
 export function VoucherFormDialog({
   open,
   onOpenChange,
@@ -183,11 +175,7 @@ export function VoucherFormDialog({
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-  /**
-   * Changing the fund invalidates the project: a project belongs to exactly
-   * one fund, so keeping the old selection would post to the wrong pool.
-   */
-  function changeFund(fundId: number) {
+    function changeFund(fundId: number) {
     setDraft((current) => ({ ...current, fundId, projectId: null }));
   }
 
@@ -202,52 +190,24 @@ export function VoucherFormDialog({
     }));
   }
 
-  function validate(): boolean {
-    if (!draft.date) {
-      setError('A voucher date is required.');
-      return false;
-    }
+  function check(): boolean {
+    const result = validate(voucherSchema, draft);
 
-    if (!draft.party.trim()) {
-      setError(`${partyLabel(kind)} is required.`);
-      return false;
-    }
-
-    if (!draft.description.trim()) {
-      setError('Describe what this entry is for.');
-      return false;
-    }
-
-    if (draft.amount <= 0) {
-      setError('The amount must be greater than zero.');
-      return false;
-    }
-
-    if (needsBank && draft.bankAccountId === null) {
-      setError('Choose the bank account this money moves through.');
-      return false;
-    }
-
-    if (draft.mode === 'cheque' && !draft.chequeNo.trim()) {
-      setError('A cheque number is required for a cheque payment.');
-      return false;
-    }
-
-    setError(null);
-    return true;
+    setError(result.ok ? null : result.message);
+    return result.ok;
   }
 
   function handleSave(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!validate()) return;
+    if (!check()) return;
 
     onSubmit(cleaned(draft));
     onOpenChange(false);
   }
 
   function handleSubmitForApproval() {
-    if (!validate() || !onSubmitForApproval) return;
+    if (!check() || !onSubmitForApproval) return;
 
     onSubmitForApproval(cleaned(draft));
     onOpenChange(false);

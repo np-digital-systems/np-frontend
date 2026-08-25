@@ -7,8 +7,6 @@ import { TEMPLE_STATS } from "../constants/temple-info";
 import { TempleStat } from "../components/temple-stat";
 import { useTranslations } from 'next-intl';
 
-
-
 export function AboutSection() {
 const t = useTranslations('Home.About');
 const tTemple = useTranslations('TempleInfo');

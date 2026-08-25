@@ -6,17 +6,9 @@ type PageHeaderProps = Pick<
   DashboardProps,
   'user' | 'greeting' | 'today' | 'financialYear'
 > & {
-  /** What this role's dashboard is for, in one line. */
-  subtitle: string;
+    subtitle: string;
 };
 
-/**
- * Dashboard masthead.
- *
- * Greeting and date arrive pre-computed from the server so there is nothing
- * time-dependent to hydrate — a `new Date()` in render would disagree with
- * the server-rendered markup.
- */
 export function PageHeader({
   user,
   greeting,

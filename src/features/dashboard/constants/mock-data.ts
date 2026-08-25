@@ -4,15 +4,6 @@ import type { BadgeStatus } from '../types';
 
 export type { PeriodPoint };
 
-/**
- * Placeholder data for the dashboard.
- *
- * Everything here is shaped the way the API is expected to return it —
- * amounts are numbers, not pre-formatted strings — so swapping in the real
- * service means deleting this file, not rewriting the components that read
- * it. Formatting happens at the edge, in `lib/dashboard-data.ts`.
- */
-
 export const MONTHLY_DATA: readonly PeriodPoint[] = [
   { label: 'Mar', income: 285000, expenses: 142000 },
   { label: 'Apr', income: 310000, expenses: 198000 },
@@ -54,11 +45,6 @@ export const LAST_MONTH_DATA: readonly PeriodPoint[] = [
   { label: '25', income: 31000, expenses: 14200 },
   { label: '31', income: 22000, expenses: 11500 },
 ];
-
-
-/* -------------------------------------------------------------------------
-   Approvals
-   ------------------------------------------------------------------------- */
 
 export interface ApprovalItem {
   readonly ref: string;
@@ -119,11 +105,6 @@ export const APPROVAL_QUEUE_ITEMS: readonly QueueItem[] = [
   { ref: 'RV-2026-0126', type: 'Receipt', amount: 8500 },
 ];
 
-
-/* -------------------------------------------------------------------------
-   Funds, cash and bank
-   ------------------------------------------------------------------------- */
-
 export interface Fund {
   readonly name: string;
   readonly income: number;
@@ -155,11 +136,6 @@ export const BANK_ACCOUNTS: readonly BankAccount[] = [
 ];
 
 export const TOTAL_BANK_BALANCE = 570000;
-
-
-/* -------------------------------------------------------------------------
-   Events and activity
-   ------------------------------------------------------------------------- */
 
 export interface TempleEvent {
   readonly name: string;
@@ -208,11 +184,6 @@ export const RECENT_ACTIVITY: readonly ActivityItem[] = [
   { id: 'a4', action: 'User account created', ref: 'USR-007', user: 'K. Suresh', time: '2h ago' },
   { id: 'a5', action: 'Financial year 2026 opened', ref: 'FY-2026', user: 'System', time: '3h ago' },
 ];
-
-
-/* -------------------------------------------------------------------------
-   Transactions
-   ------------------------------------------------------------------------- */
 
 export interface Transaction {
   readonly date: string;
@@ -278,11 +249,6 @@ export const TRANSACTIONS: readonly Transaction[] = [
   },
 ];
 
-
-/* -------------------------------------------------------------------------
-   Cashier
-   ------------------------------------------------------------------------- */
-
 export interface Submission {
   readonly ref: string;
   readonly type: 'Receipt' | 'Payment';
@@ -317,8 +283,7 @@ export interface WorkflowStep {
   readonly step: number;
   readonly label: string;
   readonly description: string;
-  /** Where the cashier's own work currently sits in the chain. */
-  readonly state: 'done' | 'current' | 'upcoming';
+    readonly state: 'done' | 'current' | 'upcoming';
 }
 
 export const WORKFLOW_STEPS: readonly WorkflowStep[] = [

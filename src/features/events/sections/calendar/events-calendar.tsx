@@ -38,19 +38,11 @@ interface EventsCalendarProps {
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
   access: EventAccess;
-  /** Resolved on the server so the two renders agree on what "today" is. */
-  today: string;
+    today: string;
   year: number;
 }
 
 /**
- * The events calendar screen.
- *
- * Holds the working copy of the calendar so create, edit and delete land
- * immediately. Every write path is behind the capability booleans resolved
- * on the server — this component decides *when* an action is offered, never
- * *whether* the role has it.
- *
  * TODO: replace the local mutations with calls to the events API. The
  * handlers below are already the shape those calls will take.
  */
@@ -277,10 +269,6 @@ export function EventsCalendar({
   );
 }
 
-/**
- * Filtering lives here rather than in the toolbar so both views and the
- * summary read one definition of what "matches" means.
- */
 function applyFilters(
   events: readonly EventRecord[],
   filters: EventFilters,

@@ -24,14 +24,6 @@ import {
 import { ApprovalQueue } from './approval-queue';
 import { FundSummary } from './fund-summary';
 
-/**
- * Accountant dashboard — the books.
- *
- * Denser than the admin view: an accountant works the ledger all day, so the
- * figures row carries six measures and the transactions table is on the page
- * rather than a click away. No administration shortcuts — those are not this
- * role's to run.
- */
 const QUICK_ACTIONS: readonly QuickAction[] = [
   { label: 'New Receipt', href: '/accounting/receipts', icon: Receipt },
   { label: 'New Payment', href: '/accounting/payments', icon: CreditCard },

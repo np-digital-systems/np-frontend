@@ -17,13 +17,6 @@ import {
 
 import { YearlyScheduleScreen } from './yearly-schedule-screen';
 
-/**
- * Yearly schedule boundary.
- *
- * Gated on `event-schedule:view`: planning the year is temple-staff work.
- * A devotee holds `event:view` and stops at the calendar screen, so a typed
- * URL lands on the refusal below rather than on the planning board.
- */
 export async function YearlyScheduleFeature() {
   const user = await getCurrentUser();
   const access = getEventAccess(user.role);

@@ -7,20 +7,7 @@ import type {
   VoucherActor,
 } from '../types';
 
-/**
- * Placeholder data for the accounting module.
- *
- * Shaped exactly like the tables it stands in for. Nothing is pre-formatted:
- * amounts are numbers, dates are ISO, keys are ids. The posted ledger is not
- * stored here at all — it is derived from the vouchers that reached
- * `Posted`, so a voucher and its ledger line can never disagree.
- */
-
 const YEAR_START = '2026-01-01T00:00:00';
-
-/* -------------------------------------------------------------------------
-   Chart of accounts
-   ------------------------------------------------------------------------- */
 
 export const ACCOUNTS: readonly Account[] = [
   // Groups
@@ -70,10 +57,6 @@ export const ACCOUNTS: readonly Account[] = [
   { id: 509, code: '5009', name: 'Staff Salaries', nameTa: 'ஊழியர் சம்பளம்', type: 'expense', parentId: 500, isActive: true, openingBalance: 0, createdAt: YEAR_START },
   { id: 510, code: '5010', name: 'Printing & Stationery', nameTa: 'அச்சிடல் மற்றும் எழுதுபொருள்', type: 'expense', parentId: 500, isActive: false, openingBalance: 0, createdAt: YEAR_START },
 ];
-
-/* -------------------------------------------------------------------------
-   Funds and projects
-   ------------------------------------------------------------------------- */
 
 export const FUNDS: readonly Fund[] = [
   { id: 1, name: 'General Temple Fund', nameTa: 'பொது ஆலய நிதி', opening: 180_000, income: 820_000, expenses: 465_000, isActive: true },
@@ -160,10 +143,6 @@ export const PROJECTS: readonly Project[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------
-   Bank accounts
-   ------------------------------------------------------------------------- */
-
 export const BANK_ACCOUNTS: readonly BankAccount[] = [
   {
     id: 1,
@@ -215,14 +194,6 @@ export const BANK_ACCOUNTS: readonly BankAccount[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------
-   Vouchers
-
-   `usr_001` is whoever is signed in during development, so a handful of
-   entries are deliberately theirs — that is what exercises the "your own
-   draft" and "cannot approve your own entry" rules.
-   ------------------------------------------------------------------------- */
-
 const CASHIER: VoucherActor = { id: 'usr_014', name: 'R. Murugan' };
 const ACCOUNTANT: VoucherActor = { id: 'usr_009', name: 'S. Vijayan' };
 const ADMIN: VoucherActor = { id: 'usr_002', name: 'K. Suresh' };
@@ -243,7 +214,6 @@ type VoucherSeed = Omit<
 > &
   Partial<Voucher>;
 
-/** Fills the columns a settled voucher would carry, so seeds stay readable. */
 function voucher(seed: VoucherSeed): Voucher {
   const settled = seed.status === 'Approved' || seed.status === 'Posted';
 
@@ -300,10 +270,4 @@ export const VOUCHERS: readonly Voucher[] = [
   voucher({ id: 32, ref: 'RV-2026-0151', kind: 'receipt', date: '2026-08-12', description: 'Festival donation — advance pledge', amount: 55_000, accountId: 405, fundId: 2, projectId: 1, mode: 'online', party: 'ஸ்ரீ நந்திகேஸ்வரர் மன்றம்', status: 'Cancelled', createdBy: ADMIN, createdAt: '2026-08-12T16:00:00', notes: 'Pledge withdrawn by the donor; a fresh receipt will be raised in September.' }),
 ];
 
-/**
- * The asset account physical cash posts through.
- *
- * Named here rather than looked up by code so the cash book has one
- * definition of "cash" and nothing has to parse an account code to find it.
- */
 export const CASH_ACCOUNT_ID = 101;

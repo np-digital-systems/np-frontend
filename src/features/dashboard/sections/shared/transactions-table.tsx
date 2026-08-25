@@ -2,13 +2,6 @@ import { Card, CardHeader, LinkButton, StatusBadge } from '../../components';
 import { TRANSACTIONS } from '../../constants/mock-data';
 import { formatCurrency } from '../../lib/dashboard-data';
 
-/**
- * Ledger extract.
- *
- * Debit and credit are right-aligned and tabular so the decimal columns line
- * up down the page — the whole point of a ledger view. The table scrolls
- * inside its own container rather than widening the page.
- */
 export function TransactionsTable() {
   return (
     <Card>

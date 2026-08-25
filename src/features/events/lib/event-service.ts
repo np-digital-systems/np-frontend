@@ -16,16 +16,7 @@ import type {
 
 import { describeInstance, deriveStatus, getToday, sortByDate } from './event-data';
 
-/**
- * The read layer for the events module.
- *
- * Everything a screen needs is assembled here, on the server, with foreign
- * keys already resolved — so no component ever carries a lookup table
- * around just to print a sponsor's name. Each function is the seam a real
- * `fetch` will slot into; the signatures are what the pages depend on.
- *
- * TODO: replace the module-level constants with calls to the events API.
- */
+/** TODO: replace the module-level constants with calls to the events API. */
 
 function indexBy<T, K extends string | number>(
   items: readonly T[],
@@ -65,12 +56,10 @@ export function getSponsorUsers(): readonly SponsorUser[] {
   return SPONSOR_USERS;
 }
 
-/** Every calendared occurrence, date-ordered, keys resolved. */
 export function getEvents(today: string = getToday()): readonly EventRecord[] {
   return sortByDate(TEMPLE_EVENTS.map((event) => toRecord(event, today)));
 }
 
-/** How many event types currently hold a standing sponsor for a slot. */
 export function getSponsorAssignments(
   today: string = getToday(),
 ): readonly SponsorAssignment[] {
@@ -104,17 +93,6 @@ export function getSponsorAssignments(
   });
 }
 
-/**
- * The year seen as planning slots rather than as a flat calendar.
- *
- * For each event type it walks the instances the type declares and reports
- * which are dated, which carry a standing sponsor, and which are still
- * empty — the question the yearly schedule screen exists to answer.
- *
- * Weekly types declare 52 slots; listing every one of them would bury the
- * page, so only the slots that are dated or sponsored are materialised and
- * the untouched remainder is reported as a count.
- */
 export function getScheduleGroups(
   today: string = getToday(),
 ): readonly ScheduleGroup[] {
@@ -178,7 +156,6 @@ export function getScheduleGroups(
   });
 }
 
-/** Slot counts per type, for the event-types master list. */
 export function countSponsorSlots(eventTypeId: number): number {
   return EVENT_TYPE_SPONSORS.filter(
     (assignment) => assignment.eventTypeId === eventTypeId,

@@ -21,10 +21,6 @@ const chip = cva(
   },
 );
 
-/**
- * Account class carries the sign convention of every figure beneath it, so
- * it gets a tone rather than being one more grey chip in a dense row.
- */
 export function AccountTypeBadge({
   type,
   className,

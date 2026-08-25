@@ -10,13 +10,6 @@ import {
 
 import { BankBookScreen, type BankBookEntry } from './bank-book-screen';
 
-/**
- * Bank book boundary.
- *
- * `bank-book:view` stops at the accountant — a cashier handles the cash box,
- * not the temple's bank position, and the accounts screen would leak the
- * bank balances that the cash book deliberately does not show.
- */
 export async function BankBookFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);

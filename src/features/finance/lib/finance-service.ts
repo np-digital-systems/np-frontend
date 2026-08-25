@@ -31,23 +31,12 @@ import {
 } from './finance-data';
 
 /**
- * The read layer for financial management.
- *
- * Funds and projects come from the accounting module — the ledger owns them —
- * and everything this module *adds* is derived here: a fund's utilisation, a
- * project's spend, a deposit's accrued interest, an asset's book value. None
- * of it is stored, so none of it can be stale.
- *
  * TODO: replace the module-level constants with calls to the finance API.
  */
 
 function fundName(funds: readonly Fund[], fundId: number): string {
   return funds.find((fund) => fund.id === fundId)?.name ?? 'Unassigned';
 }
-
-/* -------------------------------------------------------------------------
-   Funds
-   ------------------------------------------------------------------------- */
 
 export function getFundRecords(): readonly FundRecord[] {
   const projects = getProjects();
@@ -109,7 +98,6 @@ function breakdown(
     .sort((a, b) => b.amount - a.amount);
 }
 
-/** One fund, with what it took in and paid out broken down by head. */
 export function getFundDetail(fundId: number): FundDetail | null {
   const fund = getFundRecords().find((entry) => entry.id === fundId);
 
@@ -138,10 +126,6 @@ export function getFundDetails(): readonly FundDetail[] {
     return detail ? [detail] : [];
   });
 }
-
-/* -------------------------------------------------------------------------
-   Projects
-   ------------------------------------------------------------------------- */
 
 export function getProjectRecords(): readonly ProjectRecord[] {
   const funds = getFunds();
@@ -172,10 +156,6 @@ export function getProjectRecords(): readonly ProjectRecord[] {
     };
   });
 }
-
-/* -------------------------------------------------------------------------
-   Fixed deposits
-   ------------------------------------------------------------------------- */
 
 function resolveDeposit(
   deposit: FixedDeposit,
@@ -231,10 +211,6 @@ export function getDepositRecords(
     return a.maturesOn < b.maturesOn ? -1 : 1;
   });
 }
-
-/* -------------------------------------------------------------------------
-   Assets
-   ------------------------------------------------------------------------- */
 
 function resolveAsset(
   asset: Asset,
@@ -301,10 +277,6 @@ export function getAssetCategoryTotals(
 
   return [...totals.values()].sort((a, b) => b.netBookValue - a.netBookValue);
 }
-
-/* -------------------------------------------------------------------------
-   Summary
-   ------------------------------------------------------------------------- */
 
 export function getFinanceSummary(
   today: string = getToday(),

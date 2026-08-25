@@ -14,7 +14,6 @@ export function EventsSection() {
   const locale = useLocale() as Locale;
   const currentEvents = FEATURED_EVENTS[locale] || FEATURED_EVENTS.ta;
 
-
   return (
     <PageContainer id="events-section" className="bg-white">
       <SectionHeader

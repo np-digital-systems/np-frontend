@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,8 +28,8 @@ import {
   FREQUENCY_TYPES,
   INSTANCE_MEANING,
 } from '../lib/event-data';
+import { eventTypeSchema } from '../lib/event-schemas';
 import type { EventType, FrequencyType } from '../types';
-
 
 export interface EventTypeDraft {
   name: string;
@@ -37,7 +38,6 @@ export interface EventTypeDraft {
   noOfInstances: number;
 }
 
-/** Frequencies whose instance count is fixed by definition, not by choice. */
 const FIXED_INSTANCE_COUNT: readonly FrequencyType[] = [
   'annual',
   'monthly_once',
@@ -70,14 +70,6 @@ interface EventTypeFormDialogProps {
   onSubmit: (draft: EventTypeDraft) => void;
 }
 
-/**
- * Create or edit an entry in the event-type registry.
- *
- * Changing the frequency rewrites the instance count to that frequency's
- * definition — a weekly type has 52 instances and an annual one has exactly
- * one, and leaving a stale number behind would make every downstream
- * instance label wrong.
- */
 export function EventTypeFormDialog({
   open,
   onOpenChange,
@@ -115,22 +107,15 @@ export function EventTypeFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.name.trim()) {
-      setError('A Tamil name is required — it is what appears on the calendar.');
-      return;
-    }
+    const result = validate(eventTypeSchema, draft);
 
-    if (draft.noOfInstances < 1) {
-      setError('An event type must have at least one instance.');
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
     setError(null);
-    onSubmit({
-      ...draft,
-      name: draft.name.trim(),
-      nameEn: draft.nameEn.trim(),
-    });
+    onSubmit(result.data);
     onOpenChange(false);
   }
 

@@ -1,26 +1,12 @@
 import { cn } from '@/lib/utils';
 
 interface UtilisationBarProps {
-  /** 0–1. Values above 1 mean the ceiling has been passed. */
-  value: number;
-  /** Read out to assistive tech in place of the bar. */
-  label: string;
-  /** Above this share the bar warns rather than simply reporting. */
-  warnAt?: number;
+    value: number;
+    label: string;
+    warnAt?: number;
   className?: string;
 }
 
-/**
- * How much of something has been used up.
- *
- * A balance alone does not say whether a fund is spending faster than it
- * receives, or whether a project is about to run past its budget — which is
- * the question both of those screens exist to answer.
- *
- * Over-budget is drawn as a full bar in the danger tone rather than as an
- * overflowing one: past the ceiling the exact overshoot is the number's job,
- * not the bar's.
- */
 export function UtilisationBar({
   value,
   label,

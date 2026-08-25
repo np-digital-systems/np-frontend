@@ -32,13 +32,6 @@ import {
 } from '../shared';
 import { PendingApprovals } from './pending-approvals';
 
-/**
- * Admin dashboard — oversight.
- *
- * An admin's job on this screen is to spot what needs a decision, so the
- * approvals queue sits beside the chart rather than below the fold, and the
- * quick actions are the five things only an admin can start.
- */
 const QUICK_ACTIONS: readonly QuickAction[] = [
   { label: 'Create Event', href: EVENT_ROUTES.calendar, icon: CalendarPlus },
   { label: 'View Approvals', href: '/accounting/approvals', icon: CheckSquare },

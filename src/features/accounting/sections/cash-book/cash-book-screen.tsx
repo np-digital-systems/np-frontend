@@ -26,13 +26,6 @@ interface CashBookScreenProps {
   year: number;
 }
 
-/**
- * The cash book.
- *
- * Every movement of physical cash, in date order, with the balance it left
- * behind. Narrowing to a month recomputes the opening balance from the
- * slice rather than reusing the year's — see `lib/book.ts`.
- */
 export function CashBookScreen({
   rows,
   summary,

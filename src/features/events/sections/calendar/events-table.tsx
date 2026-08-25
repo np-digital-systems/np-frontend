@@ -41,13 +41,6 @@ interface EventsTableProps {
   onToggleComplete: (event: EventRecord) => void;
 }
 
-/**
- * The calendar as a ledger.
- *
- * Rows are grouped under a month band rather than repeating the month in
- * every date cell — a temple year is read month by month, and the band is
- * what makes a long list scannable without pagination.
- */
 export function EventsTable({
   events,
   access,
@@ -113,10 +106,6 @@ interface MonthBandProps extends Omit<EventsTableProps, 'events'> {
   showActions: boolean;
 }
 
-/**
- * A fragment rather than a component boundary per row: the month heading and
- * its rows have to be siblings inside `<tbody>` for the table to stay valid.
- */
 function MonthBand({
   label,
   count,
@@ -217,10 +206,6 @@ interface RowActionsProps {
   onToggleComplete: (event: EventRecord) => void;
 }
 
-/**
- * Only the actions this role actually holds are rendered — a disabled
- * button that a cashier can never enable is noise, not information.
- */
 function RowActions({
   event,
   access,

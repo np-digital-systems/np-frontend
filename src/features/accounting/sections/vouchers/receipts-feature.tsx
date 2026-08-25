@@ -12,14 +12,6 @@ import {
   getVouchersOfKind,
 } from '../../lib/accounting-service';
 
-/**
- * Receipt vouchers boundary.
- *
- * Gated on `receipt-voucher:view`, which admin, accountant and cashier all
- * hold — counting money in is the cashier's daily work. Whether the New
- * Receipt button appears is a separate capability, resolved below and passed
- * down as a boolean.
- */
 export async function ReceiptVouchersFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);

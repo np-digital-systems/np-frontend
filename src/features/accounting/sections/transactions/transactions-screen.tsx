@@ -71,13 +71,6 @@ const EMPTY: LedgerFilters = {
   month: 'all',
 };
 
-/**
- * The posted ledger.
- *
- * Only entries that reached `Posted` appear here — that is the difference
- * between this screen and the two registers, and it is the whole reason both
- * exist. A voucher somebody is still arguing about is not a transaction.
- */
 export function TransactionsScreen({
   entries,
   funds,
@@ -142,13 +135,7 @@ export function TransactionsScreen({
     [filtered],
   );
 
-  /**
-   * Income and expenditure read off the account class, not the column.
-   *
-   * The ledger is double entry: every voucher posts a debit and a credit, so
-   * summing a column across all entries would count the year twice.
-   */
-  const yearTotals = useMemo(() => {
+    const yearTotals = useMemo(() => {
     const income = entries
       .filter((entry) => entry.account.type === 'income')
       .reduce((sum, entry) => sum + (entry.credit ?? 0), 0);

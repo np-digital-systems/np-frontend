@@ -4,17 +4,8 @@ import type { UserRole } from '@/features/auth/types/user-role';
 
 import type { Voucher, VoucherKind } from '../types';
 
-/**
- * What the signed-in role may do on the accounting screens.
- *
- * Resolved once, on the server, at each page boundary and passed down as
- * plain booleans. Components never receive a role and never call `can`
- * themselves — so "who can approve a voucher" is answered by reading this
- * file, not by grepping for conditionals across twenty components.
- */
 export interface AccountingAccess {
-  /** The financial position screen — funds, income, expenditure. */
-  readonly canViewOverview: boolean;
+    readonly canViewOverview: boolean;
 
   readonly canViewAccounts: boolean;
   readonly canManageAccounts: boolean;
@@ -30,8 +21,7 @@ export interface AccountingAccess {
   readonly canSubmit: boolean;
   readonly canApprove: boolean;
   readonly canPost: boolean;
-  /** Act on a voucher somebody else created. */
-  readonly canManageAllVouchers: boolean;
+    readonly canManageAllVouchers: boolean;
 
   readonly canViewCashBook: boolean;
   readonly canViewBankBook: boolean;
@@ -44,8 +34,7 @@ export interface AccountingAccess {
 
   readonly canGenerateReports: boolean;
 
-  /** True when any voucher can be created — drives the read-only banner. */
-  readonly canCreateVouchers: boolean;
+    readonly canCreateVouchers: boolean;
 }
 
 export function getAccountingAccess(role: UserRole): AccountingAccess {
@@ -102,15 +91,6 @@ export function canCreateKind(
     : access.canCreatePayments;
 }
 
-/* -------------------------------------------------------------------------
-   Per-voucher rules
-
-   Capability alone does not decide these: a cashier holds `voucher:create`
-   and still may not touch a voucher that has already left their hands, and
-   an approver may not approve one they wrote themselves.
-   ------------------------------------------------------------------------- */
-
-/** A voucher stops being editable the moment it leaves the drafter. */
 const EDITABLE_STATUSES = new Set(['Draft', 'Rejected']);
 
 export function isOwnVoucher(voucher: Voucher, userId: string): boolean {
@@ -151,12 +131,6 @@ export function canSubmitVoucher(
   return access.canManageAllVouchers || isOwnVoucher(voucher, user.id);
 }
 
-/**
- * Segregation of duties: nobody approves their own entry.
- *
- * An accountant who drafts a payment voucher has to have somebody else sign
- * it off, which is the whole point of the approval step existing.
- */
 export function canApproveVoucher(
   voucher: Voucher,
   access: AccountingAccess,

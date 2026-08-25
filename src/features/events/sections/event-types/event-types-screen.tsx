@@ -46,15 +46,7 @@ interface EventTypesScreenProps {
   year: number;
 }
 
-/**
- * The event-type registry.
- *
- * Only reachable by a role holding `event-type:manage`, so unlike the
- * calendar this screen has no read-only mode to render — the page boundary
- * has already refused anyone else.
- *
- * TODO: replace the local mutations with calls to the event-types API.
- */
+/** TODO: replace the local mutations with calls to the event-types API. */
 export function EventTypesScreen({ initialTypes, year }: EventTypesScreenProps) {
   const [types, setTypes] = useState<readonly EventTypeRecord[]>(initialTypes);
   const [query, setQuery] = useState('');
@@ -268,13 +260,6 @@ export function EventTypesScreen({ initialTypes, year }: EventTypesScreenProps) 
   );
 }
 
-/**
- * What `instance_identifier` means, per frequency.
- *
- * The column is deliberately adaptive in the schema; without this reference
- * the admin has to remember that a `2` means the second festival day for one
- * type and Theipirai for another.
- */
 function InstanceReference() {
   return (
     <Card>

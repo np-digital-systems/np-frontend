@@ -1,14 +1,6 @@
 import { can } from '@/features/auth/lib/permissions';
 import type { UserRole } from '@/features/auth/types/user-role';
 
-/**
- * What the signed-in role may do on the financial management screens.
- *
- * Resolved once, on the server, at each page boundary and passed down as
- * plain booleans. The line these draw is the same one the accounting module
- * draws: keeping the books is the accountant's work, committing the temple's
- * money or parting with its property is the administrator's.
- */
 export interface FinanceAccess {
   readonly canViewFunds: boolean;
   readonly canManageFunds: boolean;
@@ -21,11 +13,9 @@ export interface FinanceAccess {
 
   readonly canViewAssets: boolean;
   readonly canManageAssets: boolean;
-  /** Writing an asset off is a step beyond keeping its record. */
-  readonly canDisposeAssets: boolean;
+    readonly canDisposeAssets: boolean;
 
-  /** Ledger drill-downs are only offered to roles that may read the ledger. */
-  readonly canViewLedger: boolean;
+    readonly canViewLedger: boolean;
 }
 
 export function getFinanceAccess(role: UserRole): FinanceAccess {

@@ -24,16 +24,9 @@ interface PeriodChartProps<T extends string> {
   title: string;
   variant: 'bar' | 'area';
   periods: readonly T[];
-  /** Data for each selectable period. */
-  dataByPeriod: Record<T, readonly PeriodPoint[]>;
-  /** Totals strip above the plot. Omit to hide it. */
-  summary?: readonly { label: string; value: number; color: string }[];
-  /**
-   * Plot height in pixels. Deliberately a definite length: ResponsiveContainer
-   * measures its parent, and a percentage height inside a flex column gets
-   * measured before the row settles, which scales the bars to a stale value.
-   */
-  height?: number;
+    dataByPeriod: Record<T, readonly PeriodPoint[]>;
+    summary?: readonly { label: string; value: number; color: string }[];
+    height?: number;
 }
 
 /* Series render at their final size immediately. A grow-in animation on a

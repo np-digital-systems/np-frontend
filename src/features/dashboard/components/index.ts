@@ -1,11 +1,3 @@
-/**
- * Dashboard component surface.
- *
- * The generic pieces — cards, badges, tables, empty states — now live in
- * `@/components/portal/ui` so every portal screen shares one visual
- * language. They are re-exported here so dashboard sections keep importing
- * from a single place.
- */
 export {
   Card,
   CardHeader,

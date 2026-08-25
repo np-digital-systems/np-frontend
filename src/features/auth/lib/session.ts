@@ -6,16 +6,6 @@ import { cookies } from 'next/headers';
 import { USER_ROLES, type UserRole } from '@/features/auth/types/user-role';
 import type { PortalUser } from '@/features/auth/types/user';
 
-/**
- * The one place the portal learns who is signed in.
- *
- * Every server component, layout and page reads identity from here — never
- * from a prop drilled down from somewhere else and never from client state.
- * When real authentication lands, only the body of `getCurrentUser` changes;
- * no call site has to move.
- */
-
-/** Cookie a developer can set to preview the portal as another role. */
 const ROLE_PREVIEW_COOKIE = 'portal-role-preview';
 
 const MOCK_USER: PortalUser = {

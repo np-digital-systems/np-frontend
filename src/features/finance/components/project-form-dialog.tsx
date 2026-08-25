@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,6 +30,7 @@ import {
   PROJECT_STATUS_LABELS,
   formatCurrency,
 } from '../lib/finance-data';
+import { projectSchema } from '../lib/finance-schemas';
 import type { FundRecord, ProjectRecord, ProjectStatus } from '../types';
 
 export interface ProjectDraft {
@@ -83,13 +85,6 @@ interface ProjectFormDialogProps {
   onSubmit: (draft: ProjectDraft) => void;
 }
 
-/**
- * Create or amend a project.
- *
- * A project belongs to exactly one fund, which is what makes budget-against-
- * actual meaningful — so changing the fund of a project that already has
- * spend against it says so rather than quietly reassigning history.
- */
 export function ProjectFormDialog({
   open,
   onOpenChange,
@@ -131,30 +126,15 @@ export function ProjectFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.name.trim()) {
-      setError('A project name is required.');
-      return;
-    }
+    const result = validate(projectSchema, draft);
 
-    if (draft.budget !== null && draft.budget < 0) {
-      setError('A budget cannot be negative.');
-      return;
-    }
-
-    if (draft.targetDate && draft.targetDate < draft.startDate) {
-      setError('The target date cannot fall before the start date.');
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
     setError(null);
-
-    onSubmit({
-      ...draft,
-      name: draft.name.trim(),
-      nameTa: draft.nameTa.trim(),
-      description: draft.description.trim(),
-    });
-
+    onSubmit(result.data);
     onOpenChange(false);
   }
 

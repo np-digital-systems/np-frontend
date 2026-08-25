@@ -16,13 +16,6 @@ import {
 
 import { OverviewScreen } from './overview-screen';
 
-/**
- * Account overview boundary.
- *
- * Gated on `fund:view` — the capability that says a role is trusted with the
- * temple's overall financial position rather than just its own day's work.
- * A cashier holds the cash book and the registers, not this.
- */
 export async function AccountOverviewFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);

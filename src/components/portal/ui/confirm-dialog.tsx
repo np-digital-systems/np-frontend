@@ -22,13 +22,6 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
 }
 
-/**
- * Destructive confirmation.
- *
- * An `AlertDialog` rather than a `Dialog`: it takes focus, it cannot be
- * dismissed by clicking away, and the assistive-tech role says outright
- * that something is about to be lost.
- */
 export function ConfirmDialog({
   open,
   onOpenChange,

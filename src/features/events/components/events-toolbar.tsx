@@ -61,17 +61,9 @@ interface EventsToolbarProps {
   filters: EventFilters;
   onChange: (filters: EventFilters) => void;
   eventTypes: readonly EventType[];
-  /** Rendered at the end of the row — usually the list/month view switch. */
-  trailing?: React.ReactNode;
+    trailing?: React.ReactNode;
 }
 
-/**
- * Filter row for the calendar.
- *
- * State is owned by the screen and passed down, so the same controls drive
- * both the list and the month grid instead of each view keeping its own
- * idea of what is being filtered.
- */
 export function EventsToolbar({
   filters,
   onChange,

@@ -9,7 +9,6 @@ interface LinkButtonProps {
   className?: string;
 }
 
-/** "View all →" affordance. Always a real link, never a button that routes. */
 export function LinkButton({ href, children, className }: LinkButtonProps) {
   return (
     <Link

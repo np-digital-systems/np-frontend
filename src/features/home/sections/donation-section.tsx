@@ -6,7 +6,6 @@ import { DONATION_TIERS } from "../constants/temple-info";
 import { useLocale, useTranslations } from "next-intl";
 import {type Locale} from "@/i18n/routing";
 
-
 export function DonationSection() {
   const tDonation = useTranslations("Home.Donation");
 
@@ -66,7 +65,6 @@ export function DonationSection() {
             />
           ))}
         </div>
-
 
       </div>
     </PageContainer>

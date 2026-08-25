@@ -12,13 +12,6 @@ import type { EventTypeRecord } from '../../types';
 
 import { EventTypesScreen } from './event-types-screen';
 
-/**
- * Event types boundary.
- *
- * `event-type:manage` is an admin-only capability, and the check happens
- * here rather than only in the sidebar — hiding a link is presentation, not
- * access control, and a typed URL must hit the same wall.
- */
 export async function EventTypesFeature() {
   const user = await getCurrentUser();
   const access = getEventAccess(user.role);

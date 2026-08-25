@@ -1,0 +1,101 @@
+import { z } from 'zod';
+
+import {
+  isoDate,
+  nonNegativeAmount,
+  optionalText,
+  positiveAmount,
+  requiredText,
+} from '@/lib/validation';
+
+import {
+  ACCOUNT_TYPES,
+  ACCOUNT_TYPE_LABELS,
+  PAYMENT_MODES,
+} from './accounting-data';
+
+export const ACCOUNT_CODE_PREFIX = {
+  asset: '1',
+  liability: '2',
+  equity: '3',
+  income: '4',
+  expense: '5',
+} as const;
+
+export const voucherSchema = z
+  .object({
+    date: isoDate,
+    description: requiredText('A description'),
+    amount: positiveAmount('The amount'),
+    accountId: z.number().int().positive('Choose a ledger account.'),
+    fundId: z.number().int().positive('Choose a fund.'),
+    projectId: z.number().int().positive().nullable(),
+    mode: z.enum(PAYMENT_MODES),
+    bankAccountId: z.number().int().positive().nullable(),
+    chequeNo: optionalText(32),
+    party: requiredText('This field'),
+    notes: optionalText(1000),
+  })
+  .refine(
+    (draft) => draft.mode === 'cash' || draft.bankAccountId !== null,
+    {
+      message: 'Choose the bank account this money moves through.',
+      path: ['bankAccountId'],
+    },
+  )
+  .refine(
+    (draft) => draft.mode !== 'cheque' || draft.chequeNo.length > 0,
+    {
+      message: 'A cheque number is required for a cheque payment.',
+      path: ['chequeNo'],
+    },
+  );
+
+export const accountSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .regex(/^\d{4}$/, 'The account code must be four digits, e.g. 5012.'),
+    name: requiredText('An account name'),
+    nameTa: optionalText(),
+    type: z.enum(ACCOUNT_TYPES),
+    parentId: z.number().int().positive().nullable(),
+    isActive: z.boolean(),
+  })
+  .superRefine((draft, ctx) => {
+    const prefix = ACCOUNT_CODE_PREFIX[draft.type];
+
+    if (!draft.code.startsWith(prefix)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['code'],
+        message: `${ACCOUNT_TYPE_LABELS[draft.type]} accounts are numbered in the ${prefix}000 range.`,
+      });
+    }
+  });
+
+export const bankAccountSchema = z.object({
+  label: requiredText('A label'),
+  bankName: requiredText('The bank name'),
+  branch: optionalText(),
+  accountNumber: z
+    .string()
+    .trim()
+    .refine(
+      (value) => value.replace(/\D/g, '').length >= 4,
+      'Enter at least the last four digits of the account number.',
+    ),
+  type: z.enum(['current', 'savings', 'fixed-deposit']),
+  openingBalance: nonNegativeAmount('The opening balance'),
+  openedOn: isoDate,
+  isActive: z.boolean(),
+});
+
+export const rejectionSchema = z.object({
+  reason: requiredText('A reason', 500),
+});
+
+export type VoucherInput = z.input<typeof voucherSchema>;
+export type AccountInput = z.input<typeof accountSchema>;
+export type BankAccountInput = z.input<typeof bankAccountSchema>;

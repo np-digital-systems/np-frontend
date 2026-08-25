@@ -9,13 +9,6 @@ import type {
   TempleEvent,
 } from '../types';
 
-/* -------------------------------------------------------------------------
-   Dates and times
-
-   Formatting is shared portal-wide — see `@/lib/format`. Re-exported here so
-   the events screens keep importing everything they need from one module.
-   ------------------------------------------------------------------------- */
-
 export {
   formatLongDate as formatEventDate,
   formatShortDate,
@@ -28,10 +21,6 @@ export {
   getToday,
   getActiveYear,
 } from '@/lib/format';
-
-/* -------------------------------------------------------------------------
-   Frequency vocabulary
-   ------------------------------------------------------------------------- */
 
 export const FREQUENCY_TYPES: readonly FrequencyType[] = [
   'weekly',
@@ -49,12 +38,6 @@ export const FREQUENCY_LABELS: Record<FrequencyType, string> = {
   annual: 'Annual',
 };
 
-/**
- * What `instance_identifier` counts for each frequency.
- *
- * The column is deliberately adaptive in the schema, which means the UI has
- * to say out loud what a number means before an admin types one in.
- */
 export const INSTANCE_MEANING: Record<FrequencyType, string> = {
   weekly: 'Week of the year (1–52)',
   monthly_twice: 'Lunar occurrence (1 = Valarpirai, 2 = Theipirai)',
@@ -63,7 +46,6 @@ export const INSTANCE_MEANING: Record<FrequencyType, string> = {
   annual: 'Always 1 — the single yearly occurrence',
 };
 
-/** Instances a full year of this frequency contains, before overrides. */
 export const DEFAULT_INSTANCE_COUNT: Record<FrequencyType, number> = {
   weekly: 52,
   monthly_twice: 2,
@@ -77,12 +59,6 @@ const LUNAR_OCCURRENCE: Record<number, string> = {
   2: 'Theipirai',
 };
 
-/**
- * Human name for one instance of an event type.
- *
- * A custom name always wins — the temple's own name for the day ("ஆபரணம்",
- * "தேர்") is what people recognise. The derived label is the fallback.
- */
 export function describeInstance(
   frequencyType: FrequencyType,
   instanceIdentifier: number,
@@ -109,7 +85,6 @@ export function describeInstance(
   }
 }
 
-/** Short form for a dense table cell, where the frequency is already shown. */
 export function shortInstance(
   frequencyType: FrequencyType,
   instanceIdentifier: number,
@@ -126,17 +101,6 @@ export function shortInstance(
   }
 }
 
-/* -------------------------------------------------------------------------
-   Derived state
-   ------------------------------------------------------------------------- */
-
-/**
- * An event's status is derived, never stored.
- *
- * The table carries `is_completed` and a date; everything the UI shows —
- * completed, happening today, still ahead — follows from those two, so a
- * status can never drift out of step with the calendar.
- */
 export function deriveStatus(event: TempleEvent, today: string): BadgeStatus {
   if (event.isCompleted) return 'Completed';
   if (event.scheduledDate === today) return 'Today';
@@ -145,10 +109,6 @@ export function deriveStatus(event: TempleEvent, today: string): BadgeStatus {
   return 'Scheduled';
 }
 
-/**
- * A past event nobody marked done is the one thing this screen should nag
- * about, so it borrows the warning tone rather than reading as "Scheduled".
- */
 export function isOverdue(event: TempleEvent, today: string): boolean {
   return !event.isCompleted && event.scheduledDate < today;
 }
@@ -185,7 +145,6 @@ export interface EventMonth {
   readonly events: readonly EventRecord[];
 }
 
-/** Groups a sorted list into calendar months, preserving order. */
 export function groupByMonth(
   events: readonly EventRecord[],
 ): readonly EventMonth[] {
@@ -209,7 +168,6 @@ export function groupByMonth(
   }));
 }
 
-/** Full name of an event: the type, plus the instance it is. */
 export function eventTitle(event: {
   eventType: EventType;
   instanceLabel: string;

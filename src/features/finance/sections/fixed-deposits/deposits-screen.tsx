@@ -66,16 +66,7 @@ interface DepositsScreenProps {
   year: number;
 }
 
-/**
- * Fixed deposits.
- *
- * The screen's real job is not listing deposits — it is making sure none of
- * them quietly lapses. A deposit that matures unnoticed rolls over at
- * whatever rate the bank chooses, so maturities inside the alert window are
- * pulled out above the table rather than left to be spotted in a date column.
- *
- * TODO: replace the local mutations with calls to the deposits API.
- */
+/** TODO: replace the local mutations with calls to the deposits API. */
 export function DepositsScreen({
   initialDeposits,
   funds,
@@ -175,8 +166,7 @@ export function DepositsScreen({
     });
   }
 
-  /** Renewing closes the old certificate and opens the form for the new one. */
-  function handleRenew(deposit: DepositRecord) {
+    function handleRenew(deposit: DepositRecord) {
     setDeposits((current) =>
       current.map((entry) =>
         entry.id === deposit.id

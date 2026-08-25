@@ -47,15 +47,7 @@ interface ChartOfAccountsScreenProps {
   year: number;
 }
 
-/**
- * The chart of accounts.
- *
- * Rendered as the tree it is: a group head, then the accounts reported under
- * it. A flat alphabetical list would be easier to build and would hide the
- * one thing this screen exists to show — which head a figure rolls up into.
- *
- * TODO: replace the local mutations with calls to the accounts API.
- */
+/** TODO: replace the local mutations with calls to the accounts API. */
 export function ChartOfAccountsScreen({
   initialAccounts,
   access,
@@ -85,13 +77,7 @@ export function ChartOfAccountsScreen({
     });
   }, [accounts, query, type]);
 
-  /**
-   * Grouped for display: each head with the matching accounts beneath it.
-   *
-   * A head is kept when it matches itself *or* has matching children, so
-   * searching for "electricity" still shows which group it belongs to.
-   */
-  const tree = useMemo(() => {
+    const tree = useMemo(() => {
     const matched = new Set(filtered.map((account) => account.id));
 
     return groups
@@ -364,10 +350,6 @@ interface GroupBlockProps {
   onDelete: (account: AccountRecord) => void;
 }
 
-/**
- * A fragment, not a component boundary per row: the group band and its
- * accounts have to be siblings inside `<tbody>` for the table to stay valid.
- */
 function GroupBlock({
   group,
   accounts,

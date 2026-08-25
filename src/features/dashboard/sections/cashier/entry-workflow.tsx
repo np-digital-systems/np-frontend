@@ -11,13 +11,6 @@ const STEP_STYLES = {
   upcoming: 'bg-surface-2 text-text-muted ring-1 ring-border',
 } as const;
 
-/**
- * Where a cashier's entry sits in the approval chain.
- *
- * The callout is not decoration — a cashier creating a voucher is the single
- * most common place to assume the money has moved, and it has not until an
- * approver acts.
- */
 export function EntryWorkflow() {
   return (
     <Card>

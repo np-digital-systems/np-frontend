@@ -24,7 +24,6 @@ import {
 import { bookMonths, sliceBook } from '../../lib/book';
 import type { BankAccountRecord, BookRow, BookSummary } from '../../types';
 
-/** One bank account's book, pre-built on the server. */
 export interface BankBookEntry {
   readonly bankAccountId: number;
   readonly rows: readonly BookRow[];
@@ -38,13 +37,6 @@ interface BankBookScreenProps {
   year: number;
 }
 
-/**
- * The bank book — one statement per account.
- *
- * Which account is being read is the first decision, so it is a control at
- * the top rather than a filter buried in a toolbar, and the chosen account's
- * identity stays on screen while its rows are read.
- */
 export function BankBookScreen({
   banks,
   books,

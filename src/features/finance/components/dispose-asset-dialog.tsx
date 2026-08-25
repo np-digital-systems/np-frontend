@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 import { formatCurrency } from '../lib/finance-data';
+import { disposalSchema } from '../lib/finance-schemas';
 import type { AssetRecord } from '../types';
 
 export interface DisposalDraft {
@@ -32,14 +34,6 @@ interface DisposeAssetDialogProps {
   onConfirm: (draft: DisposalDraft) => void;
 }
 
-/**
- * Record an asset leaving the temple.
- *
- * Kept apart from the edit form and behind its own capability: amending a
- * record is bookkeeping, parting with something the temple owns is not. The
- * gain or loss against book value is shown before confirming, because that
- * is the figure the accounts will carry.
- */
 export function DisposeAssetDialog({
   open,
   onOpenChange,
@@ -69,33 +63,25 @@ export function DisposeAssetDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    if (!draft.disposedOn) {
-      setError('A disposal date is required.');
+    const result = validate(disposalSchema, draft);
+
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    if (asset && draft.disposedOn < asset.acquiredOn) {
+    if (asset && result.data.disposedOn < asset.acquiredOn) {
       setError('An asset cannot be disposed of before it was acquired.');
       return;
     }
 
-    if (draft.disposedOn > today) {
+    if (result.data.disposedOn > today) {
       setError('A disposal cannot be recorded in the future.');
       return;
     }
 
-    if (draft.disposalValue < 0) {
-      setError('The disposal value cannot be negative.');
-      return;
-    }
-
-    if (!draft.notes.trim()) {
-      setError('Say what happened to it — this is the audit record.');
-      return;
-    }
-
     setError(null);
-    onConfirm({ ...draft, notes: draft.notes.trim() });
+    onConfirm(result.data);
     onOpenChange(false);
   }
 

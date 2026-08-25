@@ -128,13 +128,6 @@ export const TYPE_ICON: Record<SearchType, string> = {
   Report:         '📊',
 }
 
-/**
- * Status expressed as a semantic tone, not a colour.
- *
- * These used to be literal iOS hex values, so they ignored the portal theme
- * entirely and sat at the wrong contrast in light mode. Components map the
- * tone onto theme classes.
- */
 export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning'
 
 export const BADGE_TONE: Record<string, BadgeTone> = {

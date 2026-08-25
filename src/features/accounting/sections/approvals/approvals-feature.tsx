@@ -7,12 +7,6 @@ import { getVouchers } from '../../lib/accounting-service';
 
 import { ApprovalsScreen } from './approvals-screen';
 
-/**
- * Approval centre boundary.
- *
- * `voucher:approve` is the whole point of this screen, so a role without it
- * has nothing to do here — there is no read-only version worth rendering.
- */
 export async function ApprovalsFeature() {
   const user = await getCurrentUser();
   const access = getAccountingAccess(user.role);

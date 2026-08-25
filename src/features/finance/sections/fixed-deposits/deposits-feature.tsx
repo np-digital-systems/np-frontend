@@ -7,14 +7,6 @@ import { getDepositRecords, getFundRecords } from '../../lib/finance-service';
 
 import { DepositsScreen } from './deposits-screen';
 
-/**
- * Fixed deposits boundary.
- *
- * An accountant reconciles the interest and reports the holdings, but
- * placing, renewing or breaking a deposit commits the temple's money for a
- * term — the same class of decision as opening a bank account, so
- * `fixed-deposit:manage` stays with the admin.
- */
 export async function FixedDepositsFeature() {
   const user = await getCurrentUser();
   const access = getFinanceAccess(user.role);

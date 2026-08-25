@@ -31,21 +31,13 @@ import type { EventType, ScheduleSlot } from '../../types';
 interface ScheduleGroupCardProps {
   eventType: EventType;
   slots: readonly ScheduleSlot[];
-  /** True when only touched slots are listed — weekly types have 52. */
-  isDense: boolean;
+    isDense: boolean;
   access: EventAccess;
   today: string;
   defaultOpen: boolean;
   onSchedule: (slot: ScheduleSlot, eventType: EventType) => void;
 }
 
-/**
- * One event type's year.
- *
- * Collapsed by default for the long recurring types and open for the ones
- * with a handful of slots, so the page opens on the festivals an admin is
- * actually planning rather than on 52 Friday poojas.
- */
 export function ScheduleGroupCard({
   eventType,
   slots,

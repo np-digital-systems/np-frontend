@@ -11,14 +11,6 @@ import { SubmissionsTable } from './submissions-table';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Cashier dashboard — data entry.
- *
- * A cashier does two things all day, so those two get full-size primary
- * buttons instead of joining a row of small shortcuts. Everything else on
- * the page is about the status of work this cashier already submitted —
- * there is no approvals queue here, because this role cannot approve.
- */
 export function CashierDashboard({
   user,
   greeting,

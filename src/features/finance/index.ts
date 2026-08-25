@@ -1,14 +1,3 @@
-/**
- * Financial management feature — public surface.
- *
- * Routes mount the four feature boundaries below; everything else is an
- * implementation detail of this folder. Each boundary is a server component:
- * it resolves identity, capabilities and data before any client code runs.
- *
- * Funds and projects are accounting masters, consumed from that module —
- * this feature manages them and adds the two domains of its own that nothing
- * posts against: fixed deposits and assets.
- */
 export {
   FundsFeature,
   ProjectsFeature,
