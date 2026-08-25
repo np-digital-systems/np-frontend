@@ -6,7 +6,7 @@ import { EventsSection } from "@/features/home/sections/events-section";
 import { GallerySection } from "@/features/home/sections/gallery-section";
 import { DonationSection } from "@/features/home/sections/donation-section";
 import { ContactSection } from "@/features/home/sections/contact-section";
-import { SpiritualDivider } from "@/components/common/spiritual-divider";
+import { SpiritualDivider } from "@/components/site/spiritual-divider";
 import { useHome } from "@/features/home/hooks/use-home";
 
 export default function HomePage() {

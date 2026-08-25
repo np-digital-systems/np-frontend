@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { PageContainer } from "@/components/common/page-container";
-import { SpiritualDivider } from "@/components/common/spiritual-divider";
+import { PageContainer } from "@/components/site/page-container";
+import { SpiritualDivider } from "@/components/site/spiritual-divider";
 import { TEMPLE_STATS } from "../constants/temple-info";
 import { TempleStat } from "../components/temple-stat";
 import { useTranslations } from 'next-intl';

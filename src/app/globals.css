@@ -1,182 +1,335 @@
+/* ==========================================================================
+   GLOBAL STYLESHEET
+   --------------------------------------------------------------------------
+   This app ships TWO independent design systems:
+
+     1. the public temple website  — tokens in styles/site-theme.css
+     2. the management portal      — tokens in styles/portal-theme.css
+
+   They must never bleed into each other. Both files declare the SAME token
+   names (--background, --primary, --border, …); which set wins is decided
+   purely by cascade layer order, declared below.
+
+   `theme-portal` is declared last, so any token defined inside
+   `.portal-theme` beats the site's `:root` / `.dark` definitions no matter
+   what their selector specificity or import order happens to be. Previously
+   both files were unlayered, `.portal-theme` and `:root` tied at (0,1,0),
+   and the site tokens won on source order — which is why the portal rendered
+   in the website's gold palette.
+
+   To add a token: put it in ONE of the two theme files. Never here.
+   ========================================================================== */
+
+/* Explicit, whole-sheet layer order. Declaring it up front pins Tailwind's
+   own layers too, so the theme layers land AFTER `base` — the public site
+   sets a serif face on every heading in `@layer base`, and the portal has to
+   be able to reset that back to the UI face. `utilities` stays last so
+   Tailwind classes still override everything. */
+@layer theme, base, components, theme-site, theme-portal, utilities;
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
 @import "../styles/animations.css";
 @import "../styles/glass.css";
 
+@import "../styles/site-theme.css" layer(theme-site);
+@import "../styles/portal-theme.css" layer(theme-portal);
+
+
+/* ==========================================================================
+   DARK MODE
+   ========================================================================== */
+
 @custom-variant dark (&:is(.dark *));
 
-/* ===== Google Fonts are loaded via next/font in layout.tsx ===== */
+
+/* ==========================================================================
+   TAILWIND THEME TOKENS
+   --------------------------------------------------------------------------
+   Maps the semantic CSS variables above onto Tailwind utilities, e.g.
+
+     bg-background   text-foreground     bg-card
+     bg-surface      text-text-muted     border-border
+     bg-sidebar      text-sidebar-muted  bg-success-subtle
+
+   Because every mapping resolves through var(), the SAME utility renders in
+   site colours outside `.portal-theme` and in portal colours inside it.
+   ========================================================================== */
 
 @theme inline {
-  /* Font families - mapped from next/font CSS variables */
-  --font-sans: var(--font-inter);
-  --font-heading: var(--font-playfair);
-  --font-tamil-sans: var(--font-noto-sans-tamil);
-  --font-tamil-heading: var(--font-noto-serif-tamil);
-  --font-mono: var(--font-geist-mono);
 
-  /* Shadcn color mapping */
+  /* ------------------------------------------------------------------------
+     Typography
+     ------------------------------------------------------------------------ */
+
+  --font-sans:
+    var(--font-inter),
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+
+  --font-heading:
+    var(--font-playfair),
+    Georgia,
+    serif;
+
+  --font-tamil-sans:
+    var(--font-noto-sans-tamil),
+    sans-serif;
+
+  --font-tamil-heading:
+    var(--font-noto-serif-tamil),
+    serif;
+
+  --font-mono:
+    var(--font-geist-mono),
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+
+  /* ------------------------------------------------------------------------
+     Core colours
+     ------------------------------------------------------------------------ */
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-muted: var(--primary-muted);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+
+  /* ------------------------------------------------------------------------
+     Semantic surfaces
+     ------------------------------------------------------------------------ */
+
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+
+  /* ------------------------------------------------------------------------
+     Semantic text
+     ------------------------------------------------------------------------ */
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-disabled: var(--text-disabled);
+
+
+  /* ------------------------------------------------------------------------
+     Interactive
+     ------------------------------------------------------------------------ */
+
+  --color-interactive-hover: var(--interactive-hover);
+  --color-interactive-active: var(--interactive-active);
+
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-muted: var(--accent-muted);
+
+
+  /* ------------------------------------------------------------------------
+     Sidebar
+     ------------------------------------------------------------------------ */
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-selected: var(--sidebar-selected);
+
+
+  /* ------------------------------------------------------------------------
+     Status
+     ------------------------------------------------------------------------ */
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-subtle: var(--danger-subtle);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+
+  --color-neutral-subtle: var(--neutral-subtle);
+
+
+  /* ------------------------------------------------------------------------
+     Charts
+     ------------------------------------------------------------------------ */
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-grid: var(--chart-grid);
 
-  /* Border Radius */
-  --radius-sm: 0.25rem;
+
+  /* ------------------------------------------------------------------------
+     Radius
+     ------------------------------------------------------------------------ */
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-  --radius-3xl: 2rem;
-  --radius-4xl: 2.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
+  --radius-4xl: 1.5rem;
 }
 
-/* ===== Sacred Serenity Light Theme ===== */
-:root {
-  /* Core surfaces */
-  --background: #FAF9F6;
-  --foreground: #1A1C1C;
 
-  /* Card & Popover */
-  --card: #FFFFFF;
-  --card-foreground: #1A1C1C;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1C1C;
+/* ==========================================================================
+   BASE
+   ========================================================================== */
 
-  /* Sacred Gold Primary */
-  --primary: #735C00;
-  --primary-foreground: #FFFFFF;
-
-  /* Saffron Secondary */
-  --secondary: #FFF8E1;
-  --secondary-foreground: #6F5600;
-
-  /* Muted */
-  --muted: #F3F3F4;
-  --muted-foreground: #4D4635;
-
-  /* Accent */
-  --accent: #FFF8E1;
-  --accent-foreground: #554300;
-
-  /* Kumkum Destructive */
-  --destructive: #B52619;
-
-  /* Borders & Inputs */
-  --border: #D0C5AF;
-  --input: #D0C5AF;
-  --ring: #D4AF37;
-
-  /* Charts */
-  --chart-1: #D4AF37;
-  --chart-2: #F4C430;
-  --chart-3: #8B0000;
-  --chart-4: #735C00;
-  --chart-5: #B52619;
-
-  /* Radius */
-  --radius: 0.5rem;
-
-  /* Sidebar */
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1A1C1C;
-  --sidebar-primary: #735C00;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #FFF8E1;
-  --sidebar-accent-foreground: #554300;
-  --sidebar-border: #D0C5AF;
-  --sidebar-ring: #D4AF37;
-}
-
-/* ===== Dark Theme (optional) ===== */
-.dark {
-  --background: #1A1C1C;
-  --foreground: #FAF9F6;
-  --card: #2A2C2C;
-  --card-foreground: #FAF9F6;
-  --popover: #2A2C2C;
-  --popover-foreground: #FAF9F6;
-  --primary: #E9C349;
-  --primary-foreground: #241A00;
-  --secondary: #3A3000;
-  --secondary-foreground: #F0C12C;
-  --muted: #2A2C2C;
-  --muted-foreground: #A09A8C;
-  --accent: #3A3000;
-  --accent-foreground: #E9C349;
-  --destructive: #FF9686;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: #D4AF37;
-  --chart-1: #E9C349;
-  --chart-2: #F4C430;
-  --chart-3: #FF9686;
-  --chart-4: #D4AF37;
-  --chart-5: #FFB4A8;
-  --sidebar: #2A2C2C;
-  --sidebar-foreground: #FAF9F6;
-  --sidebar-primary: #E9C349;
-  --sidebar-primary-foreground: #241A00;
-  --sidebar-accent: #3A3000;
-  --sidebar-accent-foreground: #E9C349;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #D4AF37;
-}
-
-/* ===== Base Styles ===== */
 @layer base {
-  * {
+
+  *,
+  *::before,
+  *::after {
     @apply border-border outline-ring/50;
   }
 
+
   html {
     scroll-behavior: smooth;
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    text-rendering: optimizeLegibility;
   }
+
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-inter), var(--font-noto-sans-tamil), system-ui, sans-serif;
+
+    min-height: 100vh;
+
+    font-family:
+      var(--font-inter),
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      sans-serif;
   }
 
-  /* Typography: Heading elements use Playfair Display */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-playfair), var(--font-noto-serif-tamil), Georgia, serif;
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
+
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+
+  /* Selection tint follows whichever theme is in scope. */
+  ::selection {
+    background-color: color-mix(in srgb, var(--primary) 22%, transparent);
+    color: var(--foreground);
+  }
+}
+
+
+/* ==========================================================================
+   SITE TYPOGRAPHY
+   --------------------------------------------------------------------------
+   The serif display face belongs to the public website. `portal-theme.css`
+   resets headings back to the UI face inside `.portal-theme`.
+   ========================================================================== */
+
+@layer base {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      var(--font-playfair),
+      var(--font-noto-serif-tamil),
+      Georgia,
+      serif;
+
+    text-wrap: balance;
+  }
+
 
   html[lang="ta"] body {
-    font-family: var(--font-noto-sans-tamil), system-ui, sans-serif;
+    font-family:
+      var(--font-noto-sans-tamil),
+      system-ui,
+      sans-serif;
+
     text-rendering: optimizeLegibility;
   }
+
 
   html[lang="ta"] h1,
   html[lang="ta"] h2,
@@ -184,38 +337,58 @@
   html[lang="ta"] h4,
   html[lang="ta"] h5,
   html[lang="ta"] h6 {
-    font-family: var(--font-noto-serif-tamil), var(--font-noto-sans-tamil), serif;
+    font-family:
+      var(--font-noto-serif-tamil),
+      var(--font-noto-sans-tamil),
+      serif;
+
     letter-spacing: 0;
     line-height: 1.3;
   }
-
-  /* Selection color */
-  ::selection {
-    background-color: rgba(212, 175, 55, 0.2);
-    color: #1A1C1C;
-  }
 }
 
-/* ===== Utility Classes ===== */
+
+/* ==========================================================================
+   GLOBAL UTILITIES
+   ========================================================================== */
+
 @layer utilities {
-  /* Font family helpers */
+
   .font-heading {
-    font-family: var(--font-playfair), Georgia, serif;
+    font-family:
+      var(--font-playfair),
+      Georgia,
+      serif;
   }
+
 
   .font-sans {
-    font-family: var(--font-inter), var(--font-noto-sans-tamil), system-ui, sans-serif;
+    font-family:
+      var(--font-inter),
+      var(--font-noto-sans-tamil),
+      system-ui,
+      sans-serif;
   }
 
+
   html[lang="ta"] .font-heading {
-    font-family: var(--font-noto-serif-tamil), var(--font-noto-sans-tamil), serif;
+    font-family:
+      var(--font-noto-serif-tamil),
+      var(--font-noto-sans-tamil),
+      serif;
+
     letter-spacing: 0;
     line-height: 1.35;
   }
 
+
   html[lang="ta"] .font-sans {
-    font-family: var(--font-noto-sans-tamil), system-ui, sans-serif;
+    font-family:
+      var(--font-noto-sans-tamil),
+      system-ui,
+      sans-serif;
   }
+
 
   html[lang="ta"] .tracking-wider,
   html[lang="ta"] .tracking-\[0\.15em\],
@@ -223,35 +396,31 @@
     letter-spacing: 0;
   }
 
-  /* Sacred gradient text */
-  .text-gradient-gold {
-    background: linear-gradient(45deg, #D4AF37, #F4C430);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 
-  /* Sacred border */
-  .border-sacred {
-    border-color: rgba(212, 175, 55, 0.2);
-  }
 
-  /* Hide scrollbar */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
 
-  /* Line clamp utilities */
+
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
   }
+
 
   .line-clamp-2 {
     overflow: hidden;
@@ -260,6 +429,7 @@
     -webkit-line-clamp: 2;
   }
 
+
   .line-clamp-3 {
     overflow: hidden;
     display: -webkit-box;
@@ -267,7 +437,7 @@
     -webkit-line-clamp: 3;
   }
 
-  /* Border width helper */
+
   .border-l-3 {
     border-left-width: 3px;
   }
