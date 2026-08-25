@@ -1,5 +1,7 @@
 import { Calendar } from 'lucide-react';
 
+import { EVENT_ROUTES } from '@/features/events/lib/routes';
+
 import { Card, CardHeader, LinkButton, StatusBadge, EmptyState } from '../../components';
 import { UPCOMING_EVENTS } from '../../constants/mock-data';
 
@@ -8,7 +10,9 @@ export function UpcomingEvents() {
     <Card>
       <CardHeader
         title="Upcoming Events"
-        action={<LinkButton href="/events">View calendar</LinkButton>}
+        action={
+          <LinkButton href={EVENT_ROUTES.calendar}>View calendar</LinkButton>
+        }
       />
 
       {UPCOMING_EVENTS.length === 0 ? (

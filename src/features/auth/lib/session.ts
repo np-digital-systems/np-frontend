@@ -22,7 +22,7 @@ const MOCK_USER: PortalUser = {
   id: 'usr_001',
   name: 'K. Suresh',
   email: 'suresh@neeliyampathipillaiyarkovil.com',
-  role: 'accountant',
+  role: 'admin',
   initials: 'KS',
 };
 

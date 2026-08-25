@@ -19,6 +19,8 @@ import {
   YEARLY_DATA,
 } from '../../constants/mock-data';
 import { formatCurrency } from '../../lib/dashboard-data';
+import { EVENT_ROUTES } from '@/features/events/lib/routes';
+
 import type { DashboardProps } from '../../types';
 import {
   BankPosition,
@@ -38,7 +40,7 @@ import { PendingApprovals } from './pending-approvals';
  * quick actions are the five things only an admin can start.
  */
 const QUICK_ACTIONS: readonly QuickAction[] = [
-  { label: 'Create Event', href: '/events', icon: CalendarPlus },
+  { label: 'Create Event', href: EVENT_ROUTES.calendar, icon: CalendarPlus },
   { label: 'View Approvals', href: '/accounting/approvals', icon: CheckSquare },
   { label: 'View Transactions', href: '/accounting/transactions', icon: ArrowUpRight },
   { label: 'Create User', href: '/administration/users', icon: UserPlus },

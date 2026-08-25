@@ -1,6 +1,6 @@
 'use client';
 
-import { formatCurrency } from '../lib/dashboard-data';
+import { formatCurrency } from '@/lib/format';
 
 interface TooltipEntry {
   name?: string;

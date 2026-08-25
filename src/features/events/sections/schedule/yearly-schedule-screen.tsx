@@ -1,0 +1,288 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { Download } from 'lucide-react';
+
+import {
+  PortalPageHeader,
+  ReadOnlyNotice,
+  StatCard,
+} from '@/components/portal/ui';
+import { Button } from '@/components/ui/button';
+
+import {
+  EventFormDialog,
+  type EventDraft,
+} from '../../components/event-form-dialog';
+import { READ_ONLY_MESSAGE, type EventAccess } from '../../lib/event-access';
+import { materialiseEvent } from '../../lib/event-draft';
+import type {
+  EventRecord,
+  EventType,
+  ScheduleGroup,
+  ScheduleSlot,
+  SponsorUser,
+} from '../../types';
+
+import { ScheduleGroupCard } from './schedule-group-card';
+
+/** Above this many instances a type lists only its touched slots. */
+const DENSE_THRESHOLD = 12;
+
+interface YearlyScheduleScreenProps {
+  groups: readonly ScheduleGroup[];
+  initialEvents: readonly EventRecord[];
+  eventTypes: readonly EventType[];
+  sponsors: readonly SponsorUser[];
+  access: EventAccess;
+  today: string;
+  year: number;
+}
+
+/**
+ * The year seen as planning slots rather than as a flat calendar.
+ *
+ * The calendar screen answers "what happens on the 25th"; this one answers
+ * "which of the twelve festival days still has no date and no sponsor" —
+ * the question that actually drives an admin's planning session.
+ *
+ * The slot skeleton comes from the server and stays fixed; only the dated
+ * occurrences are held as state, so scheduling a slot fills it in place.
+ *
+ * TODO: replace the local mutations with calls to the events API.
+ */
+export function YearlyScheduleScreen({
+  groups,
+  initialEvents,
+  eventTypes,
+  sponsors,
+  access,
+  today,
+  year,
+}: YearlyScheduleScreenProps) {
+  const [events, setEvents] = useState<readonly EventRecord[]>(initialEvents);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<EventRecord | null>(null);
+  const [prefill, setPrefill] = useState<EventRecord | null>(null);
+
+  /**
+   * Slots re-joined against the live events array.
+   *
+   * A dense type's visible slots are whatever has been touched, so a newly
+   * scheduled instance has to widen the list — hence the union rather than
+   * a straight read of the server's skeleton.
+   */
+  const resolved = useMemo(
+    () =>
+      groups.map((group) => {
+        const typeEvents = events.filter(
+          (event) => event.eventTypeId === group.eventType.id,
+        );
+
+        const isDense = group.eventType.noOfInstances > DENSE_THRESHOLD;
+
+        const identifiers = isDense
+          ? [
+              ...new Set([
+                ...group.slots.map((slot) => slot.instanceIdentifier),
+                ...typeEvents.map((event) => event.instanceIdentifier),
+              ]),
+            ].sort((a, b) => a - b)
+          : group.slots.map((slot) => slot.instanceIdentifier);
+
+        const slots: ScheduleSlot[] = identifiers.map((instanceIdentifier) => {
+          const base = group.slots.find(
+            (slot) => slot.instanceIdentifier === instanceIdentifier,
+          );
+
+          const event =
+            typeEvents.find(
+              (candidate) =>
+                candidate.instanceIdentifier === instanceIdentifier,
+            ) ?? null;
+
+          return {
+            instanceIdentifier,
+            customInstanceName:
+              event?.customInstanceName ?? base?.customInstanceName ?? null,
+            instanceLabel:
+              event?.instanceLabel ??
+              base?.instanceLabel ??
+              `#${instanceIdentifier}`,
+            defaultSponsor: base?.defaultSponsor ?? null,
+            event,
+          };
+        });
+
+        return { eventType: group.eventType, slots, isDense };
+      }),
+    [groups, events],
+  );
+
+  const totals = useMemo(() => {
+    const slots = resolved.flatMap((group) => group.slots);
+
+    return {
+      planned: resolved.reduce(
+        (sum, group) => sum + group.eventType.noOfInstances,
+        0,
+      ),
+      scheduled: events.length,
+      open: slots.filter((slot) => slot.event === null).length,
+      unsponsored: events.filter((event) => event.sponsorId === null).length,
+    };
+  }, [resolved, events]);
+
+  /**
+   * Opening the form from a slot pre-fills the type and instance it belongs
+   * to — the admin picked the slot already, retyping it would be busywork.
+   */
+  function handleSchedule(slot: ScheduleSlot, eventType: EventType) {
+    if (slot.event) {
+      setPrefill(null);
+      setEditing(slot.event);
+      setFormOpen(true);
+      return;
+    }
+
+    setEditing(null);
+    setPrefill({
+      id: -1,
+      eventTypeId: eventType.id,
+      instanceIdentifier: slot.instanceIdentifier,
+      customInstanceName: slot.customInstanceName,
+      scheduledDate: '',
+      startTime: '',
+      endTime: null,
+      sponsorId: slot.defaultSponsor?.id ?? null,
+      notes: null,
+      isCompleted: false,
+      createdAt: '',
+      updatedAt: '',
+      eventType,
+      sponsor: slot.defaultSponsor,
+      instanceLabel: slot.instanceLabel,
+      status: 'Unassigned',
+    });
+    setFormOpen(true);
+  }
+
+  function handleSubmit(draft: EventDraft) {
+    setEvents((current) => {
+      if (editing) {
+        return current.map((event) =>
+          event.id === editing.id
+            ? materialiseEvent(draft, {
+                id: editing.id,
+                createdAt: editing.createdAt,
+                eventTypes,
+                sponsors,
+                today,
+              })
+            : event,
+        );
+      }
+
+      const nextId =
+        current.reduce((highest, event) => Math.max(highest, event.id), 0) + 1;
+
+      return [
+        ...current,
+        materialiseEvent(draft, {
+          id: nextId,
+          createdAt: new Date().toISOString(),
+          eventTypes,
+          sponsors,
+          today,
+        }),
+      ];
+    });
+  }
+
+  return (
+    <>
+      <PortalPageHeader
+        title="Yearly Schedule"
+        description="Every instance each event type declares, and whether it has been given a date and a sponsor."
+        meta={[
+          <span key="year" className="tabular">
+            Planning year {year}
+          </span>,
+          <span key="scheduled" className="tabular">
+            {totals.scheduled} dated
+          </span>,
+          totals.open > 0 ? (
+            <span key="open" className="text-warning tabular">
+              {totals.open} slots open
+            </span>
+          ) : null,
+        ].filter(Boolean)}
+        actions={
+          access.canExport && (
+            <Button variant="outline">
+              <Download />
+              Export Schedule
+            </Button>
+          )
+        }
+      />
+
+      {!access.canWrite && (
+        <ReadOnlyNotice
+          message={`${READ_ONLY_MESSAGE} The schedule below is the temple's plan for ${year}.`}
+        />
+      )}
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Declared Instances"
+          value={String(totals.planned)}
+          caption="Across all event types"
+        />
+        <StatCard
+          label="Dated"
+          value={String(totals.scheduled)}
+          caption="On the calendar"
+        />
+        <StatCard
+          label="Open Slots"
+          value={String(totals.open)}
+          caption="Still without a date"
+        />
+        <StatCard
+          label="Unsponsored"
+          value={String(totals.unsponsored)}
+          caption="Dated but no sponsor"
+        />
+      </div>
+
+      <div className="flex flex-col gap-4">
+        {resolved.map((group) => (
+          <ScheduleGroupCard
+            key={group.eventType.id}
+            eventType={group.eventType}
+            slots={group.slots}
+            isDense={group.isDense}
+            access={access}
+            today={today}
+            defaultOpen={group.slots.length <= DENSE_THRESHOLD}
+            onSchedule={handleSchedule}
+          />
+        ))}
+      </div>
+
+      {access.canWrite && (
+        <EventFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          event={editing ?? prefill}
+          mode={editing ? 'edit' : 'create'}
+          eventTypes={eventTypes}
+          sponsors={sponsors}
+          canComplete={access.canComplete}
+          onSubmit={handleSubmit}
+        />
+      )}
+    </>
+  );
+}
