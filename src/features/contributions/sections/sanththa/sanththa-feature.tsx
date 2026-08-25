@@ -3,16 +3,16 @@ import { getCurrentUser } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getContributionAccess } from '../../lib/contributions-access';
-import {
-  getCollectionTrend,
-  getMemberRecords,
-  getSanththaSummary,
-} from '../../lib/contributions-service';
-import { redactMembers } from '../../lib/contributions-privacy';
+import { getMemberRecords, getYears } from '../../lib/contributions-service';
 
 import { SanththaScreen } from './sanththa-screen';
 
-export async function SanththaFeature() {
+interface SanththaFeatureProps {
+  /** Which subscription year to show; defaults to the current one. */
+  year?: string;
+}
+
+export async function SanththaFeature({ year }: SanththaFeatureProps) {
   const user = await getCurrentUser();
   const access = getContributionAccess(user.role);
 
@@ -24,20 +24,19 @@ export async function SanththaFeature() {
     );
   }
 
-  const today = getToday();
+  const years = getYears();
+  const requested = Number(year);
+  const selected = years.includes(requested)
+    ? requested
+    : getActiveYear(getToday());
 
   return (
     <PageShell>
       <SanththaScreen
-        initialMembers={redactMembers(
-          getMemberRecords(today),
-          access.canSeeContact,
-        )}
-        summary={getSanththaSummary(today)}
-        trend={getCollectionTrend(today)}
+        initialMembers={getMemberRecords(selected)}
+        years={years}
+        year={selected}
         access={access}
-        today={today}
-        year={getActiveYear(today)}
       />
     </PageShell>
   );

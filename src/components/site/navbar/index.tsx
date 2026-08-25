@@ -4,8 +4,9 @@ import { useCallback, useEffect } from "react";
 import Image from "next/image";
 import {Link} from "@/i18n/routing";
 import { usePathname } from "next/navigation";
-import { Menu, Phone, X } from "lucide-react";
+import { LogIn, Menu, Phone, X } from "lucide-react";
 import { mainNavItems } from "@/config/navigation";
+import { AUTH_ROUTES } from "@/features/auth/lib/auth-routes";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { useScroll } from "@/hooks/use-scroll";
@@ -132,7 +133,18 @@ export function Navbar() {
           </nav>
 
           <div className="flex items-center gap-2">
-            
+            <Link
+              href={AUTH_ROUTES.signIn}
+              className={cn(
+                "hidden items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 lg:inline-flex",
+                isDarkOnTop
+                  ? "border border-white/20 bg-white/10 text-white backdrop-blur-sm hover:border-white/35 hover:bg-white/20"
+                  : "border border-transparent bg-gradient-to-br from-[#D4AF37] to-[#F4C430] text-[#1A1C1C] shadow-[0_10px_24px_rgba(212,175,55,0.28)] hover:shadow-[0_14px_30px_rgba(212,175,55,0.4)]"
+              )}
+            >
+              <LogIn className="h-4 w-4" />
+              {t('portalLogin')}
+            </Link>
 
             <LanguageToggler isDarkOnTop={isDarkOnTop} />
 
@@ -239,7 +251,16 @@ export function Navbar() {
             })}
           </nav>
 
-          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Link
+            href={AUTH_ROUTES.signIn}
+            onClick={closeMobileMenu}
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F4C430] px-5 py-3.5 text-sm font-semibold text-[#1A1C1C] shadow-[0_10px_24px_rgba(212,175,55,0.28)] transition-shadow hover:shadow-[0_14px_30px_rgba(212,175,55,0.4)]"
+          >
+            <LogIn className="h-4 w-4" />
+            {t('portalLogin')}
+          </Link>
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <a
               href={`tel:${siteConfig.contact.phone}`}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1A1C1C] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#2A2C2C]"

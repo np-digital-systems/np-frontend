@@ -10,8 +10,8 @@ const NOW = '2026-01-12T09:00:00';
 export const EVENT_TYPES: readonly EventType[] = [
   {
     id: 1,
-    name: 'ஆண்டு மகா திருவிழா',
-    nameEn: 'Annual Grand Festival',
+    name: 'திருவிழா',
+    nameEn: 'Thiruvizha',
     frequencyType: 'multi_day',
     noOfInstances: 12,
     createdAt: NOW,
@@ -114,7 +114,7 @@ export const EVENT_TYPE_SPONSORS: readonly EventTypeSponsor[] = [
     id: 1,
     eventTypeId: 1,
     instanceIdentifier: 10,
-    customInstanceName: 'ஆபரணம்',
+    customInstanceName: 'சப்பரம்',
     userId: 'usr_101',
     createdAt: NOW,
   },
@@ -295,7 +295,7 @@ export const TEMPLE_EVENTS: readonly TempleEvent[] = [
     id: 8,
     eventTypeId: 1,
     instanceIdentifier: 10,
-    customInstanceName: 'ஆபரணம்',
+    customInstanceName: 'சப்பரம்',
     scheduledDate: '2026-06-24',
     startTime: '17:00',
     endTime: '21:00',

@@ -18,21 +18,13 @@ export {
   timeAgo,
 } from '@/lib/format';
 
-export const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Administrator',
-  accountant: 'Accountant',
-  cashier: 'Cashier',
-  user: 'Devotee',
-};
-
-export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
-  admin: 'Full control of the temple’s records, money and portal settings.',
-  accountant:
-    'Keeps the books: approves and posts entries, manages funds, generates statements.',
-  cashier:
-    'Takes money at the counter: drafts receipts and payments and submits them for approval.',
-  user: 'A registered devotee. Sees the temple calendar and nothing operational.',
-};
+/*
+ * Roles belong to the auth feature: administration renders the vocabulary, it
+ * does not own it. Re-exported here so the screens below keep their local
+ * import — and so the user register, the role matrix and the login page can
+ * never describe the same role in two different ways.
+ */
+export { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/features/auth/lib/auth-data';
 
 export const SYSTEM_ROLES: readonly UserRole[] = ['admin'];
 

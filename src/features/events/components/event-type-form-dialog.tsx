@@ -137,7 +137,7 @@ export function EventTypeFormDialog({
             <Input
               id="type-name"
               value={draft.name}
-              placeholder="ஆண்டு மகா திருவிழா"
+              placeholder="திருவிழா"
               onChange={(changeEvent) =>
                 setDraft((current) => ({
                   ...current,

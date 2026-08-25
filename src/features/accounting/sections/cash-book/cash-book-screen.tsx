@@ -3,7 +3,11 @@
 import { useMemo, useState } from 'react';
 import { Printer } from 'lucide-react';
 
-import { PortalPageHeader, ReadOnlyNotice } from '@/components/portal/ui';
+import {
+  PortalPageHeader,
+  ReadOnlyNotice,
+  SegmentedControl,
+} from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -15,9 +19,16 @@ import {
 
 import { BookSummaryCards, BookTable } from '../../components/book-view';
 import type { AccountingAccess } from '../../lib/accounting-access';
-import { formatCurrency, formatMonthLabel } from '../../lib/accounting-data';
-import { bookMonths, sliceBook } from '../../lib/book';
+import {
+  formatCurrency,
+  formatLongDate,
+  formatMonthLabel,
+} from '../../lib/accounting-data';
+import { bookDays, bookMonths, sliceBook } from '../../lib/book';
 import type { BookRow, BookSummary } from '../../types';
+
+const GRAINS = ['Year', 'Month', 'Day'] as const;
+type Grain = (typeof GRAINS)[number];
 
 interface CashBookScreenProps {
   rows: readonly BookRow[];
@@ -32,17 +43,33 @@ export function CashBookScreen({
   access,
   year,
 }: CashBookScreenProps) {
-  const [month, setMonth] = useState<string | 'all'>('all');
+  const [grain, setGrain] = useState<Grain>('Year');
+  const [month, setMonth] = useState<string>('');
+  const [day, setDay] = useState<string>('');
 
   const months = useMemo(() => bookMonths(rows), [rows]);
+  const days = useMemo(() => bookDays(rows), [rows]);
+
+  // The selected period follows the grain, falling back to the most recent
+  // month or day so switching grain never lands on an empty selection.
+  const period =
+    grain === 'Year'
+      ? 'all'
+      : grain === 'Month'
+        ? month || months[0] || 'all'
+        : day || days[0] || 'all';
 
   const slice = useMemo(
-    () => sliceBook(rows, month, summary.opening),
-    [rows, month, summary.opening],
+    () => sliceBook(rows, period, summary.opening),
+    [rows, period, summary.opening],
   );
 
   const periodLabel =
-    month === 'all' ? `FY ${year}` : formatMonthLabel(month);
+    period === 'all'
+      ? `FY ${year}`
+      : period.length === 10
+        ? formatLongDate(period)
+        : formatMonthLabel(period);
 
   return (
     <>
@@ -59,24 +86,44 @@ export function CashBookScreen({
         ]}
         actions={
           <>
-            <Select
-              value={month}
-              onValueChange={(value) => setMonth(value)}
-            >
-              <SelectTrigger aria-label="Cash book period">
-                <SelectValue />
-              </SelectTrigger>
+            <SegmentedControl
+              label="Cash book granularity"
+              options={GRAINS}
+              value={grain}
+              onChange={setGrain}
+            />
 
-              <SelectContent>
-                <SelectItem value="all">Full year {year}</SelectItem>
+            {grain === 'Month' && (
+              <Select value={period} onValueChange={setMonth}>
+                <SelectTrigger aria-label="Cash book month">
+                  <SelectValue />
+                </SelectTrigger>
 
-                {months.map((entry) => (
-                  <SelectItem key={entry} value={entry}>
-                    {formatMonthLabel(entry)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectContent>
+                  {months.map((entry) => (
+                    <SelectItem key={entry} value={entry}>
+                      {formatMonthLabel(entry)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {grain === 'Day' && (
+              <Select value={period} onValueChange={setDay}>
+                <SelectTrigger aria-label="Cash book day">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {days.map((entry) => (
+                    <SelectItem key={entry} value={entry}>
+                      {formatLongDate(entry)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             {access.canExportTransactions && (
               <Button variant="outline">

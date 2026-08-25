@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   title: 'Sanththa',
 };
 
-export default function SanththaPage() {
-  return <SanththaFeature />;
+interface SanththaPageProps {
+  searchParams: Promise<{ year?: string }>;
+}
+
+export default async function SanththaPage({
+  searchParams,
+}: SanththaPageProps) {
+  const { year } = await searchParams;
+
+  return <SanththaFeature year={year} />;
 }

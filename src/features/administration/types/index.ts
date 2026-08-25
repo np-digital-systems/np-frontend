@@ -110,7 +110,6 @@ export interface TempleProfile {
 export interface LocaleSettings {
   readonly defaultLanguage: 'en' | 'ta';
   readonly timeZone: string;
-  readonly currency: string;
   readonly dateFormat: 'dd-mm-yyyy' | 'yyyy-mm-dd' | 'dd-mon-yyyy';
 }
 

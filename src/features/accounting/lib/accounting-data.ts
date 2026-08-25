@@ -21,6 +21,9 @@ export {
   getActiveYear,
 } from '@/lib/format';
 
+/** Pooja sponsorship drives the pooja picker in the voucher form. */
+export const POOJA_SPONSORSHIP_CODE = '4002';
+
 export const ACCOUNT_TYPES: readonly AccountType[] = [
   'asset',
   'liability',

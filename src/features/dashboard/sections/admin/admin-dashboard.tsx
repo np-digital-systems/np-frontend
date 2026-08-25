@@ -71,7 +71,7 @@ export function AdminDashboard({
           caption="2 accounts"
         />
         <StatCard
-          label="Festival Fund"
+          label="Pooja Fund"
           value={formatCurrency(320500)}
           caption={`FY ${financialYear.label}`}
           trend={{ value: '+12.4%', direction: 'up', isPositive: true }}

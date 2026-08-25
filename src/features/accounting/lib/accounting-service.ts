@@ -1,5 +1,8 @@
 import type { PeriodPoint } from '@/components/portal/ui';
+import { getEventTypes, getEvents } from '@/features/events';
 import { getToday } from '@/lib/format';
+
+import { allVouchers } from './voucher-store';
 
 import {
   ACCOUNTS,
@@ -7,7 +10,6 @@ import {
   CASH_ACCOUNT_ID,
   FUNDS,
   PROJECTS,
-  VOUCHERS,
 } from '../constants/mock-data';
 import type {
   Account,
@@ -28,6 +30,8 @@ import type {
   ProjectRef,
   StatementLine,
   TrialBalanceRow,
+  PoojaRef,
+  PoojaTypeRef,
   Voucher,
   VoucherRecord,
 } from '../types';
@@ -209,7 +213,7 @@ function byDateDescending(a: VoucherRecord, b: VoucherRecord): number {
 }
 
 export function getVouchers(): readonly VoucherRecord[] {
-  return VOUCHERS.map(resolve).sort(byDateDescending);
+  return allVouchers().map(resolve).sort(byDateDescending);
 }
 
 export function getVouchersOfKind(
@@ -235,7 +239,7 @@ function contraAccountId(voucher: Voucher): number {
 export function getLedger(): readonly LedgerRecord[] {
   const entries: LedgerRecord[] = [];
 
-  for (const voucher of VOUCHERS) {
+  for (const voucher of allVouchers()) {
     if (voucher.status !== 'Posted') continue;
 
     const resolved = resolve(voucher);
@@ -322,7 +326,7 @@ function buildBook(
 }
 
 function chequeNoOf(voucherId: number): string | null {
-  return VOUCHERS.find((entry) => entry.id === voucherId)?.chequeNo ?? null;
+  return allVouchers().find((entry) => entry.id === voucherId)?.chequeNo ?? null;
 }
 
 export function getCashBook(): {
@@ -382,7 +386,7 @@ export function getSummary(): AccountingSummary {
   const income = totalOn(ledger, 'income');
   const expenses = totalOn(ledger, 'expense');
 
-  const pending = VOUCHERS.filter(
+  const pending = allVouchers().filter(
     (entry) => entry.status === 'Pending Approval',
   );
 
@@ -502,4 +506,24 @@ export function getQuarterlySeries(today: string = getToday()): PeriodPoint[] {
       expenses: quarter.reduce((sum, point) => sum + point.expenses, 0),
     };
   });
+}
+
+/* Pooja options for the voucher form, mapped from the events calendar. */
+
+export function getPoojaTypes(): readonly PoojaTypeRef[] {
+  return getEventTypes().map((type) => ({
+    id: type.id,
+    name: type.name,
+    nameEn: type.nameEn,
+  }));
+}
+
+export function getPoojas(): readonly PoojaRef[] {
+  return getEvents().map((event) => ({
+    id: event.id,
+    eventTypeId: event.eventTypeId,
+    label: event.instanceLabel,
+    date: event.scheduledDate,
+    sponsorName: event.sponsor?.fullName ?? null,
+  }));
 }

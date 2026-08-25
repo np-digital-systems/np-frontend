@@ -62,7 +62,7 @@ export function PendingApprovals() {
                 <StatusBadge status="Pending Approval" />
 
                 <Link
-                  href={`/accounting/approvals/${item.ref}`}
+                  href={`/accounting/approvals?ref=${item.ref}`}
                   className={cn(
                     'inline-flex h-7 items-center gap-1.5 rounded-lg',
                     'border border-border bg-surface-2 px-2.5',

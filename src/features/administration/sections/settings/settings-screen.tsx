@@ -23,17 +23,31 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { formatCurrency, monthName } from '../../lib/administration-data';
+import {
+  formatCurrency,
+  monthName,
+  ROLE_LABELS,
+} from '../../lib/administration-data';
 import type {
   AccountingSettings,
   LocaleSettings,
   NotificationSettings,
   PortalSettings,
   TempleProfile,
+  UserRecord,
+  UserSession,
 } from '../../types';
 
+import { ProfileScreen } from '../profile/profile-screen';
+import { SessionsScreen } from '../profile/sessions-screen';
+
 interface SettingsScreenProps {
-  initialSettings: PortalSettings;
+  user: UserRecord;
+  sessions: readonly UserSession[];
+  currentSessionId: string;
+  today: string;
+  /** Portal-wide settings, present only for roles that may change them. */
+  initialSettings: PortalSettings | null;
 }
 
 /**
@@ -41,8 +55,18 @@ interface SettingsScreenProps {
  * here persists yet, which is why the save button tracks a dirty count
  * rather than pretending to have written.
  */
-export function SettingsScreen({ initialSettings }: SettingsScreenProps) {
-  const [settings, setSettings] = useState<PortalSettings>(initialSettings);
+export function SettingsScreen({
+  user,
+  sessions,
+  currentSessionId,
+  today,
+  initialSettings,
+}: SettingsScreenProps) {
+  const [settings, setSettings] = useState<PortalSettings | null>(
+    initialSettings,
+  );
+
+  const canManagePortal = initialSettings !== null;
 
   const isDirty = useMemo(
     () => JSON.stringify(settings) !== JSON.stringify(initialSettings),
@@ -53,19 +77,22 @@ export function SettingsScreen({ initialSettings }: SettingsScreenProps) {
     key: K,
     value: Partial<PortalSettings[K]>,
   ) {
-    setSettings((current) => ({
-      ...current,
-      [key]: { ...current[key], ...value },
-    }));
+    setSettings((current) =>
+      current ? { ...current, [key]: { ...current[key], ...value } } : current,
+    );
   }
 
   return (
     <>
       <PortalPageHeader
         title="Settings"
-        description="The temple’s details and the defaults every other screen in the portal follows."
+        description={
+          canManagePortal
+            ? 'Your account, your sessions, and the defaults every other screen in the portal follows.'
+            : 'Your account details and the devices signed in to it.'
+        }
         meta={[
-          <span key="temple">{settings.temple.name}</span>,
+          <span key="role">{ROLE_LABELS[user.role]}</span>,
           isDirty ? (
             <span key="dirty" className="text-warning">
               Unsaved changes
@@ -73,57 +100,84 @@ export function SettingsScreen({ initialSettings }: SettingsScreenProps) {
           ) : null,
         ].filter(Boolean)}
         actions={
-          <>
-            {isDirty && (
-              <Button
-                variant="outline"
-                onClick={() => setSettings(initialSettings)}
-              >
-                <RotateCcw />
-                Discard
-              </Button>
-            )}
+          canManagePortal && (
+            <>
+              {isDirty && (
+                <Button
+                  variant="outline"
+                  onClick={() => setSettings(initialSettings)}
+                >
+                  <RotateCcw />
+                  Discard
+                </Button>
+              )}
 
-            <Button disabled={!isDirty}>Save Settings</Button>
-          </>
+              <Button disabled={!isDirty}>Save Settings</Button>
+            </>
+          )
         }
       />
 
-      <Tabs defaultValue="temple">
+      <Tabs defaultValue="profile">
         <TabsList>
-          <TabsTrigger value="temple">Temple</TabsTrigger>
-          <TabsTrigger value="locale">Locale &amp; Format</TabsTrigger>
-          <TabsTrigger value="accounting">Accounting</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="sessions">My Sessions</TabsTrigger>
+
+          {canManagePortal && (
+            <>
+              <TabsTrigger value="temple">Temple</TabsTrigger>
+              <TabsTrigger value="locale">Locale &amp; Format</TabsTrigger>
+              <TabsTrigger value="accounting">Accounting</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            </>
+          )}
         </TabsList>
 
-        <TabsContent value="temple">
-          <TempleSection
-            profile={settings.temple}
-            onChange={(value) => patch('temple', value)}
+        <TabsContent value="profile">
+          <ProfileScreen user={user} embedded />
+        </TabsContent>
+
+        <TabsContent value="sessions">
+          <SessionsScreen
+            embedded
+            initialSessions={sessions}
+            currentSessionId={currentSessionId}
+            today={today}
           />
         </TabsContent>
 
-        <TabsContent value="locale">
-          <LocaleSection
-            locale={settings.locale}
-            onChange={(value) => patch('locale', value)}
-          />
-        </TabsContent>
+        {canManagePortal && settings && (
+          <>
+          <TabsContent value="temple">
+            <TempleSection
+              profile={settings.temple}
+              onChange={(value) => patch('temple', value)}
+            />
+          </TabsContent>
 
-        <TabsContent value="accounting">
-          <AccountingSection
-            accounting={settings.accounting}
-            onChange={(value) => patch('accounting', value)}
-          />
-        </TabsContent>
+          <TabsContent value="locale">
+            <LocaleSection
+              locale={settings.locale}
+              onChange={(value) => patch('locale', value)}
+            />
+          </TabsContent>
 
-        <TabsContent value="notifications">
-          <NotificationsSection
-            notifications={settings.notifications}
-            onChange={(value) => patch('notifications', value)}
-          />
-        </TabsContent>
+          <TabsContent value="accounting">
+            <AccountingSection
+              accounting={settings.accounting}
+              onChange={(value) => patch('accounting', value)}
+            />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationsSection
+              notifications={settings.notifications}
+              onChange={(value) => patch('notifications', value)}
+            />
+          </TabsContent>
+          </>
+        )}
+
       </Tabs>
     </>
   );
@@ -275,26 +329,6 @@ function LocaleSection({
                   {zone}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-
-        <FormField
-          id="locale-currency"
-          label="Currency"
-          hint="Applies to every figure in the portal."
-        >
-          <Select
-            value={locale.currency}
-            onValueChange={(value) => onChange({ currency: value })}
-          >
-            <SelectTrigger id="locale-currency" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="INR">₹ — Indian Rupee</SelectItem>
-              <SelectItem value="LKR">Rs — Sri Lankan Rupee</SelectItem>
             </SelectContent>
           </Select>
         </FormField>

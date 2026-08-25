@@ -41,7 +41,7 @@ export const ACCOUNTS: readonly Account[] = [
   { id: 402, code: '4002', name: 'Pooja Sponsorship', nameTa: 'பூஜை அனுசரணை', type: 'income', parentId: 400, isActive: true, openingBalance: 0, createdAt: YEAR_START },
   { id: 403, code: '4003', name: 'Annadhanam Donations', nameTa: 'அன்னதான நன்கொடை', type: 'income', parentId: 400, isActive: true, openingBalance: 0, createdAt: YEAR_START },
   { id: 404, code: '4004', name: 'Thiruppani Donations', nameTa: 'திருப்பணி நன்கொடை', type: 'income', parentId: 400, isActive: true, openingBalance: 0, createdAt: YEAR_START },
-  { id: 405, code: '4005', name: 'Festival Donations', nameTa: 'திருவிழா நன்கொடை', type: 'income', parentId: 400, isActive: true, openingBalance: 0, createdAt: YEAR_START },
+  { id: 409, code: '4009', name: 'Sanththa Subscriptions', nameTa: 'சந்தா பணம்', type: 'income', parentId: 400, isActive: true, openingBalance: 0, createdAt: YEAR_START },
   { id: 406, code: '4006', name: 'Rent Income', nameTa: 'வாடகை வருமானம்', type: 'income', parentId: 400, isActive: true, openingBalance: 0, createdAt: YEAR_START },
   { id: 407, code: '4007', name: 'Fixed Deposit Interest', nameTa: 'வைப்பு வட்டி', type: 'income', parentId: 400, isActive: true, openingBalance: 0, createdAt: YEAR_START },
 
@@ -60,7 +60,7 @@ export const ACCOUNTS: readonly Account[] = [
 
 export const FUNDS: readonly Fund[] = [
   { id: 1, name: 'General Temple Fund', nameTa: 'பொது ஆலய நிதி', opening: 180_000, income: 820_000, expenses: 465_000, isActive: true },
-  { id: 2, name: 'Festival Fund', nameTa: 'திருவிழா நிதி', opening: 95_000, income: 1_075_000, expenses: 666_000, isActive: true },
+  { id: 2, name: 'Pooja Fund', nameTa: 'பூஜை நிதி', opening: 95_000, income: 1_075_000, expenses: 666_000, isActive: true },
   { id: 3, name: 'Thiruppani Fund', nameTa: 'திருப்பணி நிதி', opening: 240_000, income: 452_000, expenses: 268_000, isActive: true },
   { id: 4, name: 'Annadhanam Fund', nameTa: 'அன்னதான நிதி', opening: 60_000, income: 318_000, expenses: 265_000, isActive: true },
 ];
@@ -69,7 +69,7 @@ export const PROJECTS: readonly Project[] = [
   {
     id: 1,
     name: 'Annual Festival 2026',
-    nameTa: 'ஆண்டு மகா திருவிழா 2026',
+    nameTa: 'திருவிழா 2026',
     fundId: 2,
     budget: 850_000,
     startDate: '2026-05-01',
@@ -206,6 +206,9 @@ type VoucherSeed = Omit<
   | 'projectId'
   | 'bankAccountId'
   | 'chequeNo'
+  | 'eventTypeId'
+  | 'eventId'
+  | 'manualVoucherNo'
   | 'submittedAt'
   | 'decidedBy'
   | 'decidedAt'
@@ -222,6 +225,9 @@ function voucher(seed: VoucherSeed): Voucher {
     bankAccountId: null,
     chequeNo: null,
     eventRef: null,
+    eventTypeId: null,
+    eventId: null,
+    manualVoucherNo: null,
     notes: null,
     submittedAt: seed.status === 'Draft' ? null : `${seed.date}T10:00:00`,
     decidedBy: settled || seed.status === 'Rejected' ? ACCOUNTANT : null,
@@ -234,9 +240,9 @@ function voucher(seed: VoucherSeed): Voucher {
 }
 
 export const VOUCHERS: readonly Voucher[] = [
-  voucher({ id: 1, ref: 'RV-2026-0101', kind: 'receipt', date: '2026-01-09', description: 'Hundial collection — January week 1', amount: 42_500, accountId: 401, fundId: 1, mode: 'cash', party: 'Hundial', status: 'Posted', createdBy: CASHIER, createdAt: '2026-01-09T08:00:00' }),
-  voucher({ id: 2, ref: 'RV-2026-0102', kind: 'receipt', date: '2026-01-16', description: 'Friday pooja sponsorship', amount: 15_000, accountId: 402, fundId: 1, mode: 'cash', party: 'ஸ்ரீ நந்திகேஸ்வரர் மன்றம்', eventRef: 'வெள்ளிக்கிழமை பூஜை — Week 2', status: 'Posted', createdBy: CASHIER, createdAt: '2026-01-16T09:15:00' }),
-  voucher({ id: 3, ref: 'PV-2026-0051', kind: 'payment', date: '2026-01-20', description: 'Priest honorarium — January', amount: 24_000, accountId: 501, fundId: 1, mode: 'bank', bankAccountId: 1, chequeNo: '004512', party: 'சிவஸ்ரீ க. சர்மா', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-01-20T11:00:00' }),
+  voucher({ manualVoucherNo: '1021', id: 1, ref: 'RV-2026-0101', kind: 'receipt', date: '2026-01-09', description: 'Hundial collection — January week 1', amount: 42_500, accountId: 401, fundId: 1, mode: 'cash', party: 'Hundial', status: 'Posted', createdBy: CASHIER, createdAt: '2026-01-09T08:00:00' }),
+  voucher({ manualVoucherNo: '1022', id: 2, ref: 'RV-2026-0102', kind: 'receipt', date: '2026-01-16', description: 'Friday pooja sponsorship', amount: 15_000, accountId: 402, fundId: 1, mode: 'cash', party: 'ஸ்ரீ நந்திகேஸ்வரர் மன்றம்', eventRef: 'வெள்ளிக்கிழமை பூஜை — Week 2', status: 'Posted', createdBy: CASHIER, createdAt: '2026-01-16T09:15:00' }),
+  voucher({ manualVoucherNo: '0517', id: 3, ref: 'PV-2026-0051', kind: 'payment', date: '2026-01-20', description: 'Priest honorarium — January', amount: 24_000, accountId: 501, fundId: 1, mode: 'bank', bankAccountId: 1, chequeNo: '004512', party: 'சிவஸ்ரீ க. சர்மா', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-01-20T11:00:00' }),
   voucher({ id: 4, ref: 'PV-2026-0052', kind: 'payment', date: '2026-01-27', description: 'Electricity bill — December', amount: 12_400, accountId: 505, fundId: 1, mode: 'bank', bankAccountId: 1, chequeNo: '004513', party: 'Ceylon Electricity Board', status: 'Posted', createdBy: CASHIER, createdAt: '2026-01-27T14:20:00' }),
   voucher({ id: 5, ref: 'RV-2026-0108', kind: 'receipt', date: '2026-02-14', description: 'Pradosham pooja sponsorship', amount: 8_500, accountId: 402, fundId: 1, mode: 'cash', party: 'ஸ்ரீ நந்திகேஸ்வரர் மன்றம்', eventRef: 'பிரதோஷ பூஜை — Valarpirai', status: 'Posted', createdBy: CASHIER, createdAt: '2026-02-14T17:00:00' }),
   voucher({ id: 6, ref: 'RV-2026-0112', kind: 'receipt', date: '2026-03-02', description: 'Thiruppani donation — Gopuram', amount: 150_000, accountId: 404, fundId: 3, projectId: 3, mode: 'bank', bankAccountId: 1, party: 'கார்த்திகேயன் அறக்கட்டளை', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-03-02T10:30:00' }),
@@ -244,9 +250,9 @@ export const VOUCHERS: readonly Voucher[] = [
   voucher({ id: 8, ref: 'RV-2026-0118', kind: 'receipt', date: '2026-04-06', description: 'Annadhanam donation — Chithirai', amount: 65_000, accountId: 403, fundId: 4, mode: 'cash', party: 'திருமதி. ஜெகதீஸ்வரி நடராஜா', status: 'Posted', createdBy: CASHIER, createdAt: '2026-04-06T12:00:00' }),
   voucher({ id: 9, ref: 'PV-2026-0063', kind: 'payment', date: '2026-04-14', description: 'Annadhanam provisions — Chithirai', amount: 48_200, accountId: 504, fundId: 4, mode: 'cash', party: 'Jaffna Wholesale Stores', status: 'Posted', createdBy: CASHIER, createdAt: '2026-04-14T08:45:00' }),
   voucher({ id: 10, ref: 'RV-2026-0121', kind: 'receipt', date: '2026-05-31', description: 'Vaikasi Visakam special pooja sponsorship', amount: 45_000, accountId: 402, fundId: 2, projectId: 1, mode: 'bank', bankAccountId: 1, party: 'செல்வி. அபிராமி இராமநாதன்', eventRef: 'வைகாசி விசாக சிறப்பு பூஜை', status: 'Posted', createdBy: CASHIER, createdAt: '2026-05-31T07:30:00' }),
-  voucher({ id: 11, ref: 'RV-2026-0126', kind: 'receipt', date: '2026-06-15', description: 'Festival donation — Kodiyetram day', amount: 120_000, accountId: 405, fundId: 2, projectId: 1, mode: 'cash', party: 'Devotees — festival collection', eventRef: 'ஆண்டு மகா திருவிழா — கொடியேற்றம்', status: 'Posted', createdBy: CASHIER, createdAt: '2026-06-15T13:00:00' }),
-  voucher({ id: 12, ref: 'PV-2026-0071', kind: 'payment', date: '2026-06-18', description: 'Melam & Nadaswaram — festival week', amount: 96_000, accountId: 503, fundId: 2, projectId: 1, mode: 'cash', party: 'Nallur Melam Group', eventRef: 'ஆண்டு மகா திருவிழா', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-06-18T10:00:00' }),
-  voucher({ id: 13, ref: 'RV-2026-0129', kind: 'receipt', date: '2026-06-25', description: 'Ther thiruvizha sponsorship', amount: 85_000, accountId: 402, fundId: 2, projectId: 1, mode: 'bank', bankAccountId: 1, party: 'செல்வி. அபிராமி இராமநாதன்', eventRef: 'ஆண்டு மகா திருவிழா — தேர்த் திருவிழா', status: 'Posted', createdBy: CASHIER, createdAt: '2026-06-25T06:30:00' }),
+  voucher({ manualVoucherNo: '1104', id: 11, ref: 'RV-2026-0126', kind: 'receipt', date: '2026-06-15', description: 'Pooja sponsorship — திருவிழா · கொடியேற்றம்', amount: 120_000, accountId: 402, fundId: 2, projectId: 1, mode: 'cash', party: 'Devotees — festival collection', eventRef: 'திருவிழா — கொடியேற்றம்', status: 'Posted', createdBy: CASHIER, createdAt: '2026-06-15T13:00:00' }),
+  voucher({ id: 12, ref: 'PV-2026-0071', kind: 'payment', date: '2026-06-18', description: 'Melam & Nadaswaram — festival week', amount: 96_000, accountId: 503, fundId: 2, projectId: 1, mode: 'cash', party: 'Nallur Melam Group', eventRef: 'திருவிழா', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-06-18T10:00:00' }),
+  voucher({ id: 13, ref: 'RV-2026-0129', kind: 'receipt', date: '2026-06-25', description: 'Ther thiruvizha sponsorship', amount: 85_000, accountId: 402, fundId: 2, projectId: 1, mode: 'bank', bankAccountId: 1, party: 'செல்வி. அபிராமி இராமநாதன்', eventRef: 'திருவிழா — தேர்த் திருவிழா', status: 'Posted', createdBy: CASHIER, createdAt: '2026-06-25T06:30:00' }),
   voucher({ id: 14, ref: 'PV-2026-0074', kind: 'payment', date: '2026-06-26', description: 'Festival decorations and lighting', amount: 74_500, accountId: 508, fundId: 2, projectId: 1, mode: 'cheque', bankAccountId: 1, chequeNo: '004566', party: 'Sri Lakshmi Decorators', status: 'Posted', createdBy: CASHIER, createdAt: '2026-06-26T09:00:00' }),
   voucher({ id: 15, ref: 'RV-2026-0134', kind: 'receipt', date: '2026-07-04', description: 'Rent — temple shop units, Q2', amount: 42_000, accountId: 406, fundId: 1, mode: 'bank', bankAccountId: 2, party: 'Nallur Traders', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-07-04T11:15:00' }),
   voucher({ id: 16, ref: 'RV-2026-0136', kind: 'receipt', date: '2026-07-15', description: 'Fixed deposit interest — Q2', amount: 12_450, accountId: 407, fundId: 1, mode: 'bank', bankAccountId: 3, party: 'Hatton National Bank', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-07-15T10:00:00' }),
@@ -256,9 +262,19 @@ export const VOUCHERS: readonly Voucher[] = [
   voucher({ id: 20, ref: 'PV-2026-0084', kind: 'payment', date: '2026-08-10', description: 'Flowers and pooja materials — August', amount: 18_400, accountId: 502, fundId: 1, mode: 'cash', party: 'Flower Mart, Nallur', status: 'Posted', createdBy: CASHIER, createdAt: '2026-08-10T07:00:00' }),
   voucher({ id: 21, ref: 'RV-2026-0143', kind: 'receipt', date: '2026-08-14', description: 'Annadhanam donation — Aadi', amount: 35_000, accountId: 403, fundId: 4, mode: 'cash', party: 'ம. கணேசன் மற்றும் குடும்பத்தினர்', status: 'Posted', createdBy: ME, createdAt: '2026-08-14T12:30:00' }),
 
+
+  // Sanththa subscriptions — one receipt per member per year.
+  voucher({ id: 60, ref: 'RV-2026-0160', kind: 'receipt', date: '2026-01-12', description: 'Sanththa subscription 2026 — S-001', amount: 1_500, accountId: 409, fundId: 1, mode: 'cash', party: 'ம. கணேசன் மற்றும் குடும்பத்தினர்', status: 'Posted', createdBy: CASHIER, createdAt: '2026-01-12T10:00:00' }),
+  voucher({ id: 61, ref: 'RV-2026-0161', kind: 'receipt', date: '2026-01-18', description: 'Sanththa subscription 2026 — S-002', amount: 1_500, accountId: 409, fundId: 1, mode: 'bank', bankAccountId: 1, party: 'செல்வி. அபிராமி இராமநாதன்', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-01-18T10:00:00' }),
+  voucher({ id: 62, ref: 'RV-2026-0162', kind: 'receipt', date: '2026-01-06', description: 'Sanththa subscription 2026 — S-004', amount: 1_500, accountId: 409, fundId: 1, mode: 'bank', bankAccountId: 1, party: 'கார்த்திகேயன் அறக்கட்டளை', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-01-06T10:00:00' }),
+  voucher({ id: 63, ref: 'RV-2026-0163', kind: 'receipt', date: '2026-02-03', description: 'Sanththa subscription 2026 — S-005', amount: 1_500, accountId: 409, fundId: 1, mode: 'cash', party: 'சிவஸ்ரீ குடும்பம்', status: 'Posted', createdBy: CASHIER, createdAt: '2026-02-03T10:00:00' }),
+  voucher({ id: 64, ref: 'RV-2026-0164', kind: 'receipt', date: '2026-02-11', description: 'Sanththa subscription 2026 — S-006', amount: 1_500, accountId: 409, fundId: 1, mode: 'bank', bankAccountId: 1, party: 'ஸ்ரீ நந்திகேஸ்வரர் மன்றம்', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-02-11T10:00:00' }),
+  voucher({ id: 65, ref: 'RV-2026-0165', kind: 'receipt', date: '2026-04-20', description: 'Sanththa subscription 2026 — S-007', amount: 1_500, accountId: 409, fundId: 1, mode: 'cash', party: 'தி. ராஜேந்திரன்', status: 'Posted', createdBy: CASHIER, createdAt: '2026-04-20T10:00:00' }),
+  voucher({ id: 66, ref: 'RV-2026-0166', kind: 'receipt', date: '2026-05-09', description: 'Sanththa subscription 2026 — S-009', amount: 1_500, accountId: 409, fundId: 1, mode: 'online', bankAccountId: 1, party: 'க. பாலசுப்ரமணியம்', status: 'Posted', createdBy: ACCOUNTANT, createdAt: '2026-05-09T10:00:00' }),
+  voucher({ id: 67, ref: 'RV-2026-0167', kind: 'receipt', date: '2026-07-02', description: 'Sanththa subscription 2026 — S-012', amount: 1_500, accountId: 409, fundId: 1, mode: 'cash', party: 'நிர்மலா சுந்தரம்', status: 'Posted', createdBy: CASHIER, createdAt: '2026-07-02T10:00:00' }),
   // Live queue — everything below is still moving through the chain.
-  voucher({ id: 22, ref: 'RV-2026-0145', kind: 'receipt', date: '2026-08-18', description: 'Navarathiri sponsorship — day 3', amount: 25_000, accountId: 402, fundId: 2, projectId: 2, mode: 'bank', bankAccountId: 1, party: 'சிவஸ்ரீ குடும்பம்', eventRef: 'நவராத்திரி விழா — மூன்றாம் நாள் பூஜை', status: 'Pending Approval', createdBy: CASHIER, createdAt: '2026-08-18T10:20:00' }),
-  voucher({ id: 23, ref: 'PV-2026-0087', kind: 'payment', date: '2026-08-18', description: 'Melam advance — Navarathiri', amount: 15_000, accountId: 503, fundId: 2, projectId: 2, mode: 'cash', party: 'Nallur Melam Group', status: 'Pending Approval', createdBy: CASHIER, createdAt: '2026-08-18T11:05:00' }),
+  voucher({ manualVoucherNo: '1188', id: 22, ref: 'RV-2026-0145', kind: 'receipt', date: '2026-08-18', description: 'Navarathiri sponsorship — day 3', amount: 25_000, accountId: 402, fundId: 2, projectId: 2, mode: 'bank', bankAccountId: 1, party: 'சிவஸ்ரீ குடும்பம்', eventRef: 'நவராத்திரி விழா — மூன்றாம் நாள் பூஜை', status: 'Pending Approval', createdBy: CASHIER, createdAt: '2026-08-18T10:20:00' }),
+  voucher({ manualVoucherNo: '0602', id: 23, ref: 'PV-2026-0087', kind: 'payment', date: '2026-08-18', description: 'Melam advance — Navarathiri', amount: 15_000, accountId: 503, fundId: 2, projectId: 2, mode: 'cash', party: 'Nallur Melam Group', status: 'Pending Approval', createdBy: CASHIER, createdAt: '2026-08-18T11:05:00' }),
   voucher({ id: 24, ref: 'PV-2026-0088', kind: 'payment', date: '2026-08-19', description: 'Dining hall — flooring materials', amount: 82_000, accountId: 507, fundId: 3, projectId: 4, mode: 'cheque', bankAccountId: 1, chequeNo: '004601', party: 'Jaffna Hardware', status: 'Pending Approval', createdBy: ACCOUNTANT, createdAt: '2026-08-19T09:40:00' }),
   voucher({ id: 25, ref: 'RV-2026-0147', kind: 'receipt', date: '2026-08-19', description: 'Thiruppani donation — Gopuram, second tranche', amount: 95_000, accountId: 404, fundId: 3, projectId: 3, mode: 'bank', bankAccountId: 1, party: 'கார்த்திகேயன் அறக்கட்டளை', status: 'Pending Approval', createdBy: ME, createdAt: '2026-08-19T14:10:00' }),
   voucher({ id: 26, ref: 'PV-2026-0089', kind: 'payment', date: '2026-08-20', description: 'Staff salaries — August', amount: 28_000, accountId: 509, fundId: 1, mode: 'bank', bankAccountId: 1, chequeNo: '004602', party: 'Temple staff', status: 'Approved', createdBy: ACCOUNTANT, createdAt: '2026-08-20T09:00:00' }),
@@ -267,7 +283,7 @@ export const VOUCHERS: readonly Voucher[] = [
   voucher({ id: 29, ref: 'RV-2026-0150', kind: 'receipt', date: '2026-08-21', description: 'Hundial collection — August week 3', amount: 31_200, accountId: 401, fundId: 1, mode: 'cash', party: 'Hundial', status: 'Draft', createdBy: ME, createdAt: '2026-08-21T08:10:00' }),
   voucher({ id: 30, ref: 'PV-2026-0091', kind: 'payment', date: '2026-08-21', description: 'Printing — Navarathiri notices', amount: 9_600, accountId: 510, fundId: 2, projectId: 2, mode: 'cash', party: 'Sakthi Printers', status: 'Draft', createdBy: ME, createdAt: '2026-08-21T09:30:00' }),
   voucher({ id: 31, ref: 'PV-2026-0092', kind: 'payment', date: '2026-08-21', description: 'Annadhanam provisions — Aadi Velli', amount: 22_800, accountId: 504, fundId: 4, mode: 'cash', party: 'Jaffna Wholesale Stores', status: 'Draft', createdBy: CASHIER, createdAt: '2026-08-21T10:45:00' }),
-  voucher({ id: 32, ref: 'RV-2026-0151', kind: 'receipt', date: '2026-08-12', description: 'Festival donation — advance pledge', amount: 55_000, accountId: 405, fundId: 2, projectId: 1, mode: 'online', party: 'ஸ்ரீ நந்திகேஸ்வரர் மன்றம்', status: 'Cancelled', createdBy: ADMIN, createdAt: '2026-08-12T16:00:00', notes: 'Pledge withdrawn by the donor; a fresh receipt will be raised in September.' }),
+  voucher({ id: 32, ref: 'RV-2026-0151', kind: 'receipt', date: '2026-08-12', description: 'Pooja sponsorship — திருவிழா · advance pledge', amount: 55_000, accountId: 402, fundId: 2, projectId: 1, mode: 'online', party: 'ஸ்ரீ நந்திகேஸ்வரர் மன்றம்', status: 'Cancelled', createdBy: ADMIN, createdAt: '2026-08-12T16:00:00', notes: 'Pledge withdrawn by the donor; a fresh receipt will be raised in September.' }),
 ];
 
 export const CASH_ACCOUNT_ID = 101;

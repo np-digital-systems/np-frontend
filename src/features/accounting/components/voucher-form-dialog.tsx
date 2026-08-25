@@ -34,12 +34,15 @@ import {
   isBankMode,
   partyLabel,
 } from '../lib/accounting-data';
+import { POOJA_SPONSORSHIP_CODE, formatLongDate } from '../lib/accounting-data';
 import type {
   AccountRef,
   AccountType,
   BankAccountRef,
   FundRef,
   PaymentMode,
+  PoojaRef,
+  PoojaTypeRef,
   ProjectRef,
   VoucherKind,
   VoucherRecord,
@@ -56,6 +59,10 @@ export interface VoucherDraft {
   bankAccountId: number | null;
   chequeNo: string;
   party: string;
+  manualVoucherNo: string;
+  eventTypeId: number | null;
+  eventId: number | null;
+  eventRef: string | null;
   notes: string;
 }
 
@@ -80,6 +87,10 @@ function draftFrom(
       bankAccountId: voucher.bankAccountId,
       chequeNo: voucher.chequeNo ?? '',
       party: voucher.party,
+      manualVoucherNo: voucher.manualVoucherNo ?? '',
+      eventTypeId: voucher.eventTypeId,
+      eventId: voucher.eventId,
+      eventRef: voucher.eventRef,
       notes: voucher.notes ?? '',
     };
   }
@@ -102,6 +113,10 @@ function draftFrom(
     bankAccountId: null,
     chequeNo: '',
     party: '',
+    manualVoucherNo: '',
+    eventTypeId: null,
+    eventId: null,
+    eventRef: null,
     notes: '',
   };
 }
@@ -115,6 +130,8 @@ interface VoucherFormDialogProps {
   funds: readonly FundRef[];
   projects: readonly ProjectRef[];
   bankAccounts: readonly BankAccountRef[];
+  poojaTypes: readonly PoojaTypeRef[];
+  poojas: readonly PoojaRef[];
   onSubmit: (draft: VoucherDraft) => void;
     onSubmitForApproval?: (draft: VoucherDraft) => void;
 }
@@ -128,6 +145,8 @@ export function VoucherFormDialog({
   funds,
   projects,
   bankAccounts,
+  poojaTypes,
+  poojas,
   onSubmit,
   onSubmitForApproval,
 }: VoucherFormDialogProps) {
@@ -171,6 +190,20 @@ export function VoucherFormDialog({
 
   const needsBank = isBankMode(draft.mode);
 
+  // Pooja sponsorship is the one account whose entries have to name a pooja.
+  const selectedAccount = accounts.find(
+    (account) => account.id === draft.accountId,
+  );
+  const isPoojaSponsorship = selectedAccount?.code === POOJA_SPONSORSHIP_CODE;
+
+  const typePoojas = poojas.filter(
+    (pooja) => pooja.eventTypeId === draft.eventTypeId,
+  );
+  const selectedPooja = poojas.find((pooja) => pooja.id === draft.eventId);
+  const selectedPoojaType = poojaTypes.find(
+    (type) => type.id === draft.eventTypeId,
+  );
+
   function update<K extends keyof VoucherDraft>(key: K, value: VoucherDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
@@ -191,10 +224,24 @@ export function VoucherFormDialog({
   }
 
   function check(): boolean {
+    const pooja = poojaError();
+
+    if (pooja) {
+      setError(pooja);
+      return false;
+    }
+
     const result = validate(voucherSchema, draft);
 
     setError(result.ok ? null : result.message);
     return result.ok;
+  }
+
+  function poojaError(): string | null {
+    if (!isPoojaSponsorship) return null;
+    if (draft.eventTypeId === null) return 'Choose the pooja type this entry is for.';
+    if (draft.eventId === null) return 'Choose which pooja this entry is for.';
+    return null;
   }
 
   function handleSave(formEvent: React.FormEvent) {
@@ -236,6 +283,21 @@ export function VoucherFormDialog({
                 value={draft.date}
                 onChange={(changeEvent) =>
                   update('date', changeEvent.target.value)
+                }
+              />
+            </FormField>
+
+            <FormField
+              id="voucher-manual-no"
+              label="Manual Voucher No"
+              hint="The number on the temple's physical voucher book."
+            >
+              <Input
+                id="voucher-manual-no"
+                value={draft.manualVoucherNo}
+                placeholder="e.g. 1247"
+                onChange={(changeEvent) =>
+                  update('manualVoucherNo', changeEvent.target.value)
                 }
               />
             </FormField>
@@ -311,6 +373,110 @@ export function VoucherFormDialog({
               </SelectContent>
             </Select>
           </FormField>
+
+          {isPoojaSponsorship && (
+            <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface-2 p-3.5">
+              <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+                Which pooja
+              </p>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField id="voucher-pooja-type" label="Pooja Type" required>
+                  <Select
+                    value={
+                      draft.eventTypeId === null ? '' : String(draft.eventTypeId)
+                    }
+                    onValueChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        eventTypeId: Number(value),
+                        // The pooja belongs to a type, so changing the type
+                        // invalidates whatever pooja was chosen under the old one.
+                        eventId: null,
+                        eventRef: null,
+                      }))
+                    }
+                  >
+                    <SelectTrigger id="voucher-pooja-type" className="w-full">
+                      <SelectValue placeholder="Select a pooja type" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {poojaTypes.map((type) => (
+                        <SelectItem key={type.id} value={String(type.id)}>
+                          {type.name} · {type.nameEn}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField
+                  id="voucher-pooja"
+                  label="Pooja"
+                  required
+                  hint={
+                    draft.eventTypeId === null
+                      ? 'Choose a pooja type first.'
+                      : typePoojas.length === 0
+                        ? 'No poojas scheduled under this type yet.'
+                        : undefined
+                  }
+                >
+                  <Select
+                    value={draft.eventId === null ? '' : String(draft.eventId)}
+                    disabled={draft.eventTypeId === null}
+                    onValueChange={(value) => {
+                      const pooja = poojas.find(
+                        (entry) => entry.id === Number(value),
+                      );
+
+                      setDraft((current) => ({
+                        ...current,
+                        eventId: Number(value),
+                        eventRef: pooja
+                          ? `${selectedPoojaType?.name ?? ''} — ${pooja.label}`
+                          : null,
+                        // A receipt is collected from whoever sponsors the
+                        // pooja, so selecting one fills the payer in.
+                        party:
+                          kind === 'receipt' && pooja?.sponsorName
+                            ? pooja.sponsorName
+                            : current.party,
+                        // The pooja is the description for these entries;
+                        // anything the user already typed is left alone.
+                        description:
+                          pooja && !current.description.trim()
+                            ? `${selectedPoojaType?.name ?? ''} — ${pooja.label}`
+                            : current.description,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger id="voucher-pooja" className="w-full">
+                      <SelectValue placeholder="Select a pooja" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {typePoojas.map((pooja) => (
+                        <SelectItem key={pooja.id} value={String(pooja.id)}>
+                          {pooja.label} · {formatLongDate(pooja.date)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              </div>
+
+              {selectedPooja && (
+                <p className="text-xs text-text-secondary">
+                  {selectedPoojaType?.name} — {selectedPooja.label}
+                  {selectedPooja.sponsorName
+                    ? ` · sponsored by ${selectedPooja.sponsorName}`
+                    : ' · no sponsor assigned yet'}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="voucher-fund" label="Fund" required>

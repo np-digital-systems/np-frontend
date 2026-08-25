@@ -1,7 +1,6 @@
 'use client';
 
-import { LogOut, Settings } from 'lucide-react';
-import Link from 'next/link';
+import { LogOut } from 'lucide-react';
 
 import {
   Tooltip,
@@ -27,13 +26,6 @@ function rowClass(collapsed: boolean, destructive = false) {
 }
 
 export function SidebarFooter({ collapsed }: SidebarFooterProps) {
-  const settings = (
-    <Link href="/administration/settings" className={rowClass(collapsed)}>
-      <Settings className="size-4 shrink-0 text-sidebar-muted" strokeWidth={1.8} />
-      {!collapsed && <span>Settings</span>}
-    </Link>
-  );
-
   const signOut = (
     <button type="button" className={cn(rowClass(collapsed, true), 'group')}>
       <LogOut
@@ -47,7 +39,6 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
   if (!collapsed) {
     return (
       <div className="shrink-0 space-y-0.5 border-t border-sidebar-border p-2">
-        {settings}
         {signOut}
       </div>
     );
@@ -55,13 +46,6 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 
   return (
     <div className="shrink-0 space-y-0.5 border-t border-sidebar-border p-2">
-      <Tooltip>
-        <TooltipTrigger asChild>{settings}</TooltipTrigger>
-        <TooltipContent side="right" sideOffset={8}>
-          Settings
-        </TooltipContent>
-      </Tooltip>
-
       <Tooltip>
         <TooltipTrigger asChild>{signOut}</TooltipTrigger>
         <TooltipContent side="right" sideOffset={8}>

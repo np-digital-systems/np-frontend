@@ -1,58 +1,49 @@
+/**
+ * Sanththa — the temple's yearly membership subscription.
+ *
+ * One flat rate per member per year. A member pays it once, whatever else
+ * they do at the temple: sponsoring two poojas does not make it two
+ * subscriptions.
+ */
 
-export type SubscriptionFrequency = 'monthly' | 'annual';
-
-export type MemberStatus = 'active' | 'lapsed' | 'inactive';
-
+/** `sanththa_members` — a subscribing family or trust. */
 export interface SanththaMember {
   readonly id: number;
-    readonly memberNo: string;
+  readonly memberNo: string;
   readonly fullName: string;
   readonly nameTa: string;
   readonly phone: string;
   readonly address: string;
-    readonly subscriptionAmount: number;
-  readonly frequency: SubscriptionFrequency;
   readonly joinedOn: string;
-  readonly status: MemberStatus;
+  readonly isActive: boolean;
   readonly notes: string | null;
 }
 
+export type PaymentMode = 'cash' | 'bank' | 'online';
+
+/** `sanththa_payments` — at most one row per member per year. */
 export interface SanththaPayment {
   readonly id: number;
   readonly memberId: number;
-    readonly period: string;
+  readonly year: number;
   readonly amount: number;
   readonly paidOn: string;
-    readonly receiptRef: string | null;
-  readonly mode: 'cash' | 'bank' | 'online';
+  /** The receipt voucher this subscription was collected on. */
+  readonly receiptRef: string | null;
+  readonly mode: PaymentMode;
   readonly collectedBy: string;
 }
 
+/** A member with this year's subscription resolved. */
 export interface MemberRecord extends SanththaMember {
-    readonly dueForYear: number;
-  readonly paidForYear: number;
-  readonly outstanding: number;
-    readonly periodsPaid: number;
-  readonly periodsExpected: number;
-  readonly lastPaidOn: string | null;
-  readonly isFullyPaid: boolean;
-    readonly isInArrears: boolean;
-  readonly payments: readonly SanththaPayment[];
+  readonly hasPaid: boolean;
+  readonly payment: SanththaPayment | null;
 }
 
 export interface SanththaSummary {
   readonly members: number;
-  readonly activeMembers: number;
-  readonly expected: number;
+  readonly paid: number;
+  readonly unpaid: number;
   readonly collected: number;
   readonly outstanding: number;
-  readonly inArrears: number;
-  readonly fullyPaid: number;
-  readonly collectionRate: number;
-}
-
-export interface CollectionPoint {
-  readonly label: string;
-  readonly amount: number;
-  readonly count: number;
 }

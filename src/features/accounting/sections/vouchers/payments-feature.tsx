@@ -8,6 +8,8 @@ import {
   getBankAccountOptions,
   getFundOptions,
   getPostableAccounts,
+  getPoojaTypes,
+  getPoojas,
   getProjectOptions,
   getVouchersOfKind,
 } from '../../lib/accounting-service';
@@ -35,6 +37,8 @@ export async function PaymentVouchersFeature() {
         funds={getFundOptions()}
         projects={getProjectOptions()}
         bankAccounts={getBankAccountOptions()}
+        poojaTypes={getPoojaTypes()}
+        poojas={getPoojas()}
         access={access}
         user={user}
         year={getActiveYear(getToday())}

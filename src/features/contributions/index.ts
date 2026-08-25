@@ -6,19 +6,18 @@ export {
 } from './lib/contributions-access';
 
 export { CONTRIBUTION_ROUTES } from './lib/routes';
+export { YEARLY_SUBSCRIPTION } from './lib/contributions-data';
 
 export {
-  getCollectionTrend,
   getMemberRecords,
-  getSanththaSummary,
+  getYears,
+  summarise,
 } from './lib/contributions-service';
 
 export type {
-  CollectionPoint,
   MemberRecord,
-  MemberStatus,
+  PaymentMode,
   SanththaMember,
   SanththaPayment,
   SanththaSummary,
-  SubscriptionFrequency,
 } from './types';

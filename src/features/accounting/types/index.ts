@@ -126,7 +126,14 @@ export interface Voucher {
 
     readonly party: string;
 
+    /** Number written on the temple's physical voucher book. */
+    readonly manualVoucherNo: string | null;
+
     readonly eventRef: string | null;
+
+  /** Set when the entry is pooja sponsorship, so it links to the calendar. */
+  readonly eventTypeId: number | null;
+  readonly eventId: number | null;
 
   readonly status: VoucherStatus;
   readonly notes: string | null;
@@ -181,6 +188,22 @@ export interface BookSummary {
   readonly inflow: number;
   readonly outflow: number;
   readonly closing: number;
+}
+
+/** A pooja category — an event type, as the voucher form needs it. */
+export interface PoojaTypeRef {
+  readonly id: number;
+  readonly name: string;
+  readonly nameEn: string;
+}
+
+/** One dated pooja, with whoever sponsors it. */
+export interface PoojaRef {
+  readonly id: number;
+  readonly eventTypeId: number;
+  readonly label: string;
+  readonly date: string;
+  readonly sponsorName: string | null;
 }
 
 export interface AccountingSummary {
