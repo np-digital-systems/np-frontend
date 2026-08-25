@@ -1,7 +1,7 @@
+import { allSponsors } from './sponsor-store';
 import {
   EVENT_TYPES,
   EVENT_TYPE_SPONSORS,
-  SPONSOR_USERS,
   TEMPLE_EVENTS,
 } from '../constants/mock-data';
 import type {
@@ -26,7 +26,10 @@ function indexBy<T, K extends string | number>(
 }
 
 const typesById = indexBy(EVENT_TYPES, (type) => type.id);
-const usersById = indexBy(SPONSOR_USERS, (user) => user.id);
+// Rebuilt per call so sponsors registered at runtime resolve too.
+function usersById() {
+  return indexBy(allSponsors(), (user) => user.id);
+}
 
 function toRecord(event: TempleEvent, today: string): EventRecord {
   const eventType = typesById.get(event.eventTypeId);
@@ -38,7 +41,7 @@ function toRecord(event: TempleEvent, today: string): EventRecord {
   return {
     ...event,
     eventType,
-    sponsor: event.sponsorId ? usersById.get(event.sponsorId) ?? null : null,
+    sponsor: event.sponsorId ? usersById().get(event.sponsorId) ?? null : null,
     instanceLabel: describeInstance(
       eventType.frequencyType,
       event.instanceIdentifier,
@@ -53,7 +56,7 @@ export function getEventTypes(): readonly EventType[] {
 }
 
 export function getSponsorUsers(): readonly SponsorUser[] {
-  return SPONSOR_USERS;
+  return allSponsors();
 }
 
 export function getEvents(today: string = getToday()): readonly EventRecord[] {
@@ -67,7 +70,7 @@ export function getSponsorAssignments(
 
   return EVENT_TYPE_SPONSORS.flatMap((assignment) => {
     const eventType = typesById.get(assignment.eventTypeId);
-    const sponsor = usersById.get(assignment.userId);
+    const sponsor = usersById().get(assignment.userId);
 
     // A mapping whose type or user has been removed is data to fix, not a
     // row to render — drop it rather than rendering a half-empty line.
@@ -140,7 +143,7 @@ export function getScheduleGroups(
           customInstanceName,
         ),
         defaultSponsor: assignment
-          ? usersById.get(assignment.userId) ?? null
+          ? usersById().get(assignment.userId) ?? null
           : null,
         event,
       };

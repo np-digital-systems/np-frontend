@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Handshake, Mail, Phone, Search, UserPlus } from 'lucide-react';
+import { Handshake, Mail, Phone, Search, UserPlus, UserRoundPlus } from 'lucide-react';
 
 import {
   Card,
@@ -26,7 +26,10 @@ import {
 } from '@/components/ui/input-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { useRouter } from '@/i18n/routing';
+
 import { EventName } from '../../components/event-name';
+import { SponsorCreateDialog } from '../../components/sponsor-create-dialog';
 import { FrequencyBadge } from '../../components/frequency-badge';
 import {
   SponsorFormDialog,
@@ -54,10 +57,13 @@ export function SponsorsScreen({
   unsponsoredEvents,
   year,
 }: SponsorsScreenProps) {
+  const router = useRouter();
+
   const [assignments, setAssignments] =
     useState<readonly SponsorAssignment[]>(initialAssignments);
   const [query, setQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<SponsorAssignment | null>(null);
   const [pendingRemove, setPendingRemove] = useState<SponsorAssignment | null>(
     null,
@@ -193,15 +199,22 @@ export function SponsorsScreen({
         ]}
         actions={
           access.canManageSponsors && (
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              <UserPlus />
-              Assign Sponsor
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setCreateOpen(true)}>
+                <UserRoundPlus />
+                New Sponsor
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setEditing(null);
+                  setFormOpen(true);
+                }}
+              >
+                <UserPlus />
+                Assign Sponsor
+              </Button>
+            </>
           )
         }
       />
@@ -416,6 +429,20 @@ export function SponsorsScreen({
           )}
         </TabsContent>
       </Tabs>
+
+      {access.canManageSponsors && (
+        <SponsorCreateDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onCreated={() => {
+            // The new sponsor arrives with the refreshed server data; open
+            // the assign form so the admin can place them right away.
+            router.refresh();
+            setEditing(null);
+            setFormOpen(true);
+          }}
+        />
+      )}
 
       {access.canManageSponsors && (
         <SponsorFormDialog
