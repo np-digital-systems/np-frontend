@@ -2,9 +2,8 @@ import {
   getFunds,
   getLedger,
   getProjects,
-  type Fund,
-  type LedgerRecord,
-} from '@/features/accounting';
+} from '@/features/accounting/lib/accounting-service';
+import type { Fund, LedgerRecord } from '@/features/accounting/types';
 import { getToday } from '@/lib/format';
 
 import { ASSETS, FIXED_DEPOSITS } from '../constants/mock-data';

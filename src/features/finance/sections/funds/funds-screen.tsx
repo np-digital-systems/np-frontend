@@ -14,7 +14,7 @@ import {
   ReadOnlyNotice,
   StatCard,
 } from '@/components/portal/ui';
-import { ACCOUNTING_ROUTES } from '@/features/accounting';
+import { ACCOUNTING_ROUTES } from '@/features/accounting/lib/routes';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 

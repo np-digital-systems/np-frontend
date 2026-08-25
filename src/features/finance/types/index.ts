@@ -3,7 +3,7 @@ import type {
   LedgerRecord,
   Project,
   ProjectStatus,
-} from '@/features/accounting';
+} from '@/features/accounting/types';
 
 /**
  * The financial management domain.
