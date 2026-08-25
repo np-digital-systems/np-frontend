@@ -24,7 +24,7 @@ import {
 } from '../../components/fund-form-dialog';
 import { UtilisationBar } from '../../components/utilisation-bar';
 import type { FinanceAccess } from '../../lib/finance-access';
-import { formatCurrency, formatShortDate } from '../../lib/finance-data';
+import { formatCurrency } from '../../lib/finance-data';
 import { FINANCE_ROUTES } from '../../lib/routes';
 import type { FundDetail, FundRecord } from '../../types';
 
