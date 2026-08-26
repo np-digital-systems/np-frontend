@@ -1,3 +1,5 @@
+import type { PortalSettings } from '../types';
+
 import type { Permission } from '@/features/auth/types/permission';
 import type { UserRole } from '@/features/auth/types/user-role';
 
@@ -168,3 +170,41 @@ export const YEAR_STATUS_LABELS: Record<FinancialYearStatus, string> = {
   upcoming: 'Upcoming',
 };
 
+
+/**
+ * What the portal falls back to for a settings key nobody has changed yet.
+ *
+ * The API stores only the keys an administrator has actually edited, so a key
+ * the temple has never touched reads from here rather than arriving empty.
+ */
+export const DEFAULT_SETTINGS: PortalSettings = {
+  temple: {
+    name: 'Neeliyampathi Pillaiyar Kovil',
+    nameTa: 'நீலியம்பனை பிள்ளையார் கோவில்',
+    registrationNo: 'JF/RT/2004/118',
+    address: 'நீலியம்பனை ,மல்லாகம் , யாழ்ப்பாணம், இலங்கை',
+    phone: '021 222 3344',
+    email: 'info@neeliyampathipillaiyarkovil.com',
+    website: 'www.neeliyampathipillaiyarkovil.com',
+  },
+  locale: {
+    defaultLanguage: 'ta',
+    timeZone: 'Asia/Colombo',
+    dateFormat: 'dd-mon-yyyy',
+  },
+  accounting: {
+    receiptPrefix: 'RV',
+    paymentPrefix: 'PV',
+    yearStartMonth: 1,
+    approvalThreshold: 50_000,
+    requireSeparatePoster: true,
+  },
+  notifications: {
+    voucherSubmitted: true,
+    voucherApproved: true,
+    voucherRejected: true,
+    depositMaturing: true,
+    sanththaArrears: true,
+    eventReminders: false,
+  },
+};
