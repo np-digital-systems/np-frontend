@@ -8,10 +8,11 @@ import {
   type QuickAction,
 } from '../../components';
 import {
-  LAST_MONTH_DATA,
-  MONTHLY_DATA,
-  THIS_MONTH_DATA,
-} from '../../constants/mock-data';
+  getAccountingSummary,
+  getFundOverview,
+  getQueueSplit,
+  getSeries,
+} from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 import type { DashboardProps } from '../../types';
 import {
@@ -31,12 +32,21 @@ const QUICK_ACTIONS: readonly QuickAction[] = [
   { label: 'Generate Report', href: '/accounting/reports', icon: FileText },
 ];
 
-export function AccountantDashboard({
+export async function AccountantDashboard({
   user,
   greeting,
   today,
   financialYear,
 }: DashboardProps) {
+  const [summary, funds, split, series] = await Promise.all([
+    getAccountingSummary(),
+    getFundOverview(),
+    getQueueSplit(),
+    getSeries(),
+  ]);
+
+  const thisMonth = series.monthly.at(-1);
+
   return (
     <DashboardShell>
       <PageHeader
@@ -50,23 +60,23 @@ export function AccountantDashboard({
       <QuickActions actions={QUICK_ACTIONS} />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <StatCard label="Cash Balance" value={formatCurrency(125450)} caption="As of today" />
-        <StatCard label="Bank Balance" value={formatCurrency(570000)} caption="2 accounts" />
+        <StatCard label="Cash Balance" value={formatCurrency(summary.cashBalance)} caption="As of today" />
         <StatCard
-          label="Today's Income"
-          value={formatCurrency(35000)}
-          trend={{ value: '+18.2%', direction: 'up', isPositive: true }}
+          label="Bank Balance"
+          value={formatCurrency(summary.bankBalance)}
+          caption={`${funds.length} fund${funds.length === 1 ? '' : 's'}`}
+        />
+        <StatCard label="Income" value={formatCurrency(summary.income)} caption={`FY ${financialYear.label}`} />
+        <StatCard label="Expenses" value={formatCurrency(summary.expenses)} caption={`FY ${financialYear.label}`} />
+        <StatCard
+          label="Pending Approvals"
+          value={String(summary.pendingApprovals)}
+          caption={`${split.receipts} receipt${split.receipts === 1 ? '' : 's'} · ${split.payments} payment${split.payments === 1 ? '' : 's'}`}
         />
         <StatCard
-          label="Today's Expenses"
-          value={formatCurrency(18500)}
-          trend={{ value: '+4.1%', direction: 'up', isPositive: false }}
-        />
-        <StatCard label="Pending Approvals" value="8" caption="5 receipts · 3 payments" />
-        <StatCard
-          label="Monthly Net"
-          value={formatCurrency(125200)}
-          trend={{ value: '+12.4%', direction: 'up', isPositive: true }}
+          label="This Month Net"
+          value={formatCurrency((thisMonth?.income ?? 0) - (thisMonth?.expenses ?? 0))}
+          caption={thisMonth?.label ?? '—'}
         />
       </div>
 
@@ -77,9 +87,9 @@ export function AccountantDashboard({
             variant="area"
             periods={['This Month', 'Last Month', 'This Year'] as const}
             dataByPeriod={{
-              'This Month': THIS_MONTH_DATA,
-              'Last Month': LAST_MONTH_DATA,
-              'This Year': MONTHLY_DATA,
+              'This Month': thisMonth ? [thisMonth] : [],
+              'Last Month': series.monthly.slice(-2, -1),
+              'This Year': series.monthly,
             }}
             height={260}
           />
