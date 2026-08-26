@@ -1,9 +1,19 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  closeDeposit,
+  createDeposit,
+  renewDeposit,
+  updateDeposit,
+} from '../../lib/finance-actions';
+
 import { useMemo, useState } from 'react';
 import { CalendarClock, PiggyBank, Plus } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   ConfirmDialog,
   DataCell,
@@ -37,7 +47,6 @@ import { cn } from '@/lib/utils';
 import { DepositStatusBadge } from '../../components/finance-badges';
 import {
   DepositFormDialog,
-  maturityDate,
   type DepositDraft,
 } from '../../components/deposit-form-dialog';
 import {
@@ -49,12 +58,9 @@ import {
   DEPOSIT_STATUS_LABELS,
   INTEREST_PAYOUT_LABELS,
   MATURITY_ALERT_DAYS,
-  daysBetween,
   formatCurrency,
   formatLongDate,
   formatShortDate,
-  simpleInterest,
-  yearsBetween,
 } from '../../lib/finance-data';
 import type { DepositRecord, DepositStatus, FundRecord } from '../../types';
 
@@ -66,16 +72,13 @@ interface DepositsScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the deposits API. */
 export function DepositsScreen({
   initialDeposits,
   funds,
   access,
-  today,
   year,
 }: DepositsScreenProps) {
-  const [deposits, setDeposits] =
-    useState<readonly DepositRecord[]>(initialDeposits);
+  const deposits = initialDeposits;
   const [status, setStatus] = useState<DepositStatus | 'all'>('all');
 
   const [formOpen, setFormOpen] = useState(false);
@@ -111,71 +114,60 @@ export function DepositsScreen({
 
   const attention = [...totals.overdue, ...totals.maturing];
 
-  function handleSubmit(draft: DepositDraft) {
-    const fund = funds.find((entry) => entry.id === draft.fundId);
-    const maturesOn = maturityDate(draft.placedOn, draft.tenureMonths);
+  const { run, error: actionError } = useServerAction();
+  const [renewing, setRenewing] = useState<DepositRecord | null>(null);
 
-    const termYears = yearsBetween(draft.placedOn, maturesOn);
-    const interestOnMaturity = simpleInterest(
-      draft.principal,
-      draft.interestRate,
-      termYears,
-    );
+  function maturityOf(placedOn: string, tenureMonths: number): string {
+    const matures = new Date(placedOn);
 
-    const accrualEnd = today < maturesOn ? today : maturesOn;
-    const daysToMaturity = daysBetween(today, maturesOn);
+    matures.setMonth(matures.getMonth() + tenureMonths);
 
-    setDeposits((current) => {
-      const shape = (base: DepositRecord | null): DepositRecord => ({
-        id: base?.id ?? Date.now(),
-        certificateNo: draft.certificateNo,
-        bankName: draft.bankName,
-        branch: draft.branch,
-        principal: draft.principal,
-        interestRate: draft.interestRate,
-        placedOn: draft.placedOn,
-        maturesOn,
-        tenureMonths: draft.tenureMonths,
-        interestPayout: draft.interestPayout,
-        fundId: draft.fundId,
-        status: base?.status ?? 'active',
-        renewedFromId: base?.renewedFromId ?? null,
-        notes: draft.notes || null,
-        fundName: fund?.name ?? base?.fundName ?? 'Unassigned',
-        interestOnMaturity,
-        maturityValue: draft.principal + interestOnMaturity,
-        interestAccrued: simpleInterest(
-          draft.principal,
-          draft.interestRate,
-          Math.max(yearsBetween(draft.placedOn, accrualEnd), 0),
-        ),
-        daysToMaturity,
-        isMaturingSoon:
-          (base?.status ?? 'active') === 'active' &&
-          daysToMaturity >= 0 &&
-          daysToMaturity <= MATURITY_ALERT_DAYS,
-        isOverdue:
-          (base?.status ?? 'active') === 'active' && daysToMaturity < 0,
-      });
-
-      return editing
-        ? current.map((deposit) =>
-            deposit.id === editing.id ? shape(deposit) : deposit,
-          )
-        : [shape(null), ...current];
-    });
+    return matures.toISOString().slice(0, 10);
   }
 
-    function handleRenew(deposit: DepositRecord) {
-    setDeposits((current) =>
-      current.map((entry) =>
-        entry.id === deposit.id
-          ? { ...entry, status: 'renewed', isMaturingSoon: false, isOverdue: false }
-          : entry,
-      ),
-    );
+  function handleSubmit(draft: DepositDraft) {
+    const target = editing;
+    const input = {
+      certificateNo: draft.certificateNo,
+      bankName: draft.bankName,
+      branch: draft.branch,
+      principal: draft.principal,
+      interestRate: draft.interestRate,
+      placedOn: draft.placedOn,
+      maturesOn: maturityOf(draft.placedOn, draft.tenureMonths),
+      tenureMonths: draft.tenureMonths,
+      interestPayout: draft.interestPayout,
+      fundId: draft.fundId,
+      notes: draft.notes,
+    };
 
-    setEditing(null);
+    run(
+      () => {
+        if (renewing) {
+          // The renewal inherits the fund of the certificate it replaces.
+          const { fundId, ...renewal } = input;
+          void fundId;
+
+          return renewDeposit(renewing.id, renewal);
+        }
+
+        return target ? updateDeposit(target.id, input) : createDeposit(input);
+      },
+      () => {
+        setEditing(null);
+        setRenewing(null);
+        setFormOpen(false);
+      },
+    );
+  }
+
+  /**
+   * Renewing opens the form pre-filled; the API marks the old certificate
+   * renewed and links the new one to it when that form is submitted.
+   */
+  function handleRenew(deposit: DepositRecord) {
+    setRenewing(deposit);
+    setEditing(deposit);
     setFormOpen(true);
   }
 
@@ -221,6 +213,8 @@ export function DepositsScreen({
             >
               <SelectTrigger aria-label="Filter by status">
                 <SelectValue />
+
+      <ActionError message={actionError} />
               </SelectTrigger>
 
               <SelectContent>
@@ -500,21 +494,7 @@ export function DepositsScreen({
             : ''
         }
         onConfirm={() => {
-          if (closing) {
-            setDeposits((current) =>
-              current.map((deposit) =>
-                deposit.id === closing.id
-                  ? {
-                      ...deposit,
-                      status: 'closed',
-                      isMaturingSoon: false,
-                      isOverdue: false,
-                    }
-                  : deposit,
-              ),
-            );
-          }
-
+          if (closing) run(() => closeDeposit(closing.id));
           setClosing(null);
         }}
       />

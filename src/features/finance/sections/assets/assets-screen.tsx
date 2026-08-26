@@ -1,9 +1,14 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import { createAsset, disposeAsset, updateAsset } from '../../lib/finance-actions';
+
 import { useMemo, useState } from 'react';
 import { MoreHorizontal, Package, Plus, Search, X } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardHeader,
@@ -62,11 +67,9 @@ import {
   ASSET_CATEGORY_LABELS,
   ASSET_CONDITIONS,
   ASSET_CONDITION_LABELS,
-  accumulatedDepreciation,
   formatCurrency,
   formatShortDate,
   share,
-  yearsBetween,
 } from '../../lib/finance-data';
 import type {
   AssetCategory,
@@ -85,7 +88,6 @@ interface AssetsScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the assets API. */
 export function AssetsScreen({
   initialAssets,
   categoryTotals,
@@ -94,7 +96,7 @@ export function AssetsScreen({
   today,
   year,
 }: AssetsScreenProps) {
-  const [assets, setAssets] = useState<readonly AssetRecord[]>(initialAssets);
+  const assets = initialAssets;
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<AssetCategory | 'all'>('all');
   const [condition, setCondition] = useState<AssetCondition | 'all'>('all');
@@ -138,23 +140,14 @@ export function AssetsScreen({
     };
   }, [assets]);
 
-    function reshape(
-    base: AssetRecord | null,
-    draft: AssetDraft,
-    fundName: string,
-  ): AssetRecord {
-    const ageYears = Math.max(yearsBetween(draft.acquiredOn, today), 0);
-    const depreciation = accumulatedDepreciation(
-      draft.cost,
-      draft.depreciationRate,
-      ageYears,
-    );
+  const { run, error: actionError } = useServerAction();
 
-    return {
-      id: base?.id ?? Date.now(),
+  function handleSubmit(draft: AssetDraft) {
+    const target = editing;
+    const input = {
       tag: draft.tag,
-      name: draft.name,
       nameTa: draft.nameTa,
+      nameEn: draft.name,
       category: draft.category,
       acquiredOn: draft.acquiredOn,
       cost: draft.cost,
@@ -163,65 +156,37 @@ export function AssetsScreen({
       condition: draft.condition,
       status: draft.status,
       fundId: draft.fundId,
-      disposedOn: base?.disposedOn ?? null,
-      disposalValue: base?.disposalValue ?? null,
-      notes: draft.notes || null,
-      fundName,
-      ageYears,
-      accumulatedDepreciation: depreciation,
-      netBookValue: Math.max(draft.cost - depreciation, 0),
-      annualDepreciation: draft.cost * (draft.depreciationRate / 100),
+      notes: draft.notes,
     };
-  }
 
-  function handleSubmit(draft: AssetDraft) {
-    const fundName =
-      funds.find((fund) => fund.id === draft.fundId)?.name ?? 'Unassigned';
-
-    setAssets((current) =>
-      editing
-        ? current.map((asset) =>
-            asset.id === editing.id
-              ? reshape(asset, draft, fundName)
-              : asset,
-          )
-        : [reshape(null, draft, fundName), ...current],
+    run(
+      () => (target ? updateAsset(target.id, input) : createAsset(input)),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
     );
   }
 
+  /**
+   * Dating the disposal is what stops depreciation, so this is its own call
+   * rather than a status change — and the book value at that date comes back
+   * from the API rather than being recomputed here.
+   */
   function handleDispose(draft: DisposalDraft) {
     if (!disposing) return;
 
-    setAssets((current) =>
-      current.map((asset) => {
-        if (asset.id !== disposing.id) return asset;
+    const target = disposing;
 
-        // Depreciation stops on the disposal date, so the book value is
-        // recomputed to that day rather than left at today's figure.
-        const ageYears = Math.max(
-          yearsBetween(asset.acquiredOn, draft.disposedOn),
-          0,
-        );
-        const depreciation = accumulatedDepreciation(
-          asset.cost,
-          asset.depreciationRate,
-          ageYears,
-        );
-
-        return {
-          ...asset,
-          status: 'disposed',
+    run(
+      () =>
+        disposeAsset(target.id, {
           disposedOn: draft.disposedOn,
           disposalValue: draft.disposalValue,
           notes: draft.notes,
-          ageYears,
-          accumulatedDepreciation: depreciation,
-          netBookValue: Math.max(asset.cost - depreciation, 0),
-        };
-      }),
+        }),
+      () => setDisposing(null),
     );
-
-    setDisposing(null);
   }
 
   const columns: DataColumn[] = [
@@ -272,6 +237,8 @@ export function AssetsScreen({
               }}
             >
               <Plus />
+
+      <ActionError message={actionError} />
               Add Asset
             </Button>
           )
