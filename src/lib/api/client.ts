@@ -68,18 +68,52 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { query, body, revalidate, tags, anonymous = false } = options;
 
-  const response = await fetch(buildUrl(path, query), {
-    method,
-    headers: {
-      accept: 'application/json',
-      ...(body === undefined ? {} : { 'content-type': 'application/json' }),
-      ...(await authorisation(anonymous)),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    ...(revalidate === undefined
-      ? { cache: 'no-store' as const }
-      : { next: { revalidate, ...(tags ? { tags: [...tags] } : {}) } }),
-  });
+  const url = buildUrl(path, query);
+  const headers = {
+    accept: 'application/json',
+    ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+    ...(await authorisation(anonymous)),
+  };
+
+  /*
+   * Only reads are retried.
+   *
+   * A write that fails without a response may still have been applied — the
+   * request can reach the API and the reply be lost on the way back. Repeating
+   * it would post a second voucher against the same money, so a write is
+   * attempted once and its failure surfaces to the caller.
+   */
+  const attempts = method === 'GET' ? RETRY_DELAYS_MS.length + 1 : 1;
+
+  let response: Response | undefined;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      response = await fetch(url, {
+        method,
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: AbortSignal.timeout(WAKE_TIMEOUT_MS),
+        ...(revalidate === undefined
+          ? { cache: 'no-store' as const }
+          : { next: { revalidate, ...(tags ? { tags: [...tags] } : {}) } }),
+      });
+
+      if (!WAKING_STATUSES.has(response.status)) break;
+    } catch (error) {
+      if (!isWaking(error) || attempt === attempts - 1) throw error;
+    }
+
+    const delay = RETRY_DELAYS_MS[attempt];
+
+    if (delay === undefined) break;
+
+    await sleep(delay);
+  }
+
+  if (!response) {
+    throw new ApiError(503, { message: 'The API did not respond.' });
+  }
 
   if (response.status === 204) return undefined as T;
 
@@ -92,6 +126,34 @@ export async function apiRequest<T>(
 
   return payload as T;
 }
+
+/**
+ * How long to wait, and how hard to try again.
+ *
+ * A free-tier host stops the API when nobody has called it for a while, and
+ * waking it takes the better part of a minute. A scheduled ping keeps it up
+ * (see .github/workflows/keep-alive.yml), but schedules drift, so the first
+ * request after a quiet spell can still meet an instance on its way up.
+ *
+ * The budget here is deliberately about ten seconds rather than the fifty a
+ * cold start can take. The render is already blocking a visitor, and the
+ * platform running it caps how long a request may take, so waiting out a full
+ * wake would hit that ceiling and fail anyway. This covers a brief gap or a
+ * fast wake; keeping the instance up is the ping's job, not this one's.
+ */
+const WAKE_TIMEOUT_MS = 30_000;
+const RETRY_DELAYS_MS = [1_000, 3_000, 6_000];
+
+/** A gateway error is the host saying the instance is not up yet. */
+const WAKING_STATUSES = new Set([502, 503, 504]);
+
+function isWaking(error: unknown): boolean {
+  // fetch rejects rather than resolving when the connection is refused.
+  return error instanceof TypeError;
+}
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 function safeParse(text: string): unknown {
   try {
