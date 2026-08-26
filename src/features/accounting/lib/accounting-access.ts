@@ -1,6 +1,6 @@
 import { can } from '@/features/auth/lib/permissions';
+import type { Permission } from '@/features/auth/types/permission';
 import type { PortalUser } from '@/features/auth/types/user';
-import type { UserRole } from '@/features/auth/types/user-role';
 
 import type { Voucher, VoucherKind } from '../types';
 
@@ -37,39 +37,39 @@ export interface AccountingAccess {
     readonly canCreateVouchers: boolean;
 }
 
-export function getAccountingAccess(role: UserRole): AccountingAccess {
-  const canCreateReceipts = can(role, 'receipt-voucher:create');
-  const canCreatePayments = can(role, 'payment-voucher:create');
+export function getAccountingAccess(granted: readonly Permission[]): AccountingAccess {
+  const canCreateReceipts = can(granted, 'receipt-voucher:create');
+  const canCreatePayments = can(granted, 'payment-voucher:create');
 
   return {
-    canViewOverview: can(role, 'fund:view'),
+    canViewOverview: can(granted, 'fund:view'),
 
-    canViewAccounts: can(role, 'account:view'),
-    canManageAccounts: can(role, 'account:manage'),
+    canViewAccounts: can(granted, 'account:view'),
+    canManageAccounts: can(granted, 'account:manage'),
 
-    canViewTransactions: can(role, 'transaction:view'),
-    canExportTransactions: can(role, 'transaction:export'),
+    canViewTransactions: can(granted, 'transaction:view'),
+    canExportTransactions: can(granted, 'transaction:export'),
 
-    canViewReceipts: can(role, 'receipt-voucher:view'),
+    canViewReceipts: can(granted, 'receipt-voucher:view'),
     canCreateReceipts,
-    canViewPayments: can(role, 'payment-voucher:view'),
+    canViewPayments: can(granted, 'payment-voucher:view'),
     canCreatePayments,
 
-    canSubmit: can(role, 'voucher:submit'),
-    canApprove: can(role, 'voucher:approve'),
-    canPost: can(role, 'voucher:post'),
-    canManageAllVouchers: can(role, 'voucher:manage-all'),
+    canSubmit: can(granted, 'voucher:submit'),
+    canApprove: can(granted, 'voucher:approve'),
+    canPost: can(granted, 'voucher:post'),
+    canManageAllVouchers: can(granted, 'voucher:manage-all'),
 
-    canViewCashBook: can(role, 'cash-book:view'),
-    canViewBankBook: can(role, 'bank-book:view'),
+    canViewCashBook: can(granted, 'cash-book:view'),
+    canViewBankBook: can(granted, 'bank-book:view'),
 
-    canViewBankAccounts: can(role, 'bank-account:view'),
-    canManageBankAccounts: can(role, 'bank-account:manage'),
+    canViewBankAccounts: can(granted, 'bank-account:view'),
+    canManageBankAccounts: can(granted, 'bank-account:manage'),
 
-    canViewFunds: can(role, 'fund:view'),
-    canManageFunds: can(role, 'fund:manage'),
+    canViewFunds: can(granted, 'fund:view'),
+    canManageFunds: can(granted, 'fund:manage'),
 
-    canGenerateReports: can(role, 'report:generate'),
+    canGenerateReports: can(granted, 'report:generate'),
 
     canCreateVouchers: canCreateReceipts || canCreatePayments,
   };
