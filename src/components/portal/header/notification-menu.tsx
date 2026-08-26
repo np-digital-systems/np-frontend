@@ -2,13 +2,14 @@
 
 import { Bell, CheckCheck } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useTransition } from 'react'
 
+import { markAllNotificationsRead } from '@/features/notification/lib/notification-actions'
 import {
-  NOTIFICATIONS,
   PRIORITY_TONE,
   relativeTime,
-} from '@/features/notification/constants/mock-data'
+  type Notification,
+} from '@/features/notification/constants/notification-shapes'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -27,15 +28,21 @@ const TONE_DOT = {
   danger: 'bg-danger',
 } as const
 
-export function NotificationMenu() {
-  const [notifications, setNotifications] = useState(NOTIFICATIONS)
+interface NotificationMenuProps {
+  /** The signed-in user's inbox, resolved by the layout. */
+  notifications: readonly Notification[]
+}
+
+export function NotificationMenu({ notifications }: NotificationMenuProps) {
+  const [, startTransition] = useTransition()
 
   const unreadCount = notifications.filter((item) => !item.read).length
 
   const preview = notifications.slice(0, 5)
 
+  // The action revalidates the layout, so the badge follows without local state.
   function markAllRead() {
-    setNotifications((items) => items.map((item) => ({ ...item, read: true })))
+    startTransition(() => void markAllNotificationsRead())
   }
 
   return (

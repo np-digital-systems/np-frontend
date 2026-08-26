@@ -9,15 +9,19 @@ import { PortalHeader } from '@/components/portal/header';
 import { PortalSidebar } from '@/components/portal/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
+import type { Notification } from '@/features/notification/constants/notification-shapes';
+
 interface PortalShellProps {
   children: React.ReactNode;
   navigation: readonly PortalNavGroup[];
+  notifications: readonly Notification[];
   user: PortalUser;
 }
 
 export function PortalShell({
   children,
   navigation,
+  notifications,
   user,
 }: PortalShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -34,7 +38,7 @@ export function PortalShell({
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <PortalHeader user={user} />
+          <PortalHeader notifications={notifications} user={user} />
 
           <main className="min-w-0 flex-1">{children}</main>
         </div>
