@@ -64,7 +64,7 @@ export function SponsorCreateDialog({
         return;
       }
 
-      onCreated(result.sponsorId);
+      onCreated(result.id);
       onOpenChange(false);
     });
   }

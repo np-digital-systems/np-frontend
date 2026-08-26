@@ -1,8 +1,10 @@
 import { Card, CardHeader, LinkButton, StatusBadge } from '../../components';
-import { TRANSACTIONS } from '../../constants/mock-data';
+import { getRecentTransactions } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
-export function TransactionsTable() {
+export async function TransactionsTable() {
+  const TRANSACTIONS = await getRecentTransactions();
+
   return (
     <Card>
       <CardHeader

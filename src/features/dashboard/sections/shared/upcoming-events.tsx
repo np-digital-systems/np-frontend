@@ -3,9 +3,11 @@ import { Calendar } from 'lucide-react';
 import { EVENT_ROUTES } from '@/features/events/lib/routes';
 
 import { Card, CardHeader, LinkButton, StatusBadge, EmptyState } from '../../components';
-import { UPCOMING_EVENTS } from '../../constants/mock-data';
+import { getUpcomingEvents } from '../../lib/dashboard-service';
 
-export function UpcomingEvents() {
+export async function UpcomingEvents() {
+  const UPCOMING_EVENTS = await getUpcomingEvents();
+
   return (
     <Card>
       <CardHeader
