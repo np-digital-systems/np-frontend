@@ -37,6 +37,8 @@ export interface BankAccountDraft {
   openingBalance: number;
   openedOn: string;
   isActive: boolean;
+  /** The asset head every movement of this money posts through. */
+  ledgerAccountId: number | null;
 }
 
 const TYPES: readonly BankAccountType[] = ['current', 'savings', 'fixed-deposit'];
@@ -52,6 +54,7 @@ function draftFrom(bank: BankAccount | null): BankAccountDraft {
       openingBalance: bank.openingBalance,
       openedOn: bank.openedOn,
       isActive: bank.isActive,
+      ledgerAccountId: bank.ledgerAccountId,
     };
   }
 
@@ -64,6 +67,7 @@ function draftFrom(bank: BankAccount | null): BankAccountDraft {
     openingBalance: 0,
     openedOn: new Date().toISOString().slice(0, 10),
     isActive: true,
+    ledgerAccountId: null,
   };
 }
 
@@ -71,13 +75,18 @@ interface BankAccountFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bank: BankAccount | null;
+  /** Postable asset heads, one of which this account posts through. */
+  ledgerAccounts: readonly { id: number; code: string; name: string }[];
   onSubmit: (draft: BankAccountDraft) => void;
+  submitError?: string | null;
 }
 
 export function BankAccountFormDialog({
   open,
   onOpenChange,
   bank,
+  ledgerAccounts,
+  submitError,
   onSubmit,
 }: BankAccountFormDialogProps) {
   const [draft, setDraft] = useState<BankAccountDraft>(() => draftFrom(bank));
@@ -111,11 +120,7 @@ export function BankAccountFormDialog({
 
     setError(null);
 
-    onSubmit({
-      ...result.data,
-      // Only the last four digits are ever kept.
-      accountNumber: `•••• •••• ${result.data.accountNumber.replace(/\D/g, '').slice(-4)}`,
-    });
+    onSubmit(result.data);
 
     onOpenChange(false);
   }
@@ -244,7 +249,43 @@ export function BankAccountFormDialog({
                 }
               />
             </FormField>
+
+            {/*
+              * Every movement of this money is a movement on this head, which
+              * is what lets the bank book be derived from the ledger rather
+              * than kept as a parallel list that can drift out of step.
+              */}
+            <FormField id="bank-ledger" label="Posts Through" required>
+              <select
+                id="bank-ledger"
+                disabled={bank !== null}
+                value={draft.ledgerAccountId === null ? '' : String(draft.ledgerAccountId)}
+                onChange={(changeEvent) =>
+                  update(
+                    'ledgerAccountId',
+                    changeEvent.target.value === '' ? null : Number(changeEvent.target.value),
+                  )
+                }
+                className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text-primary disabled:opacity-60"
+              >
+                <option value="">Choose an asset head…</option>
+                {ledgerAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.code} — {account.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
           </div>
+
+          {(error ?? submitError) && (
+            <p
+              role="alert"
+              className="rounded-lg border border-danger/30 bg-danger-subtle px-3 py-2 text-sm text-danger"
+            >
+              {error ?? submitError}
+            </p>
+          )}
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">
@@ -266,12 +307,12 @@ export function BankAccountFormDialog({
             />
           </div>
 
-          {error && (
+          {(error ?? submitError) && (
             <p
               role="alert"
               className="rounded-lg bg-danger-subtle px-3 py-2 text-xs text-danger"
             >
-              {error}
+              {error ?? submitError}
             </p>
           )}
 
