@@ -25,7 +25,7 @@ import type {
   Notification,
   NotificationCategory,
   NotificationPriority,
-} from '../constants/mock-data';
+} from '../constants/notification-shapes';
 
 const PRIORITY_TONE: Record<NotificationPriority, string> = {
   Critical: 'bg-danger-subtle text-danger',
