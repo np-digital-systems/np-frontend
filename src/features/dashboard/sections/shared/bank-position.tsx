@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 
 import { Card, CardHeader } from '../../components';
-import { BANK_ACCOUNTS, TOTAL_BANK_BALANCE } from '../../constants/mock-data';
+import { getBankPositions } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
 import { cn } from '@/lib/utils';
@@ -12,10 +12,13 @@ interface BankPositionProps {
   showLink?: boolean;
 }
 
-export function BankPosition({
+export async function BankPosition({
   title = 'Bank Position',
   showLink = false,
 }: BankPositionProps) {
+  const { accounts: BANK_ACCOUNTS, total: TOTAL_BANK_BALANCE } =
+    await getBankPositions();
+
   return (
     <Card>
       <CardHeader title={title} />

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 
 import { Card, CardHeader } from '../../components';
-import { CASH_POSITION } from '../../constants/mock-data';
+import { getCashPosition } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
 import { cn } from '@/lib/utils';
@@ -12,10 +12,12 @@ interface CashPositionProps {
   closingLabel?: string;
 }
 
-export function CashPosition({
+export async function CashPosition({
   title = "Today's Cash Position",
   closingLabel = 'Closing Balance',
 }: CashPositionProps) {
+  const CASH_POSITION = await getCashPosition();
+
   const rows = [
     { label: 'Opening Balance', value: formatCurrency(CASH_POSITION.opening), tone: 'text-text-primary' },
     { label: 'Receipts', value: `+${formatCurrency(CASH_POSITION.receipts)}`, tone: 'text-success' },

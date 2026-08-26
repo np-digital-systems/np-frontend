@@ -1,12 +1,14 @@
 import Link from 'next/link';
 
 import { Card, CardHeader, LinkButton } from '../../components';
-import { FUNDS } from '../../constants/mock-data';
+import { getFundOverview } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
 import { cn } from '@/lib/utils';
 
-export function FundOverview() {
+export async function FundOverview() {
+  const FUNDS = await getFundOverview();
+
   return (
     <Card>
       <CardHeader

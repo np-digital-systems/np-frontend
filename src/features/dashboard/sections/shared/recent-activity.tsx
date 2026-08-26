@@ -1,7 +1,9 @@
 import { Card, CardHeader } from '../../components';
-import { RECENT_ACTIVITY } from '../../constants/mock-data';
+import { getRecentActivity } from '../../lib/dashboard-service';
 
-export function RecentActivity() {
+export async function RecentActivity() {
+  const RECENT_ACTIVITY = await getRecentActivity();
+
   return (
     <Card>
       <CardHeader title="Recent Activity" />
