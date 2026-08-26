@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   CalendarDays,
@@ -39,7 +39,6 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 import {
-  searchIndex,
   groupResults,
   QUICK_ACTIONS,
   RECENT_SEARCHES,
@@ -48,7 +47,8 @@ import {
   BADGE_TONE,
   type SearchResult,
   type SearchType,
-} from './constants/mock-data'
+} from './constants/search-shapes'
+import { searchPortal } from './lib/search-actions'
 
 interface GlobalSearchProps {
   open: boolean
@@ -126,15 +126,45 @@ export default function GlobalSearch({
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<SearchType | 'All'>('All')
 
-  const results = useMemo(
-    () => searchIndex(query, typeFilter),
-    [query, typeFilter],
-  )
+  const [results, setResults] = useState<readonly SearchResult[]>([])
 
-  const groups = useMemo(
-    () => groupResults(results),
-    [results],
-  )
+  /*
+   * Searching happens on the server, where the session's permissions decide
+   * what each source may return — a cashier looking up a member gets the
+   * register row and not the user record.
+   */
+  const term = query.trim()
+  const isSearching = term.length >= 2
+
+  useEffect(() => {
+    if (!isSearching) return
+
+    let live = true
+
+    // Debounced: a search is a round trip, and one per keystroke would be
+    // several in flight for a word nobody has finished typing.
+    const timer = setTimeout(() => {
+      void searchPortal(term).then((found) => {
+        if (live) setResults(found)
+      })
+    }, 200)
+
+    return () => {
+      live = false
+      clearTimeout(timer)
+    }
+  }, [term, isSearching])
+
+  const groups = useMemo(() => {
+    // Below two characters there is nothing to show, whatever arrived last.
+    if (!isSearching) return []
+
+    return groupResults(
+      typeFilter === 'All'
+        ? results
+        : results.filter((result) => result.type === typeFilter),
+    )
+  }, [results, typeFilter, isSearching])
 
   const handleNavigate = (page: string) => {
     onNavigate?.(page)

@@ -1,2 +1,3 @@
 export { NotificationsFeature } from './sections/notifications-feature';
-export { NOTIFICATIONS, type Notification } from './constants/mock-data';
+export { type Notification } from './constants/notification-shapes';
+export { getNotifications } from './lib/notification-service';
