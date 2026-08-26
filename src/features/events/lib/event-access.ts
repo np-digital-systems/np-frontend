@@ -1,5 +1,5 @@
 import { can } from '@/features/auth/lib/permissions';
-import type { UserRole } from '@/features/auth/types/user-role';
+import type { Permission } from '@/features/auth/types/permission';
 
 export interface EventAccess {
   readonly canView: boolean;
@@ -22,26 +22,26 @@ export interface EventAccess {
     readonly canSeeSponsorContact: boolean;
 }
 
-export function getEventAccess(role: UserRole): EventAccess {
-  const canCreate = can(role, 'event:create');
-  const canUpdate = can(role, 'event:update');
-  const canDelete = can(role, 'event:delete');
-  const canManageSponsors = can(role, 'event-sponsor:manage');
+export function getEventAccess(granted: readonly Permission[]): EventAccess {
+  const canCreate = can(granted, 'event:create');
+  const canUpdate = can(granted, 'event:update');
+  const canDelete = can(granted, 'event:delete');
+  const canManageSponsors = can(granted, 'event-sponsor:manage');
 
   return {
-    canView: can(role, 'event:view'),
+    canView: can(granted, 'event:view'),
 
     canCreate,
     canUpdate,
     canDelete,
-    canComplete: can(role, 'event:complete'),
-    canExport: can(role, 'event:export'),
+    canComplete: can(granted, 'event:complete'),
+    canExport: can(granted, 'event:export'),
 
-    canManageTypes: can(role, 'event-type:manage'),
+    canManageTypes: can(granted, 'event-type:manage'),
 
-    canViewSchedule: can(role, 'event-schedule:view'),
+    canViewSchedule: can(granted, 'event-schedule:view'),
 
-    canViewSponsors: can(role, 'event-sponsor:view'),
+    canViewSponsors: can(granted, 'event-sponsor:view'),
     canManageSponsors,
 
     canWrite: canCreate || canUpdate || canDelete,
