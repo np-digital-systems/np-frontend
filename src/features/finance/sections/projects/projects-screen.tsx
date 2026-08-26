@@ -1,9 +1,14 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import { createProject, updateProject } from '../../lib/finance-actions';
+
 import { useMemo, useState } from 'react';
 import { AlertTriangle, FolderOpen, Plus, Search, X } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   DataCell,
   DataRow,
@@ -52,15 +57,13 @@ interface ProjectsScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the projects API. */
 export function ProjectsScreen({
   initialProjects,
   funds,
   access,
   year,
 }: ProjectsScreenProps) {
-  const [projects, setProjects] =
-    useState<readonly ProjectRecord[]>(initialProjects);
+  const projects = initialProjects;
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<ProjectStatus | 'all'>('all');
   const [fundId, setFundId] = useState<number | 'all'>('all');
@@ -98,44 +101,28 @@ export function ProjectsScreen({
     };
   }, [projects]);
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: ProjectDraft) {
-    const fund = funds.find((entry) => entry.id === draft.fundId);
+    const target = editing;
+    const input = {
+      nameTa: draft.nameTa,
+      nameEn: draft.name,
+      fundId: draft.fundId,
+      budget: draft.budget,
+      startDate: draft.startDate,
+      targetDate: draft.targetDate || null,
+      status: draft.status,
+      description: draft.description,
+    };
 
-    setProjects((current) => {
-      const shape = (base: ProjectRecord | null): ProjectRecord => {
-        const spent = base?.spent ?? 0;
-        const remaining = draft.budget === null ? null : draft.budget - spent;
-
-        return {
-          id: base?.id ?? Date.now(),
-          name: draft.name,
-          nameTa: draft.nameTa,
-          fundId: draft.fundId,
-          budget: draft.budget,
-          startDate: draft.startDate,
-          targetDate: draft.targetDate || null,
-          status: draft.status,
-          description: draft.description,
-          isActive: draft.isActive,
-          fundName: fund?.name ?? base?.fundName ?? 'Unassigned',
-          spent,
-          received: base?.received ?? 0,
-          remaining,
-          utilisation:
-            draft.budget === null || draft.budget === 0
-              ? null
-              : spent / draft.budget,
-          isOverBudget: remaining !== null && remaining < 0,
-          entryCount: base?.entryCount ?? 0,
-        };
-      };
-
-      return editing
-        ? current.map((project) =>
-            project.id === editing.id ? shape(project) : project,
-          )
-        : [...current, shape(null)];
-    });
+    run(
+      () => (target ? updateProject(target.id, { ...input, isActive: draft.isActive }) : createProject(input)),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   const columns: DataColumn[] = [
@@ -181,6 +168,8 @@ export function ProjectsScreen({
               }}
             >
               <Plus />
+
+      <ActionError message={actionError} />
               New Project
             </Button>
           )

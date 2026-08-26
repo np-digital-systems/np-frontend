@@ -1,9 +1,14 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import { createFund, updateFund } from '../../lib/finance-actions';
+
 import { useMemo, useState } from 'react';
 import { Plus, Wallet } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardFooter,
@@ -34,14 +39,12 @@ interface FundsScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the funds API. */
 export function FundsScreen({
   initialDetails,
   access,
   year,
 }: FundsScreenProps) {
-  const [details, setDetails] =
-    useState<readonly FundDetail[]>(initialDetails);
+  const details = initialDetails;
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<FundRecord | null>(null);
 
@@ -61,56 +64,30 @@ export function FundsScreen({
     [funds],
   );
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: FundDraft) {
-    setDetails((current) => {
-      if (editing) {
-        return current.map((detail) =>
-          detail.fund.id === editing.id
-            ? {
-                ...detail,
-                fund: {
-                  ...detail.fund,
-                  ...draft,
-                  // The balance and utilisation follow from the opening
-                  // figure, so they are recomputed rather than carried over.
-                  balance: draft.opening + detail.fund.income - detail.fund.expenses,
-                  utilisation:
-                    draft.opening + detail.fund.income === 0
-                      ? 0
-                      : detail.fund.expenses /
-                        (draft.opening + detail.fund.income),
-                },
-              }
-            : detail,
-        );
-      }
+    const target = editing;
 
-      const nextId =
-        current.reduce(
-          (highest, detail) => Math.max(highest, detail.fund.id),
-          0,
-        ) + 1;
-
-      return [
-        ...current,
-        {
-          fund: {
-            id: nextId,
-            ...draft,
-            income: 0,
-            expenses: 0,
-            balance: draft.opening,
-            utilisation: 0,
-            projectCount: 0,
-            committed: 0,
-            entryCount: 0,
-          },
-          income: [],
-          expenses: [],
-          recent: [],
-        },
-      ];
-    });
+    run(
+      () =>
+        target
+          ? updateFund(target.id, {
+              nameTa: draft.nameTa,
+              nameEn: draft.name,
+              openingBalance: draft.opening,
+              isActive: draft.isActive,
+            })
+          : createFund({
+              nameTa: draft.nameTa,
+              nameEn: draft.name,
+              openingBalance: draft.opening,
+            }),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   return (
@@ -140,6 +117,8 @@ export function FundsScreen({
               }}
             >
               <Plus />
+
+      <ActionError message={actionError} />
               New Fund
             </Button>
           )
