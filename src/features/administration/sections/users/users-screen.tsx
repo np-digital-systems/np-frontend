@@ -1,5 +1,15 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  changeUserRole,
+  createUser,
+  setUserActive,
+  signOutUser,
+  updateUser,
+} from '../../lib/administration-actions';
+
 import { useMemo, useState } from 'react';
 import {
   KeyRound,
@@ -12,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   ConfirmDialog,
   DataCell,
@@ -63,13 +74,12 @@ interface UsersScreenProps {
   today: string;
 }
 
-/** TODO: replace the local mutations with calls to the users API. */
 export function UsersScreen({
   initialUsers,
   currentUserId,
   today,
 }: UsersScreenProps) {
-  const [users, setUsers] = useState<readonly UserRecord[]>(initialUsers);
+  const users = initialUsers;
   const [query, setQuery] = useState('');
   const [role, setRole] = useState<UserRole | 'all'>('all');
   const [showInactive, setShowInactive] = useState(false);
@@ -108,35 +118,45 @@ export function UsersScreen({
     };
   }, [users]);
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: UserDraft) {
-    setUsers((current) => {
-      if (editing) {
-        return current.map((user) =>
-          user.id === editing.id
-            ? {
-                ...user,
-                ...draft,
-                // Deactivating ends every session the account holds.
-                activeSessions: draft.isActive ? user.activeSessions : [],
-              }
-            : user,
-        );
-      }
+    const target = editing;
+    const profile = {
+      nameTa: draft.nameTa || draft.fullName,
+      fullName: draft.fullName,
+      email: draft.email,
+      phone: draft.phone,
+      address: draft.address,
+    };
 
-      const nextId = `usr_${String(current.length + 100).padStart(3, '0')}`;
+    run(
+      async () => {
+        if (!target) return createUser({ ...profile, role: draft.role });
 
-      return [
-        ...current,
-        {
-          id: nextId,
-          ...draft,
-          lastLoginAt: null,
-          createdAt: new Date().toISOString(),
-          activeSessions: [],
-          hasNeverSignedIn: true,
-        },
-      ];
-    });
+        const updated = await updateUser(target.id, profile);
+
+        if (!updated.ok) return updated;
+
+        // The role is its own call because changing it revokes the user's
+        // sessions, which a profile edit has no business doing.
+        if (draft.role !== target.role) {
+          const moved = await changeUserRole(target.id, draft.role);
+
+          if (!moved.ok) return moved;
+        }
+
+        if (draft.isActive !== target.isActive) {
+          return setUserActive(target.id, draft.isActive);
+        }
+
+        return updated;
+      },
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   const columns: DataColumn[] = [
@@ -177,6 +197,8 @@ export function UsersScreen({
             }}
           >
             <Plus />
+
+      <ActionError message={actionError} />
             New User
           </Button>
         }
@@ -406,15 +428,7 @@ export function UsersScreen({
                         <>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onSelect={() =>
-                              setUsers((current) =>
-                                current.map((entry) =>
-                                  entry.id === user.id
-                                    ? { ...entry, isActive: true }
-                                    : entry,
-                                ),
-                              )
-                            }
+                            onSelect={() => run(() => setUserActive(user.id, true))}
                           >
                             Reactivate account
                           </DropdownMenuItem>
@@ -452,15 +466,7 @@ export function UsersScreen({
             : ''
         }
         onConfirm={() => {
-          if (deactivating) {
-            setUsers((current) =>
-              current.map((user) =>
-                user.id === deactivating.id
-                  ? { ...user, isActive: false, activeSessions: [] }
-                  : user,
-              ),
-            );
-          }
+          if (deactivating) run(() => setUserActive(deactivating.id, false));
           setDeactivating(null);
         }}
       />
@@ -476,15 +482,7 @@ export function UsersScreen({
             : ''
         }
         onConfirm={() => {
-          if (signingOut) {
-            setUsers((current) =>
-              current.map((user) =>
-                user.id === signingOut.id
-                  ? { ...user, activeSessions: [] }
-                  : user,
-              ),
-            );
-          }
+          if (signingOut) run(() => signOutUser(signingOut.id));
           setSigningOut(null);
         }}
       />

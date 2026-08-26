@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getToday } from '@/lib/format';
 
 import { getAdministrationAccess } from '../../lib/administration-access';
@@ -8,8 +8,8 @@ import { getUserRecords } from '../../lib/administration-service';
 import { UsersScreen } from './users-screen';
 
 export async function UsersFeature() {
-  const user = await getCurrentUser();
-  const access = getAdministrationAccess(user.role);
+  const { user, permissions } = await requireSession();
+  const access = getAdministrationAccess(permissions);
 
   if (!access.canManageUsers) {
     return (
@@ -24,7 +24,7 @@ export async function UsersFeature() {
   return (
     <PageShell>
       <UsersScreen
-        initialUsers={getUserRecords(today)}
+        initialUsers={(await getUserRecords())}
         currentUserId={user.id}
         today={today}
       />
