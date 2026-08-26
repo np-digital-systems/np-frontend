@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
@@ -12,8 +12,8 @@ import {
 import { TransactionsScreen } from './transactions-screen';
 
 export async function TransactionsFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canViewTransactions) {
     return (
@@ -23,12 +23,22 @@ export async function TransactionsFeature() {
     );
   }
 
+  const [
+    entries,
+    funds,
+    projects,
+  ] = await Promise.all([
+    getLedger(),
+    getFundOptions(),
+    getProjectOptions(),
+  ]);
+
   return (
     <PageShell>
       <TransactionsScreen
-        entries={getLedger()}
-        funds={getFundOptions()}
-        projects={getProjectOptions()}
+        entries={entries}
+        funds={funds}
+        projects={projects}
         access={access}
         year={getActiveYear(getToday())}
       />

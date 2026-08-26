@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
@@ -12,8 +12,8 @@ import {
 import { ReportsScreen } from './reports-screen';
 
 export async function ReportsFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canGenerateReports) {
     return (
@@ -25,12 +25,22 @@ export async function ReportsFeature() {
 
   const today = getToday();
 
+  const [
+    statement,
+    trialBalance,
+    funds,
+  ] = await Promise.all([
+    getIncomeStatement(),
+    getTrialBalance(),
+    getFundPositions(),
+  ]);
+
   return (
     <PageShell>
       <ReportsScreen
-        statement={getIncomeStatement()}
-        trialBalance={getTrialBalance()}
-        funds={getFundPositions()}
+        statement={statement}
+        trialBalance={trialBalance}
+        funds={funds}
         year={getActiveYear(today)}
         throughMonth={Number(today.slice(5, 7))}
       />

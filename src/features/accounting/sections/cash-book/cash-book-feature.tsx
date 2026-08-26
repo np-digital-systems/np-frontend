@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
@@ -8,8 +8,8 @@ import { getCashBook } from '../../lib/accounting-service';
 import { CashBookScreen } from './cash-book-screen';
 
 export async function CashBookFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canViewCashBook) {
     return (
@@ -19,7 +19,7 @@ export async function CashBookFeature() {
     );
   }
 
-  const book = getCashBook();
+  const book = await getCashBook();
 
   return (
     <PageShell>

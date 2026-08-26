@@ -1,10 +1,19 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  approveVoucher,
+  postVoucher,
+  rejectVoucher,
+} from '../../lib/accounting-actions';
+
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Inbox } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   DataCell,
   DataRow,
@@ -36,7 +45,6 @@ import {
   formatCurrency,
   formatShortDate,
 } from '../../lib/accounting-data';
-import { applyAction } from '../../lib/voucher-workflow';
 import type { VoucherRecord } from '../../types';
 
 interface ApprovalsScreenProps {
@@ -46,15 +54,13 @@ interface ApprovalsScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the vouchers API. */
 export function ApprovalsScreen({
   initialVouchers,
   access,
   user,
   year,
 }: ApprovalsScreenProps) {
-  const [vouchers, setVouchers] =
-    useState<readonly VoucherRecord[]>(initialVouchers);
+  const vouchers = initialVouchers;
   const params = useSearchParams();
 
   const [viewing, setViewing] = useState<VoucherRecord | null>(() => {
@@ -88,11 +94,7 @@ export function ApprovalsScreen({
     (voucher) => voucher.createdBy.id === user.id,
   ).length;
 
-  function replace(updated: VoucherRecord) {
-    setVouchers((current) =>
-      current.map((voucher) => (voucher.id === updated.id ? updated : voucher)),
-    );
-  }
+  const { run, error: actionError } = useServerAction();
 
   return (
     <>
@@ -113,6 +115,8 @@ export function ApprovalsScreen({
           ) : null,
         ].filter(Boolean)}
       />
+
+      <ActionError message={actionError} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
@@ -175,7 +179,7 @@ export function ApprovalsScreen({
                   user={user}
                   onView={() => setViewing(voucher)}
                   onApprove={() =>
-                    replace(applyAction(voucher, 'approve', user))
+                    run(() => approveVoucher(voucher.id))
                   }
                   onReject={() => setRejecting(voucher)}
                 />
@@ -197,7 +201,7 @@ export function ApprovalsScreen({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => replace(applyAction(voucher, 'post', user))}
+                        onClick={() => run(() => postVoucher(voucher.id))}
                       >
                         Post to ledger
                       </Button>
@@ -228,7 +232,7 @@ export function ApprovalsScreen({
         onOpenChange={(open) => !open && setRejecting(null)}
         reference={rejecting?.ref ?? null}
         onConfirm={(reason) => {
-          if (rejecting) replace(applyAction(rejecting, 'reject', user, reason));
+          if (rejecting) run(() => rejectVoucher(rejecting.id, reason));
           setRejecting(null);
         }}
       />
