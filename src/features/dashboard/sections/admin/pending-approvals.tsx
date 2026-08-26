@@ -10,15 +10,15 @@ import {
   LinkButton,
   StatusBadge,
 } from '../../components';
-import {
-  PENDING_APPROVALS,
-  TOTAL_PENDING_APPROVALS,
-} from '../../constants/mock-data';
+import { getApprovalSummary } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
 import { cn } from '@/lib/utils';
 
-export function PendingApprovals() {
+export async function PendingApprovals() {
+  const { items: PENDING_APPROVALS, total: TOTAL_PENDING_APPROVALS } =
+    await getApprovalSummary();
+
   return (
     <Card className="flex h-full flex-col">
       <CardHeader

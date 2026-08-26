@@ -1,20 +1,19 @@
 export {
   getCurrentUser,
   getSession,
+  requireSession,
+  getPermissions,
   createSession,
   destroySession,
-  ROLE_PREVIEW_COOKIE,
-  SESSION_COOKIE,
+  type PortalSession,
 } from './lib/session';
 
 export { signIn, signOut } from './lib/auth-actions';
 
 export {
-  ROLE_PERMISSIONS,
   can,
   canAny,
   canAll,
-  getPermissions,
 } from './lib/permissions';
 
 export {
@@ -26,8 +25,6 @@ export { ROLE_LABELS, ROLE_DESCRIPTIONS, ROLE_PRESENTATION } from './lib/auth-da
 export { getRoleOptions } from './lib/auth-service';
 export { AUTH_ROUTES } from './lib/auth-routes';
 export { signInSchema, type SignInInput } from './lib/auth-schemas';
-
-export { PORTAL_ACCOUNTS, type PortalAccount } from './constants/portal-accounts';
 
 export { SignInFeature } from './sections';
 

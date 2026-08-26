@@ -1,5 +1,5 @@
 import { can } from '@/features/auth/lib/permissions';
-import type { UserRole } from '@/features/auth/types/user-role';
+import type { Permission } from '@/features/auth/types/permission';
 
 export interface FinanceAccess {
   readonly canViewFunds: boolean;
@@ -18,22 +18,22 @@ export interface FinanceAccess {
     readonly canViewLedger: boolean;
 }
 
-export function getFinanceAccess(role: UserRole): FinanceAccess {
+export function getFinanceAccess(granted: readonly Permission[]): FinanceAccess {
   return {
-    canViewFunds: can(role, 'fund:view'),
-    canManageFunds: can(role, 'fund:manage'),
+    canViewFunds: can(granted, 'fund:view'),
+    canManageFunds: can(granted, 'fund:manage'),
 
-    canViewProjects: can(role, 'project:view'),
-    canManageProjects: can(role, 'project:manage'),
+    canViewProjects: can(granted, 'project:view'),
+    canManageProjects: can(granted, 'project:manage'),
 
-    canViewDeposits: can(role, 'fixed-deposit:view'),
-    canManageDeposits: can(role, 'fixed-deposit:manage'),
+    canViewDeposits: can(granted, 'fixed-deposit:view'),
+    canManageDeposits: can(granted, 'fixed-deposit:manage'),
 
-    canViewAssets: can(role, 'asset:view'),
-    canManageAssets: can(role, 'asset:manage'),
-    canDisposeAssets: can(role, 'asset:dispose'),
+    canViewAssets: can(granted, 'asset:view'),
+    canManageAssets: can(granted, 'asset:manage'),
+    canDisposeAssets: can(granted, 'asset:dispose'),
 
-    canViewLedger: can(role, 'transaction:view'),
+    canViewLedger: can(granted, 'transaction:view'),
   };
 }
 

@@ -1,5 +1,5 @@
 import { can } from '@/features/auth/lib/permissions';
-import type { UserRole } from '@/features/auth/types/user-role';
+import type { Permission } from '@/features/auth/types/permission';
 
 export interface ContributionAccess {
   readonly canView: boolean;
@@ -8,12 +8,12 @@ export interface ContributionAccess {
     readonly canSeeContact: boolean;
 }
 
-export function getContributionAccess(role: UserRole): ContributionAccess {
-  const canManage = can(role, 'contribution:manage');
+export function getContributionAccess(granted: readonly Permission[]): ContributionAccess {
+  const canManage = can(granted, 'contribution:manage');
 
   return {
-    canView: can(role, 'contribution:view'),
-    canRecord: can(role, 'contribution:record'),
+    canView: can(granted, 'contribution:view'),
+    canRecord: can(granted, 'contribution:record'),
     canManage,
     canSeeContact: canManage,
   };

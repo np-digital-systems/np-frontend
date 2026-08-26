@@ -125,7 +125,6 @@ export function SignInScreen({ roles, templeName }: SignInScreenProps) {
                     type="email"
                     autoComplete="email"
                     required
-                    defaultValue={active?.demoEmail}
                     placeholder="you@neeliyampathipillaiyarkovil.com"
                     className="h-11 rounded-xl pl-9 text-sm"
                   />
@@ -320,9 +319,6 @@ function RoleSummary({ option }: { option: AuthRoleOption }) {
           {option.label} access
         </p>
 
-        <span className="tabular rounded-full bg-primary-subtle px-2 py-0.5 text-[10px] font-medium text-primary">
-          {option.capabilityCount} capabilities
-        </span>
       </div>
 
       <ul className="mt-2 flex flex-wrap gap-1.5">

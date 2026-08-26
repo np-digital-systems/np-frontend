@@ -1,11 +1,11 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 
 import { getEventAccess } from '../../lib/event-access';
 import { getActiveYear, getToday } from '../../lib/event-data';
 import {
   getEventTypes,
-  getEvents,
+  getEventsSummary,
   getSponsorAssignments,
   getSponsorUsers,
 } from '../../lib/event-service';
@@ -14,8 +14,8 @@ import { redactAssignments, redactSponsors } from '../../lib/event-privacy';
 import { SponsorsScreen } from './sponsors-screen';
 
 export async function SponsorsFeature() {
-  const user = await getCurrentUser();
-  const access = getEventAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getEventAccess(permissions);
 
   if (!access.canViewSponsors) {
     return (
@@ -25,27 +25,24 @@ export async function SponsorsFeature() {
     );
   }
 
-  const today = getToday();
+  const year = getActiveYear(getToday());
 
-  const unsponsoredEvents = getEvents(today).filter(
-    (event) => event.sponsorId === null,
-  ).length;
+  const [assignments, eventTypes, sponsors, summary] = await Promise.all([
+    getSponsorAssignments(year),
+    getEventTypes(),
+    getSponsorUsers(),
+    getEventsSummary(year),
+  ]);
 
   return (
     <PageShell>
       <SponsorsScreen
-        initialAssignments={redactAssignments(
-          getSponsorAssignments(today),
-          access.canSeeSponsorContact,
-        )}
-        eventTypes={getEventTypes()}
-        sponsors={redactSponsors(
-          getSponsorUsers(),
-          access.canSeeSponsorContact,
-        )}
+        initialAssignments={redactAssignments(assignments, access.canSeeSponsorContact)}
+        eventTypes={eventTypes}
+        sponsors={redactSponsors(sponsors, access.canSeeSponsorContact)}
         access={access}
-        unsponsoredEvents={unsponsoredEvents}
-        year={getActiveYear(today)}
+        unsponsoredEvents={summary.unsponsored}
+        year={year}
       />
     </PageShell>
   );

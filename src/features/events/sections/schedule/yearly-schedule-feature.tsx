@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 
 import { getEventAccess } from '../../lib/event-access';
 import { getActiveYear, getToday } from '../../lib/event-data';
@@ -18,8 +18,8 @@ import {
 import { YearlyScheduleScreen } from './yearly-schedule-screen';
 
 export async function YearlyScheduleFeature() {
-  const user = await getCurrentUser();
-  const access = getEventAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getEventAccess(permissions);
 
   if (!access.canViewSchedule) {
     return (
@@ -30,26 +30,25 @@ export async function YearlyScheduleFeature() {
   }
 
   const today = getToday();
+  const year = getActiveYear(today);
+
+  const [groups, events, eventTypes, sponsors] = await Promise.all([
+    getScheduleGroups(year),
+    getEvents(year),
+    getEventTypes(),
+    getSponsorUsers(),
+  ]);
 
   return (
     <PageShell>
       <YearlyScheduleScreen
-        groups={redactScheduleGroups(
-          getScheduleGroups(today),
-          access.canSeeSponsorContact,
-        )}
-        initialEvents={redactEvents(
-          getEvents(today),
-          access.canSeeSponsorContact,
-        )}
-        eventTypes={getEventTypes()}
-        sponsors={redactSponsors(
-          getSponsorUsers(),
-          access.canSeeSponsorContact,
-        )}
+        groups={redactScheduleGroups(groups, access.canSeeSponsorContact)}
+        initialEvents={redactEvents(events, access.canSeeSponsorContact)}
+        eventTypes={eventTypes}
+        sponsors={redactSponsors(sponsors, access.canSeeSponsorContact)}
         access={access}
         today={today}
-        year={getActiveYear(today)}
+        year={year}
       />
     </PageShell>
   );

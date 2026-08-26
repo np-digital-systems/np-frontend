@@ -1,15 +1,15 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
-import { getBankAccountRecords } from '../../lib/accounting-service';
+import { getBankAccountRecords, getPostableAccounts } from '../../lib/accounting-service';
 
 import { BankAccountsScreen } from './bank-accounts-screen';
 
 export async function BankAccountsFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canViewBankAccounts) {
     return (
@@ -19,10 +19,21 @@ export async function BankAccountsFeature() {
     );
   }
 
+  const [initialBanks, postable] = await Promise.all([
+    getBankAccountRecords(),
+    getPostableAccounts(),
+  ]);
+
+  // Only an asset head can carry bank money.
+  const ledgerAccounts = postable
+    .filter((account) => account.type === 'asset')
+    .map(({ id, code, name }) => ({ id, code, name }));
+
   return (
     <PageShell>
       <BankAccountsScreen
-        initialBanks={getBankAccountRecords()}
+        initialBanks={initialBanks}
+        ledgerAccounts={ledgerAccounts}
         access={access}
         year={getActiveYear(getToday())}
       />

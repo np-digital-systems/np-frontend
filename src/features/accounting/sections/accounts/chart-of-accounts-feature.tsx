@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
@@ -8,8 +8,8 @@ import { getAccountRecords } from '../../lib/accounting-service';
 import { ChartOfAccountsScreen } from './chart-of-accounts-screen';
 
 export async function ChartOfAccountsFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canViewAccounts) {
     return (
@@ -19,10 +19,16 @@ export async function ChartOfAccountsFeature() {
     );
   }
 
+  const [
+    initialAccounts,
+  ] = await Promise.all([
+    getAccountRecords(),
+  ]);
+
   return (
     <PageShell>
       <ChartOfAccountsScreen
-        initialAccounts={getAccountRecords()}
+        initialAccounts={initialAccounts}
         access={access}
         year={getActiveYear(getToday())}
       />

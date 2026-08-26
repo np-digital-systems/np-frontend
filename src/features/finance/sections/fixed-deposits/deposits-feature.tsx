@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getFinanceAccess } from '../../lib/finance-access';
@@ -8,8 +8,8 @@ import { getDepositRecords, getFundRecords } from '../../lib/finance-service';
 import { DepositsScreen } from './deposits-screen';
 
 export async function FixedDepositsFeature() {
-  const user = await getCurrentUser();
-  const access = getFinanceAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getFinanceAccess(permissions);
 
   if (!access.canViewDeposits) {
     return (
@@ -21,11 +21,19 @@ export async function FixedDepositsFeature() {
 
   const today = getToday();
 
+  const [
+    initialDeposits,
+    funds,
+  ] = await Promise.all([
+    getDepositRecords(),
+    getFundRecords(),
+  ]);
+
   return (
     <PageShell>
       <DepositsScreen
-        initialDeposits={getDepositRecords(today)}
-        funds={getFundRecords()}
+        initialDeposits={initialDeposits}
+        funds={funds}
         access={access}
         today={today}
         year={getActiveYear(today)}

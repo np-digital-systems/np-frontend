@@ -1,9 +1,20 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  completeEvent,
+  createEvent,
+  deleteEvent,
+  reopenEvent,
+  updateEvent,
+} from '../../lib/event-actions';
+
 import { useMemo, useState } from 'react';
 import { CalendarPlus, Download } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   ConfirmDialog,
   PortalPageHeader,
@@ -23,8 +34,7 @@ import {
   type EventFilters,
 } from '../../components/events-toolbar';
 import { READ_ONLY_MESSAGE, type EventAccess } from '../../lib/event-access';
-import { deriveStatus, isOverdue, summarise } from '../../lib/event-data';
-import { materialiseEvent } from '../../lib/event-draft';
+import { isOverdue, summarise } from '../../lib/event-data';
 import type { EventRecord, EventType, SponsorUser } from '../../types';
 
 import { EventsTable } from './events-table';
@@ -54,7 +64,7 @@ export function EventsCalendar({
   today,
   year,
 }: EventsCalendarProps) {
-  const [events, setEvents] = useState<readonly EventRecord[]>(initialEvents);
+  const events = initialEvents;
   const [filters, setFilters] = useState<EventFilters>(EMPTY_FILTERS);
   const [view, setView] = useState<View>('List');
 
@@ -89,58 +99,49 @@ export function EventsCalendar({
     setFormOpen(true);
   }
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: EventDraft) {
-    setEvents((current) => {
-      if (editing) {
-        return current.map((event) =>
-          event.id === editing.id
-            ? materialiseEvent(draft, {
-                id: editing.id,
-                createdAt: editing.createdAt,
-                eventTypes,
-                sponsors,
-                today,
-              })
-            : event,
-        );
-      }
+    const target = editing;
 
-      const nextId =
-        current.reduce((highest, event) => Math.max(highest, event.id), 0) + 1;
-
-      return [
-        ...current,
-        materialiseEvent(draft, {
-          id: nextId,
-          createdAt: new Date().toISOString(),
-          eventTypes,
-          sponsors,
-          today,
-        }),
-      ];
-    });
+    run(
+      () =>
+        target
+          ? updateEvent(target.id, {
+              customInstanceName: draft.customInstanceName || null,
+              scheduledDate: draft.scheduledDate,
+              startTime: draft.startTime,
+              endTime: draft.endTime || null,
+              sponsorId: draft.sponsorId,
+              notes: draft.notes || null,
+            })
+          : createEvent({
+              eventTypeId: draft.eventTypeId,
+              instanceIdentifier: draft.instanceIdentifier,
+              customInstanceName: draft.customInstanceName || null,
+              scheduledDate: draft.scheduledDate,
+              startTime: draft.startTime,
+              endTime: draft.endTime || null,
+              sponsorId: draft.sponsorId,
+              notes: draft.notes || null,
+            }),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   function handleToggleComplete(target: EventRecord) {
-    setEvents((current) =>
-      current.map((event) => {
-        if (event.id !== target.id) return event;
-
-        const updated = { ...event, isCompleted: !event.isCompleted };
-
-        return { ...updated, status: deriveStatus(updated, today) };
-      }),
-    );
+    run(() => (target.isCompleted ? reopenEvent(target.id) : completeEvent(target.id)));
   }
 
   function handleDelete() {
     if (!pendingDelete) return;
 
-    setEvents((current) =>
-      current.filter((event) => event.id !== pendingDelete.id),
-    );
+    const target = pendingDelete;
 
-    setPendingDelete(null);
+    run(() => deleteEvent(target.id), () => setPendingDelete(null));
   }
 
   return (
@@ -166,6 +167,8 @@ export function EventsCalendar({
             {access.canExport && (
               <Button variant="outline">
                 <Download />
+
+      <ActionError message={actionError} />
                 Export
               </Button>
             )}

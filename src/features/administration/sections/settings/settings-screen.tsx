@@ -1,9 +1,17 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  updateAccountingSettings,
+  updateTempleSettings,
+} from '../../lib/administration-actions';
+
 import { useMemo, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardHeader,
@@ -73,6 +81,26 @@ export function SettingsScreen({
     [settings, initialSettings],
   );
 
+  const { run, error: actionError, pending } = useServerAction();
+
+  /**
+   * Only the two keys the API owns are written.
+   *
+   * `locale` and `notifications` are still portal-side preferences; sending
+   * them would store settings nothing reads.
+   */
+  function handleSave() {
+    if (!settings) return;
+
+    run(async () => {
+      const temple = await updateTempleSettings({ ...settings.temple });
+
+      if (!temple.ok) return temple;
+
+      return updateAccountingSettings({ ...settings.accounting });
+    });
+  }
+
   function patch<K extends keyof PortalSettings>(
     key: K,
     value: Partial<PortalSettings[K]>,
@@ -108,11 +136,15 @@ export function SettingsScreen({
                   onClick={() => setSettings(initialSettings)}
                 >
                   <RotateCcw />
+
+      <ActionError message={actionError} />
                   Discard
                 </Button>
               )}
 
-              <Button disabled={!isDirty}>Save Settings</Button>
+              <Button disabled={!isDirty || pending} onClick={handleSave}>
+                Save Settings
+              </Button>
             </>
           )
         }

@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getFinanceAccess } from '../../lib/finance-access';
@@ -8,8 +8,8 @@ import { getFundRecords, getProjectRecords } from '../../lib/finance-service';
 import { ProjectsScreen } from './projects-screen';
 
 export async function ProjectsFeature() {
-  const user = await getCurrentUser();
-  const access = getFinanceAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getFinanceAccess(permissions);
 
   if (!access.canViewProjects) {
     return (
@@ -19,11 +19,19 @@ export async function ProjectsFeature() {
     );
   }
 
+  const [
+    initialProjects,
+    funds,
+  ] = await Promise.all([
+    getProjectRecords(),
+    getFundRecords(),
+  ]);
+
   return (
     <PageShell>
       <ProjectsScreen
-        initialProjects={getProjectRecords()}
-        funds={getFundRecords()}
+        initialProjects={initialProjects}
+        funds={funds}
         access={access}
         year={getActiveYear(getToday())}
       />

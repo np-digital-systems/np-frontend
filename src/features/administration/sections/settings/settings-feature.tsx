@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getToday } from '@/lib/format';
 
 import { getAdministrationAccess } from '../../lib/administration-access';
@@ -13,11 +13,11 @@ import { SettingsScreen } from './settings-screen';
 // Open to every portal role: everyone manages their own profile and sessions
 // here. Only `settings:manage` adds the portal-wide tabs.
 export async function SettingsFeature() {
-  const user = await getCurrentUser();
-  const access = getAdministrationAccess(user.role);
+  const { user, permissions } = await requireSession();
+  const access = getAdministrationAccess(permissions);
   const today = getToday();
 
-  const record = getUserRecords(today).find((entry) => entry.id === user.id);
+  const record = (await getUserRecords()).find((entry) => entry.id === user.id);
 
   if (!record) {
     return (
@@ -38,7 +38,7 @@ export async function SettingsFeature() {
         currentSessionId={record.activeSessions[0]?.id ?? ''}
         today={today}
         initialSettings={
-          access.canManageSettings ? getPortalSettings() : null
+          access.canManageSettings ? (await getPortalSettings()) : null
         }
       />
     </PageShell>

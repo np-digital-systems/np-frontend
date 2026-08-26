@@ -1,20 +1,16 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 
 import { getEventAccess } from '../../lib/event-access';
 import { getActiveYear, getToday } from '../../lib/event-data';
-import {
-  getEventTypes,
-  getEvents,
-  getSponsorUsers,
-} from '../../lib/event-service';
+import { getEventTypes, getEvents, getSponsorUsers } from '../../lib/event-service';
 import { redactEvents, redactSponsors } from '../../lib/event-privacy';
 
 import { EventsCalendar } from './events-calendar';
 
 export async function EventsCalendarFeature() {
-  const user = await getCurrentUser();
-  const access = getEventAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getEventAccess(permissions);
 
   if (!access.canView) {
     return (
@@ -25,22 +21,25 @@ export async function EventsCalendarFeature() {
   }
 
   const today = getToday();
+  const year = getActiveYear(today);
+
+  // Three independent reads; waiting for them in sequence would show the page
+  // three round trips late for no reason.
+  const [events, eventTypes, sponsors] = await Promise.all([
+    getEvents(year),
+    getEventTypes(),
+    getSponsorUsers(),
+  ]);
 
   return (
     <PageShell>
       <EventsCalendar
-        initialEvents={redactEvents(
-          getEvents(today),
-          access.canSeeSponsorContact,
-        )}
-        eventTypes={getEventTypes()}
-        sponsors={redactSponsors(
-          getSponsorUsers(),
-          access.canSeeSponsorContact,
-        )}
+        initialEvents={redactEvents(events, access.canSeeSponsorContact)}
+        eventTypes={eventTypes}
+        sponsors={redactSponsors(sponsors, access.canSeeSponsorContact)}
         access={access}
         today={today}
-        year={getActiveYear(today)}
+        year={year}
       />
     </PageShell>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { Plus, Search, Users, X } from 'lucide-react';
 
 import {
@@ -44,7 +44,8 @@ import {
   formatCurrency,
   formatShortDate,
 } from '../../lib/contributions-data';
-import { summarise } from '../../lib/contributions-service';
+import { summarise } from '../../lib/contributions-data';
+import { enrolMember, updateMember } from '../../lib/contributions-actions';
 import type { MemberRecord } from '../../types';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid';
@@ -94,6 +95,7 @@ export function SanththaScreen({
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<MemberRecord | null>(null);
   const [paying, setPaying] = useState<MemberRecord | null>(null);
+  const [, startTransition] = useTransition();
 
   const summary = useMemo(() => summarise(members), [members]);
 
@@ -112,37 +114,30 @@ export function SanththaScreen({
     });
   }, [members, query, status]);
 
-  const nextMemberNo = useMemo(() => {
-    const highest = members.reduce((max, member) => {
-      const n = Number(member.memberNo.replace(/\D/g, ''));
-      return Number.isFinite(n) ? Math.max(max, n) : max;
-    }, 0);
+  const [memberError, setMemberError] = useState<string | null>(null);
 
-    return `S-${String(highest + 1).padStart(3, '0')}`;
-  }, [members]);
-
+  /**
+   * Enrolling writes through the API and then refreshes.
+   *
+   * The member number comes back from the database rather than being guessed
+   * from the highest one on this page — two cashiers enrolling at the same
+   * moment would otherwise both read the same highest number.
+   */
   function handleMemberSubmit(draft: MemberDraft) {
-    setMembers((current) => {
-      if (editing) {
-        return current.map((member) =>
-          member.id === editing.id ? { ...member, ...draft } : member,
-        );
+    startTransition(async () => {
+      const result = editing
+        ? await updateMember(editing.id, draft)
+        : await enrolMember(draft);
+
+      if (!result.ok) {
+        setMemberError(result.message);
+        return;
       }
 
-      const nextId =
-        current.reduce((max, member) => Math.max(max, member.id), 0) + 1;
-
-      return [
-        ...current,
-        {
-          ...draft,
-          id: nextId,
-          joinedOn: new Date().toISOString().slice(0, 10),
-          notes: draft.notes || null,
-          hasPaid: false,
-          payment: null,
-        },
-      ];
+      setMemberError(null);
+      setEditing(null);
+      setFormOpen(false);
+      router.refresh();
     });
   }
 
@@ -415,10 +410,11 @@ export function SanththaScreen({
 
       {access.canManage && (
         <MemberFormDialog
+          submitError={memberError}
           open={formOpen}
           onOpenChange={setFormOpen}
           member={editing}
-          nextMemberNo={nextMemberNo}
+          nextMemberNo=""
           onSubmit={handleMemberSubmit}
         />
       )}

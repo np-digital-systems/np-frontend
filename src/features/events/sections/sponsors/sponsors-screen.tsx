@@ -1,9 +1,18 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  assignSponsor,
+  removeSponsorAssignment,
+  updateSponsorAssignment,
+} from '../../lib/sponsor-actions';
+
 import { useMemo, useState } from 'react';
 import { Handshake, Mail, Phone, Search, UserPlus, UserRoundPlus } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardHeader,
@@ -36,7 +45,6 @@ import {
   type SponsorDraft,
 } from '../../components/sponsor-form-dialog';
 import type { EventAccess } from '../../lib/event-access';
-import { describeInstance } from '../../lib/event-data';
 import type { EventType, SponsorAssignment, SponsorUser } from '../../types';
 
 interface SponsorsScreenProps {
@@ -48,7 +56,6 @@ interface SponsorsScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the sponsors API. */
 export function SponsorsScreen({
   initialAssignments,
   eventTypes,
@@ -59,8 +66,7 @@ export function SponsorsScreen({
 }: SponsorsScreenProps) {
   const router = useRouter();
 
-  const [assignments, setAssignments] =
-    useState<readonly SponsorAssignment[]>(initialAssignments);
+  const assignments = initialAssignments;
   const [query, setQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -101,70 +107,37 @@ export function SponsorsScreen({
     assignments.map((assignment) => assignment.eventTypeId),
   ).size;
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: SponsorDraft) {
-    const eventType = eventTypes.find((type) => type.id === draft.eventTypeId);
-    const sponsor = sponsors.find((user) => user.id === draft.userId);
+    const target = editing;
 
-    if (!eventType || !sponsor) return;
-
-    const customInstanceName = draft.customInstanceName || null;
-
-    const instanceLabel = describeInstance(
-      eventType.frequencyType,
-      draft.instanceIdentifier,
-      customInstanceName,
+    run(
+      () =>
+        target
+          ? updateSponsorAssignment(target.id, {
+              userId: draft.userId,
+              customInstanceName: draft.customInstanceName,
+            })
+          : assignSponsor({
+              eventTypeId: draft.eventTypeId,
+              instanceIdentifier: draft.instanceIdentifier,
+              customInstanceName: draft.customInstanceName,
+              userId: draft.userId,
+            }),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
     );
-
-    setAssignments((current) => {
-      if (editing) {
-        return current.map((assignment) =>
-          assignment.id === editing.id
-            ? {
-                ...assignment,
-                eventTypeId: draft.eventTypeId,
-                instanceIdentifier: draft.instanceIdentifier,
-                customInstanceName,
-                userId: draft.userId,
-                eventType,
-                sponsor,
-                instanceLabel,
-              }
-            : assignment,
-        );
-      }
-
-      const nextId =
-        current.reduce(
-          (highest, assignment) => Math.max(highest, assignment.id),
-          0,
-        ) + 1;
-
-      return [
-        ...current,
-        {
-          id: nextId,
-          eventTypeId: draft.eventTypeId,
-          instanceIdentifier: draft.instanceIdentifier,
-          customInstanceName,
-          userId: draft.userId,
-          createdAt: new Date().toISOString(),
-          eventType,
-          sponsor,
-          instanceLabel,
-          occurrences: 0,
-        },
-      ];
-    });
   }
 
   function handleRemove() {
     if (!pendingRemove) return;
 
-    setAssignments((current) =>
-      current.filter((assignment) => assignment.id !== pendingRemove.id),
-    );
+    const target = pendingRemove;
 
-    setPendingRemove(null);
+    run(() => removeSponsorAssignment(target.id), () => setPendingRemove(null));
   }
 
   const columns: DataColumn[] = [
@@ -202,6 +175,8 @@ export function SponsorsScreen({
             <>
               <Button variant="outline" onClick={() => setCreateOpen(true)}>
                 <UserRoundPlus />
+
+      <ActionError message={actionError} />
                 New Sponsor
               </Button>
 

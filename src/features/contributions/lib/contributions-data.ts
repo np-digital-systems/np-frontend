@@ -1,3 +1,5 @@
+import type { MemberRecord, SanththaSummary } from '../types';
+
 export {
   formatCurrency,
   formatLongDate,
@@ -35,3 +37,24 @@ export const PAYMENT_MODE_LABELS: Record<PaymentMode, string> = {
   bank: 'Bank Transfer',
   online: 'Online',
 };
+
+/**
+ * Totals for a set of rows the caller already holds.
+ *
+ * Pure arithmetic, so both the server page and the client screen can use it —
+ * the screen recomputes as its filters change without another round trip.
+ */
+export function summarise(records: readonly MemberRecord[]): SanththaSummary {
+  const expected = records.filter((member) => member.isActive);
+  const paid = records.filter((member) => member.hasPaid);
+  const unpaid = expected.filter((member) => !member.hasPaid).length;
+
+  return {
+    members: records.length,
+    paid: paid.length,
+    unpaid,
+    collected: paid.reduce((sum, member) => sum + (member.payment?.amount ?? 0), 0),
+    outstanding: unpaid * YEARLY_SUBSCRIPTION,
+  };
+}
+

@@ -5,6 +5,8 @@ import { Menu } from 'lucide-react'
 import { PortalBreadcrumbs } from './portal-breadcrumbs'
 import { PortalSearch } from './portal-search'
 import { FinancialYearSelector } from './financial-year-selector'
+import type { Notification } from '@/features/notification/constants/notification-shapes'
+
 import { NotificationMenu } from './notification-menu'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserMenu } from './user-menu'
@@ -15,11 +17,12 @@ import { cn } from '@/lib/utils';
 
 
 interface PortalHeaderProps {
+  notifications: readonly Notification[];
   user: PortalUser
 }
 
 
-export function PortalHeader({ user }: PortalHeaderProps) {
+export function PortalHeader({ notifications, user }: PortalHeaderProps) {
   return (
     <header
       className={cn(
@@ -64,7 +67,7 @@ export function PortalHeader({ user }: PortalHeaderProps) {
           <FinancialYearSelector />
 
           {/* Notifications */}
-          <NotificationMenu />
+          <NotificationMenu notifications={notifications} />
 
           <ThemeToggle/>
 

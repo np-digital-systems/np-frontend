@@ -4,4 +4,6 @@ export const ADMIN_ROUTES = {
   auditLog: '/administration/audit-log',
   financialYears: '/administration/financial-years',
   settings: '/administration/settings',
+  sessions: '/administration/sessions',
+  profile: '/administration/profile',
 } as const;

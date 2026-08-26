@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
@@ -17,8 +17,8 @@ import {
 import { OverviewScreen } from './overview-screen';
 
 export async function AccountOverviewFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canViewOverview) {
     return (
@@ -30,17 +30,37 @@ export async function AccountOverviewFeature() {
 
   const today = getToday();
 
+  const [
+    summary,
+    funds,
+    banks,
+    recent,
+    pending,
+    statement,
+    monthly,
+    quarterly,
+  ] = await Promise.all([
+    getSummary(),
+    getFundPositions(),
+    getBankAccountRecords(),
+    getLedger(),
+    getPendingVouchers(),
+    getIncomeStatement(),
+    getMonthlySeries(today),
+    getQuarterlySeries(today),
+  ]);
+
   return (
     <PageShell>
       <OverviewScreen
-        summary={getSummary()}
-        funds={getFundPositions()}
-        banks={getBankAccountRecords()}
-        recent={getLedger()}
-        pending={getPendingVouchers()}
-        statement={getIncomeStatement()}
-        monthly={getMonthlySeries(today)}
-        quarterly={getQuarterlySeries(today)}
+        summary={summary}
+        funds={funds}
+        banks={banks}
+        recent={recent}
+        pending={pending}
+        statement={statement}
+        monthly={monthly}
+        quarterly={quarterly}
         access={access}
         year={getActiveYear(today)}
       />

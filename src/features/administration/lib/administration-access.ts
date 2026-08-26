@@ -1,5 +1,5 @@
 import { can } from '@/features/auth/lib/permissions';
-import type { UserRole } from '@/features/auth/types/user-role';
+import type { Permission } from '@/features/auth/types/permission';
 
 export interface AdministrationAccess {
   readonly canManageUsers: boolean;
@@ -13,17 +13,17 @@ export interface AdministrationAccess {
 }
 
 export function getAdministrationAccess(
-  role: UserRole,
+  granted: readonly Permission[],
 ): AdministrationAccess {
   return {
-    canManageUsers: can(role, 'user:manage'),
-    canManageRoles: can(role, 'role:manage'),
-    canViewAudit: can(role, 'audit:view'),
+    canManageUsers: can(granted, 'user:manage'),
+    canManageRoles: can(granted, 'role:manage'),
+    canViewAudit: can(granted, 'audit:view'),
 
-    canViewFinancialYears: can(role, 'financial-year:view'),
-    canManageFinancialYears: can(role, 'financial-year:manage'),
+    canViewFinancialYears: can(granted, 'financial-year:view'),
+    canManageFinancialYears: can(granted, 'financial-year:manage'),
 
-    canManageSettings: can(role, 'settings:manage'),
+    canManageSettings: can(granted, 'settings:manage'),
   };
 }
 

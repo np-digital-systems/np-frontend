@@ -97,6 +97,8 @@ export function RecordPaymentDialog({
     startTransition(async () => {
       const result = await recordSanththaPayment({
         memberId: member.id,
+        memberNo: member.memberNo,
+        memberName: member.fullName,
         year,
         ...draft,
       });

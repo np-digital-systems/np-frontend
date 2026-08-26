@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getFinanceAccess } from '../../lib/finance-access';
@@ -12,8 +12,8 @@ import {
 import { AssetsScreen } from './assets-screen';
 
 export async function AssetsFeature() {
-  const user = await getCurrentUser();
-  const access = getFinanceAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getFinanceAccess(permissions);
 
   if (!access.canViewAssets) {
     return (
@@ -25,12 +25,22 @@ export async function AssetsFeature() {
 
   const today = getToday();
 
+  const [
+    initialAssets,
+    categoryTotals,
+    funds,
+  ] = await Promise.all([
+    getAssetRecords(),
+    getAssetCategoryTotals(),
+    getFundRecords(),
+  ]);
+
   return (
     <PageShell>
       <AssetsScreen
-        initialAssets={getAssetRecords(today)}
-        categoryTotals={getAssetCategoryTotals(today)}
-        funds={getFundRecords()}
+        initialAssets={initialAssets}
+        categoryTotals={categoryTotals}
+        funds={funds}
         access={access}
         today={today}
         year={getActiveYear(today)}

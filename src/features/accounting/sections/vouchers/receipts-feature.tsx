@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { VoucherRegister } from '../../components/voucher-register';
@@ -15,8 +15,8 @@ import {
 } from '../../lib/accounting-service';
 
 export async function ReceiptVouchersFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { user, permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canViewReceipts) {
     return (
@@ -26,19 +26,37 @@ export async function ReceiptVouchersFeature() {
     );
   }
 
+  const [
+    initialVouchers,
+    accounts,
+    funds,
+    projects,
+    bankAccounts,
+    poojaTypes,
+    poojas,
+  ] = await Promise.all([
+    getVouchersOfKind('receipt'),
+    getPostableAccounts(),
+    getFundOptions(),
+    getProjectOptions(),
+    getBankAccountOptions(),
+    getPoojaTypes(),
+    getPoojas(),
+  ]);
+
   return (
     <PageShell>
       <VoucherRegister
         kind="receipt"
         title="Receipt Vouchers"
         description="Every rupee received by the temple — hundial, sponsorships, donations and rent."
-        initialVouchers={getVouchersOfKind('receipt')}
-        accounts={getPostableAccounts()}
-        funds={getFundOptions()}
-        projects={getProjectOptions()}
-        bankAccounts={getBankAccountOptions()}
-        poojaTypes={getPoojaTypes()}
-        poojas={getPoojas()}
+        initialVouchers={initialVouchers}
+        accounts={accounts}
+        funds={funds}
+        projects={projects}
+        bankAccounts={bankAccounts}
+        poojaTypes={poojaTypes}
+        poojas={poojas}
         access={access}
         user={user}
         year={getActiveYear(getToday())}

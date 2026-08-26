@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
@@ -8,8 +8,8 @@ import { getVouchers } from '../../lib/accounting-service';
 import { ApprovalsScreen } from './approvals-screen';
 
 export async function ApprovalsFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { user, permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canApprove) {
     return (
@@ -21,7 +21,7 @@ export async function ApprovalsFeature() {
 
   // Cancelled entries never needed a decision and never will — they would
   // only pad the settled tab.
-  const vouchers = getVouchers().filter(
+  const vouchers = (await getVouchers()).filter(
     (voucher) => voucher.status !== 'Cancelled' && voucher.status !== 'Draft',
   );
 

@@ -1,14 +1,14 @@
-import { PORTAL_ACCOUNTS } from '../constants/portal-accounts';
 import type { AuthRoleOption } from '../types/auth';
 import { USER_ROLES } from '../types/user-role';
 
 import { ROLE_LABELS, ROLE_PRESENTATION } from './auth-data';
-import { getPermissions } from './permissions';
 
 /**
- * What the sign-in screen offers. The capability count is read from the same
- * matrix the portal enforces, so the promise made on the login page and the
- * navigation the shell builds can never drift apart.
+ * What the sign-in screen describes.
+ *
+ * Presentation only: the role comes back with the session, from the account the
+ * credentials belong to. Nothing chosen on this page decides what the portal
+ * then allows.
  */
 export function getRoleOptions(): readonly AuthRoleOption[] {
   return USER_ROLES.map((role) => ({
@@ -17,7 +17,5 @@ export function getRoleOptions(): readonly AuthRoleOption[] {
     summary: ROLE_PRESENTATION[role].summary,
     icon: ROLE_PRESENTATION[role].icon,
     highlights: ROLE_PRESENTATION[role].highlights,
-    capabilityCount: getPermissions(role).length,
-    demoEmail: PORTAL_ACCOUNTS[role].email,
   }));
 }

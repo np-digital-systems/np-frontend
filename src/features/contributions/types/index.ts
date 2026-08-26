@@ -6,9 +6,14 @@
  * subscriptions.
  */
 
-/** `sanththa_members` — a subscribing family or trust. */
+/**
+ * A subscribing family or trust.
+ *
+ * Keyed by the user id, because the register is not a table of its own: a
+ * non-null member number on `users` is what membership means.
+ */
 export interface SanththaMember {
-  readonly id: number;
+  readonly id: string;
   readonly memberNo: string;
   readonly fullName: string;
   readonly nameTa: string;
@@ -24,7 +29,7 @@ export type PaymentMode = 'cash' | 'bank' | 'online';
 /** `sanththa_payments` — at most one row per member per year. */
 export interface SanththaPayment {
   readonly id: number;
-  readonly memberId: number;
+  readonly memberId: string;
   readonly year: number;
   readonly amount: number;
   readonly paidOn: string;

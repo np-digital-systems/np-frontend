@@ -88,17 +88,21 @@ export const bankAccountSchema = z.object({
   label: requiredText('A label'),
   bankName: requiredText('The bank name'),
   branch: optionalText(),
+  // The whole number: the API stores it and masks it on the way back out, so
+  // the browser never receives more than the last four digits.
   accountNumber: z
     .string()
     .trim()
-    .refine(
-      (value) => value.replace(/\D/g, '').length >= 4,
-      'Enter at least the last four digits of the account number.',
-    ),
+    .regex(/^[0-9-]{6,34}$/, 'Enter the account number, digits and dashes only.'),
   type: z.enum(['current', 'savings', 'fixed-deposit']),
   openingBalance: nonNegativeAmount('The opening balance'),
   openedOn: isoDate,
   isActive: z.boolean(),
+  ledgerAccountId: z
+    .number({ message: 'Choose the asset head this account posts through.' })
+    .int()
+    .positive('Choose the asset head this account posts through.')
+    .nullable(),
 });
 
 export const rejectionSchema = z.object({

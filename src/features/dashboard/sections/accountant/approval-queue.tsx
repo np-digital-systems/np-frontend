@@ -1,15 +1,17 @@
 import Link from 'next/link';
 
 import { Card, CardHeader, LinkButton, StatusBadge } from '../../components';
-import {
-  APPROVAL_QUEUE,
-  APPROVAL_QUEUE_ITEMS,
-} from '../../constants/mock-data';
+import { getApprovalSummary, getQueueSplit } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
 import { cn } from '@/lib/utils';
 
-export function ApprovalQueue() {
+export async function ApprovalQueue() {
+  const [{ queue: APPROVAL_QUEUE_ITEMS }, APPROVAL_QUEUE] = await Promise.all([
+    getApprovalSummary(),
+    getQueueSplit(),
+  ]);
+
   const total = APPROVAL_QUEUE.receipts + APPROVAL_QUEUE.payments;
 
   const counts = [

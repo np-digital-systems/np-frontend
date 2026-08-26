@@ -2,67 +2,116 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
+import { api, ApiError } from '@/lib/api';
 
 import { getEventAccess } from './event-access';
 import { EVENT_ROUTES } from './routes';
-import { addSponsor, allSponsors, nextSponsorId } from './sponsor-store';
+
+export type SponsorResult = { ok: true } | { ok: false; message: string };
+
+async function guarded(refused: string, write: () => Promise<unknown>): Promise<SponsorResult> {
+  const { permissions } = await requireSession();
+
+  if (!getEventAccess(permissions).canManageSponsors) {
+    return { ok: false, message: refused };
+  }
+
+  try {
+    await write();
+
+    for (const route of Object.values(EVENT_ROUTES)) revalidatePath(route);
+
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
+    };
+  }
+}
 
 export interface CreateSponsorInput {
   fullName: string;
-  phone: string;
-  email: string;
-  address: string;
+  nameTa?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
 }
 
 export type CreateSponsorResult =
-  | { ok: true; sponsorId: string }
+  | { ok: true; id: string }
   | { ok: false; message: string };
 
 /**
- * Registers a devotee or trust so they can be assigned to instances.
+ * Register somebody who can sponsor a slot.
  *
- * TODO: this writes to the in-memory store. When the users API exists it
- * should create the user record and return its id, unchanged in shape.
+ * A sponsor is a `users` row with no email and no password — the portal has one
+ * directory of people, and a devotee who has never signed in is exactly that.
  */
 export async function createSponsor(
   input: CreateSponsorInput,
 ): Promise<CreateSponsorResult> {
-  const user = await getCurrentUser();
-  const access = getEventAccess(user.role);
+  const { permissions } = await requireSession();
 
-  // Checked here as well as in the screen: the action is the boundary a
-  // typed request cannot get around.
-  if (!access.canManageSponsors) {
+  if (!getEventAccess(permissions).canManageSponsors) {
     return { ok: false, message: 'You cannot register sponsors.' };
   }
 
   const fullName = input.fullName.trim();
 
-  if (!fullName) {
-    return { ok: false, message: 'A sponsor name is required.' };
+  if (fullName.length < 2) {
+    return { ok: false, message: 'Enter the sponsor’s name.' };
   }
 
-  const clash = allSponsors().some(
-    (sponsor) => sponsor.fullName.toLowerCase() === fullName.toLowerCase(),
+  try {
+    const user = await api.post<{ id: string }>('/users', {
+      nameTa: input.nameTa?.trim() || fullName,
+      fullName,
+      email: input.email?.trim() || undefined,
+      phone: input.phone?.trim() || undefined,
+      address: input.address?.trim() ?? '',
+    });
+
+    for (const route of Object.values(EVENT_ROUTES)) revalidatePath(route);
+
+    return { ok: true, id: user.id };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
+    };
+  }
+}
+
+export interface SponsorAssignmentInput {
+  eventTypeId: number;
+  instanceIdentifier: number;
+  customInstanceName?: string;
+  userId: string;
+}
+
+export async function assignSponsor(input: SponsorAssignmentInput): Promise<SponsorResult> {
+  return guarded('You cannot assign sponsors.', () =>
+    api.post('/sponsors', {
+      ...input,
+      customInstanceName: input.customInstanceName || undefined,
+    }),
   );
+}
 
-  if (clash) {
-    return { ok: false, message: `${fullName} is already registered.` };
-  }
+export async function updateSponsorAssignment(
+  id: number,
+  input: { userId?: string; customInstanceName?: string },
+): Promise<SponsorResult> {
+  return guarded('You cannot change sponsor assignments.', () =>
+    api.patch(`/sponsors/${id}`, {
+      userId: input.userId || undefined,
+      customInstanceName: input.customInstanceName || undefined,
+    }),
+  );
+}
 
-  const sponsorId = nextSponsorId();
-
-  addSponsor({
-    id: sponsorId,
-    fullName,
-    phone: input.phone.trim() || null,
-    email: input.email.trim() || null,
-    address: input.address.trim(),
-  });
-
-  revalidatePath(EVENT_ROUTES.sponsors);
-  revalidatePath(EVENT_ROUTES.calendar);
-
-  return { ok: true, sponsorId };
+export async function removeSponsorAssignment(id: number): Promise<SponsorResult> {
+  return guarded('You cannot remove sponsor assignments.', () => api.delete(`/sponsors/${id}`));
 }

@@ -1,94 +1,138 @@
-// Server-only module: it reads request cookies via next/headers, so importing
-// it from a client component is a build error by construction. Consider
-// `npm i server-only` and importing it here to make that boundary explicit.
+// Server-only: it reads request cookies via next/headers, so importing it from
+// a client component is a build error by construction.
+import 'server-only';
+
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 
-import { PORTAL_ACCOUNTS } from '@/features/auth/constants/portal-accounts';
-import { USER_ROLES, type UserRole } from '@/features/auth/types/user-role';
-import type { PortalUser } from '@/features/auth/types/user';
+import { api, ApiError } from '@/lib/api';
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_MAX_AGE_SECONDS,
+  REFRESH_TOKEN_COOKIE,
+  cookieOptions,
+} from '@/lib/api/tokens';
 
-/**
- * The signed-in role.
- *
- * TODO: a real session is an opaque server-issued token, not the role itself —
- * this cookie only stands in until the auth API exists. It is deliberately
- * httpOnly so the value at least cannot be edited from the console, but the
- * portal must not treat it as proof of anything once the API lands.
- */
-const SESSION_COOKIE = 'portal-session';
+import type { Permission } from '../types/permission';
+import { USER_ROLES, type UserRole } from '../types/user-role';
+import type { PortalUser } from '../types/user';
 
-const ROLE_PREVIEW_COOKIE = 'portal-role-preview';
-
-const SESSION_MAX_AGE_DAYS = 30;
-
-/** Who the portal falls back to before anyone has signed in. */
-const DEFAULT_USER: PortalUser = PORTAL_ACCOUNTS.admin;
-
-function isUserRole(value: string | undefined): value is UserRole {
-  return (
-    value !== undefined &&
-    (USER_ROLES as readonly string[]).includes(value)
-  );
+/** What `GET /auth/me` returns. */
+interface MeResponse {
+  readonly id: string;
+  readonly nameTa: string;
+  readonly fullName: string | null;
+  readonly email: string | null;
+  readonly role: UserRole;
+  readonly permissions: readonly string[];
 }
 
-/** The signed-in user, or null when no session cookie is present. */
-export async function getSession(): Promise<PortalUser | null> {
-  const cookieStore = await cookies();
-  const role = cookieStore.get(SESSION_COOKIE)?.value;
+export interface AuthTokens {
+  readonly accessToken: string;
+  readonly refreshToken: string;
+  readonly expiresIn: number;
+}
 
-  return isUserRole(role) ? PORTAL_ACCOUNTS[role] : null;
+export interface PortalSession {
+  readonly user: PortalUser;
+  /** Granted by the server, not by a matrix compiled into the bundle. */
+  readonly permissions: readonly Permission[];
+}
+
+function isUserRole(value: string): value is UserRole {
+  return (USER_ROLES as readonly string[]).includes(value);
+}
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) return '?';
+
+  const letters = parts.length === 1 ? parts[0].slice(0, 2) : `${parts[0][0]}${parts.at(-1)![0]}`;
+
+  return letters.toUpperCase();
+}
+
+/**
+ * The signed-in session, or null.
+ *
+ * Cached for the lifetime of one request, so a layout and the page it wraps
+ * resolve the identity once rather than calling the API for every component
+ * that asks who is signed in.
+ */
+export const getSession = cache(async (): Promise<PortalSession | null> => {
+  const token = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
+
+  if (!token) return null;
+
+  try {
+    const me = await api.get<MeResponse>('/auth/me');
+    const name = me.fullName ?? me.nameTa;
+
+    return {
+      user: {
+        id: me.id,
+        name,
+        email: me.email ?? '',
+        role: isUserRole(me.role) ? me.role : 'user',
+        initials: initialsOf(name),
+      },
+      permissions: me.permissions as readonly Permission[],
+    };
+  } catch (error) {
+    // An expired or revoked token is a signed-out visitor, not a crash. The
+    // proxy has already had its chance to refresh before the render began.
+    if (error instanceof ApiError && error.isUnauthenticated) return null;
+
+    throw error;
+  }
+});
+
+/** The signed-in user. Throws when there is no session — routes are guarded. */
+export async function requireSession(): Promise<PortalSession> {
+  const session = await getSession();
+
+  if (!session) {
+    throw new Error('This route requires a session; the proxy should have redirected.');
+  }
+
+  return session;
 }
 
 export async function getCurrentUser(): Promise<PortalUser> {
-  // TODO: replace with the real session lookup once auth is wired up. Until
-  // then an unauthenticated visitor still reaches the portal as the default
-  // account — swap this for a redirect to AUTH_ROUTES.signIn to close it.
-  const user = (await getSession()) ?? DEFAULT_USER;
-
-  // Role preview is a development affordance only. In production the role
-  // always comes from the session, so a forged cookie changes nothing.
-  if (process.env.NODE_ENV === 'production') {
-    return user;
-  }
-
-  const cookieStore = await cookies();
-  const preview = cookieStore.get(ROLE_PREVIEW_COOKIE)?.value;
-
-  return isUserRole(preview) ? PORTAL_ACCOUNTS[preview] : user;
+  return (await requireSession()).user;
 }
 
-/**
- * Writes the session cookie. Only callable from a Server Action or a Route
- * Handler — Next refuses cookie writes during a render.
- */
-export async function createSession(
-  role: UserRole,
-  remember: boolean,
-): Promise<void> {
+export async function getPermissions(): Promise<readonly Permission[]> {
+  const session = await getSession();
+
+  return session?.permissions ?? [];
+}
+
+/** Writes the token pair. Only callable from a Server Action or Route Handler. */
+export async function createSession(tokens: AuthTokens, remember: boolean): Promise<void> {
   const cookieStore = await cookies();
 
-  cookieStore.set(SESSION_COOKIE, role, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
+  // No maxAge means a session cookie: it dies with the browser, which is what
+  // a shared counter machine wants.
+  cookieStore.set(
+    ACCESS_TOKEN_COOKIE,
+    tokens.accessToken,
+    cookieOptions(remember ? REFRESH_MAX_AGE_SECONDS : undefined),
+  );
 
-    // No maxAge means a session cookie: it dies with the browser, which is
-    // what a shared counter machine wants.
-    ...(remember
-      ? { maxAge: SESSION_MAX_AGE_DAYS * 24 * 60 * 60 }
-      : {}),
-  });
+  cookieStore.set(
+    REFRESH_TOKEN_COOKIE,
+    tokens.refreshToken,
+    cookieOptions(remember ? REFRESH_MAX_AGE_SECONDS : undefined),
+  );
 }
 
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
 
-  cookieStore.delete(SESSION_COOKIE);
-
-  // A stale preview would otherwise survive the sign-out and put the next
-  // visitor straight back into a role.
-  cookieStore.delete(ROLE_PREVIEW_COOKIE);
+  cookieStore.delete(ACCESS_TOKEN_COOKIE);
+  cookieStore.delete(REFRESH_TOKEN_COOKIE);
 }
 
-export { ROLE_PREVIEW_COOKIE, SESSION_COOKIE };
+export { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE };

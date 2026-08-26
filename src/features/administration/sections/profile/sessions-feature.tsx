@@ -10,7 +10,7 @@ export async function SessionsFeature() {
   const user = await getCurrentUser();
   const today = getToday();
 
-  const record = getUserRecords(today).find((entry) => entry.id === user.id);
+  const record = (await getUserRecords()).find((entry) => entry.id === user.id);
 
   if (!record) {
     return (

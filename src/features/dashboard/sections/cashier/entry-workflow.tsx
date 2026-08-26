@@ -3,7 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { Card, CardHeader } from '../../components';
-import { WORKFLOW_STEPS } from '../../constants/mock-data';
+import { WORKFLOW_STEPS } from '../../constants/dashboard-shapes';
 
 const STEP_STYLES = {
   done: 'bg-primary text-primary-foreground',

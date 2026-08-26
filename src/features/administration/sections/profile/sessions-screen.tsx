@@ -1,9 +1,14 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import { revokeSession } from '../../lib/administration-actions';
+
 import { useState } from 'react';
 import { Laptop, LogOut, ShieldCheck, Smartphone } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardHeader,
@@ -26,15 +31,14 @@ interface SessionsScreenProps {
   today: string;
 }
 
-/** TODO: replace the local mutations with calls to the sessions API. */
 export function SessionsScreen({
   embedded = false,
   initialSessions,
   currentSessionId,
   today,
 }: SessionsScreenProps) {
-  const [sessions, setSessions] =
-    useState<readonly UserSession[]>(initialSessions);
+  const { run, error: actionError } = useServerAction();
+  const sessions = initialSessions;
   const [revoking, setRevoking] = useState<UserSession | null>(null);
   const [revokingAll, setRevokingAll] = useState(false);
 
@@ -60,6 +64,8 @@ export function SessionsScreen({
             others.length > 0 && (
               <Button variant="outline" onClick={() => setRevokingAll(true)}>
                 <LogOut />
+
+      <ActionError message={actionError} />
                 Sign out other devices
               </Button>
             )
@@ -193,11 +199,7 @@ export function SessionsScreen({
             : ''
         }
         onConfirm={() => {
-          if (revoking) {
-            setSessions((current) =>
-              current.filter((session) => session.id !== revoking.id),
-            );
-          }
+          if (revoking) run(() => revokeSession(revoking.id));
           setRevoking(null);
         }}
       />
@@ -209,9 +211,18 @@ export function SessionsScreen({
         confirmLabel="Sign Out"
         description={`${others.length} other ${others.length === 1 ? 'device' : 'devices'} will be signed out immediately. This device stays signed in.`}
         onConfirm={() => {
-          setSessions((current) =>
-            current.filter((session) => session.id === currentSessionId),
-          );
+          // One call each: the API revokes a named session, and revoking every
+          // one of them would take this device with it.
+          run(async () => {
+            for (const session of others) {
+              const result = await revokeSession(session.id);
+
+              if (!result.ok) return result;
+            }
+
+            return { ok: true };
+          });
+
           setRevokingAll(false);
         }}
       />

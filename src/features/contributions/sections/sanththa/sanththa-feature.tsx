@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getContributionAccess } from '../../lib/contributions-access';
@@ -13,8 +13,8 @@ interface SanththaFeatureProps {
 }
 
 export async function SanththaFeature({ year }: SanththaFeatureProps) {
-  const user = await getCurrentUser();
-  const access = getContributionAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getContributionAccess(permissions);
 
   if (!access.canView) {
     return (
@@ -24,16 +24,18 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
     );
   }
 
-  const years = getYears();
+  const years = await getYears();
   const requested = Number(year);
   const selected = years.includes(requested)
     ? requested
     : getActiveYear(getToday());
 
+  const members = await getMemberRecords(selected);
+
   return (
     <PageShell>
       <SanththaScreen
-        initialMembers={getMemberRecords(selected)}
+        initialMembers={members}
         years={years}
         year={selected}
         access={access}

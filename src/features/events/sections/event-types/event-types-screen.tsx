@@ -1,9 +1,18 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  createEventType,
+  deleteEventType,
+  updateEventType,
+} from '../../lib/event-actions';
+
 import { useMemo, useState } from 'react';
 import { Plus, Search, Tag } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardHeader,
@@ -46,9 +55,8 @@ interface EventTypesScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the event-types API. */
 export function EventTypesScreen({ initialTypes, year }: EventTypesScreenProps) {
-  const [types, setTypes] = useState<readonly EventTypeRecord[]>(initialTypes);
+  const types = initialTypes;
   const [query, setQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<EventTypeRecord | null>(null);
@@ -78,43 +86,32 @@ export function EventTypesScreen({ initialTypes, year }: EventTypesScreenProps) 
     setFormOpen(true);
   }
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: EventTypeDraft) {
-    setTypes((current) => {
-      if (editing) {
-        return current.map((type) =>
-          type.id === editing.id
-            ? { ...type, ...draft, updatedAt: new Date().toISOString() }
-            : type,
-        );
-      }
+    const target = editing;
+    const input = {
+      nameTa: draft.name,
+      nameEn: draft.nameEn,
+      frequencyType: draft.frequencyType,
+      noOfInstances: draft.noOfInstances,
+    };
 
-      const nextId =
-        current.reduce((highest, type) => Math.max(highest, type.id), 0) + 1;
-
-      const now = new Date().toISOString();
-
-      return [
-        ...current,
-        {
-          id: nextId,
-          ...draft,
-          sponsorSlots: 0,
-          scheduledCount: 0,
-          createdAt: now,
-          updatedAt: now,
-        },
-      ];
-    });
+    run(
+      () => (target ? updateEventType(target.id, input) : createEventType(input)),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   function handleDelete() {
     if (!pendingDelete) return;
 
-    setTypes((current) =>
-      current.filter((type) => type.id !== pendingDelete.id),
-    );
+    const target = pendingDelete;
 
-    setPendingDelete(null);
+    run(() => deleteEventType(target.id), () => setPendingDelete(null));
   }
 
   return (
@@ -133,6 +130,8 @@ export function EventTypesScreen({ initialTypes, year }: EventTypesScreenProps) 
         actions={
           <Button onClick={openCreate}>
             <Plus />
+
+      <ActionError message={actionError} />
             New Event Type
           </Button>
         }
