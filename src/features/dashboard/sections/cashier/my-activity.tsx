@@ -1,7 +1,7 @@
 import { Check, CheckSquare, X } from 'lucide-react';
 
 import { Card, CardHeader } from '../../components';
-import { CASHIER_ACTIVITY } from '../../constants/mock-data';
+import { getMyActivity } from '../../lib/dashboard-service';
 
 const OUTCOME = {
   submitted: { icon: Check, wrapper: 'bg-success-subtle text-success' },
@@ -9,7 +9,9 @@ const OUTCOME = {
   rejected: { icon: X, wrapper: 'bg-danger-subtle text-danger' },
 } as const;
 
-export function MyActivity() {
+export async function MyActivity() {
+  const CASHIER_ACTIVITY = await getMyActivity();
+
   return (
     <Card>
       <CardHeader title="My Recent Activity" />

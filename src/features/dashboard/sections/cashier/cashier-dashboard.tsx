@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { CreditCard, Receipt } from 'lucide-react';
 
 import { DashboardShell, PageHeader, StatCard } from '../../components';
+import { getMyVoucherCounts } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 import type { DashboardProps } from '../../types';
 import { CashPosition } from '../shared';
@@ -11,12 +12,14 @@ import { SubmissionsTable } from './submissions-table';
 
 import { cn } from '@/lib/utils';
 
-export function CashierDashboard({
+export async function CashierDashboard({
   user,
   greeting,
   today,
   financialYear,
 }: DashboardProps) {
+  const mine = await getMyVoucherCounts();
+
   return (
     <DashboardShell>
       <PageHeader
@@ -57,18 +60,10 @@ export function CashierDashboard({
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          label="Today's Receipts"
-          value={formatCurrency(35000)}
-          trend={{ value: '+₹35,000', direction: 'up', isPositive: true }}
-        />
-        <StatCard label="Today's Payments" value={formatCurrency(12500)} />
-        <StatCard label="Pending Approval" value="5" caption="My entries" />
-        <StatCard
-          label="Approved Today"
-          value="8"
-          trend={{ value: '+3 from yesterday', direction: 'up', isPositive: true }}
-        />
+        <StatCard label="My Receipts" value={formatCurrency(mine.receipts)} caption="This year" />
+        <StatCard label="My Payments" value={formatCurrency(mine.payments)} caption="This year" />
+        <StatCard label="Pending Approval" value={String(mine.pending)} caption="My entries" />
+        <StatCard label="Approved" value={String(mine.settled)} caption="My entries" />
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">

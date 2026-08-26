@@ -1,8 +1,10 @@
 import { Card, CardHeader, LinkButton, StatusBadge } from '../../components';
-import { CASHIER_SUBMISSIONS } from '../../constants/mock-data';
+import { getMySubmissions } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
-export function SubmissionsTable() {
+export async function SubmissionsTable() {
+  const CASHIER_SUBMISSIONS = await getMySubmissions();
+
   return (
     <Card>
       <CardHeader
