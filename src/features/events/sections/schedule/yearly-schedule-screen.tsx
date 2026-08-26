@@ -1,9 +1,14 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import { createEvent, updateEvent } from '../../lib/event-actions';
+
 import { useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
 
 import {
+  ActionError,
   PortalPageHeader,
   ReadOnlyNotice,
   StatCard,
@@ -15,7 +20,6 @@ import {
   type EventDraft,
 } from '../../components/event-form-dialog';
 import { READ_ONLY_MESSAGE, type EventAccess } from '../../lib/event-access';
-import { materialiseEvent } from '../../lib/event-draft';
 import type {
   EventRecord,
   EventType,
@@ -38,7 +42,6 @@ interface YearlyScheduleScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the events API. */
 export function YearlyScheduleScreen({
   groups,
   initialEvents,
@@ -48,7 +51,7 @@ export function YearlyScheduleScreen({
   today,
   year,
 }: YearlyScheduleScreenProps) {
-  const [events, setEvents] = useState<readonly EventRecord[]>(initialEvents);
+  const events = initialEvents;
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<EventRecord | null>(null);
   const [prefill, setPrefill] = useState<EventRecord | null>(null);
@@ -144,36 +147,38 @@ export function YearlyScheduleScreen({
     setFormOpen(true);
   }
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: EventDraft) {
-    setEvents((current) => {
-      if (editing) {
-        return current.map((event) =>
-          event.id === editing.id
-            ? materialiseEvent(draft, {
-                id: editing.id,
-                createdAt: editing.createdAt,
-                eventTypes,
-                sponsors,
-                today,
-              })
-            : event,
-        );
-      }
+    const target = editing;
 
-      const nextId =
-        current.reduce((highest, event) => Math.max(highest, event.id), 0) + 1;
-
-      return [
-        ...current,
-        materialiseEvent(draft, {
-          id: nextId,
-          createdAt: new Date().toISOString(),
-          eventTypes,
-          sponsors,
-          today,
-        }),
-      ];
-    });
+    run(
+      () =>
+        target
+          ? updateEvent(target.id, {
+              customInstanceName: draft.customInstanceName || null,
+              scheduledDate: draft.scheduledDate,
+              startTime: draft.startTime,
+              endTime: draft.endTime || null,
+              sponsorId: draft.sponsorId,
+              notes: draft.notes || null,
+            })
+          : createEvent({
+              eventTypeId: draft.eventTypeId,
+              instanceIdentifier: draft.instanceIdentifier,
+              customInstanceName: draft.customInstanceName || null,
+              scheduledDate: draft.scheduledDate,
+              startTime: draft.startTime,
+              endTime: draft.endTime || null,
+              sponsorId: draft.sponsorId,
+              notes: draft.notes || null,
+            }),
+      () => {
+        setEditing(null);
+        setPrefill(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   return (
@@ -198,6 +203,8 @@ export function YearlyScheduleScreen({
           access.canExport && (
             <Button variant="outline">
               <Download />
+
+      <ActionError message={actionError} />
               Export Schedule
             </Button>
           )
