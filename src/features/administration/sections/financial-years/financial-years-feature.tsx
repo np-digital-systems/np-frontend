@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getToday } from '@/lib/format';
 
 import { getAdministrationAccess } from '../../lib/administration-access';
@@ -8,8 +8,8 @@ import { getFinancialYearRecords } from '../../lib/administration-service';
 import { FinancialYearsScreen } from './financial-years-screen';
 
 export async function FinancialYearsFeature() {
-  const user = await getCurrentUser();
-  const access = getAdministrationAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAdministrationAccess(permissions);
 
   if (!access.canViewFinancialYears) {
     return (
@@ -22,7 +22,7 @@ export async function FinancialYearsFeature() {
   return (
     <PageShell>
       <FinancialYearsScreen
-        initialYears={getFinancialYearRecords()}
+        initialYears={(await getFinancialYearRecords())}
         access={access}
         today={getToday()}
       />

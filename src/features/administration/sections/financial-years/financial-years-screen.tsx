@@ -1,9 +1,17 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  closeFinancialYear,
+  openFinancialYear,
+} from '../../lib/administration-actions';
+
 import { useMemo, useState } from 'react';
 import { CalendarRange, Lock, Plus } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardFooter,
@@ -51,8 +59,8 @@ export function FinancialYearsScreen({
   access,
   today,
 }: FinancialYearsScreenProps) {
-  const [years, setYears] =
-    useState<readonly FinancialYearRecord[]>(initialYears);
+  const { run, error: actionError } = useServerAction();
+  const years = initialYears;
   const [closing, setClosing] = useState<FinancialYearRecord | null>(null);
   const [opening, setOpening] = useState<FinancialYearRecord | null>(null);
 
@@ -117,6 +125,8 @@ export function FinancialYearsScreen({
               disabled={!years.some((year) => year.status === 'upcoming')}
             >
               <Plus />
+
+      <ActionError message={actionError} />
               Open Next Year
             </Button>
           )
@@ -284,20 +294,7 @@ export function FinancialYearsScreen({
         onConfirm={() => {
           if (!closing) return;
 
-          setYears((currentYears) =>
-            currentYears.map((year) => {
-              if (year.id !== closing.id) return year;
-
-              return {
-                ...year,
-                status: 'closed' as const,
-                isCurrent: false,
-                closedOn: today,
-                closedBy: 'You',
-              };
-            }),
-          );
-
+          run(() => closeFinancialYear(closing.id));
           setClosing(null);
         }}
       />
@@ -315,25 +312,7 @@ export function FinancialYearsScreen({
         onConfirm={() => {
           if (!opening) return;
 
-          setYears((currentYears) =>
-            currentYears.map((year) => {
-              if (year.id === opening.id) {
-                return {
-                  ...year,
-                  status: 'open' as const,
-                  isCurrent: true,
-                  // The previous year's closing balance becomes this one's
-                  // opening — the whole point of closing a year.
-                  openingBalance:
-                    currentYears.find((entry) => entry.isCurrent)
-                      ?.closingBalance ?? year.openingBalance,
-                };
-              }
-
-              return year.isCurrent ? { ...year, isCurrent: false } : year;
-            }),
-          );
-
+          run(() => openFinancialYear(opening.id));
           setOpening(null);
         }}
       />
