@@ -61,6 +61,8 @@ interface MemberFormDialogProps {
   member: MemberRecord | null;
   nextMemberNo: string;
   onSubmit: (draft: MemberDraft) => void;
+  /** A message from the server when the write was refused. */
+  submitError?: string | null;
 }
 
 export function MemberFormDialog({
@@ -117,11 +119,17 @@ export function MemberFormDialog({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="member-no" label="Member No" required>
+            {/*
+              * The number is allocated by the database when the joining date is
+              * set, and is permanent once issued because it is printed on
+              * receipts — so it is shown, never typed.
+              */}
+            <FormField id="member-no" label="Member No">
               <Input
                 id="member-no"
-                value={draft.memberNo}
-                onChange={(event) => update('memberNo', event.target.value)}
+                value={member ? draft.memberNo : 'Assigned on save'}
+                readOnly
+                disabled
               />
             </FormField>
 

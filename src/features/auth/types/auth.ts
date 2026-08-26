@@ -15,12 +15,6 @@ export interface AuthRoleOption {
 
   /** Two or three things this role opens, in the temple's own words. */
   readonly highlights: readonly string[];
-
-  /** How many capabilities the role holds — read from ROLE_PERMISSIONS. */
-  readonly capabilityCount: number;
-
-  /** Pre-fills the email field so the demo build stays walkable. */
-  readonly demoEmail: string;
 }
 
 export type SignInState =

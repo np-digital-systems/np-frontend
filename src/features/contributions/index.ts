@@ -1,3 +1,5 @@
+export { summarise } from './lib/contributions-data';
+
 export { SanththaFeature } from './sections/sanththa/sanththa-feature';
 
 export {
@@ -11,7 +13,6 @@ export { YEARLY_SUBSCRIPTION } from './lib/contributions-data';
 export {
   getMemberRecords,
   getYears,
-  summarise,
 } from './lib/contributions-service';
 
 export type {
