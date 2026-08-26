@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 
 import { getAdministrationAccess } from '../../lib/administration-access';
 import { PERMISSION_GROUPS } from '../../lib/administration-data';
@@ -8,8 +8,8 @@ import { getRoleRecords } from '../../lib/administration-service';
 import { RolesScreen } from './roles-screen';
 
 export async function RolesFeature() {
-  const user = await getCurrentUser();
-  const access = getAdministrationAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAdministrationAccess(permissions);
 
   if (!access.canManageRoles) {
     return (
@@ -21,7 +21,7 @@ export async function RolesFeature() {
 
   return (
     <PageShell>
-      <RolesScreen roles={getRoleRecords()} groups={PERMISSION_GROUPS} />
+      <RolesScreen roles={(await getRoleRecords())} groups={PERMISSION_GROUPS} />
     </PageShell>
   );
 }

@@ -1,17 +1,11 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
-import { getToday } from '@/lib/format';
 
-import { getUserRecords } from '../../lib/administration-service';
+import { getMyProfile } from '../../lib/administration-service';
 
 import { ProfileScreen } from './profile-screen';
 
 export async function ProfileFeature() {
-  const user = await getCurrentUser();
-
-  const record = getUserRecords(getToday()).find(
-    (entry) => entry.id === user.id,
-  );
+  const record = await getMyProfile().catch(() => null);
 
   if (!record) {
     return (

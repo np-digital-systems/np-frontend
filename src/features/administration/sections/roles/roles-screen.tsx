@@ -1,9 +1,14 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import { setRolePermissions } from '../../lib/administration-actions';
+
 import { useMemo, useState } from 'react';
 import { Info, RotateCcw, Search, Shield, X } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardHeader,
@@ -92,6 +97,36 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
     0,
   );
 
+  const { run, error: actionError, pending } = useServerAction();
+
+  /**
+   * Write only the roles that actually changed.
+   *
+   * The API replaces a role's whole set in one call and refuses to leave the
+   * administrator role unable to administer, so a mistake here cannot lock
+   * everybody out of the portal.
+   */
+  function handleSave() {
+    run(async () => {
+      for (const role of roles) {
+        const current = matrix.get(role.role) ?? new Set<Permission>();
+        const original = baseline.get(role.role) ?? new Set<Permission>();
+
+        const changed =
+          current.size !== original.size ||
+          [...current].some((permission) => !original.has(permission));
+
+        if (!changed) continue;
+
+        const result = await setRolePermissions(role.role, [...current]);
+
+        if (!result.ok) return result;
+      }
+
+      return { ok: true };
+    });
+  }
+
   function toggle(role: UserRole, permission: Permission) {
     setMatrix((current) => {
       const next = new Map(current);
@@ -138,11 +173,15 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
             {dirtyCount > 0 && (
               <Button variant="outline" onClick={reset}>
                 <RotateCcw />
+
+      <ActionError message={actionError} />
                 Reset
               </Button>
             )}
 
-            <Button disabled={dirtyCount === 0}>Save Changes</Button>
+            <Button disabled={dirtyCount === 0 || pending} onClick={handleSave}>
+              Save Changes
+            </Button>
           </>
         }
       />
