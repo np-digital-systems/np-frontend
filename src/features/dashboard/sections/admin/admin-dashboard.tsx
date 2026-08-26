@@ -14,10 +14,10 @@ import {
   type QuickAction,
 } from '../../components';
 import {
-  MONTHLY_DATA,
-  QUARTERLY_DATA,
-  YEARLY_DATA,
-} from '../../constants/mock-data';
+  getAccountingSummary,
+  getFundOverview,
+  getSeries,
+} from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 import { EVENT_ROUTES } from '@/features/events/lib/routes';
 
@@ -40,12 +40,21 @@ const QUICK_ACTIONS: readonly QuickAction[] = [
   { label: 'Generate Report', href: '/accounting/reports', icon: FileText },
 ];
 
-export function AdminDashboard({
+export async function AdminDashboard({
   user,
   greeting,
   today,
   financialYear,
 }: DashboardProps) {
+  const [summary, funds, series] = await Promise.all([
+    getAccountingSummary(),
+    getFundOverview(),
+    getSeries(),
+  ]);
+
+  // The two largest funds, whichever the temple currently runs.
+  const [firstFund, secondFund] = [...funds].sort((a, b) => b.balance - a.balance);
+
   return (
     <DashboardShell>
       <PageHeader
@@ -61,24 +70,22 @@ export function AdminDashboard({
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Cash Balance"
-          value={formatCurrency(125450)}
+          value={formatCurrency(summary.cashBalance)}
           caption="As of today"
-          trend={{ value: '+₹5,450', direction: 'up', isPositive: true }}
         />
         <StatCard
           label="Bank Balance"
-          value={formatCurrency(570000)}
-          caption="2 accounts"
+          value={formatCurrency(summary.bankBalance)}
+          caption={`${funds.length} fund${funds.length === 1 ? '' : 's'}`}
         />
         <StatCard
-          label="Pooja Fund"
-          value={formatCurrency(320500)}
+          label={firstFund?.name ?? 'Funds'}
+          value={formatCurrency(firstFund?.balance ?? 0)}
           caption={`FY ${financialYear.label}`}
-          trend={{ value: '+12.4%', direction: 'up', isPositive: true }}
         />
         <StatCard
-          label="Thiruppani Fund"
-          value={formatCurrency(185200)}
+          label={secondFund?.name ?? 'Surplus'}
+          value={formatCurrency(secondFund?.balance ?? summary.surplus)}
           caption={`FY ${financialYear.label}`}
         />
       </div>
@@ -90,14 +97,14 @@ export function AdminDashboard({
             variant="bar"
             periods={['Monthly', 'Quarterly', 'Yearly'] as const}
             dataByPeriod={{
-              Monthly: MONTHLY_DATA,
-              Quarterly: QUARTERLY_DATA,
-              Yearly: YEARLY_DATA,
+              Monthly: series.monthly,
+              Quarterly: series.quarterly,
+              Yearly: series.yearly,
             }}
             summary={[
-              { label: 'Total Income', value: 2465000, color: 'var(--chart-1)' },
-              { label: 'Total Expenses', value: 1444000, color: 'var(--chart-5)' },
-              { label: 'Net Balance', value: 1021000, color: 'var(--chart-2)' },
+              { label: 'Total Income', value: summary.income, color: 'var(--chart-1)' },
+              { label: 'Total Expenses', value: summary.expenses, color: 'var(--chart-5)' },
+              { label: 'Net Balance', value: summary.surplus, color: 'var(--chart-2)' },
             ]}
           />
         </div>

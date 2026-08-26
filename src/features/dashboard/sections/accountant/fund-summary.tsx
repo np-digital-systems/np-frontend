@@ -1,8 +1,10 @@
 import { Card, CardHeader, LinkButton } from '../../components';
-import { FUNDS } from '../../constants/mock-data';
+import { getFundOverview } from '../../lib/dashboard-service';
 import { formatCurrency } from '../../lib/dashboard-data';
 
-export function FundSummary() {
+export async function FundSummary() {
+  const FUNDS = await getFundOverview();
+
   return (
     <Card>
       <CardHeader
