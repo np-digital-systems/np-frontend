@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+import { useRouter } from '@/i18n/routing';
 import { Download, MoreHorizontal, Plus, Receipt } from 'lucide-react';
 
 import {
@@ -32,7 +34,6 @@ import {
   PAYMENT_MODE_LABELS,
   formatCurrency,
   formatShortDate,
-  nextReference,
 } from '../lib/accounting-data';
 import {
   READ_ONLY_MESSAGE,
@@ -44,7 +45,15 @@ import {
   canSubmitVoucher,
   type AccountingAccess,
 } from '../lib/accounting-access';
-import { applyAction } from '../lib/voucher-workflow';
+import {
+  approveVoucher,
+  cancelVoucher,
+  createVoucher,
+  postVoucher,
+  rejectVoucher,
+  submitVoucher,
+  updateVoucher,
+} from '../lib/accounting-actions';
 import type {
   AccountRef,
   BankAccountRef,
@@ -83,7 +92,6 @@ interface VoucherRegisterProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the vouchers API. */
 export function VoucherRegister({
   kind,
   title,
@@ -99,8 +107,7 @@ export function VoucherRegister({
   user,
   year,
 }: VoucherRegisterProps) {
-  const [vouchers, setVouchers] =
-    useState<readonly VoucherRecord[]>(initialVouchers);
+  const vouchers = initialVouchers;
   const [filters, setFilters] = useState<VoucherFilterState>(
     EMPTY_VOUCHER_FILTERS,
   );
@@ -143,19 +150,33 @@ export function VoucherRegister({
     };
   }, [vouchers, filtered]);
 
-  function replace(updated: VoucherRecord) {
-    setVouchers((current) =>
-      current.map((voucher) => (voucher.id === updated.id ? updated : voucher)),
-    );
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  /**
+   * Every mutation goes to the API and the page is then refetched.
+   *
+   * Nothing is patched into local state on the way past: a voucher's reference
+   * and its whole lifecycle are the server's to decide, and a screen that
+   * guessed either would eventually disagree with the books.
+   */
+  function run(write: () => Promise<{ ok: boolean; message?: string }>) {
+    startTransition(async () => {
+      const result = await write();
+
+      if (!result.ok) {
+        setActionError(result.message ?? 'That change was refused.');
+        return;
+      }
+
+      setActionError(null);
+      router.refresh();
+    });
   }
 
-  function materialise(draft: VoucherDraft, base: VoucherRecord | null): VoucherRecord {
-    const account = accounts.find((entry) => entry.id === draft.accountId)!;
-    const fund = funds.find((entry) => entry.id === draft.fundId)!;
-
-    return {
-      id: base?.id ?? Date.now(),
-      ref: base?.ref ?? nextReference(kind, year, vouchers),
+  function handleSave(draft: VoucherDraft, thenSubmit: boolean) {
+    const input = {
       kind,
       date: draft.date,
       description: draft.description,
@@ -167,40 +188,21 @@ export function VoucherRegister({
       bankAccountId: draft.bankAccountId,
       chequeNo: draft.chequeNo || null,
       party: draft.party,
-      eventRef: draft.eventRef ?? base?.eventRef ?? null,
+      manualVoucherNo: draft.manualVoucherNo || null,
+      eventRef: draft.eventRef ?? null,
       eventTypeId: draft.eventTypeId,
       eventId: draft.eventId,
-      manualVoucherNo: draft.manualVoucherNo || null,
-      status: base?.status ?? 'Draft',
       notes: draft.notes || null,
-      createdBy: base?.createdBy ?? { id: user.id, name: user.name },
-      createdAt: base?.createdAt ?? new Date().toISOString(),
-      submittedAt: base?.submittedAt ?? null,
-      decidedBy: base?.decidedBy ?? null,
-      decidedAt: base?.decidedAt ?? null,
-      rejectionReason: base?.rejectionReason ?? null,
-      postedAt: base?.postedAt ?? null,
-      account,
-      fund,
-      project: projects.find((entry) => entry.id === draft.projectId) ?? null,
-      bankAccount:
-        bankAccounts.find((entry) => entry.id === draft.bankAccountId) ?? null,
     };
-  }
 
-  function handleSave(draft: VoucherDraft, thenSubmit: boolean) {
-    const record = materialise(draft, editing);
-    const finalRecord = thenSubmit
-      ? applyAction(record, 'submit', user)
-      : record;
+    const target = editing;
 
-    setVouchers((current) =>
-      editing
-        ? current.map((voucher) =>
-            voucher.id === editing.id ? finalRecord : voucher,
-          )
-        : [finalRecord, ...current],
+    run(() =>
+      target ? updateVoucher(target.id, input, thenSubmit) : createVoucher(input, thenSubmit),
     );
+
+    setEditing(null);
+    setFormOpen(false);
   }
 
   const columns: DataColumn[] = [
@@ -256,6 +258,15 @@ export function VoucherRegister({
           </>
         }
       />
+
+      {actionError && (
+        <p
+          role="alert"
+          className="rounded-lg border border-danger/30 bg-danger-subtle px-4 py-3 text-sm text-danger"
+        >
+          {actionError}
+        </p>
+      )}
 
       {!canCreate && <ReadOnlyNotice message={READ_ONLY_MESSAGE} />}
 
@@ -407,14 +418,10 @@ export function VoucherRegister({
                         setEditing(voucher);
                         setFormOpen(true);
                       }}
-                      onSubmit={() =>
-                        replace(applyAction(voucher, 'submit', user))
-                      }
-                      onApprove={() =>
-                        replace(applyAction(voucher, 'approve', user))
-                      }
+                      onSubmit={() => run(() => submitVoucher(voucher.id))}
+                      onApprove={() => run(() => approveVoucher(voucher.id))}
                       onReject={() => setRejecting(voucher)}
-                      onPost={() => replace(applyAction(voucher, 'post', user))}
+                      onPost={() => run(() => postVoucher(voucher.id))}
                       onDelete={() => setDeleting(voucher)}
                     />
                   </DataCell>
@@ -469,7 +476,7 @@ export function VoucherRegister({
         onOpenChange={(open) => !open && setRejecting(null)}
         reference={rejecting?.ref ?? null}
         onConfirm={(reason) => {
-          if (rejecting) replace(applyAction(rejecting, 'reject', user, reason));
+          if (rejecting) run(() => rejectVoucher(rejecting.id, reason));
           setRejecting(null);
         }}
       />
@@ -484,11 +491,7 @@ export function VoucherRegister({
             : ''
         }
         onConfirm={() => {
-          if (deleting) {
-            setVouchers((current) =>
-              current.filter((voucher) => voucher.id !== deleting.id),
-            );
-          }
+          if (deleting) run(() => cancelVoucher(deleting.id));
           setDeleting(null);
         }}
       />
