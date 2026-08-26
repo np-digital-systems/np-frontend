@@ -1,9 +1,18 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  createAccount,
+  deactivateAccount,
+  updateAccount,
+} from '../../lib/accounting-actions';
+
 import { useMemo, useState } from 'react';
 import { ListTree, Plus, Search, X } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   ConfirmDialog,
   DataCell,
@@ -47,14 +56,12 @@ interface ChartOfAccountsScreenProps {
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the accounts API. */
 export function ChartOfAccountsScreen({
   initialAccounts,
   access,
   year,
 }: ChartOfAccountsScreenProps) {
-  const [accounts, setAccounts] =
-    useState<readonly AccountRecord[]>(initialAccounts);
+  const accounts = initialAccounts;
   const [query, setQuery] = useState('');
   const [type, setType] = useState<AccountType | 'all'>('all');
 
@@ -107,38 +114,32 @@ export function ChartOfAccountsScreen({
     [accounts],
   );
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: AccountDraft) {
-    setAccounts((current) => {
-      if (editing) {
-        return current.map((account) =>
-          account.id === editing.id
-            ? {
-                ...account,
-                ...draft,
-                parent:
-                  current.find((entry) => entry.id === draft.parentId) ?? null,
-              }
-            : account,
-        );
-      }
+    const target = editing;
 
-      const nextId =
-        current.reduce((highest, account) => Math.max(highest, account.id), 0) +
-        1;
-
-      return [
-        ...current,
-        {
-          id: nextId,
-          ...draft,
-          openingBalance: 0,
-          balance: 0,
-          createdAt: new Date().toISOString(),
-          parent: current.find((entry) => entry.id === draft.parentId) ?? null,
-          entryCount: 0,
-        },
-      ];
-    });
+    run(
+      () =>
+        target
+          ? updateAccount(target.id, {
+              nameTa: draft.nameTa,
+              nameEn: draft.name,
+              parentId: draft.parentId,
+              isActive: draft.isActive,
+            })
+          : createAccount({
+              code: draft.code,
+              nameTa: draft.nameTa,
+              nameEn: draft.name,
+              type: draft.type,
+              parentId: draft.parentId,
+            }),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   const columns: DataColumn[] = [
@@ -182,6 +183,8 @@ export function ChartOfAccountsScreen({
               }}
             >
               <Plus />
+
+      <ActionError message={actionError} />
               New Account
             </Button>
           )
@@ -321,18 +324,9 @@ export function ChartOfAccountsScreen({
         onConfirm={() => {
           if (!deleting) return;
 
-          // History is never destroyed: an account that has been posted to is
-          // deactivated rather than removed, which is what the confirmation
-          // above told the user would happen.
-          setAccounts((current) =>
-            deleting.entryCount > 0
-              ? current.map((account) =>
-                  account.id === deleting.id
-                    ? { ...account, isActive: false }
-                    : account,
-                )
-              : current.filter((account) => account.id !== deleting.id),
-          );
+          // History is never destroyed: the API deactivates a head rather than
+          // removing it, which is what the confirmation above told the user.
+          run(() => deactivateAccount(deleting.id));
 
           setDeleting(null);
         }}
