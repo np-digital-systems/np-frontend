@@ -1,20 +1,15 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 
 import { getEventAccess } from '../../lib/event-access';
 import { getActiveYear, getToday } from '../../lib/event-data';
-import {
-  countScheduledEvents,
-  countSponsorSlots,
-  getEventTypes,
-} from '../../lib/event-service';
-import type { EventTypeRecord } from '../../types';
+import { getEventTypeRecords } from '../../lib/event-service';
 
 import { EventTypesScreen } from './event-types-screen';
 
 export async function EventTypesFeature() {
-  const user = await getCurrentUser();
-  const access = getEventAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getEventAccess(permissions);
 
   if (!access.canManageTypes) {
     return (
@@ -24,15 +19,15 @@ export async function EventTypesFeature() {
     );
   }
 
-  const types: EventTypeRecord[] = getEventTypes().map((eventType) => ({
-    ...eventType,
-    sponsorSlots: countSponsorSlots(eventType.id),
-    scheduledCount: countScheduledEvents(eventType.id),
-  }));
+  const year = getActiveYear(getToday());
+
+  // The sponsor and occurrence counts come back with the row; counting them
+  // here would be a second, slower answer to a question the API has answered.
+  const types = await getEventTypeRecords(year);
 
   return (
     <PageShell>
-      <EventTypesScreen initialTypes={types} year={getActiveYear(getToday())} />
+      <EventTypesScreen initialTypes={[...types]} year={year} />
     </PageShell>
   );
 }
