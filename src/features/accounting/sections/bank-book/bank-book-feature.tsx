@@ -1,5 +1,5 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
@@ -11,8 +11,8 @@ import {
 import { BankBookScreen, type BankBookEntry } from './bank-book-screen';
 
 export async function BankBookFeature() {
-  const user = await getCurrentUser();
-  const access = getAccountingAccess(user.role);
+  const { permissions } = await requireSession();
+  const access = getAccountingAccess(permissions);
 
   if (!access.canViewBankBook) {
     return (
@@ -22,13 +22,15 @@ export async function BankBookFeature() {
     );
   }
 
-  const banks = getBankAccountRecords();
+  const banks = await getBankAccountRecords();
 
-  // Every account's book is built here rather than on selection, so
+  // Every account's book is fetched here rather than on selection, so
   // switching accounts is instant and no client code needs the ledger.
-  const books: BankBookEntry[] = banks
-    .filter((bank) => bank.isActive)
-    .map((bank) => ({ bankAccountId: bank.id, ...getBankBook(bank.id) }));
+  const books: BankBookEntry[] = await Promise.all(
+    banks
+      .filter((bank) => bank.isActive)
+      .map(async (bank) => ({ bankAccountId: bank.id, ...(await getBankBook(bank.id)) })),
+  );
 
   return (
     <PageShell>

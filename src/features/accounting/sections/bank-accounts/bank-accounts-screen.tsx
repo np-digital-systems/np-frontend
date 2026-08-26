@@ -1,9 +1,17 @@
 'use client';
 
+import { useServerAction } from '@/hooks/use-server-action';
+
+import {
+  createBankAccount,
+  updateBankAccount,
+} from '../../lib/accounting-actions';
+
 import { useMemo, useState } from 'react';
 import { Landmark, Plus } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   CardBody,
   CardFooter,
@@ -33,16 +41,18 @@ import type { BankAccountRecord } from '../../types';
 interface BankAccountsScreenProps {
   initialBanks: readonly BankAccountRecord[];
   access: AccountingAccess;
+  /** Postable asset heads a new account can post through. */
+  ledgerAccounts: readonly { id: number; code: string; name: string }[];
   year: number;
 }
 
-/** TODO: replace the local mutations with calls to the bank accounts API. */
 export function BankAccountsScreen({
   initialBanks,
   access,
+  ledgerAccounts,
   year,
 }: BankAccountsScreenProps) {
-  const [banks, setBanks] = useState<readonly BankAccountRecord[]>(initialBanks);
+  const banks = initialBanks;
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BankAccountRecord | null>(null);
 
@@ -59,31 +69,39 @@ export function BankAccountsScreen({
     };
   }, [banks]);
 
+  const { run, error: actionError } = useServerAction();
+
   function handleSubmit(draft: BankAccountDraft) {
-    setBanks((current) => {
-      if (editing) {
-        return current.map((bank) =>
-          bank.id === editing.id ? { ...bank, ...draft } : bank,
-        );
-      }
+    const target = editing;
 
-      const nextId =
-        current.reduce((highest, bank) => Math.max(highest, bank.id), 0) + 1;
+    if (!target && draft.ledgerAccountId === null) return;
 
-      return [
-        ...current,
-        {
-          id: nextId,
-          ...draft,
-          // A new account's balance is its opening balance until something
-          // posts against it.
-          balance: draft.openingBalance,
-          // TODO: the API creates the matching ledger head. Until then the
-          // account has no book of its own to post through.
-          ledgerAccountId: 0,
-        },
-      ];
-    });
+    run(
+      () =>
+        target
+          ? updateBankAccount(target.id, {
+              label: draft.label,
+              bankName: draft.bankName,
+              branch: draft.branch,
+              type: draft.type,
+              openedOn: draft.openedOn,
+              isActive: draft.isActive,
+            })
+          : createBankAccount({
+              label: draft.label,
+              bankName: draft.bankName,
+              branch: draft.branch,
+              accountNumber: draft.accountNumber,
+              type: draft.type,
+              openingBalance: draft.openingBalance,
+              openedOn: draft.openedOn,
+              ledgerAccountId: draft.ledgerAccountId!,
+            }),
+      () => {
+        setEditing(null);
+        setFormOpen(false);
+      },
+    );
   }
 
   return (
@@ -113,6 +131,8 @@ export function BankAccountsScreen({
               }}
             >
               <Plus />
+
+      <ActionError message={actionError} />
               Add Account
             </Button>
           )
@@ -231,6 +251,8 @@ export function BankAccountsScreen({
 
       {access.canManageBankAccounts && (
         <BankAccountFormDialog
+          ledgerAccounts={ledgerAccounts}
+          submitError={actionError}
           open={formOpen}
           onOpenChange={setFormOpen}
           bank={editing}
