@@ -1,7 +1,8 @@
 import { PortalShell } from '@/components/layouts/portal-layout/portal-shell';
 
-import { getCurrentUser } from '@/features/auth/lib/session';
+import { requireSession } from '@/features/auth/lib/session';
 import { getPortalNavigation } from '@/features/auth/lib/navigation';
+import { getNotifications } from '@/features/notification/lib/notification-service';
 
 interface PortalLayoutProps {
   children: React.ReactNode;
@@ -11,13 +12,16 @@ export default async function PortalLayout({ children }: PortalLayoutProps) {
   // Identity is resolved once, here, and the navigation is filtered from the
   // same role the dashboard renders for — so the sidebar can never offer a
   // destination the page itself would refuse.
-  const user = await getCurrentUser();
+  const { user, permissions } = await requireSession();
 
-  const navigation = getPortalNavigation(user.role);
+  const navigation = getPortalNavigation(permissions, user.role);
+
+  // The header's badge counts the same inbox the notifications page shows.
+  const notifications = await getNotifications().catch(() => []);
 
   return (
     <div className="portal-theme min-h-screen bg-background text-foreground">
-      <PortalShell navigation={navigation} user={user}>
+      <PortalShell navigation={navigation} notifications={notifications} user={user}>
         {children}
       </PortalShell>
     </div>
