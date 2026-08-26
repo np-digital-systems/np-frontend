@@ -1,15 +1,16 @@
 'use server';
 
+import { headers } from 'next/headers';
+
 import { redirect, routing, type Locale } from '@/i18n/routing';
+import { api, ApiError } from '@/lib/api';
 import { validate } from '@/lib/validation';
 
-import { PORTAL_ACCOUNTS } from '../constants/portal-accounts';
 import { SIGN_IN_IDLE, type SignInState } from '../types/auth';
 
-import { ROLE_LABELS } from './auth-data';
 import { AUTH_ROUTES } from './auth-routes';
 import { signInSchema } from './auth-schemas';
-import { createSession, destroySession } from './session';
+import { createSession, destroySession, type AuthTokens } from './session';
 
 /**
  * The form carries the locale so the redirect lands on the prefixed path the
@@ -21,6 +22,12 @@ function readLocale(value: FormDataEntryValue | null): Locale {
     : routing.defaultLocale;
 }
 
+async function deviceName(): Promise<string> {
+  const agent = (await headers()).get('user-agent') ?? 'unknown device';
+
+  return agent.slice(0, 120);
+}
+
 export async function signIn(
   _previous: SignInState,
   formData: FormData,
@@ -28,7 +35,6 @@ export async function signIn(
   const locale = readLocale(formData.get('locale'));
 
   const parsed = validate(signInSchema, {
-    role: formData.get('role'),
     email: formData.get('email'),
     password: formData.get('password'),
     remember: formData.get('remember') === 'on',
@@ -38,26 +44,39 @@ export async function signIn(
     return { status: 'error', message: parsed.message };
   }
 
-  const { role, email, remember } = parsed.data;
-  const account = PORTAL_ACCOUNTS[role];
+  const { email, password, remember } = parsed.data;
 
-  /*
-   * TODO: this is the whole of the credential check until the auth API
-   * exists — the address has to match the account the temple holds for that
-   * role, and the password is only length-checked. Nothing here is a security
-   * boundary; every real check belongs on the server that issues the session.
-   */
-  if (account.email !== email) {
+  try {
+    const tokens = await api.post<AuthTokens>(
+      '/auth/login',
+      { email, password, deviceName: await deviceName() },
+      { anonymous: true },
+    );
+
+    await createSession(tokens, remember);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      /*
+       * The API answers a wrong password and an unknown address identically,
+       * and so does this: telling a visitor which half was wrong tells an
+       * attacker which addresses are worth guessing at.
+       */
+      return {
+        status: 'error',
+        message: error.isUnauthenticated
+          ? 'Those credentials were not recognised.'
+          : error.message,
+      };
+    }
+
     return {
       status: 'error',
-      message: `No ${ROLE_LABELS[role]} account is registered to ${email}.`,
+      message: 'The portal could not reach the server. Try again in a moment.',
     };
   }
 
-  await createSession(role, remember);
-
-  // `redirect` throws to unwind, so nothing below it runs. The return keeps
-  // the action's declared state type honest for `useActionState`.
+  // `redirect` throws to unwind, so nothing below it runs. The return keeps the
+  // action's declared state type honest for `useActionState`.
   redirect({ href: AUTH_ROUTES.portalHome, locale });
 
   return SIGN_IN_IDLE;
@@ -65,6 +84,14 @@ export async function signIn(
 
 export async function signOut(formData: FormData): Promise<void> {
   const locale = readLocale(formData.get('locale'));
+
+  // Revoke the session server-side first; a cookie cleared locally would
+  // otherwise leave a refresh token that still works.
+  try {
+    await api.post('/auth/logout');
+  } catch {
+    // A session the API has already forgotten is still a successful sign-out.
+  }
 
   await destroySession();
 
