@@ -24,3 +24,5 @@ export { ConfirmDialog } from './confirm-dialog';
 export { PeriodChart } from './period-chart';
 
 export type { BadgeStatus, PeriodPoint } from './types';
+
+export { ActionError } from './action-error';
