@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { validate } from '@/lib/validation';
 
+import { ChangePasswordDialog } from '../../components/change-password-dialog';
 import { ROLE_LABELS } from '../../lib/administration-data';
 import { templeProfileSchema } from '../../lib/administration-schemas';
 import type { UserRecord } from '../../types';
@@ -35,6 +36,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
     address: user.address,
   });
   const [error, setError] = useState<string | null>(null);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const isDirty =
     draft.fullName !== user.fullName ||
@@ -178,7 +180,11 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
               </CardBody>
 
               <CardFooter>
-                <Button type="button" variant="outline">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPasswordOpen(true)}
+                >
                   <KeyRound />
                   Change password
                 </Button>
@@ -192,6 +198,8 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
         </div>
 
       </div>
+
+      <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
     </>
   );
 }
