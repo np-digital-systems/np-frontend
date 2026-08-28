@@ -30,6 +30,14 @@ export const email = z
   .toLowerCase()
   .email('Enter a valid email address.');
 
+/**
+ * An address that may be left blank.
+ *
+ * Most people on the register have no email at all, so the field is optional —
+ * but anything actually typed still has to be an address.
+ */
+export const optionalEmail = z.union([email, z.literal('')]).default('');
+
 export const percentage = (label = 'The rate') =>
   z
     .number({ message: `${label} must be a number.` })
