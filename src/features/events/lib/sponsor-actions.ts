@@ -10,6 +10,14 @@ import { EVENT_ROUTES } from './routes';
 
 export type SponsorResult = { ok: true } | { ok: false; message: string };
 
+function messageFor(error: unknown): string {
+  return error instanceof ApiError ? error.message : 'The portal could not reach the server.';
+}
+
+function revalidate(): void {
+  for (const route of Object.values(EVENT_ROUTES)) revalidatePath(route);
+}
+
 async function guarded(refused: string, write: () => Promise<unknown>): Promise<SponsorResult> {
   const { permissions } = await requireSession();
 
@@ -19,39 +27,45 @@ async function guarded(refused: string, write: () => Promise<unknown>): Promise<
 
   try {
     await write();
-
-    for (const route of Object.values(EVENT_ROUTES)) revalidatePath(route);
+    revalidate();
 
     return { ok: true };
   } catch (error) {
-    return {
-      ok: false,
-      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
-    };
+    return { ok: false, message: messageFor(error) };
   }
 }
 
-export interface CreateSponsorInput {
+export interface RegisterSponsorInput {
   fullName: string;
   nameTa?: string;
   email?: string;
   phone?: string;
   address?: string;
+  eventTypeId: number;
+  instanceIdentifier: number | null;
+  customInstanceName?: string;
 }
 
-export type CreateSponsorResult =
+export type RegisterSponsorResult =
   | { ok: true; id: string }
   | { ok: false; message: string };
 
 /**
- * Register somebody who can sponsor a slot.
+ * Register a sponsor against an event type.
  *
- * A sponsor is a `users` row with no email and no password — the portal has one
- * directory of people, and a devotee who has never signed in is exactly that.
+ * A sponsor is a `users` row with no email and no password — the portal keeps
+ * one directory of people, and a devotee who has never signed in is exactly
+ * that — plus the registration that ties them to the event type they give to.
+ * The instance is optional; leaving it out registers them for every instance.
+ *
+ * The two writes are separate calls, so a rejected registration can leave the
+ * person in the directory. The message says so rather than pretending nothing
+ * happened, since the fix is to register them from the table, not to retype
+ * their details.
  */
-export async function createSponsor(
-  input: CreateSponsorInput,
-): Promise<CreateSponsorResult> {
+export async function registerSponsor(
+  input: RegisterSponsorInput,
+): Promise<RegisterSponsorResult> {
   const { permissions } = await requireSession();
 
   if (!getEventAccess(permissions).canManageSponsors) {
@@ -64,6 +78,8 @@ export async function createSponsor(
     return { ok: false, message: 'Enter the sponsor’s name.' };
   }
 
+  let userId: string;
+
   try {
     const user = await api.post<{ id: string }>('/users', {
       nameTa: input.nameTa?.trim() || fullName,
@@ -73,45 +89,69 @@ export async function createSponsor(
       address: input.address?.trim() ?? '',
     });
 
-    for (const route of Object.values(EVENT_ROUTES)) revalidatePath(route);
-
-    return { ok: true, id: user.id };
+    userId = user.id;
   } catch (error) {
+    return { ok: false, message: messageFor(error) };
+  }
+
+  try {
+    await api.post('/sponsors', {
+      eventTypeId: input.eventTypeId,
+      instanceIdentifier: input.instanceIdentifier ?? undefined,
+      customInstanceName: input.customInstanceName || undefined,
+      userId,
+    });
+  } catch (error) {
+    revalidate();
+
     return {
       ok: false,
-      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
+      message: `${fullName} was added to the directory, but not registered as a sponsor: ${messageFor(error)}`,
     };
   }
+
+  revalidate();
+
+  return { ok: true, id: userId };
 }
 
-export interface SponsorAssignmentInput {
+export interface SponsorPlacementInput {
   eventTypeId: number;
-  instanceIdentifier: number;
+  instanceIdentifier: number | null;
   customInstanceName?: string;
   userId: string;
 }
 
-export async function assignSponsor(input: SponsorAssignmentInput): Promise<SponsorResult> {
-  return guarded('You cannot assign sponsors.', () =>
+/** Register somebody already in the directory. */
+export async function addSponsor(input: SponsorPlacementInput): Promise<SponsorResult> {
+  return guarded('You cannot register sponsors.', () =>
     api.post('/sponsors', {
       ...input,
+      instanceIdentifier: input.instanceIdentifier ?? undefined,
       customInstanceName: input.customInstanceName || undefined,
     }),
   );
 }
 
-export async function updateSponsorAssignment(
+export async function updateSponsor(
   id: number,
-  input: { userId?: string; customInstanceName?: string },
+  input: Partial<SponsorPlacementInput>,
 ): Promise<SponsorResult> {
-  return guarded('You cannot change sponsor assignments.', () =>
+  return guarded('You cannot change sponsor registrations.', () =>
     api.patch(`/sponsors/${id}`, {
+      eventTypeId: input.eventTypeId,
+      // Null is meaningful here — it widens the sponsor back out to the whole
+      // event type — so it is sent rather than stripped like a blank string.
+      instanceIdentifier:
+        input.instanceIdentifier === undefined ? undefined : input.instanceIdentifier,
       userId: input.userId || undefined,
-      customInstanceName: input.customInstanceName || undefined,
+      // A blank name is sent as-is so a custom label can be cleared, which
+      // `|| undefined` would silently turn into "leave it alone".
+      customInstanceName: input.customInstanceName ?? undefined,
     }),
   );
 }
 
-export async function removeSponsorAssignment(id: number): Promise<SponsorResult> {
-  return guarded('You cannot remove sponsor assignments.', () => api.delete(`/sponsors/${id}`));
+export async function removeSponsor(id: number): Promise<SponsorResult> {
+  return guarded('You cannot remove sponsor registrations.', () => api.delete(`/sponsors/${id}`));
 }
