@@ -224,7 +224,7 @@ export function DepositFormDialog({
                 id="deposit-principal"
                 type="number"
                 min={0}
-                step={10000}
+                step={0.01}
                 value={draft.principal || ''}
                 onChange={(changeEvent) =>
                   update('principal', Number(changeEvent.target.value) || 0)
@@ -243,7 +243,7 @@ export function DepositFormDialog({
                 type="number"
                 min={0}
                 max={100}
-                step={0.25}
+                step={0.01}
                 value={draft.interestRate || ''}
                 placeholder="12.5"
                 onChange={(changeEvent) =>
