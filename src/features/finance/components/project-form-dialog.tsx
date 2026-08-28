@@ -153,7 +153,7 @@ export function ProjectFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <FormField id="project-name" label="Name (English)" required>
+          <FormField id="project-name" label="Name (English)">
             <Input
               id="project-name"
               value={draft.name}
@@ -164,7 +164,7 @@ export function ProjectFormDialog({
             />
           </FormField>
 
-          <FormField id="project-name-ta" label="Name (Tamil)">
+          <FormField id="project-name-ta" label="Name (Tamil)" required>
             <Input
               id="project-name-ta"
               value={draft.nameTa}
@@ -204,7 +204,7 @@ export function ProjectFormDialog({
                 id="project-budget"
                 type="number"
                 min={0}
-                step={10000}
+                step={0.01}
                 value={draft.budget ?? ''}
                 placeholder="No ceiling"
                 onChange={(changeEvent) =>

@@ -113,7 +113,7 @@ export function FundFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <FormField id="fund-name" label="Name (English)" required>
+          <FormField id="fund-name" label="Name (English)">
             <Input
               id="fund-name"
               value={draft.name}
@@ -127,6 +127,7 @@ export function FundFormDialog({
           <FormField
             id="fund-name-ta"
             label="Name (Tamil)"
+            required
             hint="Shown on Tamil statements and the printed fund summary."
           >
             <Input
@@ -148,7 +149,7 @@ export function FundFormDialog({
               id="fund-opening"
               type="number"
               min={0}
-              step={1000}
+              step={0.01}
               value={draft.opening || ''}
               onChange={(changeEvent) =>
                 update('opening', Number(changeEvent.target.value) || 0)
