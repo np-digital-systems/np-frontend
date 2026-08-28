@@ -13,25 +13,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
-import {
-  DEFAULT_INSTANCE_COUNT,
-  INSTANCE_MEANING,
-  describeInstance,
-} from '../lib/event-data';
+import { INSTANCE_MEANING, describeInstance } from '../lib/event-data';
 import { eventSchema } from '../lib/event-schemas';
-import type { EventRecord, EventType, SponsorUser } from '../types';
+import {
+  UNASSIGNED,
+  eventTypeGroups,
+  instanceCountOf,
+  instanceGroups,
+  sponsorGroups,
+} from '../lib/sponsor-options';
+import type {
+  EventRecord,
+  EventType,
+  SponsorAssignment,
+  SponsorUser,
+} from '../types';
 
 export interface EventDraft {
   eventTypeId: number;
@@ -45,7 +47,6 @@ export interface EventDraft {
   isCompleted: boolean;
 }
 
-const UNASSIGNED = '__unassigned__';
 
 function draftFrom(
   event: EventRecord | null,
@@ -85,7 +86,9 @@ interface EventFormDialogProps {
     mode?: 'create' | 'edit';
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
-    canComplete: boolean;
+  /** Standing registrations, used to put this slot's sponsors on top. */
+  assignments: readonly SponsorAssignment[];
+  canComplete: boolean;
   onSubmit: (draft: EventDraft) => void;
 }
 
@@ -96,6 +99,7 @@ export function EventFormDialog({
   mode = event ? 'edit' : 'create',
   eventTypes,
   sponsors,
+  assignments,
   canComplete,
   onSubmit,
 }: EventFormDialogProps) {
@@ -125,12 +129,7 @@ export function EventFormDialog({
     [eventTypes, draft.eventTypeId],
   );
 
-  const maxInstance = selectedType
-    ? Math.max(
-        selectedType.noOfInstances,
-        DEFAULT_INSTANCE_COUNT[selectedType.frequencyType],
-      )
-    : 1;
+  const maxInstance = instanceCountOf(selectedType);
 
   const instancePreview = selectedType
     ? describeInstance(
@@ -142,6 +141,88 @@ export function EventFormDialog({
 
   function update<K extends keyof EventDraft>(key: K, value: EventDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  const sponsorChoices = useMemo(() => {
+    const groups = sponsorGroups(
+      assignments,
+      draft.eventTypeId,
+      draft.instanceIdentifier,
+      {
+        lead: {
+          value: UNASSIGNED,
+          label: 'Unassigned',
+          description: 'Nobody has taken this occurrence yet',
+        },
+        directory: sponsors,
+      },
+    );
+
+    // Somebody who has since left the directory — deactivated, say — would
+    // otherwise vanish from the list and be dropped on the next save.
+    const current = event?.sponsor;
+
+    const listed =
+      !current ||
+      groups.some((group) =>
+        group.options.some((option) => option.value === current.id),
+      );
+
+    return listed
+      ? groups
+      : [
+          ...groups,
+          {
+            heading: 'Current sponsor',
+            options: [
+              {
+                value: current.id,
+                label: current.fullName,
+                description: 'No longer in the directory',
+              },
+            ],
+          },
+        ];
+  }, [
+    assignments,
+    sponsors,
+    event?.sponsor,
+    draft.eventTypeId,
+    draft.instanceIdentifier,
+  ]);
+
+  /**
+   * The sponsor a slot falls to when it has exactly one registered.
+   *
+   * Anything less certain is left for the user to pick: with several sponsors
+   * on a slot, choosing one for them would be a guess, and the list already
+   * puts all of them at the top.
+   */
+  function soleSponsorOf(eventTypeId: number, instance: number): string | null {
+    const registered = assignments.filter(
+      (assignment) =>
+        assignment.eventTypeId === eventTypeId &&
+        assignment.instanceIdentifier === instance,
+    );
+
+    return registered.length === 1 ? registered[0].userId : null;
+  }
+
+  /** Retargeting the draft, filling the sponsor in only while it is empty. */
+  function retarget(eventTypeId: number, instance: number) {
+    setDraft((current) => ({
+      ...current,
+      eventTypeId,
+      instanceIdentifier: instance,
+      sponsorId: current.sponsorId ?? soleSponsorOf(eventTypeId, instance),
+    }));
+  }
+
+  function selectEventType(eventTypeId: number) {
+    const nextType = eventTypes.find((type) => type.id === eventTypeId) ?? null;
+    const limit = instanceCountOf(nextType);
+
+    retarget(eventTypeId, Math.min(draft.instanceIdentifier, limit));
   }
 
   function handleSubmit(formEvent: React.FormEvent) {
@@ -180,22 +261,15 @@ export function EventFormDialog({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <FormField id="event-type" label="Event Type" required>
-            <Select
-              value={String(draft.eventTypeId)}
-              onValueChange={(value) => update('eventTypeId', Number(value))}
-            >
-              <SelectTrigger id="event-type" className="w-full">
-                <SelectValue placeholder="Select an event type" />
-              </SelectTrigger>
-
-              <SelectContent>
-                {eventTypes.map((type) => (
-                  <SelectItem key={type.id} value={String(type.id)}>
-                    {type.name} · {type.nameEn}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              id="event-type"
+              value={draft.eventTypeId ? String(draft.eventTypeId) : null}
+              groups={eventTypeGroups(eventTypes)}
+              placeholder="Select an event type"
+              searchPlaceholder="Search event types…"
+              emptyMessage="No event type matches that search."
+              onChange={(value) => selectEventType(Number(value))}
+            />
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -209,17 +283,15 @@ export function EventFormDialog({
                   : undefined
               }
             >
-              <Input
+              <Combobox
                 id="instance-identifier"
-                type="number"
-                min={1}
-                max={maxInstance}
-                value={draft.instanceIdentifier}
-                onChange={(changeEvent) =>
-                  update(
-                    'instanceIdentifier',
-                    Number(changeEvent.target.value) || 1,
-                  )
+                value={String(draft.instanceIdentifier)}
+                groups={instanceGroups(selectedType)}
+                placeholder="Select an instance"
+                searchPlaceholder="Search instances…"
+                emptyMessage="No instance matches that search."
+                onChange={(value) =>
+                  retarget(draft.eventTypeId, Number(value))
                 }
               />
             </FormField>
@@ -287,28 +359,18 @@ export function EventFormDialog({
           <FormField
             id="sponsor"
             label="Sponsor"
-            hint="Leave unassigned until a devotee takes the slot."
+            hint="The sponsors registered for this instance come first, then the rest of this event type's."
           >
-            <Select
+            <Combobox
+              id="sponsor"
               value={draft.sponsorId ?? UNASSIGNED}
-              onValueChange={(value) =>
+              groups={sponsorChoices}
+              searchPlaceholder="Search by name or address…"
+              emptyMessage="Nobody matches that search."
+              onChange={(value) =>
                 update('sponsorId', value === UNASSIGNED ? null : value)
               }
-            >
-              <SelectTrigger id="sponsor" className="w-full">
-                <SelectValue placeholder="Unassigned" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
-
-                {sponsors.map((sponsor) => (
-                  <SelectItem key={sponsor.id} value={sponsor.id}>
-                    {sponsor.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </FormField>
 
           <FormField id="notes" label="Notes">

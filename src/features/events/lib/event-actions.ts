@@ -74,7 +74,7 @@ export interface EventInput {
   notes?: string | null;
 }
 
-/** Leaving the sponsor out inherits the slot's standing sponsor. */
+/** Leaving the sponsor out inherits the slot's sponsor, when it has just one. */
 export async function createEvent(input: EventInput): Promise<ActionResult> {
   return guarded((a) => a.canCreate, 'You cannot add events to the calendar.', () =>
     api.post('/events', {
