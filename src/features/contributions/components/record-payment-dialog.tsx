@@ -137,7 +137,7 @@ export function RecordPaymentDialog({
                 id="payment-amount"
                 type="number"
                 min={0}
-                step={100}
+                step={0.01}
                 value={draft.amount || ''}
                 onChange={(event) =>
                   setDraft((current) => ({

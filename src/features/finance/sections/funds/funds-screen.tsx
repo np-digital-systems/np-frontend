@@ -117,13 +117,13 @@ export function FundsScreen({
               }}
             >
               <Plus />
-
-      <ActionError message={actionError} />
               New Fund
             </Button>
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canManageFunds && (
         <ReadOnlyNotice message="You can see every fund’s position and what has been charged to it. Creating or amending a fund is restricted to administrators and accountants." />

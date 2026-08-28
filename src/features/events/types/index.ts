@@ -25,10 +25,14 @@ export interface SponsorUser {
   readonly address: string;
 }
 
+/**
+ * A sponsor registered against an event type. A null `instanceIdentifier`
+ * means they stand for every instance of the type rather than one slot.
+ */
 export interface EventTypeSponsor {
   readonly id: number;
   readonly eventTypeId: number;
-    readonly instanceIdentifier: number;
+  readonly instanceIdentifier: number | null;
   readonly customInstanceName: string | null;
   readonly userId: string;
   readonly createdAt: string;
@@ -61,7 +65,8 @@ export interface ScheduleSlot {
   readonly instanceLabel: string;
   readonly customInstanceName: string | null;
     readonly defaultSponsor: SponsorUser | null;
-    readonly event: EventRecord | null;
+  readonly sponsorCount: number;
+  readonly event: EventRecord | null;
 }
 
 export interface ScheduleGroup {

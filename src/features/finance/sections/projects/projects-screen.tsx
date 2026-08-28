@@ -168,13 +168,13 @@ export function ProjectsScreen({
               }}
             >
               <Plus />
-
-      <ActionError message={actionError} />
               New Project
             </Button>
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canManageProjects && (
         <ReadOnlyNotice message="You can see every project and how its spend stands against its budget. Creating or amending a project is restricted to administrators and accountants." />

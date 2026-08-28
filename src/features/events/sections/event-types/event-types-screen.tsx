@@ -130,12 +130,12 @@ export function EventTypesScreen({ initialTypes, year }: EventTypesScreenProps) 
         actions={
           <Button onClick={openCreate}>
             <Plus />
-
-      <ActionError message={actionError} />
             New Event Type
           </Button>
         }
       />
+
+      <ActionError message={actionError} />
 
       <InstanceReference />
 

@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react';
 
-import { FormField } from '@/components/portal/ui';
+import { FormField, SegmentedControl } from '@/components/portal/ui';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
 import {
   Dialog,
   DialogContent,
@@ -14,83 +15,101 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
+import { describeInstance } from '../lib/event-data';
+import { newSponsorSchema, sponsorPlacementSchema } from '../lib/event-schemas';
 import {
-  DEFAULT_INSTANCE_COUNT,
-  INSTANCE_MEANING,
-  describeInstance,
-} from '../lib/event-data';
-import { sponsorAssignmentSchema } from '../lib/event-schemas';
+  ANY_INSTANCE,
+  eventTypeGroups,
+  instanceCountOf,
+  instanceGroups,
+  sponsorGroups,
+} from '../lib/sponsor-options';
 import type { EventType, SponsorAssignment, SponsorUser } from '../types';
+
+/** Whether the person is being typed in or picked out of the directory. */
+type Source = 'New person' | 'From directory';
+
+const SOURCES: readonly Source[] = ['New person', 'From directory'];
 
 export interface SponsorDraft {
   eventTypeId: number;
-  instanceIdentifier: number;
+  instanceIdentifier: number | null;
   customInstanceName: string;
+  /** Set when the sponsor is somebody already in the directory. */
   userId: string;
+  /** Set when they are being registered for the first time. */
+  person: {
+    fullName: string;
+    phone: string;
+    email: string;
+    address: string;
+  } | null;
 }
 
+const EMPTY_PERSON = { fullName: '', phone: '', email: '', address: '' };
+
 function draftFrom(
-  assignment: SponsorAssignment | null,
+  sponsor: SponsorAssignment | null,
   eventTypes: readonly EventType[],
-  sponsors: readonly SponsorUser[],
 ): SponsorDraft {
-  if (assignment) {
+  if (sponsor) {
     return {
-      eventTypeId: assignment.eventTypeId,
-      instanceIdentifier: assignment.instanceIdentifier,
-      customInstanceName: assignment.customInstanceName ?? '',
-      userId: assignment.userId,
+      eventTypeId: sponsor.eventTypeId,
+      instanceIdentifier: sponsor.instanceIdentifier,
+      customInstanceName: sponsor.customInstanceName ?? '',
+      userId: sponsor.userId,
+      person: null,
     };
   }
 
   return {
     eventTypeId: eventTypes[0]?.id ?? 0,
-    instanceIdentifier: 1,
+    instanceIdentifier: null,
     customInstanceName: '',
-    userId: sponsors[0]?.id ?? '',
+    userId: '',
+    person: { ...EMPTY_PERSON },
   };
 }
 
 interface SponsorFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  assignment: SponsorAssignment | null;
+  /** The registration being edited, or null to register somebody new. */
+  sponsor: SponsorAssignment | null;
   eventTypes: readonly EventType[];
-  sponsors: readonly SponsorUser[];
-    taken: readonly { eventTypeId: number; instanceIdentifier: number; id: number }[];
+  /** Everyone who could be picked instead of being typed in. */
+  directory: readonly SponsorUser[];
+  assignments: readonly SponsorAssignment[];
   onSubmit: (draft: SponsorDraft) => void;
 }
 
 export function SponsorFormDialog({
   open,
   onOpenChange,
-  assignment,
+  sponsor,
   eventTypes,
-  sponsors,
-  taken,
+  directory,
+  assignments,
   onSubmit,
 }: SponsorFormDialogProps) {
+  const isEdit = sponsor !== null;
+
   const [draft, setDraft] = useState<SponsorDraft>(() =>
-    draftFrom(assignment, eventTypes, sponsors),
+    draftFrom(sponsor, eventTypes),
   );
+  const [source, setSource] = useState<Source>('New person');
   const [error, setError] = useState<string | null>(null);
 
   // Re-seed when opened for a different record — see the note in
   // `event-form-dialog.tsx` on why this happens during render.
-  const seed = `${open}|${assignment?.id ?? 'new'}`;
+  const seed = `${open}|${sponsor?.id ?? 'new'}`;
   const [lastSeed, setLastSeed] = useState(seed);
 
   if (lastSeed !== seed) {
     setLastSeed(seed);
-    setDraft(draftFrom(assignment, eventTypes, sponsors));
+    setDraft(draftFrom(sponsor, eventTypes));
+    setSource('New person');
     setError(null);
   }
 
@@ -99,109 +118,117 @@ export function SponsorFormDialog({
     [eventTypes, draft.eventTypeId],
   );
 
-  const maxInstance = selectedType
-    ? Math.max(
-        selectedType.noOfInstances,
-        DEFAULT_INSTANCE_COUNT[selectedType.frequencyType],
-      )
-    : 1;
+  const directoryGroups = useMemo(
+    () =>
+      sponsorGroups(assignments, draft.eventTypeId, draft.instanceIdentifier, {
+        directory,
+      }),
+    [assignments, directory, draft.eventTypeId, draft.instanceIdentifier],
+  );
+
+  const usesDirectory = isEdit || source === 'From directory';
+  const person = draft.person ?? EMPTY_PERSON;
+
+  function update<K extends keyof SponsorDraft>(key: K, value: SponsorDraft[K]) {
+    setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function updatePerson(key: keyof typeof EMPTY_PERSON, value: string) {
+    setDraft((current) => ({
+      ...current,
+      person: { ...(current.person ?? EMPTY_PERSON), [key]: value },
+    }));
+  }
+
+  /** Switching the event type can strand an instance the new type lacks. */
+  function selectEventType(eventTypeId: number) {
+    const nextType = eventTypes.find((type) => type.id === eventTypeId) ?? null;
+    const limit = instanceCountOf(nextType);
+
+    setDraft((current) => ({
+      ...current,
+      eventTypeId,
+      instanceIdentifier:
+        current.instanceIdentifier !== null && current.instanceIdentifier <= limit
+          ? current.instanceIdentifier
+          : null,
+    }));
+  }
 
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const result = validate(sponsorAssignmentSchema, draft);
+    const placement = {
+      eventTypeId: draft.eventTypeId,
+      instanceIdentifier: draft.instanceIdentifier,
+      customInstanceName: draft.customInstanceName,
+    };
+
+    const result = usesDirectory
+      ? validate(sponsorPlacementSchema, { ...placement, userId: draft.userId })
+      : validate(newSponsorSchema, { ...placement, ...person });
 
     if (!result.ok) {
       setError(result.message);
       return;
     }
 
-    if (result.data.instanceIdentifier > maxInstance) {
-      setError(
-        `Instance must be between 1 and ${maxInstance} for this event type.`,
-      );
-      return;
-    }
-
-    const clash = taken.find(
-      (slot) =>
-        slot.eventTypeId === result.data.eventTypeId &&
-        slot.instanceIdentifier === result.data.instanceIdentifier &&
-        slot.id !== assignment?.id,
-    );
-
-    if (clash) {
-      setError(
-        'That instance already has a standing sponsor. Edit the existing assignment instead.',
-      );
-      return;
-    }
-
     setError(null);
-    onSubmit(result.data);
+
+    onSubmit({
+      ...placement,
+      // A custom name labels one slot, so it goes with the instance.
+      customInstanceName:
+        draft.instanceIdentifier === null ? '' : draft.customInstanceName.trim(),
+      userId: usesDirectory ? draft.userId : '',
+      person: usesDirectory ? null : { ...person },
+    });
+
     onOpenChange(false);
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {assignment ? 'Edit Sponsor Assignment' : 'Assign Sponsor'}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? 'Edit Sponsor' : 'New Sponsor'}</DialogTitle>
           <DialogDescription>
-            A standing assignment applies to this instance every year, and is
-            offered as the default sponsor when the instance is scheduled.
+            A sponsor belongs to an event type. Name an instance to tie them to
+            one slot, or leave it as all instances and they will be offered for
+            every occurrence of the type.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <FormField id="sponsor-event-type" label="Event Type" required>
-            <Select
-              value={String(draft.eventTypeId)}
-              onValueChange={(value) =>
-                setDraft((current) => ({
-                  ...current,
-                  eventTypeId: Number(value),
-                }))
-              }
-            >
-              <SelectTrigger id="sponsor-event-type" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                {eventTypes.map((type) => (
-                  <SelectItem key={type.id} value={String(type.id)}>
-                    {type.name} · {type.nameEn}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              id="sponsor-event-type"
+              value={draft.eventTypeId ? String(draft.eventTypeId) : null}
+              groups={eventTypeGroups(eventTypes)}
+              placeholder="Select an event type"
+              searchPlaceholder="Search event types…"
+              emptyMessage="No event type matches that search."
+              onChange={(value) => selectEventType(Number(value))}
+            />
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
-              id="sponsor-instance"
-              label="Instance"
-              required
-              hint={
-                selectedType
-                  ? INSTANCE_MEANING[selectedType.frequencyType]
-                  : undefined
-              }
-            >
-              <Input
+            <FormField id="sponsor-instance" label="Instance">
+              <Combobox
                 id="sponsor-instance"
-                type="number"
-                min={1}
-                max={maxInstance}
-                value={draft.instanceIdentifier}
-                onChange={(changeEvent) =>
-                  setDraft((current) => ({
-                    ...current,
-                    instanceIdentifier: Number(changeEvent.target.value) || 1,
-                  }))
+                value={
+                  draft.instanceIdentifier === null
+                    ? ANY_INSTANCE
+                    : String(draft.instanceIdentifier)
+                }
+                groups={instanceGroups(selectedType, { includeAny: true })}
+                searchPlaceholder="Search instances…"
+                emptyMessage="No instance matches that search."
+                onChange={(value) =>
+                  update(
+                    'instanceIdentifier',
+                    value === ANY_INSTANCE ? null : Number(value),
+                  )
                 }
               />
             </FormField>
@@ -215,11 +242,9 @@ export function SponsorFormDialog({
                 id="sponsor-instance-name"
                 value={draft.customInstanceName}
                 placeholder="சப்பரம், தேர்…"
+                disabled={draft.instanceIdentifier === null}
                 onChange={(changeEvent) =>
-                  setDraft((current) => ({
-                    ...current,
-                    customInstanceName: changeEvent.target.value,
-                  }))
+                  update('customInstanceName', changeEvent.target.value)
                 }
               />
             </FormField>
@@ -239,26 +264,77 @@ export function SponsorFormDialog({
             </p>
           )}
 
-          <FormField id="sponsor-user" label="Sponsor" required>
-            <Select
-              value={draft.userId}
-              onValueChange={(value) =>
-                setDraft((current) => ({ ...current, userId: value }))
-              }
-            >
-              <SelectTrigger id="sponsor-user" className="w-full">
-                <SelectValue placeholder="Select a devotee" />
-              </SelectTrigger>
+          {!isEdit && (
+            <SegmentedControl
+              label="Where the sponsor comes from"
+              options={SOURCES}
+              value={source}
+              onChange={setSource}
+            />
+          )}
 
-              <SelectContent>
-                {sponsors.map((sponsor) => (
-                  <SelectItem key={sponsor.id} value={sponsor.id}>
-                    {sponsor.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
+          {usesDirectory ? (
+            <FormField id="sponsor-user" label="Sponsor" required>
+              <Combobox
+                id="sponsor-user"
+                value={draft.userId || null}
+                groups={directoryGroups}
+                placeholder="Select a devotee"
+                searchPlaceholder="Search by name or address…"
+                emptyMessage="Nobody in the directory matches that search."
+                onChange={(value) => update('userId', value)}
+              />
+            </FormField>
+          ) : (
+            <>
+              <FormField id="sponsor-name" label="Name" required>
+                <Input
+                  id="sponsor-name"
+                  value={person.fullName}
+                  placeholder="ம. கணேசன் மற்றும் குடும்பத்தினர்"
+                  onChange={(changeEvent) =>
+                    updatePerson('fullName', changeEvent.target.value)
+                  }
+                />
+              </FormField>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField id="sponsor-phone" label="Phone">
+                  <Input
+                    id="sponsor-phone"
+                    value={person.phone}
+                    placeholder="077 111 2222"
+                    onChange={(changeEvent) =>
+                      updatePerson('phone', changeEvent.target.value)
+                    }
+                  />
+                </FormField>
+
+                <FormField id="sponsor-email" label="Email">
+                  <Input
+                    id="sponsor-email"
+                    type="email"
+                    value={person.email}
+                    placeholder="ganesan@example.com"
+                    onChange={(changeEvent) =>
+                      updatePerson('email', changeEvent.target.value)
+                    }
+                  />
+                </FormField>
+              </div>
+
+              <FormField id="sponsor-address" label="Address">
+                <Input
+                  id="sponsor-address"
+                  value={person.address}
+                  placeholder="நல்லூர், யாழ்ப்பாணம்"
+                  onChange={(changeEvent) =>
+                    updatePerson('address', changeEvent.target.value)
+                  }
+                />
+              </FormField>
+            </>
+          )}
 
           {error && (
             <p
@@ -279,7 +355,7 @@ export function SponsorFormDialog({
             </Button>
 
             <Button type="submit">
-              {assignment ? 'Save Changes' : 'Assign Sponsor'}
+              {isEdit ? 'Save Changes' : 'Register Sponsor'}
             </Button>
           </DialogFooter>
         </form>

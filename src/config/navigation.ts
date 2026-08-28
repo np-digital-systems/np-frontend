@@ -201,7 +201,7 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         label: 'Sponsors',
         href: EVENT_ROUTES.sponsors,
         icon: 'handshake',
-        description: 'Traditional sponsor assignments per instance',
+        description: 'Who sponsors each event type and instance',
         requiredPermission: 'event-sponsor:view',
       },
     ],

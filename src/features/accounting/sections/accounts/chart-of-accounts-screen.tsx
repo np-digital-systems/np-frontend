@@ -183,13 +183,13 @@ export function ChartOfAccountsScreen({
               }}
             >
               <Plus />
-
-      <ActionError message={actionError} />
               New Account
             </Button>
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canManageAccounts && (
         <ReadOnlyNotice message="You can see the chart of accounts. Adding or changing a ledger head is restricted to administrators and accountants." />

@@ -173,8 +173,6 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
             {dirtyCount > 0 && (
               <Button variant="outline" onClick={reset}>
                 <RotateCcw />
-
-      <ActionError message={actionError} />
                 Reset
               </Button>
             )}
@@ -185,6 +183,8 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
           </>
         }
       />
+
+      <ActionError message={actionError} />
 
       <div className="flex items-start gap-2.5 rounded-lg border border-border bg-info-subtle px-3.5 py-2.5">
         <Info className="mt-px size-3.5 shrink-0 text-info" aria-hidden />

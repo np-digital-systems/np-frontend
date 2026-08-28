@@ -37,7 +37,7 @@ export async function SponsorsFeature() {
   return (
     <PageShell>
       <SponsorsScreen
-        initialAssignments={redactAssignments(assignments, access.canSeeSponsorContact)}
+        initialSponsors={redactAssignments(assignments, access.canSeeSponsorContact)}
         eventTypes={eventTypes}
         sponsors={redactSponsors(sponsors, access.canSeeSponsorContact)}
         access={access}

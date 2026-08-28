@@ -237,7 +237,6 @@ export function AssetFormDialog({
             <FormField
               id="asset-name"
               label="Name (English)"
-              required
               className="sm:col-span-2"
             >
               <Input
@@ -251,7 +250,7 @@ export function AssetFormDialog({
             </FormField>
           </div>
 
-          <FormField id="asset-name-ta" label="Name (Tamil)">
+          <FormField id="asset-name-ta" label="Name (Tamil)" required>
             <Input
               id="asset-name-ta"
               value={draft.nameTa}
@@ -322,7 +321,7 @@ export function AssetFormDialog({
                 id="asset-cost"
                 type="number"
                 min={0}
-                step={1000}
+                step={0.01}
                 value={draft.cost || ''}
                 onChange={(changeEvent) =>
                   update('cost', Number(changeEvent.target.value) || 0)
@@ -344,7 +343,7 @@ export function AssetFormDialog({
                 type="number"
                 min={0}
                 max={100}
-                step={0.5}
+                step={0.01}
                 value={draft.depreciationRate}
                 onChange={(changeEvent) =>
                   update(

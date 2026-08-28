@@ -307,7 +307,7 @@ export function VoucherFormDialog({
                 id="voucher-amount"
                 type="number"
                 min={0}
-                step={100}
+                step={0.01}
                 value={draft.amount || ''}
                 onChange={(changeEvent) =>
                   update('amount', Number(changeEvent.target.value) || 0)

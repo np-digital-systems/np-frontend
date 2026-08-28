@@ -35,7 +35,12 @@ import {
 } from '../../components/events-toolbar';
 import { READ_ONLY_MESSAGE, type EventAccess } from '../../lib/event-access';
 import { isOverdue, summarise } from '../../lib/event-data';
-import type { EventRecord, EventType, SponsorUser } from '../../types';
+import type {
+  EventRecord,
+  EventType,
+  SponsorAssignment,
+  SponsorUser,
+} from '../../types';
 
 import { EventsTable } from './events-table';
 import { MonthGrid } from './month-grid';
@@ -47,6 +52,7 @@ interface EventsCalendarProps {
   initialEvents: readonly EventRecord[];
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
+  assignments: readonly SponsorAssignment[];
   access: EventAccess;
     today: string;
   year: number;
@@ -60,6 +66,7 @@ export function EventsCalendar({
   initialEvents,
   eventTypes,
   sponsors,
+  assignments,
   access,
   today,
   year,
@@ -167,8 +174,6 @@ export function EventsCalendar({
             {access.canExport && (
               <Button variant="outline">
                 <Download />
-
-      <ActionError message={actionError} />
                 Export
               </Button>
             )}
@@ -182,6 +187,8 @@ export function EventsCalendar({
           </>
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canWrite && <ReadOnlyNotice message={READ_ONLY_MESSAGE} />}
 
@@ -252,6 +259,7 @@ export function EventsCalendar({
           event={editing}
           eventTypes={eventTypes}
           sponsors={sponsors}
+          assignments={assignments}
           canComplete={access.canComplete}
           onSubmit={handleSubmit}
         />

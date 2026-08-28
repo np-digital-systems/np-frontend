@@ -143,7 +143,7 @@ export function MemberFormDialog({
             </FormField>
           </div>
 
-          <FormField id="member-name" label="Name" required>
+          <FormField id="member-name" label="Name (English)">
             <Input
               id="member-name"
               value={draft.fullName}
@@ -152,7 +152,7 @@ export function MemberFormDialog({
             />
           </FormField>
 
-          <FormField id="member-name-ta" label="Name (Tamil)">
+          <FormField id="member-name-ta" label="Name (Tamil)" required>
             <Input
               id="member-name-ta"
               value={draft.nameTa}

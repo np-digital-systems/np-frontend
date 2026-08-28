@@ -64,14 +64,14 @@ export function SessionsScreen({
             others.length > 0 && (
               <Button variant="outline" onClick={() => setRevokingAll(true)}>
                 <LogOut />
-
-      <ActionError message={actionError} />
                 Sign out other devices
               </Button>
             )
           }
         />
       )}
+
+      <ActionError message={actionError} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard

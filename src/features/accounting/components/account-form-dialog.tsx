@@ -182,7 +182,7 @@ export function AccountFormDialog({
             </FormField>
           </div>
 
-          <FormField id="account-name" label="Name (English)" required>
+          <FormField id="account-name" label="Name (English)">
             <Input
               id="account-name"
               value={draft.name}
@@ -196,6 +196,7 @@ export function AccountFormDialog({
           <FormField
             id="account-name-ta"
             label="Name (Tamil)"
+            required
             hint="Shown on Tamil statements and the printed ledger."
           >
             <Input

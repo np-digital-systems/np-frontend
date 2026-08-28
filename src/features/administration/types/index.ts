@@ -114,6 +114,13 @@ export interface LocaleSettings {
 }
 
 export interface AccountingSettings {
+  /**
+   * The asset head cash movements post through.
+   *
+   * The cash book cannot be drawn without it, so until an administrator picks
+   * one the API refuses that report rather than inventing a total.
+   */
+  readonly cashAccountId: number | null;
   readonly receiptPrefix: string;
   readonly paymentPrefix: string;
     readonly yearStartMonth: number;

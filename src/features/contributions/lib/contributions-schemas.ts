@@ -6,8 +6,8 @@ import { PAYMENT_MODES } from './contributions-data';
 
 export const memberSchema = z.object({
   memberNo: requiredText('A member number'),
-  fullName: requiredText('A name'),
-  nameTa: optionalText(160),
+  nameTa: requiredText('A Tamil name', 160),
+  fullName: optionalText(),
   phone: optionalText(32),
   address: optionalText(240),
   notes: optionalText(500),

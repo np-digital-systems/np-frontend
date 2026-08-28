@@ -158,7 +158,7 @@ export function UserFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <FormField id="user-name" label="Name (English)" required>
+          <FormField id="user-name" label="Name (English)">
             <Input
               id="user-name"
               value={draft.fullName}
@@ -169,7 +169,7 @@ export function UserFormDialog({
             />
           </FormField>
 
-          <FormField id="user-name-ta" label="Name (Tamil)">
+          <FormField id="user-name-ta" label="Name (Tamil)" required>
             <Input
               id="user-name-ta"
               value={draft.nameTa}
@@ -184,8 +184,12 @@ export function UserFormDialog({
             <FormField
               id="user-email"
               label="Email"
-              required
-              hint="Used to sign in."
+              required={draft.role !== 'user'}
+              hint={
+                draft.role === 'user'
+                  ? 'Optional. Most devotees on the register have none.'
+                  : 'Staff sign in with this.'
+              }
             >
               <Input
                 id="user-email"

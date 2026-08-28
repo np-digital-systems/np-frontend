@@ -3,13 +3,14 @@
 import { useServerAction } from '@/hooks/use-server-action';
 
 import {
-  assignSponsor,
-  removeSponsorAssignment,
-  updateSponsorAssignment,
+  addSponsor,
+  registerSponsor,
+  removeSponsor,
+  updateSponsor,
 } from '../../lib/sponsor-actions';
 
 import { useMemo, useState } from 'react';
-import { Handshake, Mail, Phone, Search, UserPlus, UserRoundPlus } from 'lucide-react';
+import { Handshake, Mail, Phone, Search, UserRoundPlus } from 'lucide-react';
 
 import {
   ActionError,
@@ -35,10 +36,7 @@ import {
 } from '@/components/ui/input-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { useRouter } from '@/i18n/routing';
-
 import { EventName } from '../../components/event-name';
-import { SponsorCreateDialog } from '../../components/sponsor-create-dialog';
 import { FrequencyBadge } from '../../components/frequency-badge';
 import {
   SponsorFormDialog,
@@ -48,7 +46,7 @@ import type { EventAccess } from '../../lib/event-access';
 import type { EventType, SponsorAssignment, SponsorUser } from '../../types';
 
 interface SponsorsScreenProps {
-  initialAssignments: readonly SponsorAssignment[];
+  initialSponsors: readonly SponsorAssignment[];
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
   access: EventAccess;
@@ -57,19 +55,16 @@ interface SponsorsScreenProps {
 }
 
 export function SponsorsScreen({
-  initialAssignments,
+  initialSponsors,
   eventTypes,
   sponsors,
   access,
   unsponsoredEvents,
   year,
 }: SponsorsScreenProps) {
-  const router = useRouter();
-
-  const assignments = initialAssignments;
+  const assignments = initialSponsors;
   const [query, setQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<SponsorAssignment | null>(null);
   const [pendingRemove, setPendingRemove] = useState<SponsorAssignment | null>(
     null,
@@ -112,19 +107,24 @@ export function SponsorsScreen({
   function handleSubmit(draft: SponsorDraft) {
     const target = editing;
 
+    const placement = {
+      eventTypeId: draft.eventTypeId,
+      instanceIdentifier: draft.instanceIdentifier,
+      customInstanceName: draft.customInstanceName,
+    };
+
     run(
-      () =>
-        target
-          ? updateSponsorAssignment(target.id, {
-              userId: draft.userId,
-              customInstanceName: draft.customInstanceName,
-            })
-          : assignSponsor({
-              eventTypeId: draft.eventTypeId,
-              instanceIdentifier: draft.instanceIdentifier,
-              customInstanceName: draft.customInstanceName,
-              userId: draft.userId,
-            }),
+      () => {
+        if (target) {
+          return updateSponsor(target.id, { ...placement, userId: draft.userId });
+        }
+
+        // A new person is registered and placed in one go; somebody already in
+        // the directory only needs the placement.
+        return draft.person
+          ? registerSponsor({ ...placement, ...draft.person })
+          : addSponsor({ ...placement, userId: draft.userId });
+      },
       () => {
         setEditing(null);
         setFormOpen(false);
@@ -137,7 +137,7 @@ export function SponsorsScreen({
 
     const target = pendingRemove;
 
-    run(() => removeSponsorAssignment(target.id), () => setPendingRemove(null));
+    run(() => removeSponsor(target.id), () => setPendingRemove(null));
   }
 
   const columns: DataColumn[] = [
@@ -158,10 +158,10 @@ export function SponsorsScreen({
     <>
       <PortalPageHeader
         title="Sponsors"
-        description="Standing sponsor assignments — who traditionally sponsors each recurring instance."
+        description="Who sponsors each event type — and, where it is set, the instance they traditionally take."
         meta={[
           <span key="assignments" className="tabular">
-            {assignments.length} assignments
+            {assignments.length} registrations
           </span>,
           <span key="sponsors" className="tabular">
             {distinctSponsors} sponsors
@@ -172,37 +172,30 @@ export function SponsorsScreen({
         ]}
         actions={
           access.canManageSponsors && (
-            <>
-              <Button variant="outline" onClick={() => setCreateOpen(true)}>
-                <UserRoundPlus />
-
-      <ActionError message={actionError} />
-                New Sponsor
-              </Button>
-
-              <Button
-                onClick={() => {
-                  setEditing(null);
-                  setFormOpen(true);
-                }}
-              >
-                <UserPlus />
-                Assign Sponsor
-              </Button>
-            </>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
+              <UserRoundPlus />
+              New Sponsor
+            </Button>
           )
         }
       />
 
+      <ActionError message={actionError} />
+
       {!access.canManageSponsors && (
-        <ReadOnlyNotice message="You can see who sponsors each instance. Creating and changing sponsor assignments is restricted to administrators." />
+        <ReadOnlyNotice message="You can see who sponsors each event type. Registering and changing sponsors is restricted to administrators." />
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Standing Assignments"
+          label="Registrations"
           value={String(assignments.length)}
-          caption="Recurring slots claimed"
+          caption="Sponsors on an event type"
         />
         <StatCard
           label="Active Sponsors"
@@ -224,7 +217,7 @@ export function SponsorsScreen({
       <Tabs defaultValue="assignments">
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <TabsList>
-            <TabsTrigger value="assignments">Assignments</TabsTrigger>
+            <TabsTrigger value="assignments">Registrations</TabsTrigger>
             <TabsTrigger value="directory">Sponsor Directory</TabsTrigger>
           </TabsList>
 
@@ -237,7 +230,7 @@ export function SponsorsScreen({
               type="search"
               value={query}
               placeholder="Search sponsors or event types…"
-              aria-label="Search sponsor assignments"
+              aria-label="Search registered sponsors"
               onChange={(changeEvent) => setQuery(changeEvent.target.value)}
             />
           </InputGroup>
@@ -252,12 +245,12 @@ export function SponsorsScreen({
                     icon={Handshake}
                     title={
                       assignments.length === 0
-                        ? 'No sponsor assignments yet'
-                        : 'No assignments match that search'
+                        ? 'No sponsors registered yet'
+                        : 'No sponsors match that search'
                     }
                     description={
                       assignments.length === 0
-                        ? 'Assign devotees to the instances they traditionally sponsor.'
+                        ? 'Register devotees against the event types they sponsor.'
                         : 'Try a different name or clear the search.'
                     }
                   />
@@ -276,9 +269,12 @@ export function SponsorsScreen({
                       <span className="text-[13px] text-text-primary">
                         {assignment.instanceLabel}
                       </span>
-                      <span className="ml-2 text-[11px] text-text-muted tabular">
-                        #{assignment.instanceIdentifier}
-                      </span>
+
+                      {assignment.instanceIdentifier !== null && (
+                        <span className="ml-2 text-[11px] text-text-muted tabular">
+                          #{assignment.instanceIdentifier}
+                        </span>
+                      )}
                     </DataCell>
 
                     <DataCell nowrap>
@@ -349,8 +345,8 @@ export function SponsorsScreen({
             <Card>
               <EmptyState
                 icon={Handshake}
-                title="No sponsors assigned yet"
-                description="Sponsors appear here once they hold at least one recurring slot."
+                title="No sponsors registered yet"
+                description="Sponsors appear here once they are registered against an event type."
               />
             </Card>
           ) : (
@@ -406,31 +402,13 @@ export function SponsorsScreen({
       </Tabs>
 
       {access.canManageSponsors && (
-        <SponsorCreateDialog
-          open={createOpen}
-          onOpenChange={setCreateOpen}
-          onCreated={() => {
-            // The new sponsor arrives with the refreshed server data; open
-            // the assign form so the admin can place them right away.
-            router.refresh();
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        />
-      )}
-
-      {access.canManageSponsors && (
         <SponsorFormDialog
           open={formOpen}
           onOpenChange={setFormOpen}
-          assignment={editing}
+          sponsor={editing}
           eventTypes={eventTypes}
-          sponsors={sponsors}
-          taken={assignments.map((assignment) => ({
-            id: assignment.id,
-            eventTypeId: assignment.eventTypeId,
-            instanceIdentifier: assignment.instanceIdentifier,
-          }))}
+          directory={sponsors}
+          assignments={assignments}
           onSubmit={handleSubmit}
         />
       )}
@@ -438,11 +416,11 @@ export function SponsorsScreen({
       <ConfirmDialog
         open={pendingRemove !== null}
         onOpenChange={(open) => !open && setPendingRemove(null)}
-        title="Remove this sponsor assignment?"
+        title="Remove this sponsor?"
         confirmLabel="Remove"
         description={
           pendingRemove
-            ? `${pendingRemove.sponsor.fullName} will no longer be the standing sponsor for ${pendingRemove.eventType.name} — ${pendingRemove.instanceLabel}. Events already scheduled keep their sponsor.`
+            ? `${pendingRemove.sponsor.fullName} will no longer be offered as a sponsor for ${pendingRemove.eventType.name} — ${pendingRemove.instanceLabel}. Events already scheduled keep their sponsor.`
             : ''
         }
         onConfirm={handleRemove}

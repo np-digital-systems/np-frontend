@@ -142,7 +142,7 @@ export function DisposeAssetDialog({
                     id="disposal-value"
                     type="number"
                     min={0}
-                    step={500}
+                    step={0.01}
                     value={draft.disposalValue || ''}
                     onChange={(changeEvent) =>
                       setDraft((current) => ({

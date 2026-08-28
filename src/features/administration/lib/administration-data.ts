@@ -193,6 +193,7 @@ export const DEFAULT_SETTINGS: PortalSettings = {
     dateFormat: 'dd-mon-yyyy',
   },
   accounting: {
+    cashAccountId: null,
     receiptPrefix: 'RV',
     paymentPrefix: 'PV',
     yearStartMonth: 1,

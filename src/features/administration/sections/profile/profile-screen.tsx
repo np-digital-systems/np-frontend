@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { validate } from '@/lib/validation';
 
+import { ChangePasswordDialog } from '../../components/change-password-dialog';
 import { ROLE_LABELS } from '../../lib/administration-data';
 import { templeProfileSchema } from '../../lib/administration-schemas';
 import type { UserRecord } from '../../types';
@@ -35,6 +36,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
     address: user.address,
   });
   const [error, setError] = useState<string | null>(null);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const isDirty =
     draft.fullName !== user.fullName ||
@@ -122,7 +124,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
             <form onSubmit={handleSubmit}>
               <CardBody className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <FormField id="profile-name" label="Name (English)" required>
+                  <FormField id="profile-name" label="Name (English)">
                     <Input
                       id="profile-name"
                       value={draft.fullName}
@@ -132,7 +134,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
                     />
                   </FormField>
 
-                  <FormField id="profile-name-ta" label="Name (Tamil)">
+                  <FormField id="profile-name-ta" label="Name (Tamil)" required>
                     <Input
                       id="profile-name-ta"
                       value={draft.nameTa}
@@ -178,7 +180,11 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
               </CardBody>
 
               <CardFooter>
-                <Button type="button" variant="outline">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPasswordOpen(true)}
+                >
                   <KeyRound />
                   Change password
                 </Button>
@@ -192,6 +198,8 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
         </div>
 
       </div>
+
+      <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
     </>
   );
 }

@@ -131,13 +131,13 @@ export function BankAccountsScreen({
               }}
             >
               <Plus />
-
-      <ActionError message={actionError} />
               Add Account
             </Button>
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canManageBankAccounts && (
         <ReadOnlyNotice message="You can see the temple’s bank accounts and their balances. Opening, amending or closing an account is restricted to administrators." />
