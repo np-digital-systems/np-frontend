@@ -124,7 +124,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
             <form onSubmit={handleSubmit}>
               <CardBody className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <FormField id="profile-name" label="Name (English)" required>
+                  <FormField id="profile-name" label="Name (English)">
                     <Input
                       id="profile-name"
                       value={draft.fullName}
@@ -134,7 +134,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
                     />
                   </FormField>
 
-                  <FormField id="profile-name-ta" label="Name (Tamil)">
+                  <FormField id="profile-name-ta" label="Name (Tamil)" required>
                     <Input
                       id="profile-name-ta"
                       value={draft.nameTa}

@@ -125,13 +125,13 @@ export function FinancialYearsScreen({
               disabled={!years.some((year) => year.status === 'upcoming')}
             >
               <Plus />
-
-      <ActionError message={actionError} />
               Open Next Year
             </Button>
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canManageFinancialYears && (
         <ReadOnlyNotice message={FINANCIAL_YEAR_READ_ONLY_MESSAGE} />

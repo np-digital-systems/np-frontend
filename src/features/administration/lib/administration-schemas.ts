@@ -1,21 +1,43 @@
 import { z } from 'zod';
 
 import { USER_ROLES } from '@/features/auth/types/user-role';
-import { email, optionalText, requiredText } from '@/lib/validation';
+import { email, optionalEmail, optionalText, requiredText } from '@/lib/validation';
 
 export const userSchema = z.object({
-  fullName: requiredText('A name'),
-  nameTa: optionalText(),
-  email,
+  /*
+   * The Tamil name is the record; the English one is a convenience.
+   *
+   * The register is kept in Tamil, and most devotees have no email at all, so
+   * those are the two the API treats as optional — this follows it rather than
+   * demanding more of a devotee than the temple does.
+   */
+  nameTa: requiredText('A Tamil name'),
+  fullName: optionalText(),
+  email: optionalEmail,
   phone: optionalText(32),
   address: optionalText(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
+}).superRefine((value, ctx) => {
+  /*
+   * Staff sign in; devotees do not.
+   *
+   * The API requires an email for every role except `user`, because that is
+   * the credential someone signs in with. A devotee on the register has no
+   * account to sign in to, and often no email either.
+   */
+  if (value.role !== 'user' && !value.email) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['email'],
+      message: 'Staff sign in with their email, so this one is needed.',
+    });
+  }
 });
 
 export const templeProfileSchema = z.object({
-  name: requiredText('The temple name'),
   nameTa: requiredText('The Tamil name'),
+  name: optionalText(),
   registrationNo: optionalText(64),
   address: optionalText(500),
   phone: optionalText(32),
