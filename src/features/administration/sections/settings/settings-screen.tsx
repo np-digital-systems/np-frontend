@@ -46,11 +46,15 @@ import type {
   UserSession,
 } from '../../types';
 
+import type { Account } from '@/features/accounting/types';
+
 import { ProfileScreen } from '../profile/profile-screen';
 import { SessionsScreen } from '../profile/sessions-screen';
 
 interface SettingsScreenProps {
   user: UserRecord;
+  /** Asset heads the cash account may be chosen from. */
+  cashAccounts: readonly Account[];
   sessions: readonly UserSession[];
   currentSessionId: string;
   today: string;
@@ -65,6 +69,7 @@ interface SettingsScreenProps {
  */
 export function SettingsScreen({
   user,
+  cashAccounts,
   sessions,
   currentSessionId,
   today,
@@ -84,20 +89,32 @@ export function SettingsScreen({
   const { run, error: actionError, pending } = useServerAction();
 
   /**
-   * Only the two keys the API owns are written.
+   * Only the fields the API has somewhere to put.
    *
-   * `locale` and `notifications` are still portal-side preferences; sending
-   * them would store settings nothing reads.
+   * The settings endpoints reject an unrecognised property outright, so
+   * sending this form wholesale fails on the first one it does not know and
+   * nothing is saved. Much of what this screen collects — a registration
+   * number, an address, the voucher prefixes — has no home in the API yet, and
+   * is kept here as a portal-side draft until it does.
    */
   function handleSave() {
     if (!settings) return;
 
     run(async () => {
-      const temple = await updateTempleSettings({ ...settings.temple });
+      const temple = await updateTempleSettings({
+        nameEn: settings.temple.name,
+        nameTa: settings.temple.nameTa,
+        timezone: settings.locale.timeZone,
+      });
 
       if (!temple.ok) return temple;
 
-      return updateAccountingSettings({ ...settings.accounting });
+      const { cashAccountId } = settings.accounting;
+
+      // An id, or the key left out altogether — never an explicit null.
+      return updateAccountingSettings(
+        cashAccountId === null ? {} : { cashAccountId },
+      );
     });
   }
 
@@ -136,8 +153,6 @@ export function SettingsScreen({
                   onClick={() => setSettings(initialSettings)}
                 >
                   <RotateCcw />
-
-      <ActionError message={actionError} />
                   Discard
                 </Button>
               )}
@@ -149,6 +164,8 @@ export function SettingsScreen({
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       <Tabs defaultValue="profile">
         <TabsList>
@@ -197,6 +214,7 @@ export function SettingsScreen({
           <TabsContent value="accounting">
             <AccountingSection
               accounting={settings.accounting}
+              cashAccounts={cashAccounts}
               onChange={(value) => patch('accounting', value)}
             />
           </TabsContent>
@@ -231,7 +249,7 @@ function TempleSection({
 
       <CardBody className="flex flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField id="temple-name" label="Name (English)" required>
+          <FormField id="temple-name" label="Name (English)">
             <Input
               id="temple-name"
               value={profile.name}
@@ -392,9 +410,11 @@ function LocaleSection({
 
 function AccountingSection({
   accounting,
+  cashAccounts,
   onChange,
 }: {
   accounting: AccountingSettings;
+  cashAccounts: readonly Account[];
   onChange: (value: Partial<AccountingSettings>) => void;
 }) {
   return (
@@ -405,6 +425,35 @@ function AccountingSection({
       />
 
       <CardBody className="flex flex-col gap-4">
+        <FormField
+          id="acc-cash-account"
+          label="Cash account"
+          required
+          hint={
+            cashAccounts.length
+              ? 'The asset head every cash movement posts through. The cash book is drawn from it.'
+              : 'No asset accounts exist yet. Create one under Chart of Accounts first.'
+          }
+        >
+          <Select
+            value={accounting.cashAccountId ? String(accounting.cashAccountId) : undefined}
+            disabled={cashAccounts.length === 0}
+            onValueChange={(value) => onChange({ cashAccountId: Number(value) })}
+          >
+            <SelectTrigger id="acc-cash-account" className="w-full">
+              <SelectValue placeholder="Choose the cash head" />
+            </SelectTrigger>
+
+            <SelectContent>
+              {cashAccounts.map((account) => (
+                <SelectItem key={account.id} value={String(account.id)}>
+                  {account.code} — {account.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <FormField
             id="acc-receipt-prefix"
@@ -471,7 +520,7 @@ function AccountingSection({
             id="acc-threshold"
             type="number"
             min={0}
-            step={5000}
+            step={0.01}
             value={accounting.approvalThreshold || ''}
             onChange={(event) =>
               onChange({ approvalThreshold: Number(event.target.value) || 0 })
