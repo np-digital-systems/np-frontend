@@ -237,13 +237,13 @@ export function AssetsScreen({
               }}
             >
               <Plus />
-
-      <ActionError message={actionError} />
               Add Asset
             </Button>
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canManageAssets ? (
         <ReadOnlyNotice message="You can see the temple’s asset register and its book values. Adding or amending an asset record is restricted to administrators and accountants." />

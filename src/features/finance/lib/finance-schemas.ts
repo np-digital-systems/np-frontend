@@ -17,16 +17,16 @@ import {
 } from './finance-data';
 
 export const fundSchema = z.object({
-  name: requiredText('A fund name'),
-  nameTa: optionalText(),
+  nameTa: requiredText('A Tamil name'),
+  name: optionalText(),
   opening: nonNegativeAmount('An opening balance'),
   isActive: z.boolean(),
 });
 
 export const projectSchema = z
   .object({
-    name: requiredText('A project name'),
-    nameTa: optionalText(),
+    nameTa: requiredText('A Tamil name'),
+    name: optionalText(),
     fundId: z.number().int().positive('Choose a fund.'),
     budget: nonNegativeAmount('A budget').nullable(),
     startDate: isoDate,
@@ -67,8 +67,8 @@ export const assetSchema = z.object({
   tag: requiredText('An asset tag', 32).transform((value) =>
     value.toUpperCase(),
   ),
-  name: requiredText('An asset name'),
-  nameTa: optionalText(),
+  nameTa: requiredText('A Tamil name'),
+  name: optionalText(),
   category: z.enum(ASSET_CATEGORIES),
   acquiredOn: isoDate,
   cost: positiveAmount('The acquisition cost'),
