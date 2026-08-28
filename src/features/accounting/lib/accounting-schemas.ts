@@ -66,8 +66,8 @@ export const accountSchema = z
       .string()
       .trim()
       .regex(/^\d{4}$/, 'The account code must be four digits, e.g. 5012.'),
-    name: requiredText('An account name'),
-    nameTa: optionalText(),
+    nameTa: requiredText('A Tamil name'),
+    name: optionalText(),
     type: z.enum(ACCOUNT_TYPES),
     parentId: z.number().int().positive().nullable(),
     isActive: z.boolean(),
