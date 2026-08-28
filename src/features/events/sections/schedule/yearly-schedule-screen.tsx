@@ -25,6 +25,7 @@ import type {
   EventType,
   ScheduleGroup,
   ScheduleSlot,
+  SponsorAssignment,
   SponsorUser,
 } from '../../types';
 
@@ -37,6 +38,7 @@ interface YearlyScheduleScreenProps {
   initialEvents: readonly EventRecord[];
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorUser[];
+  assignments: readonly SponsorAssignment[];
   access: EventAccess;
   today: string;
   year: number;
@@ -47,6 +49,7 @@ export function YearlyScheduleScreen({
   initialEvents,
   eventTypes,
   sponsors,
+  assignments,
   access,
   today,
   year,
@@ -94,6 +97,7 @@ export function YearlyScheduleScreen({
               base?.instanceLabel ??
               `#${instanceIdentifier}`,
             defaultSponsor: base?.defaultSponsor ?? null,
+            sponsorCount: base?.sponsorCount ?? 0,
             event,
           };
         });
@@ -203,13 +207,13 @@ export function YearlyScheduleScreen({
           access.canExport && (
             <Button variant="outline">
               <Download />
-
-      <ActionError message={actionError} />
               Export Schedule
             </Button>
           )
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canWrite && (
         <ReadOnlyNotice
@@ -263,6 +267,7 @@ export function YearlyScheduleScreen({
           mode={editing ? 'edit' : 'create'}
           eventTypes={eventTypes}
           sponsors={sponsors}
+          assignments={assignments}
           canComplete={access.canComplete}
           onSubmit={handleSubmit}
         />

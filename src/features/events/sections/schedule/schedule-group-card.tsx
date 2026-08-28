@@ -110,7 +110,7 @@ export function ScheduleGroupCard({
             {isDense && (
               <p className="border-b border-border bg-surface-2 px-5 py-2 text-[11px] text-text-muted">
                 Showing the {slots.length} of {eventType.noOfInstances}{' '}
-                instances that are dated or hold a standing sponsor.
+                instances that are dated or have a registered sponsor.
               </p>
             )}
 
@@ -157,7 +157,9 @@ export function ScheduleGroupCard({
 
                         {!event && slot.defaultSponsor && (
                           <span className="mt-0.5 block text-[11px] text-text-muted">
-                            Standing sponsor
+                            {slot.sponsorCount > 1
+                              ? `Registered sponsor · ${slot.sponsorCount - 1} more to choose from`
+                              : 'Registered sponsor'}
                           </span>
                         )}
                       </DataCell>
