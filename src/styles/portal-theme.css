@@ -558,29 +558,40 @@ html[lang="ta"] .portal-theme :is(h1, h2, h3, h4, h5, h6) {
    PORTAL SCROLLBARS
    ========================================================================== */
 
+/* Dropdowns, popovers and dialogs are portalled to <body>, outside the
+   `.portal-theme` wrapper — so these match the token rules above and key off
+   the body as well. Without it a portalled list falls back to the platform
+   scrollbar, which on macOS is invisible until it is already being scrolled,
+   and a capped list reads as a list that simply ends. */
 .portal-theme,
-.portal-theme * {
+.portal-theme *,
+body:has(.portal-theme),
+body:has(.portal-theme) * {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
 
-.portal-theme ::-webkit-scrollbar {
+.portal-theme ::-webkit-scrollbar,
+body:has(.portal-theme) ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-.portal-theme ::-webkit-scrollbar-track {
+.portal-theme ::-webkit-scrollbar-track,
+body:has(.portal-theme) ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.portal-theme ::-webkit-scrollbar-thumb {
+.portal-theme ::-webkit-scrollbar-thumb,
+body:has(.portal-theme) ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
-.portal-theme ::-webkit-scrollbar-thumb:hover {
+.portal-theme ::-webkit-scrollbar-thumb:hover,
+body:has(.portal-theme) ::-webkit-scrollbar-thumb:hover {
   background: var(--text-disabled);
   background-clip: content-box;
 }

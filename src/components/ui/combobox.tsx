@@ -122,7 +122,10 @@ export function Combobox({
         >
           <CommandInput placeholder={searchPlaceholder} />
 
-          <CommandList>
+          {/* The cap is what the popover can actually use, so a long list
+              grows to fill a tall screen instead of stopping at a fixed
+              nine-or-so rows. */}
+          <CommandList className="max-h-[clamp(12rem,var(--radix-popover-content-available-height,24rem),24rem)]">
             <CommandEmpty>{emptyMessage}</CommandEmpty>
 
             {groups.map((group, index) => (

@@ -113,11 +113,20 @@ export function UserFormDialog({
       return;
     }
 
-    const clash = existing.some(
-      (entry) =>
-        entry.email.toLowerCase() === result.data.email &&
-        entry.id !== user?.id,
-    );
+    /*
+     * Only a real address can clash.
+     *
+     * Most devotees have no email, so comparing blanks made every one of them
+     * collide with every other — and the message came out with nothing in
+     * front of it, because the duplicate was the empty string.
+     */
+    const clash =
+      result.data.email !== '' &&
+      existing.some(
+        (entry) =>
+          entry.email.toLowerCase() === result.data.email &&
+          entry.id !== user?.id,
+      );
 
     if (clash) {
       setError(`${result.data.email} is already registered to another account.`);
