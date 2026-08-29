@@ -4,8 +4,10 @@ import { useServerAction } from '@/hooks/use-server-action';
 
 import {
   closeFinancialYear,
+  createFinancialYear,
   openFinancialYear,
 } from '../../lib/administration-actions';
+import { FinancialYearFormDialog } from '../../components/financial-year-form-dialog';
 
 import { useMemo, useState } from 'react';
 import { CalendarRange, Lock, Plus } from 'lucide-react';
@@ -63,6 +65,7 @@ export function FinancialYearsScreen({
   const years = initialYears;
   const [closing, setClosing] = useState<FinancialYearRecord | null>(null);
   const [opening, setOpening] = useState<FinancialYearRecord | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const current = useMemo(
     () => years.find((year) => year.isCurrent) ?? null,
@@ -116,22 +119,36 @@ export function FinancialYearsScreen({
         ].filter(Boolean)}
         actions={
           access.canManageFinancialYears && (
-            <Button
-              onClick={() =>
-                setOpening(
-                  years.find((year) => year.status === 'upcoming') ?? null,
-                )
-              }
-              disabled={!years.some((year) => year.status === 'upcoming')}
-            >
-              <Plus />
-              Open Next Year
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setCreating(true)}>
+                <Plus />
+                New Year
+              </Button>
+
+              <Button
+                onClick={() =>
+                  setOpening(
+                    years.find((year) => year.status === 'upcoming') ?? null,
+                  )
+                }
+                disabled={!years.some((year) => year.status === 'upcoming')}
+              >
+                Open Next Year
+              </Button>
+            </div>
           )
         }
       />
 
       <ActionError message={actionError} />
+
+      {access.canManageFinancialYears && (
+        <FinancialYearFormDialog
+          open={creating}
+          onOpenChange={setCreating}
+          onSubmit={(input) => run(() => createFinancialYear(input))}
+        />
+      )}
 
       {!access.canManageFinancialYears && (
         <ReadOnlyNotice message={FINANCIAL_YEAR_READ_ONLY_MESSAGE} />
