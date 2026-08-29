@@ -76,7 +76,12 @@ export function Combobox({
   );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // `modal` is what makes the list scrollable inside a dialog. The dialog's
+    // scroll lock only exempts its own content, and this popover is portalled
+    // out to <body>, so every wheel event over it would otherwise be cancelled.
+    // Opening as a modal puts this popover on top of the lock stack instead,
+    // and it exempts itself.
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger
         id={id}
         type="button"
@@ -125,7 +130,7 @@ export function Combobox({
           {/* The cap is what the popover can actually use, so a long list
               grows to fill a tall screen instead of stopping at a fixed
               nine-or-so rows. */}
-          <CommandList className="max-h-[clamp(12rem,var(--radix-popover-content-available-height,24rem),24rem)]">
+          <CommandList className="overscroll-contain max-h-[clamp(12rem,var(--radix-popover-content-available-height,24rem),24rem)]">
             <CommandEmpty>{emptyMessage}</CommandEmpty>
 
             {groups.map((group, index) => (
