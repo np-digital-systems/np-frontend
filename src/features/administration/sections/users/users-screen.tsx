@@ -305,7 +305,7 @@ export function UsersScreen({
                 <DataCell>
                   <div className="flex items-center gap-2">
                     <p className="truncate text-[13px] font-medium text-text-primary">
-                      {user.fullName}
+                      {user.nameTa}
                     </p>
                     {user.id === currentUserId && (
                       <span className="shrink-0 rounded bg-primary-subtle px-1 py-0.5 text-[10px] font-medium text-primary">
@@ -313,9 +313,15 @@ export function UsersScreen({
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-text-muted">
-                    {user.nameTa}
-                  </p>
+
+                  {/* The service falls back to the Tamil name when there is no
+                      romanised one, so the second line is dropped rather than
+                      repeating the first. */}
+                  {user.fullName !== user.nameTa && (
+                    <p className="mt-0.5 truncate text-xs text-text-muted">
+                      {user.fullName}
+                    </p>
+                  )}
                 </DataCell>
 
                 <DataCell nowrap>
@@ -379,7 +385,7 @@ export function UsersScreen({
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        aria-label={`Actions for ${user.fullName}`}
+                        aria-label={`Actions for ${user.nameTa}`}
                       >
                         <MoreHorizontal />
                       </Button>
@@ -462,7 +468,7 @@ export function UsersScreen({
         confirmLabel="Deactivate"
         description={
           deactivating
-            ? `${deactivating.fullName} will be signed out of ${deactivating.activeSessions.length} device${deactivating.activeSessions.length === 1 ? '' : 's'} and will not be able to sign in. Their entries and audit history are kept.`
+            ? `${deactivating.nameTa} will be signed out of ${deactivating.activeSessions.length} device${deactivating.activeSessions.length === 1 ? '' : 's'} and will not be able to sign in. Their entries and audit history are kept.`
             : ''
         }
         onConfirm={() => {
@@ -478,7 +484,7 @@ export function UsersScreen({
         confirmLabel="Sign Out"
         description={
           signingOut
-            ? `${signingOut.fullName} will be signed out of ${signingOut.activeSessions.length} device${signingOut.activeSessions.length === 1 ? '' : 's'} and will have to sign in again. The account stays active.`
+            ? `${signingOut.nameTa} will be signed out of ${signingOut.activeSessions.length} device${signingOut.activeSessions.length === 1 ? '' : 's'} and will have to sign in again. The account stays active.`
             : ''
         }
         onConfirm={() => {
@@ -550,7 +556,7 @@ function SessionsPanel({
                   {session.deviceName}
                 </p>
                 <p className="mt-0.5 truncate text-xs text-text-muted">
-                  {user.fullName} · {ROLE_LABELS[user.role]}
+                  {user.nameTa} · {ROLE_LABELS[user.role]}
                 </p>
               </div>
 
