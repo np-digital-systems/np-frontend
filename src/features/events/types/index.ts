@@ -66,6 +66,8 @@ export interface ScheduleSlot {
   readonly customInstanceName: string | null;
     readonly defaultSponsor: SponsorUser | null;
   readonly sponsorCount: number;
+  /** Dates scheduled against this slot this year; a monthly slot carries several. */
+  readonly eventCount: number;
   readonly event: EventRecord | null;
 }
 
