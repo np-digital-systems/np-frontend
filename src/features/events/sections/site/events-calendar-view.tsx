@@ -1,7 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  HeartHandshake,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Link, type Locale } from '@/i18n/routing';
@@ -19,6 +26,7 @@ import {
   formatTimeRange,
   formatWeekday,
   instanceLabel,
+  sponsorName,
   weekdayInitials,
 } from '../../lib/public-event-presentation';
 import type { PublicEvent } from '../../types';
@@ -207,7 +215,11 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
 
             {selectedEvents.length > 0 ? (
               <ul className="space-y-3">
-                {selectedEvents.map((event) => (
+                {selectedEvents.map((event) => {
+                  const slot = instanceLabel(event, tInstance);
+                  const sponsor = sponsorName(event, locale);
+
+                  return (
                   <li key={event.id}>
                     <Link
                       href={`/events/${event.id}`}
@@ -220,17 +232,32 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
                         <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[#D4AF37] transition-transform group-hover:translate-x-0.5" />
                       </div>
 
-                      <p className="mt-1.5 text-xs font-medium text-[#735C00]">
-                        {instanceLabel(event, tInstance)}
-                      </p>
+                      {slot && (
+                        <p className="mt-1.5 text-xs font-medium text-[#735C00]">
+                          {slot}
+                        </p>
+                      )}
 
                       <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#7F7663]">
                         <Clock className="h-3.5 w-3.5 text-[#D4AF37]" />
                         {formatTimeRange(event.startTime, event.endTime, locale)}
                       </p>
+
+                      {sponsor && (
+                        <p className="mt-1.5 inline-flex items-start gap-1.5 text-xs text-[#7F7663]">
+                          <HeartHandshake className="mt-px h-3.5 w-3.5 shrink-0 text-[#D4AF37]" />
+                          <span>
+                            {t('sponsoredBy')}{' '}
+                            <span className="font-semibold text-[#735C00]">
+                              {sponsor}
+                            </span>
+                          </span>
+                        </p>
+                      )}
                     </Link>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             ) : (
               <EmptyPanel message={t('noEventsOnDay')} />
