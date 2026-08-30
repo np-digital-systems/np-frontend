@@ -91,7 +91,21 @@ export function canCreateKind(
     : access.canCreatePayments;
 }
 
-const EDITABLE_STATUSES = new Set(['Draft', 'Rejected']);
+/*
+ * Anything short of approval can still be corrected. Editing an entry that is
+ * waiting on an approver returns it to Draft, so the correction is resubmitted
+ * rather than slipping past the person reviewing it.
+ */
+const EDITABLE_STATUSES = new Set(['Draft', 'Pending Approval', 'Rejected']);
+
+/** A pending entry is already with an approver; it is withdrawn, not resent. */
+const SUBMITTABLE_STATUSES = new Set(['Draft', 'Rejected']);
+
+/*
+ * A rejected entry is left alone: it is already out of the approver's hands and
+ * its trail is the record of why. Correct and resubmit it, or leave it.
+ */
+const CANCELLABLE_STATUSES = new Set(['Draft', 'Pending Approval']);
 
 export function isOwnVoucher(voucher: Voucher, userId: string): boolean {
   return voucher.createdBy.id === userId;
@@ -113,9 +127,9 @@ export function canDeleteVoucher(
   access: AccountingAccess,
   user: PortalUser,
 ): boolean {
-  // Only a draft is ever deleted. Anything that has been submitted leaves a
-  // trail that has to be cancelled, not erased.
-  if (voucher.status !== 'Draft') return false;
+  // Nothing is ever erased. A draft or a pending entry is cancelled, which
+  // leaves the reference in place and out of every total.
+  if (!CANCELLABLE_STATUSES.has(voucher.status)) return false;
 
   return canEditVoucher(voucher, access, user);
 }
@@ -126,7 +140,7 @@ export function canSubmitVoucher(
   user: PortalUser,
 ): boolean {
   if (!access.canSubmit) return false;
-  if (!EDITABLE_STATUSES.has(voucher.status)) return false;
+  if (!SUBMITTABLE_STATUSES.has(voucher.status)) return false;
 
   return access.canManageAllVouchers || isOwnVoucher(voucher, user.id);
 }

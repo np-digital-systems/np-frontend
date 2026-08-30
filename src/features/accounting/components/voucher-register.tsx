@@ -484,10 +484,18 @@ export function VoucherRegister({
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title="Delete this draft?"
+        title={
+          deleting?.status === 'Pending Approval'
+            ? 'Withdraw this entry?'
+            : 'Cancel this draft?'
+        }
         description={
           deleting
-            ? `${deleting.ref} — ${formatCurrency(deleting.amount)} to ${deleting.party}. Only drafts can be deleted; anything submitted has to be cancelled instead.`
+            ? `${deleting.ref} — ${formatCurrency(deleting.amount)} to ${deleting.party}. ${
+                deleting.status === 'Pending Approval'
+                  ? 'It is withdrawn from the approver and cancelled.'
+                  : 'It is cancelled rather than erased.'
+              } The reference stays in the register for the audit trail and counts towards no total.`
             : ''
         }
         onConfirm={() => {
@@ -602,7 +610,9 @@ function RowActions({
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onSelect={onDelete}>
-                Delete draft
+                {voucher.status === 'Pending Approval'
+                  ? 'Withdraw and cancel'
+                  : 'Cancel draft'}
               </DropdownMenuItem>
             </>
           )}
