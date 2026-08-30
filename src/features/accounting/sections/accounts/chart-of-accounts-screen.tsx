@@ -127,6 +127,13 @@ export function ChartOfAccountsScreen({
               nameEn: draft.name,
               parentId: draft.parentId,
               isActive: draft.isActive,
+              // The API settles an opening balance once entries post against
+              // the head, so an unchanged figure is left out of the request
+              // rather than resent and refused.
+              openingBalance:
+                draft.openingBalance === target.openingBalance
+                  ? undefined
+                  : draft.openingBalance,
             })
           : createAccount({
               code: draft.code,
@@ -134,6 +141,7 @@ export function ChartOfAccountsScreen({
               nameEn: draft.name,
               type: draft.type,
               parentId: draft.parentId,
+              openingBalance: draft.openingBalance,
             }),
       () => {
         setEditing(null);
