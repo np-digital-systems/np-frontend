@@ -48,8 +48,14 @@ export function eventName(event: PublicEvent, locale: Locale): string {
 /**
  * Which slot of the year this is — "Week 24", "Valarpirai", "Day 3".
  *
- * The temple's own name for a day wins when it has one: it is written by hand
- * in one language and is more meaningful than anything derived.
+ * Null when the slot has nothing to say. A `monthly_once` or `annual` type has
+ * exactly one instance, so a label for it would only ever read "Monthly
+ * observance" beside a name that already says as much — a badge that repeats
+ * the title is worse than no badge. Everything else distinguishes one
+ * occurrence of the type from another and earns its place.
+ *
+ * The temple's own name for a day always wins: it is written by hand and is
+ * more meaningful than anything derived.
  */
 export function instanceLabel(
   event: Pick<
@@ -57,7 +63,7 @@ export function instanceLabel(
     'frequencyType' | 'instanceIdentifier' | 'customInstanceName'
   >,
   translate: (key: string, values?: Record<string, string | number>) => string,
-): string {
+): string | null {
   if (event.customInstanceName) return event.customInstanceName;
 
   const number = event.instanceIdentifier;
@@ -74,12 +80,18 @@ export function instanceLabel(
     case 'multi_day':
       return translate('day', { number });
     case 'monthly_once':
-      return translate('monthly');
     case 'annual':
-      return translate('annual');
+      return null;
     default:
       return translate('occurrence', { number });
   }
+}
+
+/** The sponsor's name in the visitor's language, or null when nobody sponsors it. */
+export function sponsorName(event: PublicEvent, locale: Locale): string | null {
+  return locale === 'en'
+    ? (event.sponsorNameEn ?? event.sponsorNameTa)
+    : (event.sponsorNameTa ?? event.sponsorNameEn);
 }
 
 export function formatEventDate(iso: string, locale: Locale): string {

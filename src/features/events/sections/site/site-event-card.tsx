@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ArrowRight, CalendarDays, Clock } from 'lucide-react';
+import { ArrowRight, CalendarDays, Clock, HeartHandshake } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Link, type Locale } from '@/i18n/routing';
@@ -12,6 +12,7 @@ import {
   formatEventDate,
   formatTimeRange,
   instanceLabel,
+  sponsorName,
 } from '../../lib/public-event-presentation';
 import type { PublicEvent } from '../../types';
 
@@ -34,6 +35,7 @@ export function SiteEventCard({ event, className }: SiteEventCardProps) {
 
   const title = eventName(event, locale);
   const slot = instanceLabel(event, tInstance);
+  const sponsor = sponsorName(event, locale);
   const { day, month } = dateParts(event.scheduledDate, locale);
 
   return (
@@ -67,9 +69,11 @@ export function SiteEventCard({ event, className }: SiteEventCardProps) {
           </span>
         </div>
 
-        <span className="absolute top-4 right-4 rounded-full bg-[#D4AF37]/95 px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase">
-          {slot}
-        </span>
+        {slot && (
+          <span className="absolute top-4 right-4 rounded-full bg-[#D4AF37]/95 px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase">
+            {slot}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-6">
@@ -97,6 +101,16 @@ export function SiteEventCard({ event, className }: SiteEventCardProps) {
             {formatTimeRange(event.startTime, event.endTime, locale)}
           </span>
         </div>
+
+        {sponsor && (
+          <p className="mt-3 inline-flex items-start gap-1.5 border-t border-[#F0EAD8] pt-3 text-xs text-[#735C00]">
+            <HeartHandshake className="mt-px h-3.5 w-3.5 shrink-0 text-[#D4AF37]" />
+            <span>
+              <span className="text-[#7F7663]">{t('sponsoredBy')} </span>
+              <span className="font-semibold">{sponsor}</span>
+            </span>
+          </p>
+        )}
 
         <span className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F4C430] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 group-hover:shadow-[0_4px_16px_rgba(212,175,55,0.3)]">
           {t('details')}

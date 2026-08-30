@@ -18,6 +18,9 @@ export interface PublicEvent {
   readonly scheduledDate: string;
   readonly startTime: string;
   readonly endTime: string | null;
+  /** Whoever is sponsoring this occurrence — their name only, never contact details. */
+  readonly sponsorNameTa: string | null;
+  readonly sponsorNameEn: string | null;
   readonly notes: string | null;
   readonly isCompleted: boolean;
 }
