@@ -5,6 +5,7 @@ import {
   CalendarRange,
   CheckCircle2,
   Clock,
+  HeartHandshake,
   Sparkles,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -21,6 +22,7 @@ import {
   formatTimeRange,
   formatWeekday,
   instanceLabel,
+  sponsorName,
 } from '../../lib/public-event-presentation';
 import type { PublicEvent } from '../../types';
 
@@ -64,7 +66,11 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
 
   const title = eventName(event, locale);
   const standing = standingOf(event, today);
+  const slot = instanceLabel(event, tInstance);
+  const sponsor = sponsorName(event, locale);
 
+  // The occurrence tile is dropped rather than left blank when the slot has
+  // nothing to say, so the row stays even instead of carrying a hole.
   const facts = [
     {
       icon: CalendarDays,
@@ -78,12 +84,9 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
       value: formatTimeRange(event.startTime, event.endTime, locale),
       hint: event.endTime ? undefined : t('startsAt'),
     },
-    {
-      icon: Sparkles,
-      label: t('occurrence'),
-      value: instanceLabel(event, tInstance),
-      hint: undefined,
-    },
+    ...(slot
+      ? [{ icon: Sparkles, label: t('occurrence'), value: slot, hint: undefined }]
+      : []),
     {
       icon: CalendarRange,
       label: t('frequency'),
@@ -116,9 +119,11 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
           </Link>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-[#D4AF37] px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase">
-              {instanceLabel(event, tInstance)}
-            </span>
+            {slot && (
+              <span className="rounded-full bg-[#D4AF37] px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase">
+                {slot}
+              </span>
+            )}
             <span className="rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase backdrop-blur-sm">
               {t(`standing.${standing}`)}
             </span>
@@ -139,7 +144,12 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
 
       {/* --------------------------------------------------------------- facts */}
       <PageContainer className="bg-[#FAF9F6] !py-12 md:!py-16">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          className={cn(
+            'grid grid-cols-1 gap-4 sm:grid-cols-2',
+            facts.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3',
+          )}
+        >
           {facts.map((fact) => (
             <div
               key={fact.label}
@@ -158,6 +168,20 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
             </div>
           ))}
         </div>
+
+        {sponsor && (
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-r from-[#FFF8E1] to-white px-6 py-5">
+            <HeartHandshake className="h-6 w-6 shrink-0 text-[#D4AF37]" />
+            <div>
+              <p className="text-[11px] font-semibold tracking-[0.12em] text-[#7F7663] uppercase">
+                {t('sponsoredBy')}
+              </p>
+              <p className="font-heading mt-0.5 text-xl font-semibold text-[#735C00]">
+                {sponsor}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ------------------------------------------------------ description */}
         <div className="mt-10 rounded-2xl border border-[#E8E0CC] bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:p-10">
