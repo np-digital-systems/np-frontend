@@ -579,7 +579,15 @@ export function VoucherFormDialog({
               </Select>
             </FormField>
 
-            {needsBank && (
+          </div>
+
+          {/*
+            * The bank details sit on their own row rather than trailing the
+            * pair above, so a cash entry ends at the mode and a cheque shows
+            * the account and its number side by side.
+            */}
+          {needsBank && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField id="voucher-bank" label="Bank Account" required>
                 <Select
                   value={
@@ -606,20 +614,20 @@ export function VoucherFormDialog({
                   </SelectContent>
                 </Select>
               </FormField>
-            )}
-          </div>
 
-          {draft.mode === 'cheque' && (
-            <FormField id="voucher-cheque" label="Cheque Number" required>
-              <Input
-                id="voucher-cheque"
-                value={draft.chequeNo}
-                placeholder="004601"
-                onChange={(changeEvent) =>
-                  update('chequeNo', changeEvent.target.value)
-                }
-              />
-            </FormField>
+              {draft.mode === 'cheque' && (
+                <FormField id="voucher-cheque" label="Cheque Number" required>
+                  <Input
+                    id="voucher-cheque"
+                    value={draft.chequeNo}
+                    placeholder="004601"
+                    onChange={(changeEvent) =>
+                      update('chequeNo', changeEvent.target.value)
+                    }
+                  />
+                </FormField>
+              )}
+            </div>
           )}
 
           <FormField id="voucher-notes" label="Notes">
