@@ -22,7 +22,7 @@ export {
 } from '@/lib/format';
 
 /** Pooja sponsorship drives the pooja picker in the voucher form. */
-export const POOJA_SPONSORSHIP_CODE = '4002';
+export const POOJA_SPONSORSHIP_CODE = '4001';
 
 export const ACCOUNT_TYPES: readonly AccountType[] = [
   'asset',
@@ -38,6 +38,26 @@ export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   equity: 'Equity',
   income: 'Income',
   expense: 'Expenditure',
+};
+
+/**
+ * Income and expenditure heads measure a year's flow rather than a position,
+ * so they always start at nil — the API refuses an opening balance on them.
+ */
+export function opensAtZero(type: AccountType): boolean {
+  return type === 'income' || type === 'expense';
+}
+
+/**
+ * The side a head's balance naturally sits on. An opening balance is entered
+ * as a positive figure on this side, which is how the API stores and reads it.
+ */
+export const ACCOUNT_NATURAL_SIDE: Record<AccountType, 'debit' | 'credit'> = {
+  asset: 'debit',
+  liability: 'credit',
+  equity: 'credit',
+  income: 'credit',
+  expense: 'debit',
 };
 
 export const PAYMENT_MODES: readonly PaymentMode[] = [

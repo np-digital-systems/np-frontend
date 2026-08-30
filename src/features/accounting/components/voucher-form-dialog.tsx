@@ -68,6 +68,20 @@ export interface VoucherDraft {
 
 const NO_PROJECT = '__none__';
 
+/**
+ * A quiet heading between groups of fields.
+ *
+ * The form is filled top to bottom in the order the entry is thought about:
+ * what the money is for, which fund carries it, then how much moved and how.
+ */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-1 text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+      {children}
+    </p>
+  );
+}
+
 function draftFrom(
   voucher: VoucherRecord | null,
   kind: VoucherKind,
@@ -302,45 +316,9 @@ export function VoucherFormDialog({
               />
             </FormField>
 
-            <FormField id="voucher-amount" label="Amount" required>
-              <Input
-                id="voucher-amount"
-                type="number"
-                min={0}
-                step={0.01}
-                value={draft.amount || ''}
-                onChange={(changeEvent) =>
-                  update('amount', Number(changeEvent.target.value) || 0)
-                }
-              />
-            </FormField>
           </div>
 
-          <FormField id="voucher-party" label={partyLabel(kind)} required>
-            <Input
-              id="voucher-party"
-              value={draft.party}
-              placeholder={
-                kind === 'receipt'
-                  ? 'Devotee, trust or collection point'
-                  : 'Vendor, contractor or payee'
-              }
-              onChange={(changeEvent) =>
-                update('party', changeEvent.target.value)
-              }
-            />
-          </FormField>
-
-          <FormField id="voucher-description" label="Description" required>
-            <Input
-              id="voucher-description"
-              value={draft.description}
-              placeholder="What this entry is for"
-              onChange={(changeEvent) =>
-                update('description', changeEvent.target.value)
-              }
-            />
-          </FormField>
+          <SectionLabel>What this is for</SectionLabel>
 
           <FormField
             id="voucher-account"
@@ -478,6 +456,39 @@ export function VoucherFormDialog({
             </div>
           )}
 
+          {/*
+            * Below the pooja picker, not above it: choosing a pooja fills both
+            * of these in, and it only fills what the user has not typed. Asked
+            * for first, they would be answered twice.
+            */}
+          <FormField id="voucher-party" label={partyLabel(kind)} required>
+            <Input
+              id="voucher-party"
+              value={draft.party}
+              placeholder={
+                kind === 'receipt'
+                  ? 'Devotee, trust or collection point'
+                  : 'Vendor, contractor or payee'
+              }
+              onChange={(changeEvent) =>
+                update('party', changeEvent.target.value)
+              }
+            />
+          </FormField>
+
+          <FormField id="voucher-description" label="Description" required>
+            <Input
+              id="voucher-description"
+              value={draft.description}
+              placeholder="What this entry is for"
+              onChange={(changeEvent) =>
+                update('description', changeEvent.target.value)
+              }
+            />
+          </FormField>
+
+          <SectionLabel>Where it goes</SectionLabel>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="voucher-fund" label="Fund" required>
               <Select
@@ -532,7 +543,23 @@ export function VoucherFormDialog({
             </FormField>
           </div>
 
+          <SectionLabel>How the money moved</SectionLabel>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField id="voucher-amount" label="Amount" required>
+              <Input
+                id="voucher-amount"
+                type="number"
+                min={0}
+                step={0.01}
+                value={draft.amount || ''}
+                placeholder="0.00"
+                onChange={(changeEvent) =>
+                  update('amount', Number(changeEvent.target.value) || 0)
+                }
+              />
+            </FormField>
+
             <FormField id="voucher-mode" label="Mode" required>
               <Select
                 value={draft.mode}
@@ -552,7 +579,15 @@ export function VoucherFormDialog({
               </Select>
             </FormField>
 
-            {needsBank && (
+          </div>
+
+          {/*
+            * The bank details sit on their own row rather than trailing the
+            * pair above, so a cash entry ends at the mode and a cheque shows
+            * the account and its number side by side.
+            */}
+          {needsBank && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField id="voucher-bank" label="Bank Account" required>
                 <Select
                   value={
@@ -579,20 +614,20 @@ export function VoucherFormDialog({
                   </SelectContent>
                 </Select>
               </FormField>
-            )}
-          </div>
 
-          {draft.mode === 'cheque' && (
-            <FormField id="voucher-cheque" label="Cheque Number" required>
-              <Input
-                id="voucher-cheque"
-                value={draft.chequeNo}
-                placeholder="004601"
-                onChange={(changeEvent) =>
-                  update('chequeNo', changeEvent.target.value)
-                }
-              />
-            </FormField>
+              {draft.mode === 'cheque' && (
+                <FormField id="voucher-cheque" label="Cheque Number" required>
+                  <Input
+                    id="voucher-cheque"
+                    value={draft.chequeNo}
+                    placeholder="004601"
+                    onChange={(changeEvent) =>
+                      update('chequeNo', changeEvent.target.value)
+                    }
+                  />
+                </FormField>
+              )}
+            </div>
           )}
 
           <FormField id="voucher-notes" label="Notes">

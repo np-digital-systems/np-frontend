@@ -1,61 +1,93 @@
-import type { Metadata } from "next";
-import Image from "next/image";
-import { PageContainer } from "@/components/site/page-container";
-import { SectionHeader } from "@/components/site/section-header";
-import { EventCard } from "@/features/home/components/event-card";
-import { FEATURED_EVENTS } from "@/features/home/constants/events";
-import { useTranslations, useLocale } from "next-intl";
-import { type Locale } from "@/i18n/routing";
+import type { Metadata } from 'next';
+import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 
+import {
+  EventsCalendarSection,
+  UpcomingEvents,
+} from '@/features/events/sections/site';
+import { getToday } from '@/features/events/lib/event-data';
+import {
+  getPublicCalendarEvents,
+  getUpcomingPublicEvents,
+} from '@/features/events/lib/public-event-service';
+import type { PublicEvent } from '@/features/events/types';
 
-export const metadata: Metadata = {
-  title: "Events",
-  description:
-    "Discover upcoming spiritual gatherings, festivals, and sacred ceremonies at Neeliyampathi Pillaiyar Kovil.",
-};
+/** How many occurrences the cards above the calendar show. */
+const UPCOMING_COUNT = 6;
 
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Events');
 
-export default function EventsPage() {
+  return {
+    title: t('title'),
+    description: t('section1.description'),
+  };
+}
 
-  const tEvents = useTranslations("Events");
-  const locale = useLocale() as Locale;
-  const currentEvents = FEATURED_EVENTS[locale] || FEATURED_EVENTS.ta;
+/**
+ * The public events page.
+ *
+ * Two reads of the same calendar: the next six occurrences as cards, then the
+ * whole window as a calendar the visitor can page through. Both are fetched
+ * here rather than in the browser so the page arrives complete and indexable.
+ *
+ * The API going down takes the section's contents with it, never the page —
+ * the hero, the navigation and the rest of the site still render, and the
+ * section says so in the visitor's language.
+ */
+export default async function EventsPage() {
+  const t = await getTranslations('Events');
+  const today = getToday();
+
+  const [upcoming, calendar] = await Promise.all([
+    safely(() => getUpcomingPublicEvents(UPCOMING_COUNT)),
+    safely(getPublicCalendarEvents),
+  ]);
 
   return (
     <>
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+      <section className="relative flex h-[50vh] min-h-[400px] items-center justify-center overflow-hidden">
         <Image
           src="/images/festival-navaratri.png"
-          alt="Temple festival celebration"
+          alt=""
           fill
           className="object-cover"
           priority
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            {tEvents("title")}
+        <div className="relative z-10 px-4 text-center">
+          <h1 className="font-heading mb-4 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
+            {t('title')}
           </h1>
-          <p className="text-white/80 text-lg font-sans max-w-xl mx-auto">
-            {tEvents("subtitle")}
+          <p className="font-sans mx-auto max-w-xl text-lg text-white/80">
+            {t('subtitle')}
           </p>
         </div>
       </section>
 
-      <PageContainer className="bg-[#FAF9F6]">
-        <SectionHeader
-          subtitle={tEvents("section1.subtitle")}
-          title={tEvents("section1.title")}
-          description={tEvents("section1.description")}
-        />
+      <UpcomingEvents
+        events={upcoming.events}
+        unavailable={upcoming.unavailable}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {currentEvents.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
-        </div>
-      </PageContainer>
+      <EventsCalendarSection events={calendar.events} today={today} />
     </>
   );
+}
+
+interface CalendarRead {
+  events: readonly PublicEvent[];
+  unavailable: boolean;
+}
+
+async function safely(
+  read: () => Promise<readonly PublicEvent[]>,
+): Promise<CalendarRead> {
+  try {
+    return { events: await read(), unavailable: false };
+  } catch {
+    return { events: [], unavailable: true };
+  }
 }

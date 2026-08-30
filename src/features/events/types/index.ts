@@ -96,3 +96,5 @@ export interface EventsSummary {
   readonly completed: number;
   readonly unsponsored: number;
 }
+
+export type { PublicEvent } from './public';
