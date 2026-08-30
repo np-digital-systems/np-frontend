@@ -82,11 +82,16 @@ export function YearlyScheduleScreen({
             (slot) => slot.instanceIdentifier === instanceIdentifier,
           );
 
-          const event =
-            typeEvents.find(
+          // A slot can carry several dates in a year, so the earliest stands
+          // for it and the rest are counted rather than dropped.
+          const occurrences = typeEvents
+            .filter(
               (candidate) =>
                 candidate.instanceIdentifier === instanceIdentifier,
-            ) ?? null;
+            )
+            .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+
+          const event = occurrences[0] ?? null;
 
           return {
             instanceIdentifier,
@@ -98,6 +103,7 @@ export function YearlyScheduleScreen({
               `#${instanceIdentifier}`,
             defaultSponsor: base?.defaultSponsor ?? null,
             sponsorCount: base?.sponsorCount ?? 0,
+            eventCount: occurrences.length,
             event,
           };
         });
