@@ -12,6 +12,7 @@ import {
   ACCOUNT_TYPES,
   ACCOUNT_TYPE_LABELS,
   PAYMENT_MODES,
+  opensAtZero,
 } from './accounting-data';
 
 export const ACCOUNT_CODE_PREFIX = {
@@ -70,6 +71,7 @@ export const accountSchema = z
     name: optionalText(),
     type: z.enum(ACCOUNT_TYPES),
     parentId: z.number().int().positive().nullable(),
+    openingBalance: nonNegativeAmount('The opening balance'),
     isActive: z.boolean(),
   })
   .superRefine((draft, ctx) => {
@@ -80,6 +82,14 @@ export const accountSchema = z
         code: 'custom',
         path: ['code'],
         message: `${ACCOUNT_TYPE_LABELS[draft.type]} accounts are numbered in the ${prefix}000 range.`,
+      });
+    }
+
+    if (draft.openingBalance !== 0 && opensAtZero(draft.type)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['openingBalance'],
+        message: `${ACCOUNT_TYPE_LABELS[draft.type]} heads measure a year, not a position, so they always open at nil.`,
       });
     }
   });
