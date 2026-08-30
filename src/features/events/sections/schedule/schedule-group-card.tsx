@@ -138,6 +138,14 @@ export function ScheduleGroupCard({
                       ) : (
                         <span className="text-text-disabled">Not scheduled</span>
                       )}
+
+                      {/* A monthly slot holds a date per month, so the row
+                          names the earliest and says how many follow. */}
+                      {slot.eventCount > 1 && (
+                        <span className="ml-2 text-[11px] text-text-muted">
+                          +{slot.eventCount - 1} more
+                        </span>
+                      )}
                     </DataCell>
 
                     <DataCell nowrap className="text-xs tabular">
