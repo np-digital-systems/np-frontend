@@ -330,19 +330,19 @@
       "eventsThisMonth": "{count, plural, =0 {No events this month} one {# event this month} other {# events this month}}",
       "eventCount": "{count, plural, =0 {no events} one {# event} other {# events}}",
       "noEventsOnDay": "Nothing is scheduled on this day.",
-      "pickADay": "Select a day to see what is planned."
+      "pickADay": "Select a day to see what is planned.",
+      "sponsoredBy": "Sponsored by"
     },
     "card": {
       "details": "Details",
-      "noDescription": "Details for this observance will be shared closer to the day."
+      "noDescription": "Details for this observance will be shared closer to the day.",
+      "sponsoredBy": "Sponsored by"
     },
     "instance": {
       "week": "Week {number}",
       "valarpirai": "Valarpirai",
       "theipirai": "Theipirai",
       "day": "Day {number}",
-      "monthly": "Monthly observance",
-      "annual": "Annual observance",
       "occurrence": "Occurrence {number}"
     },
     "frequency": {
@@ -369,7 +369,8 @@
         "today": "Today",
         "upcoming": "Upcoming",
         "past": "Past"
-      }
+      },
+      "sponsoredBy": "Sponsored by"
     }
   },
   "Gallery": {
