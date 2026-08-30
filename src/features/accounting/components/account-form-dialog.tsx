@@ -24,9 +24,14 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABELS } from '../lib/accounting-data';
+import {
+  ACCOUNT_NATURAL_SIDE,
+  ACCOUNT_TYPES,
+  ACCOUNT_TYPE_LABELS,
+  opensAtZero,
+} from '../lib/accounting-data';
 import { ACCOUNT_CODE_PREFIX, accountSchema } from '../lib/accounting-schemas';
-import type { Account, AccountType } from '../types';
+import type { Account, AccountRecord, AccountType } from '../types';
 
 export interface AccountDraft {
   code: string;
@@ -34,12 +39,13 @@ export interface AccountDraft {
   nameTa: string;
   type: AccountType;
   parentId: number | null;
+  openingBalance: number;
   isActive: boolean;
 }
 
 const NO_PARENT = '__none__';
 
-function draftFrom(account: Account | null): AccountDraft {
+function draftFrom(account: AccountRecord | null): AccountDraft {
   if (account) {
     return {
       code: account.code,
@@ -47,6 +53,7 @@ function draftFrom(account: Account | null): AccountDraft {
       nameTa: account.nameTa,
       type: account.type,
       parentId: account.parentId,
+      openingBalance: account.openingBalance,
       isActive: account.isActive,
     };
   }
@@ -57,6 +64,7 @@ function draftFrom(account: Account | null): AccountDraft {
     nameTa: '',
     type: 'expense',
     parentId: null,
+    openingBalance: 0,
     isActive: true,
   };
 }
@@ -64,7 +72,7 @@ function draftFrom(account: Account | null): AccountDraft {
 interface AccountFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  account: Account | null;
+  account: AccountRecord | null;
     parents: readonly Account[];
   existing: readonly Account[];
   onSubmit: (draft: AccountDraft) => void;
@@ -122,6 +130,13 @@ export function AccountFormDialog({
     (parent) => parent.type === draft.type && parent.id !== account?.id,
   );
 
+  /*
+   * An opening balance is the position the books were handed over at, so the
+   * API settles it the moment the first entry posts against the head. Showing
+   * that here means the figure is greyed out rather than rejected on save.
+   */
+  const openingIsSettled = (account?.entryCount ?? 0) > 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
@@ -152,6 +167,11 @@ export function AccountFormDialog({
                     // A parent belongs to one class; keeping it across a
                     // class change would put the account under the wrong head.
                     parentId: null,
+                    // Likewise a figure typed for a real class means nothing
+                    // on a head that is required to open at nil.
+                    openingBalance: opensAtZero(value as AccountType)
+                      ? 0
+                      : current.openingBalance,
                   }))
                 }
               >
@@ -241,6 +261,34 @@ export function AccountFormDialog({
               </SelectContent>
             </Select>
           </FormField>
+
+          {!opensAtZero(draft.type) && (
+            <FormField
+              id="account-opening"
+              label="Opening Balance"
+              hint={
+                openingIsSettled
+                  ? `Settled — ${account?.entryCount} entries are already posted against this head.`
+                  : `What this head stood at when the books opened, as a ${ACCOUNT_NATURAL_SIDE[draft.type]} figure.`
+              }
+            >
+              <Input
+                id="account-opening"
+                type="number"
+                min={0}
+                step={0.01}
+                disabled={openingIsSettled}
+                value={draft.openingBalance || ''}
+                placeholder="0.00"
+                onChange={(changeEvent) =>
+                  update(
+                    'openingBalance',
+                    Number(changeEvent.target.value) || 0,
+                  )
+                }
+              />
+            </FormField>
+          )}
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">
