@@ -68,6 +68,20 @@ export interface VoucherDraft {
 
 const NO_PROJECT = '__none__';
 
+/**
+ * A quiet heading between groups of fields.
+ *
+ * The form is filled top to bottom in the order the entry is thought about:
+ * what the money is for, which fund carries it, then how much moved and how.
+ */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-1 text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+      {children}
+    </p>
+  );
+}
+
 function draftFrom(
   voucher: VoucherRecord | null,
   kind: VoucherKind,
