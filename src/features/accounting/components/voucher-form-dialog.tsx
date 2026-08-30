@@ -316,45 +316,9 @@ export function VoucherFormDialog({
               />
             </FormField>
 
-            <FormField id="voucher-amount" label="Amount" required>
-              <Input
-                id="voucher-amount"
-                type="number"
-                min={0}
-                step={0.01}
-                value={draft.amount || ''}
-                onChange={(changeEvent) =>
-                  update('amount', Number(changeEvent.target.value) || 0)
-                }
-              />
-            </FormField>
           </div>
 
-          <FormField id="voucher-party" label={partyLabel(kind)} required>
-            <Input
-              id="voucher-party"
-              value={draft.party}
-              placeholder={
-                kind === 'receipt'
-                  ? 'Devotee, trust or collection point'
-                  : 'Vendor, contractor or payee'
-              }
-              onChange={(changeEvent) =>
-                update('party', changeEvent.target.value)
-              }
-            />
-          </FormField>
-
-          <FormField id="voucher-description" label="Description" required>
-            <Input
-              id="voucher-description"
-              value={draft.description}
-              placeholder="What this entry is for"
-              onChange={(changeEvent) =>
-                update('description', changeEvent.target.value)
-              }
-            />
-          </FormField>
+          <SectionLabel>What this is for</SectionLabel>
 
           <FormField
             id="voucher-account"
@@ -492,6 +456,39 @@ export function VoucherFormDialog({
             </div>
           )}
 
+          {/*
+            * Below the pooja picker, not above it: choosing a pooja fills both
+            * of these in, and it only fills what the user has not typed. Asked
+            * for first, they would be answered twice.
+            */}
+          <FormField id="voucher-party" label={partyLabel(kind)} required>
+            <Input
+              id="voucher-party"
+              value={draft.party}
+              placeholder={
+                kind === 'receipt'
+                  ? 'Devotee, trust or collection point'
+                  : 'Vendor, contractor or payee'
+              }
+              onChange={(changeEvent) =>
+                update('party', changeEvent.target.value)
+              }
+            />
+          </FormField>
+
+          <FormField id="voucher-description" label="Description" required>
+            <Input
+              id="voucher-description"
+              value={draft.description}
+              placeholder="What this entry is for"
+              onChange={(changeEvent) =>
+                update('description', changeEvent.target.value)
+              }
+            />
+          </FormField>
+
+          <SectionLabel>Where it goes</SectionLabel>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="voucher-fund" label="Fund" required>
               <Select
@@ -546,7 +543,23 @@ export function VoucherFormDialog({
             </FormField>
           </div>
 
+          <SectionLabel>How the money moved</SectionLabel>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField id="voucher-amount" label="Amount" required>
+              <Input
+                id="voucher-amount"
+                type="number"
+                min={0}
+                step={0.01}
+                value={draft.amount || ''}
+                placeholder="0.00"
+                onChange={(changeEvent) =>
+                  update('amount', Number(changeEvent.target.value) || 0)
+                }
+              />
+            </FormField>
+
             <FormField id="voucher-mode" label="Mode" required>
               <Select
                 value={draft.mode}
