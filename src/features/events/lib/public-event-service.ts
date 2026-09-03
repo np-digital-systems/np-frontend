@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { env } from '@/config/env';
 import { api } from '@/lib/api';
 
 import type { PublicEvent } from '../types';
@@ -63,4 +64,39 @@ function isoMonthsAfter(iso: string, months: number): string {
   const shifted = new Date(Date.UTC(year, month - 1 + months, day));
 
   return shifted.toISOString().slice(0, 10);
+}
+
+export interface CalendarRead {
+  readonly events: readonly PublicEvent[];
+  /** True when the read failed, as opposed to the calendar being empty. */
+  readonly unavailable: boolean;
+}
+
+/**
+ * A calendar read that cannot take the page down with it.
+ *
+ * The events section is one part of a page that is mostly hand-written
+ * content, so a calendar the API cannot serve should cost the visitor that
+ * section and nothing else.
+ *
+ * The reason is logged rather than swallowed. Silently degrading to "cannot be
+ * reached" tells a visitor enough and tells whoever deployed it nothing, and
+ * the likeliest cause by far is configuration — `API_URL` unset on the host, so
+ * `env.apiUrl` falls back to localhost and the fetch is refused. Naming the URL
+ * it actually tried turns that from a mystery into a one-line answer.
+ */
+export async function readPublicEvents(
+  read: () => Promise<readonly PublicEvent[]>,
+  description: string,
+): Promise<CalendarRead> {
+  try {
+    return { events: await read(), unavailable: false };
+  } catch (error) {
+    console.error(
+      `[events] could not read ${description} from ${env.apiUrl} —`,
+      error instanceof Error ? error.message : error,
+    );
+
+    return { events: [], unavailable: true };
+  }
 }
