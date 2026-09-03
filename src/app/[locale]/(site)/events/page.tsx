@@ -10,8 +10,8 @@ import { getToday } from '@/features/events/lib/event-data';
 import {
   getPublicCalendarEvents,
   getUpcomingPublicEvents,
+  readPublicEvents,
 } from '@/features/events/lib/public-event-service';
-import type { PublicEvent } from '@/features/events/types';
 
 /** How many occurrences the cards above the calendar show. */
 const UPCOMING_COUNT = 6;
@@ -41,8 +41,8 @@ export default async function EventsPage() {
   const today = getToday();
 
   const [upcoming, calendar] = await Promise.all([
-    safely(() => getUpcomingPublicEvents(UPCOMING_COUNT)),
-    safely(getPublicCalendarEvents),
+    readPublicEvents(() => getUpcomingPublicEvents(UPCOMING_COUNT), 'upcoming events'),
+    readPublicEvents(getPublicCalendarEvents, 'the calendar'),
   ]);
 
   return (
@@ -75,19 +75,4 @@ export default async function EventsPage() {
       <EventsCalendarSection events={calendar.events} today={today} />
     </>
   );
-}
-
-interface CalendarRead {
-  events: readonly PublicEvent[];
-  unavailable: boolean;
-}
-
-async function safely(
-  read: () => Promise<readonly PublicEvent[]>,
-): Promise<CalendarRead> {
-  try {
-    return { events: await read(), unavailable: false };
-  } catch {
-    return { events: [], unavailable: true };
-  }
 }
