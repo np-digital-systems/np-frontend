@@ -1,7 +1,13 @@
 import { z } from 'zod';
 
 import { USER_ROLES } from '@/features/auth/types/user-role';
-import { email, optionalEmail, optionalText, requiredText } from '@/lib/validation';
+import {
+  email,
+  optionalEmail,
+  optionalText,
+  PASSWORD_MIN_LENGTH,
+  requiredText,
+} from '@/lib/validation';
 
 export const userSchema = z.object({
   /*
@@ -18,6 +24,8 @@ export const userSchema = z.object({
   address: optionalText(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
+  password: optionalText(128),
+  passwordConfirmation: optionalText(128),
 }).superRefine((value, ctx) => {
   /*
    * Staff sign in; devotees do not.
@@ -32,6 +40,35 @@ export const userSchema = z.object({
       path: ['email'],
       message: 'Staff sign in with their email, so this one is needed.',
     });
+  }
+
+  /*
+   * Whether a password is *needed* depends on context the schema cannot see —
+   * only a new staff account requires one, and the API refuses to change a
+   * password through an edit at all. So the rules here are about the password
+   * itself, and the dialog adds the one about when it must be present.
+   *
+   * The confirmation exists because an administrator types this password for
+   * somebody else and then has to tell them what it is. A typo would not
+   * surface as a validation error but as a colleague who cannot sign in, with
+   * nothing to point at.
+   */
+  if (value.password) {
+    if (value.password.length < PASSWORD_MIN_LENGTH) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: `The password must be at least ${PASSWORD_MIN_LENGTH} characters.`,
+      });
+    }
+
+    if (value.password !== value.passwordConfirmation) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['passwordConfirmation'],
+        message: 'The two passwords do not match.',
+      });
+    }
   }
 });
 
