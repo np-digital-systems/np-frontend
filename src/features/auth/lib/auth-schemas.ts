@@ -1,16 +1,13 @@
 import { z } from 'zod';
 
-import { email } from '@/lib/validation';
+import { email, password } from '@/lib/validation';
 
 export const signInSchema = z.object({
   email,
 
-  // Length only. The strength rules belong to the API that hashes it, not to
-  // the form that collects it.
-  password: z
-    .string()
-    .min(6, 'Your password is at least six characters.')
-    .max(128, 'That password is too long.'),
+  // Length only, and the same floor the API applies. The strength rules belong
+  // to the API that hashes it, not to the form that collects it.
+  password,
 
   remember: z.boolean(),
 });
