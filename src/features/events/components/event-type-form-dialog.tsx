@@ -36,9 +36,8 @@ export interface EventTypeDraft {
   nameEn: string;
   frequencyType: FrequencyType;
   noOfInstances: number;
-  /** Where receipts for this pooja are carried. Null offers nothing. */
-  defaultFundId: number | null;
-  defaultProjectId: number | null;
+  /** The activity receipts for this pooja are coded to. Null offers nothing. */
+  activityId: number | null;
 }
 
 const NO_DEFAULT = '__none__';
@@ -57,8 +56,7 @@ function draftFrom(eventType: EventType | null): EventTypeDraft {
       nameEn: eventType.nameEn,
       frequencyType: eventType.frequencyType,
       noOfInstances: eventType.noOfInstances,
-      defaultFundId: eventType.defaultFundId,
-      defaultProjectId: eventType.defaultProjectId,
+      activityId: eventType.activityId,
     };
   }
 
@@ -67,8 +65,7 @@ function draftFrom(eventType: EventType | null): EventTypeDraft {
     nameEn: '',
     frequencyType: 'multi_day',
     noOfInstances: DEFAULT_INSTANCE_COUNT.multi_day,
-    defaultFundId: null,
-    defaultProjectId: null,
+    activityId: null,
   };
 }
 
@@ -76,9 +73,8 @@ interface EventTypeFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventType: EventType | null;
-  /** Funds and projects a receipt for this pooja may be coded to. */
-  funds: readonly { id: number; name: string }[];
-  projects: readonly { id: number; name: string; fundId: number }[];
+  /** Activities a receipt for this pooja may be coded to. */
+  activities: readonly { id: number; name: string; nameEn: string }[];
   onSubmit: (draft: EventTypeDraft) => void;
 }
 
@@ -86,8 +82,7 @@ export function EventTypeFormDialog({
   open,
   onOpenChange,
   eventType,
-  funds,
-  projects,
+  activities,
   onSubmit,
 }: EventTypeFormDialogProps) {
   const [draft, setDraft] = useState<EventTypeDraft>(() =>
@@ -107,12 +102,6 @@ export function EventTypeFormDialog({
   }
 
   const instancesFixed = FIXED_INSTANCE_COUNT.includes(draft.frequencyType);
-
-  // A project is carried in exactly one fund, so only that fund's projects can
-  // be offered — the API refuses a pair that points at two different funds.
-  const fundProjects = projects.filter(
-    (project) => project.fundId === draft.defaultFundId,
-  );
 
   function handleFrequencyChange(frequencyType: FrequencyType) {
     setDraft((current) => ({
@@ -239,8 +228,8 @@ export function EventTypeFormDialog({
 
           {/*
             * Answered once here so that raising a receipt for this pooja does
-            * not ask for the same fund and project every time. A clerk can
-            * still override either on the voucher itself.
+            * not ask the same question on every receipt. The activity carries
+            * the fund in turn, so one answer settles both.
             */}
           <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface-2 p-3.5">
             <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
@@ -248,78 +237,35 @@ export function EventTypeFormDialog({
             </p>
 
             <FormField
-              id="type-fund"
-              label="Fund"
-              hint="Offered on every receipt raised for this pooja."
+              id="type-activity"
+              label="Activity"
+              hint={
+                activities.length === 0
+                  ? 'No activities exist yet — add one under Accounting.'
+                  : 'What a receipt for this pooja is reported under, income and expense alike.'
+              }
             >
               <Select
                 value={
-                  draft.defaultFundId === null
-                    ? NO_DEFAULT
-                    : String(draft.defaultFundId)
+                  draft.activityId === null ? NO_DEFAULT : String(draft.activityId)
                 }
                 onValueChange={(value) =>
                   setDraft((current) => ({
                     ...current,
-                    defaultFundId: value === NO_DEFAULT ? null : Number(value),
-                    // A project belongs to one fund, so it cannot survive a
-                    // change of fund beneath it.
-                    defaultProjectId: null,
+                    activityId: value === NO_DEFAULT ? null : Number(value),
                   }))
                 }
               >
-                <SelectTrigger id="type-fund" className="w-full">
+                <SelectTrigger id="type-activity" className="w-full">
                   <SelectValue placeholder="Ask each time" />
                 </SelectTrigger>
 
                 <SelectContent>
                   <SelectItem value={NO_DEFAULT}>Ask each time</SelectItem>
 
-                  {funds.map((fund) => (
-                    <SelectItem key={fund.id} value={String(fund.id)}>
-                      {fund.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <FormField
-              id="type-project"
-              label="Project"
-              hint={
-                draft.defaultFundId === null
-                  ? 'Choose a fund first.'
-                  : fundProjects.length === 0
-                    ? 'This fund has no active projects.'
-                    : undefined
-              }
-            >
-              <Select
-                value={
-                  draft.defaultProjectId === null
-                    ? NO_DEFAULT
-                    : String(draft.defaultProjectId)
-                }
-                disabled={draft.defaultFundId === null || fundProjects.length === 0}
-                onValueChange={(value) =>
-                  setDraft((current) => ({
-                    ...current,
-                    defaultProjectId:
-                      value === NO_DEFAULT ? null : Number(value),
-                  }))
-                }
-              >
-                <SelectTrigger id="type-project" className="w-full">
-                  <SelectValue placeholder="None" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={NO_DEFAULT}>None</SelectItem>
-
-                  {fundProjects.map((project) => (
-                    <SelectItem key={project.id} value={String(project.id)}>
-                      {project.name}
+                  {activities.map((activity) => (
+                    <SelectItem key={activity.id} value={String(activity.id)}>
+                      {activity.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
