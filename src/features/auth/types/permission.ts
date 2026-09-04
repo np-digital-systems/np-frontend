@@ -4,6 +4,10 @@ export const PERMISSIONS = [
   // Accounting — the chart of accounts and the posted ledger
   'account:view',
   'account:manage',
+  'activity:view',
+  'activity:manage',
+  'party:view',
+  'party:manage',
 
   'transaction:view',
   'transaction:create',
