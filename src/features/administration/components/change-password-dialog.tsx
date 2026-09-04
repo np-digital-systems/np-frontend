@@ -13,11 +13,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { PASSWORD_MIN_LENGTH } from '@/lib/validation';
 
 import { changeOwnPassword } from '../lib/administration-actions';
-
-/** The API's floor. Stated here so the form can say so before a round trip. */
-const MIN_LENGTH = 12;
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -49,8 +47,8 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
 
     // Checked here so an obvious mistake costs nothing, and again on the server
     // because a form is not where a rule like this can be enforced.
-    if (newPassword.length < MIN_LENGTH) {
-      setError(`The new password must be at least ${MIN_LENGTH} characters.`);
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
+      setError(`The new password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
       return;
     }
 
@@ -104,7 +102,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
             id="new-password"
             label="New password"
             required
-            hint={`At least ${MIN_LENGTH} characters.`}
+            hint={`At least ${PASSWORD_MIN_LENGTH} characters.`}
           >
             <Input
               id="new-password"
