@@ -1,6 +1,11 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
 import { requireSession } from '@/features/auth/lib/session';
 
+import {
+  getFundOptions,
+  getProjectOptions,
+} from '@/features/accounting/lib/accounting-service';
+
 import { getEventAccess } from '../../lib/event-access';
 import { getActiveYear, getToday } from '../../lib/event-data';
 import { getEventTypeRecords } from '../../lib/event-service';
@@ -23,11 +28,22 @@ export async function EventTypesFeature() {
 
   // The sponsor and occurrence counts come back with the row; counting them
   // here would be a second, slower answer to a question the API has answered.
-  const types = await getEventTypeRecords(year);
+  // The funds and projects a pooja's receipts can be coded to, so the mapping
+  // is set here once instead of being re-answered on every receipt raised.
+  const [types, funds, projects] = await Promise.all([
+    getEventTypeRecords(year),
+    getFundOptions(),
+    getProjectOptions(),
+  ]);
 
   return (
     <PageShell>
-      <EventTypesScreen initialTypes={[...types]} year={year} />
+      <EventTypesScreen
+        initialTypes={[...types]}
+        funds={funds}
+        projects={projects}
+        year={year}
+      />
     </PageShell>
   );
 }
