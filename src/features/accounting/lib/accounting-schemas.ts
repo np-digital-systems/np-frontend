@@ -83,6 +83,7 @@ export const accountSchema = z
     type: z.enum(ACCOUNT_TYPES),
     parentId: z.number().int().positive().nullable(),
     openingBalance: nonNegativeAmount('The opening balance'),
+    defaultPartyId: z.number().int().positive().nullable(),
     isActive: z.boolean(),
   })
   .superRefine((draft, ctx) => {

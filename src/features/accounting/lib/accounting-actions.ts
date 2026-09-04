@@ -185,6 +185,7 @@ export interface AccountInput {
   parentId?: number | null;
   isPostable?: boolean;
   openingBalance?: number;
+  defaultPartyId?: number | null;
 }
 
 export async function createAccount(input: AccountInput): Promise<ActionResult> {
@@ -193,6 +194,7 @@ export async function createAccount(input: AccountInput): Promise<ActionResult> 
       ...input,
       nameEn: input.nameEn || undefined,
       parentId: input.parentId ?? undefined,
+      defaultPartyId: input.defaultPartyId ?? undefined,
     }),
   );
 }
@@ -209,6 +211,7 @@ export async function updateAccount(
       isPostable: input.isPostable,
       isActive: input.isActive,
       openingBalance: input.openingBalance,
+      defaultPartyId: input.defaultPartyId,
     }),
   );
 }
