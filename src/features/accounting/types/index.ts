@@ -23,7 +23,7 @@ export interface Account {
 
 export type AccountRef = Pick<
   Account,
-  'id' | 'code' | 'name' | 'nameTa' | 'type'
+  'id' | 'code' | 'name' | 'nameTa' | 'type' | 'defaultPartyId'
 >;
 
 export interface AccountRecord extends Account {
