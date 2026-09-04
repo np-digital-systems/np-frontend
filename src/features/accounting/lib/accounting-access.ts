@@ -9,6 +9,10 @@ export interface AccountingAccess {
 
   readonly canViewAccounts: boolean;
   readonly canManageAccounts: boolean;
+  readonly canViewActivities: boolean;
+  readonly canManageActivities: boolean;
+  readonly canViewParties: boolean;
+  readonly canManageParties: boolean;
 
   readonly canViewTransactions: boolean;
   readonly canExportTransactions: boolean;
@@ -46,6 +50,10 @@ export function getAccountingAccess(granted: readonly Permission[]): AccountingA
 
     canViewAccounts: can(granted, 'account:view'),
     canManageAccounts: can(granted, 'account:manage'),
+    canViewActivities: can(granted, 'activity:view'),
+    canManageActivities: can(granted, 'activity:manage'),
+    canViewParties: can(granted, 'party:view'),
+    canManageParties: can(granted, 'party:manage'),
 
     canViewTransactions: can(granted, 'transaction:view'),
     canExportTransactions: can(granted, 'transaction:export'),
