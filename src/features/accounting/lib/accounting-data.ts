@@ -153,3 +153,21 @@ export function nextReference(
 
   return `${prefix}${String(highest + 1).padStart(4, '0')}`;
 }
+
+/**
+ * How a voucher's coding reads in one line.
+ *
+ * A split voucher names its first head and counts the rest, so a list stays a
+ * list. Everything is on the voucher itself for anyone who opens it.
+ */
+export function codingSummary(voucher: {
+  lines: readonly { account: { name: string }; fund: { name: string } }[];
+}): { account: string; fund: string } {
+  const [first, ...rest] = voucher.lines;
+  const more = rest.length > 0 ? ` +${rest.length}` : '';
+
+  return {
+    account: first ? `${first.account.name}${more}` : '—',
+    fund: first ? `${first.fund.name}${more}` : '—',
+  };
+}

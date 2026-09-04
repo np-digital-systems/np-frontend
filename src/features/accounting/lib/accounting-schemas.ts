@@ -25,15 +25,22 @@ export const ACCOUNT_CODE_PREFIX = {
   expense: '5',
 } as const;
 
+const voucherLineSchema = z.object({
+  accountId: z.number().int().positive('Choose a ledger account.'),
+  amount: positiveAmount('Each amount'),
+  fundId: z.number().int().positive('Choose a fund.'),
+  projectId: z.number().int().positive().nullable(),
+  activityId: z.number().int().positive().nullable(),
+});
+
 export const voucherSchema = z
   .object({
     date: isoDate,
     description: requiredText('A description'),
-    amount: positiveAmount('The amount'),
-    accountId: z.number().int().positive('Choose a ledger account.'),
-    fundId: z.number().int().positive('Choose a fund.'),
-    projectId: z.number().int().positive().nullable(),
-    activityId: z.number().int().positive().nullable(),
+    lines: z
+      .array(voucherLineSchema)
+      .min(1, 'A voucher needs at least one head.')
+      .max(50),
     partyId: z.number().int().positive().nullable(),
     mode: z.enum(PAYMENT_MODES),
     bankAccountId: z.number().int().positive().nullable(),

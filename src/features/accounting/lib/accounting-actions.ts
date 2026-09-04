@@ -54,18 +54,23 @@ async function guarded<T>(
    Vouchers
    ------------------------------------------------------------------------- */
 
+export interface VoucherLineInput {
+  accountId: number;
+  amount: number;
+  fundId: number;
+  projectId: number | null;
+  activityId: number | null;
+}
+
 export interface VoucherInput {
   kind: VoucherKind;
   date: string;
   description: string;
-  amount: number;
-  accountId: number;
-  fundId: number;
-  projectId: number | null;
+  /** The heads this voucher is coded to; the total is their sum. */
+  lines: readonly VoucherLineInput[];
   mode: PaymentMode;
   bankAccountId: number | null;
   chequeNo: string | null;
-  activityId?: number | null;
   partyId?: number | null;
   party: string;
   manualVoucherNo?: string | null;
@@ -80,14 +85,16 @@ function voucherBody(input: VoucherInput) {
     kind: input.kind,
     date: input.date,
     description: input.description,
-    amount: input.amount,
-    accountId: input.accountId,
-    fundId: input.fundId,
-    projectId: input.projectId ?? undefined,
+    lines: input.lines.map((line) => ({
+      accountId: line.accountId,
+      amount: line.amount,
+      fundId: line.fundId,
+      projectId: line.projectId ?? undefined,
+      activityId: line.activityId ?? undefined,
+    })),
     mode: input.mode,
     bankAccountId: input.bankAccountId ?? undefined,
     chequeNo: input.chequeNo || undefined,
-    activityId: input.activityId ?? undefined,
     partyId: input.partyId ?? undefined,
     party: input.party,
     manualVoucherNo: input.manualVoucherNo || undefined,

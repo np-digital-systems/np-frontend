@@ -42,6 +42,7 @@ import {
 import {
   PAYMENT_MODE_LABELS,
   VOUCHER_KIND_LABELS,
+  codingSummary,
   formatCurrency,
   formatShortDate,
 } from '../../lib/accounting-data';
@@ -289,9 +290,8 @@ function ApprovalCard({
               label: voucher.kind === 'receipt' ? 'From' : 'To',
               value: voucher.party,
             },
-            { label: 'Account', value: voucher.account.name },
-            { label: 'Fund', value: voucher.fund.name },
-            { label: 'Project', value: voucher.project?.name ?? '—' },
+            { label: 'Account', value: codingSummary(voucher).account },
+            { label: 'Fund', value: codingSummary(voucher).fund },
             { label: 'Mode', value: PAYMENT_MODE_LABELS[voucher.mode] },
             { label: 'Raised by', value: voucher.createdBy.name },
           ]}
@@ -403,7 +403,7 @@ function SettledTable({
               </DataCell>
 
               <DataCell nowrap className="text-xs">
-                {voucher.fund.name}
+                {codingSummary(voucher).fund}
               </DataCell>
 
               <DataCell align="right" nowrap>

@@ -186,20 +186,19 @@ export function VoucherRegister({
       kind,
       date: draft.date,
       description: draft.description,
-      amount: draft.amount,
-      accountId: draft.accountId,
-      fundId: draft.fundId,
-      projectId: draft.projectId,
+      lines: draft.lines.map((line) => ({
+        accountId: line.accountId,
+        amount: line.amount,
+        fundId: line.fundId,
+        projectId: line.projectId,
+        activityId: line.activityId,
+      })),
       mode: draft.mode,
       bankAccountId: draft.bankAccountId,
       chequeNo: draft.chequeNo || null,
-      activityId: draft.activityId,
       partyId: draft.partyId,
       party: draft.party,
       manualVoucherNo: draft.manualVoucherNo || null,
-      eventRef: draft.eventRef ?? null,
-      eventTypeId: draft.eventTypeId,
-      eventId: draft.eventId,
       notes: draft.notes || null,
     };
 
@@ -367,22 +366,32 @@ export function VoucherRegister({
                     </p>
                   </DataCell>
 
+                  {/*
+                    * A register is a list, so it shows the first head and says
+                    * how many more there are rather than growing rows of
+                    * uneven height. The detail dialog has all of them.
+                    */}
                   <DataCell nowrap className="text-xs">
                     <span className="ref text-text-muted">
-                      {voucher.account.code}
+                      {voucher.lines[0]?.account.code}
                     </span>{' '}
                     <span className="text-text-secondary">
-                      {voucher.account.name}
+                      {voucher.lines[0]?.account.name}
                     </span>
+                    {voucher.lines.length > 1 && (
+                      <span className="ml-1.5 text-[11px] text-text-muted">
+                        +{voucher.lines.length - 1} more
+                      </span>
+                    )}
                   </DataCell>
 
                   <DataCell>
                     <p className="truncate text-xs text-text-secondary">
-                      {voucher.fund.name}
+                      {voucher.lines[0]?.fund.name}
                     </p>
-                    {voucher.project && (
+                    {voucher.lines[0]?.project && (
                       <p className="mt-0.5 truncate text-[11px] text-text-muted">
-                        {voucher.project.name}
+                        {voucher.lines[0].project.name}
                       </p>
                     )}
                   </DataCell>

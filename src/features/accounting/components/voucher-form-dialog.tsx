@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 import { FormField } from '@/components/portal/ui';
 import { validate } from '@/lib/validation';
@@ -50,24 +51,35 @@ import type {
   VoucherRecord,
 } from '../types';
 
+/** One head on the voucher, as the form holds it while being filled in. */
+export interface VoucherDraftLine {
+  accountId: number;
+  amount: number;
+  fundId: number;
+  projectId: number | null;
+  activityId: number | null;
+  /** The occurrence this head is for, where a pooja is named. */
+  eventId: number | null;
+}
+
 export interface VoucherDraft {
   date: string;
   description: string;
-  amount: number;
-  accountId: number;
-  fundId: number;
-  projectId: number | null;
+  /** At least one. The total is their sum, never typed directly. */
+  lines: VoucherDraftLine[];
   mode: PaymentMode;
   bankAccountId: number | null;
   chequeNo: string;
-  /** What it was for, and who it was with. */
-  activityId: number | null;
+  /** Who it was with — one payer per document, however it splits. */
   partyId: number | null;
   party: string;
   manualVoucherNo: string;
+  /*
+   * Which pooja type the pickers are filtered by. Never sent: the occurrence
+   * on the line already knows its type, so storing it too would be a second
+   * copy that nothing keeps in step.
+   */
   eventTypeId: number | null;
-  eventId: number | null;
-  eventRef: string | null;
   notes: string;
 }
 
@@ -88,31 +100,284 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+interface LineEditorProps {
+  lines: readonly VoucherDraftLine[];
+  accounts: readonly AccountRef[];
+  funds: readonly FundRef[];
+  projects: readonly ProjectRef[];
+  activities: readonly ActivityRef[];
+  /** Hidden when the pooja type already settles it. */
+  showActivity: boolean;
+  onChange: (lines: VoucherDraftLine[]) => void;
+}
+
+/**
+ * The heads a voucher is coded to.
+ *
+ * One head is the ordinary case and reads as an ordinary form. A second is one
+ * click away, for the receipt where a devotee earmarks part of what they give —
+ * one document, one reference, one piece of paper, as it was handed over.
+ */
+function LineEditor({
+  lines,
+  accounts,
+  funds,
+  projects,
+  activities,
+  showActivity,
+  onChange,
+}: LineEditorProps) {
+  const accountsByType = useMemo(() => {
+    const groups = new Map<string, AccountRef[]>();
+
+    for (const account of accounts) {
+      const bucket = groups.get(account.type);
+
+      if (bucket) bucket.push(account);
+      else groups.set(account.type, [account]);
+    }
+
+    return [...groups.entries()];
+  }, [accounts]);
+
+  function edit(index: number, patch: Partial<VoucherDraftLine>) {
+    onChange(lines.map((line, at) => (at === index ? { ...line, ...patch } : line)));
+  }
+
+  function addLine() {
+    const last = lines[lines.length - 1];
+
+    onChange([
+      ...lines,
+      // The new head inherits where the last one was carried, since a split is
+      // usually two purposes out of one fund rather than two unrelated entries.
+      {
+        accountId: last?.accountId ?? 0,
+        amount: 0,
+        fundId: last?.fundId ?? 0,
+        projectId: null,
+        activityId: null,
+        eventId: null,
+      },
+    ]);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {lines.map((line, index) => {
+        const fundProjects = projects.filter(
+          (project) => project.fundId === line.fundId && project.isActive,
+        );
+
+        return (
+          <div
+            key={index}
+            className="flex flex-col gap-3 rounded-lg border border-border bg-surface-2 p-3.5"
+          >
+            {lines.length > 1 && (
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+                  Head {index + 1}
+                </span>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-danger hover:bg-danger-subtle hover:text-danger"
+                  onClick={() => onChange(lines.filter((_, at) => at !== index))}
+                >
+                  Remove
+                </Button>
+              </div>
+            )}
+
+            <FormField
+              id={`voucher-account-${index}`}
+              label="Ledger Account"
+              required
+              hint={
+                index === 0
+                  ? 'The head this posts against in the chart of accounts.'
+                  : undefined
+              }
+            >
+              <Select
+                value={String(line.accountId)}
+                onValueChange={(value) => edit(index, { accountId: Number(value) })}
+              >
+                <SelectTrigger id={`voucher-account-${index}`} className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {accountsByType.map(([type, group]) => (
+                    <SelectGroup key={type}>
+                      <SelectLabel>{ACCOUNT_TYPE_LABELS[type as AccountType]}</SelectLabel>
+
+                      {group.map((account) => (
+                        <SelectItem key={account.id} value={String(account.id)}>
+                          {account.code} · {account.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <FormField id={`voucher-fund-${index}`} label="Fund" required>
+                <Select
+                  value={String(line.fundId)}
+                  onValueChange={(value) =>
+                    edit(index, { fundId: Number(value), projectId: null })
+                  }
+                >
+                  <SelectTrigger id={`voucher-fund-${index}`} className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {funds.map((fund) => (
+                      <SelectItem key={fund.id} value={String(fund.id)}>
+                        {fund.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              <FormField id={`voucher-line-amount-${index}`} label="Amount" required>
+                <Input
+                  id={`voucher-line-amount-${index}`}
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={line.amount || ''}
+                  placeholder="0.00"
+                  onChange={(changeEvent) =>
+                    edit(index, { amount: Number(changeEvent.target.value) || 0 })
+                  }
+                />
+              </FormField>
+            </div>
+
+            {(showActivity || fundProjects.length > 0) && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {showActivity && (
+                  <FormField id={`voucher-activity-${index}`} label="Activity">
+                    <Select
+                      value={
+                        line.activityId === null
+                          ? NO_DIMENSION
+                          : String(line.activityId)
+                      }
+                      onValueChange={(value) => {
+                        const activityId =
+                          value === NO_DIMENSION ? null : Number(value);
+                        const activity = activities.find(
+                          (entry) => entry.id === activityId,
+                        );
+
+                        // The activity carries the fund it is held in, so
+                        // choosing one settles both. Still editable above.
+                        edit(index, {
+                          activityId,
+                          fundId: activity?.defaultFundId ?? line.fundId,
+                          projectId:
+                            activity?.defaultFundId == null ? line.projectId : null,
+                        });
+                      }}
+                    >
+                      <SelectTrigger id={`voucher-activity-${index}`} className="w-full">
+                        <SelectValue placeholder="Not tied to one" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
+
+                        {activities.map((activity) => (
+                          <SelectItem key={activity.id} value={String(activity.id)}>
+                            {activity.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                )}
+
+                {/* Only where the fund actually runs projects. */}
+                {fundProjects.length > 0 && (
+                  <FormField id={`voucher-project-${index}`} label="Project">
+                    <Select
+                      value={
+                        line.projectId === null ? NO_PROJECT : String(line.projectId)
+                      }
+                      onValueChange={(value) =>
+                        edit(index, {
+                          projectId: value === NO_PROJECT ? null : Number(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger id={`voucher-project-${index}`} className="w-full">
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectItem value={NO_PROJECT}>None</SelectItem>
+
+                        {fundProjects.map((project) => (
+                          <SelectItem key={project.id} value={String(project.id)}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <Button type="button" variant="outline" size="sm" className="self-start" onClick={addLine}>
+        <Plus />
+        Add another head
+      </Button>
+    </div>
+  );
+}
+
 function draftFrom(
   voucher: VoucherRecord | null,
   kind: VoucherKind,
   accounts: readonly AccountRef[],
   funds: readonly FundRef[],
   today: string,
+  /** Recovered from the occurrence the first line names; the form filters by it. */
+  poojaTypeOfFirstLine: number | null,
 ): VoucherDraft {
   if (voucher) {
     return {
       date: voucher.date,
       description: voucher.description,
-      amount: voucher.amount,
-      accountId: voucher.accountId,
-      fundId: voucher.fundId,
-      projectId: voucher.projectId,
+      lines: voucher.lines.map((line) => ({
+        accountId: line.accountId,
+        amount: line.amount,
+        fundId: line.fundId,
+        projectId: line.projectId,
+        activityId: line.activityId,
+        eventId: line.eventId,
+      })),
       mode: voucher.mode,
       bankAccountId: voucher.bankAccountId,
       chequeNo: voucher.chequeNo ?? '',
-      activityId: voucher.activityId,
       partyId: voucher.partyId,
       party: voucher.party,
       manualVoucherNo: voucher.manualVoucherNo ?? '',
-      eventTypeId: voucher.eventTypeId,
-      eventId: voucher.eventId,
-      eventRef: voucher.eventRef,
+      eventTypeId: poojaTypeOfFirstLine,
       notes: voucher.notes ?? '',
     };
   }
@@ -124,23 +389,28 @@ function draftFrom(
   return {
     date: today,
     description: '',
-    amount: 0,
-    accountId:
-      accounts.find((account) => account.type === naturalSide)?.id ??
-      accounts[0]?.id ??
-      0,
-    fundId: funds[0]?.id ?? 0,
-    projectId: null,
+    // One line to start with: the ordinary voucher has exactly one head, and
+    // the split is the exception a clerk reaches for.
+    lines: [
+      {
+        accountId:
+          accounts.find((account) => account.type === naturalSide)?.id ??
+          accounts[0]?.id ??
+          0,
+        amount: 0,
+        fundId: funds[0]?.id ?? 0,
+        projectId: null,
+        activityId: null,
+        eventId: null,
+      },
+    ],
     mode: 'cash',
     bankAccountId: null,
     chequeNo: '',
-    activityId: null,
     partyId: null,
     party: '',
     manualVoucherNo: '',
     eventTypeId: null,
-    eventId: null,
-    eventRef: null,
     notes: '',
   };
 }
@@ -180,8 +450,12 @@ export function VoucherFormDialog({
 }: VoucherFormDialogProps) {
   const today = new Date().toISOString().slice(0, 10);
 
+  const poojaTypeOfFirstLine =
+    poojas.find((pooja) => pooja.id === voucher?.lines[0]?.eventId)?.eventTypeId ??
+    null;
+
   const [draft, setDraft] = useState<VoucherDraft>(() =>
-    draftFrom(voucher, kind, accounts, funds, today),
+    draftFrom(voucher, kind, accounts, funds, today, poojaTypeOfFirstLine),
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -192,42 +466,30 @@ export function VoucherFormDialog({
 
   if (lastSeed !== seed) {
     setLastSeed(seed);
-    setDraft(draftFrom(voucher, kind, accounts, funds, today));
+    setDraft(draftFrom(voucher, kind, accounts, funds, today, poojaTypeOfFirstLine));
     setError(null);
   }
 
-  const accountsByType = useMemo(() => {
-    const groups = new Map<string, AccountRef[]>();
 
-    for (const account of accounts) {
-      const bucket = groups.get(account.type);
-
-      if (bucket) {
-        bucket.push(account);
-      } else {
-        groups.set(account.type, [account]);
-      }
-    }
-
-    return [...groups.entries()];
-  }, [accounts]);
-
-  const fundProjects = projects.filter(
-    (project) => project.fundId === draft.fundId && project.isActive,
-  );
+  // The document total: summed from the heads, never typed.
+  const total = draft.lines.reduce((sum, line) => sum + line.amount, 0);
 
   const needsBank = isBankMode(draft.mode);
 
   // Pooja sponsorship is the one account whose entries have to name a pooja.
+  // Pooja sponsorship is decided by the first head, which is the one a receipt
+  // for a pooja is raised against; a second head is the earmarked remainder.
   const selectedAccount = accounts.find(
-    (account) => account.id === draft.accountId,
+    (account) => account.id === draft.lines[0]?.accountId,
   );
   const isPoojaSponsorship = selectedAccount?.code === POOJA_SPONSORSHIP_CODE;
 
   const typePoojas = poojas.filter(
     (pooja) => pooja.eventTypeId === draft.eventTypeId,
   );
-  const selectedPooja = poojas.find((pooja) => pooja.id === draft.eventId);
+  const selectedPooja = poojas.find(
+    (pooja) => pooja.id === draft.lines[0]?.eventId,
+  );
   const selectedPoojaType = poojaTypes.find(
     (type) => type.id === draft.eventTypeId,
   );
@@ -243,25 +505,7 @@ export function VoucherFormDialog({
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-    function changeFund(fundId: number) {
-    setDraft((current) => ({ ...current, fundId, projectId: null }));
-  }
 
-  /*
-   * The activity carries the fund its money is held in, so choosing one
-   * settles both. It is a default and not a rule: the fund below stays
-   * editable for the entry that genuinely belongs somewhere else.
-   */
-  function changeActivity(activityId: number | null) {
-    const activity = activities.find((entry) => entry.id === activityId);
-
-    setDraft((current) => ({
-      ...current,
-      activityId,
-      fundId: activity?.defaultFundId ?? current.fundId,
-      projectId: activity?.defaultFundId == null ? current.projectId : null,
-    }));
-  }
 
   function changeMode(mode: PaymentMode) {
     setDraft((current) => ({
@@ -291,7 +535,9 @@ export function VoucherFormDialog({
   function poojaError(): string | null {
     if (!isPoojaSponsorship) return null;
     if (draft.eventTypeId === null) return 'Choose the pooja type this entry is for.';
-    if (draft.eventId === null) return 'Choose which pooja this entry is for.';
+    if (draft.lines[0]?.eventId == null) {
+      return 'Choose which pooja this entry is for.';
+    }
     return null;
   }
 
@@ -357,78 +603,16 @@ export function VoucherFormDialog({
 
           <SectionLabel>What this is for</SectionLabel>
 
-          <FormField
-            id="voucher-account"
-            label="Ledger Account"
-            required
-            hint="The head this entry posts against in the chart of accounts."
-          >
-            <Select
-              value={String(draft.accountId)}
-              onValueChange={(value) => update('accountId', Number(value))}
-            >
-              <SelectTrigger id="voucher-account" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
+          <LineEditor
+            lines={draft.lines}
+            accounts={accounts}
+            funds={funds}
+            projects={projects}
+            activities={activities}
+            showActivity={!activityFromPooja}
+            onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
+          />
 
-              <SelectContent>
-                {accountsByType.map(([type, group]) => (
-                  <SelectGroup key={type}>
-                    <SelectLabel>
-                      {ACCOUNT_TYPE_LABELS[type as AccountType]}
-                    </SelectLabel>
-
-                    {group.map((account) => (
-                      <SelectItem key={account.id} value={String(account.id)}>
-                        {account.code} · {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
-
-          {/*
-            * Hidden for pooja sponsorship: the pooja type already names the
-            * activity, and asking twice could only produce a disagreement.
-            */}
-          {!activityFromPooja && (
-            <FormField
-              id="voucher-activity"
-              label="Activity"
-              hint={
-                activities.length === 0
-                  ? 'No activities exist yet — add one under Accounting.'
-                  : 'What this is reported under. Income and expenditure both carry it.'
-              }
-            >
-              <Select
-                value={
-                  draft.activityId === null
-                    ? NO_DIMENSION
-                    : String(draft.activityId)
-                }
-                onValueChange={(value) =>
-                  changeActivity(value === NO_DIMENSION ? null : Number(value))
-                }
-              >
-                <SelectTrigger id="voucher-activity" className="w-full">
-                  <SelectValue placeholder="Not tied to one" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
-
-                  {activities.map((activity) => (
-                    <SelectItem key={activity.id} value={String(activity.id)}>
-                      {activity.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-          )}
 
           {isPoojaSponsorship && (
             <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface-2 p-3.5">
@@ -450,19 +634,26 @@ export function VoucherFormDialog({
                       setDraft((current) => ({
                         ...current,
                         eventTypeId: Number(value),
-                        // The pooja belongs to a type, so changing the type
-                        // invalidates whatever pooja was chosen under the old one.
-                        eventId: null,
-                        eventRef: null,
                         // The type names the activity its receipts are coded
                         // to, and the activity carries the fund in turn, so
-                        // one choice settles both. Still editable below: this
-                        // is the usual coding, not a rule.
-                        activityId: type?.activityId ?? current.activityId,
-                        fundId:
-                          activities.find(
-                            (entry) => entry.id === type?.activityId,
-                          )?.defaultFundId ?? current.fundId,
+                        // one choice settles both. It lands on the first head,
+                        // which is the pooja itself — a second head is the
+                        // earmarked remainder and keeps its own coding.
+                        lines: current.lines.map((line, index) =>
+                          index === 0
+                            ? {
+                                ...line,
+                                // The pooja belongs to a type, so changing the
+                                // type invalidates the occurrence beneath it.
+                                eventId: null,
+                                activityId: type?.activityId ?? line.activityId,
+                                fundId:
+                                  activities.find(
+                                    (entry) => entry.id === type?.activityId,
+                                  )?.defaultFundId ?? line.fundId,
+                              }
+                            : line,
+                        ),
                       }));
                     }}
                   >
@@ -493,7 +684,11 @@ export function VoucherFormDialog({
                   }
                 >
                   <Select
-                    value={draft.eventId === null ? '' : String(draft.eventId)}
+                    value={
+                      draft.lines[0]?.eventId == null
+                        ? ''
+                        : String(draft.lines[0].eventId)
+                    }
                     disabled={draft.eventTypeId === null}
                     onValueChange={(value) => {
                       const pooja = poojas.find(
@@ -502,10 +697,12 @@ export function VoucherFormDialog({
 
                       setDraft((current) => ({
                         ...current,
-                        eventId: Number(value),
-                        eventRef: pooja
-                          ? `${selectedPoojaType?.name ?? ''} — ${pooja.label}`
-                          : null,
+                        // The occurrence sits on the head it is for. A split
+                        // receipt's second head is the earmarked remainder and
+                        // is not for this pooja at all.
+                        lines: current.lines.map((line, index) =>
+                          index === 0 ? { ...line, eventId: Number(value) } : line,
+                        ),
                         // A receipt is collected from whoever sponsors the
                         // pooja, so selecting one fills the payer in — both
                         // the name shown and the party the books group by.
@@ -634,77 +831,29 @@ export function VoucherFormDialog({
             />
           </FormField>
 
-          <SectionLabel>Where it goes</SectionLabel>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="voucher-fund" label="Fund" required>
-              <Select
-                value={String(draft.fundId)}
-                onValueChange={(value) => changeFund(Number(value))}
-              >
-                <SelectTrigger id="voucher-fund" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {funds.map((fund) => (
-                    <SelectItem key={fund.id} value={String(fund.id)}>
-                      {fund.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <FormField
-              id="voucher-project"
-              label="Project"
-              hint={
-                fundProjects.length === 0
-                  ? 'This fund has no active projects.'
-                  : undefined
-              }
-            >
-              <Select
-                value={
-                  draft.projectId === null ? NO_PROJECT : String(draft.projectId)
-                }
-                onValueChange={(value) =>
-                  update('projectId', value === NO_PROJECT ? null : Number(value))
-                }
-              >
-                <SelectTrigger id="voucher-project" className="w-full">
-                  <SelectValue placeholder="None" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={NO_PROJECT}>None</SelectItem>
-
-                  {fundProjects.map((project) => (
-                    <SelectItem key={project.id} value={String(project.id)}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
-
           <SectionLabel>How the money moved</SectionLabel>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="voucher-amount" label="Amount" required>
-              <Input
-                id="voucher-amount"
-                type="number"
-                min={0}
-                step={0.01}
-                value={draft.amount || ''}
-                placeholder="0.00"
-                onChange={(changeEvent) =>
-                  update('amount', Number(changeEvent.target.value) || 0)
-                }
-              />
+            {/*
+              * Read-only: the total is the sum of the heads above. A typed
+              * total that disagreed with them would be a third opinion about
+              * the same money.
+              */}
+            <FormField
+              id="voucher-total"
+              label="Total"
+              hint={
+                draft.lines.length > 1
+                  ? `${draft.lines.length} heads`
+                  : 'Summed from the head above.'
+              }
+            >
+              <output
+                id="voucher-total"
+                className="flex h-9 items-center rounded-md border border-border bg-surface-2 px-3 text-[13px] font-semibold text-text-primary tabular"
+              >
+                {formatCurrency(total)}
+              </output>
             </FormField>
 
             <FormField id="voucher-mode" label="Mode" required>
@@ -789,11 +938,11 @@ export function VoucherFormDialog({
             />
           </FormField>
 
-          {draft.amount > 0 && (
+          {total > 0 && (
             <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-text-secondary">
               {kind === 'receipt' ? 'Receipt of ' : 'Payment of '}
               <span className="font-semibold text-text-primary tabular">
-                {formatCurrency(draft.amount)}
+                {formatCurrency(total)}
               </span>{' '}
               — this does not affect the ledger until it is approved and posted.
             </p>
