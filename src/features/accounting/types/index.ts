@@ -195,6 +195,9 @@ export interface PoojaTypeRef {
   readonly id: number;
   readonly name: string;
   readonly nameEn: string;
+  /** The coding a receipt for this pooja takes unless the clerk changes it. */
+  readonly defaultFundId: number | null;
+  readonly defaultProjectId: number | null;
 }
 
 /** One dated pooja, with whoever sponsors it. */

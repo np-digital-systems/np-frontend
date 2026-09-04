@@ -229,7 +229,13 @@ export async function getQuarterlySeries(today: string = getToday()): Promise<Pe
 export async function getPoojaTypes(): Promise<readonly PoojaTypeRef[]> {
   const types = await getEventTypes();
 
-  return types.map((type) => ({ id: type.id, name: type.name, nameEn: type.nameEn }));
+  return types.map((type) => ({
+    id: type.id,
+    name: type.name,
+    nameEn: type.nameEn,
+    defaultFundId: type.defaultFundId,
+    defaultProjectId: type.defaultProjectId,
+  }));
 }
 
 export async function getPoojas(): Promise<readonly PoojaRef[]> {

@@ -8,6 +8,25 @@ export const isoTime = z
   .string()
   .regex(/^\d{2}:\d{2}$/, 'Enter a valid time.');
 
+/**
+ * How short a password may be, everywhere on this side.
+ *
+ * Mirrors PASSWORD_MIN_LENGTH on the API. It lives here rather than in a
+ * feature so the sign-in form and the two password dialogs cannot drift apart
+ * from each other — which they had: sign-in accepted six, the API refused
+ * anything under eight, and the change-password dialog demanded twelve.
+ */
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 128;
+
+export const password = z
+  .string()
+  .min(
+    PASSWORD_MIN_LENGTH,
+    `A password is at least ${PASSWORD_MIN_LENGTH} characters.`,
+  )
+  .max(PASSWORD_MAX_LENGTH, 'That password is too long.');
+
 export const requiredText = (label: string, max = 255) =>
   z.string().trim().min(1, `${label} is required.`).max(max);
 

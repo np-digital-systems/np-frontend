@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
-import { validate } from '@/lib/validation';
+import { PASSWORD_MIN_LENGTH, validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -37,6 +37,9 @@ export interface UserDraft {
   address: string;
   role: UserRole;
   isActive: boolean;
+  /** Only ever set when creating a staff account; the API takes none on edit. */
+  password: string;
+  passwordConfirmation: string;
 }
 
 function draftFrom(user: UserRecord | null): UserDraft {
@@ -49,6 +52,8 @@ function draftFrom(user: UserRecord | null): UserDraft {
       address: user.address,
       role: user.role,
       isActive: user.isActive,
+      password: '',
+      passwordConfirmation: '',
     };
   }
 
@@ -60,6 +65,8 @@ function draftFrom(user: UserRecord | null): UserDraft {
     address: '',
     role: 'user',
     isActive: true,
+    password: '',
+    passwordConfirmation: '',
   };
 }
 
@@ -93,6 +100,13 @@ export function UserFormDialog({
     setDraft(draftFrom(user));
     setError(null);
   }
+
+  /*
+   * A password is collected only where the API will accept one: on a new staff
+   * account. Devotees never sign in, and an edit cannot carry a password at all
+   * — UpdateUserDto omits it, and a change goes through reset-password instead.
+   */
+  const needsPassword = !user && draft.role !== 'user';
 
   const isSelf = user?.id === currentUserId;
   const wasAdmin = user?.role === 'admin' && user.isActive;
@@ -133,6 +147,13 @@ export function UserFormDialog({
       return;
     }
 
+    if (needsPassword && !result.data.password) {
+      setError(
+        'Staff sign in with a password, so this account needs one to be set.',
+      );
+      return;
+    }
+
     if (isSelf && losesAdmin) {
       setError(
         'You cannot remove your own administrator access — ask another administrator to do it.',
@@ -162,7 +183,7 @@ export function UserFormDialog({
           <DialogDescription>
             {user
               ? 'Change what this account can reach, or deactivate it.'
-              : 'The account is created without a password — they set one through the invitation link.'}
+              : 'A devotee goes on the register without an account. Staff sign in, so they need an email and a password.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -257,6 +278,44 @@ export function UserFormDialog({
               </SelectContent>
             </Select>
           </FormField>
+
+          {needsPassword && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                id="user-password"
+                label="Password"
+                required
+                hint={`At least ${PASSWORD_MIN_LENGTH} characters.`}
+              >
+                <Input
+                  id="user-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={draft.password}
+                  onChange={(changeEvent) =>
+                    update('password', changeEvent.target.value)
+                  }
+                />
+              </FormField>
+
+              <FormField
+                id="user-password-confirm"
+                label="Confirm password"
+                required
+                hint="Typed twice, because you have to pass it on."
+              >
+                <Input
+                  id="user-password-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  value={draft.passwordConfirmation}
+                  onChange={(changeEvent) =>
+                    update('passwordConfirmation', changeEvent.target.value)
+                  }
+                />
+              </FormField>
+            </div>
+          )}
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">

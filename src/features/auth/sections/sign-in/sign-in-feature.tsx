@@ -1,7 +1,5 @@
 import { getTranslations } from 'next-intl/server';
 
-import { getRoleOptions } from '../../lib/auth-service';
-
 import { SignInScreen } from './sign-in-screen';
 
 export async function SignInFeature() {
@@ -10,6 +8,6 @@ export async function SignInFeature() {
   const t = await getTranslations('TempleInfo');
 
   return (
-    <SignInScreen roles={getRoleOptions()} templeName={t('shortName')} />
+    <SignInScreen templeName={t('shortName')} />
   );
 }

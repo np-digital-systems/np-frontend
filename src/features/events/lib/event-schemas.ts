@@ -42,6 +42,8 @@ export const eventTypeSchema = z.object({
     .int()
     .min(1, 'An event type must have at least one instance.')
     .max(366, 'An event type cannot have more than 366 instances.'),
+  defaultFundId: z.number().int().positive().nullable(),
+  defaultProjectId: z.number().int().positive().nullable(),
 });
 
 /**

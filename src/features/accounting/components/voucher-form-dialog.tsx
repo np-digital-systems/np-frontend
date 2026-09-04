@@ -364,7 +364,11 @@ export function VoucherFormDialog({
                     value={
                       draft.eventTypeId === null ? '' : String(draft.eventTypeId)
                     }
-                    onValueChange={(value) =>
+                    onValueChange={(value) => {
+                      const type = poojaTypes.find(
+                        (entry) => entry.id === Number(value),
+                      );
+
                       setDraft((current) => ({
                         ...current,
                         eventTypeId: Number(value),
@@ -372,8 +376,17 @@ export function VoucherFormDialog({
                         // invalidates whatever pooja was chosen under the old one.
                         eventId: null,
                         eventRef: null,
-                      }))
-                    }
+                        // The type carries the fund and project its receipts
+                        // are coded to, so they are answered once on the type
+                        // rather than again on every receipt. Still editable
+                        // below: this is the usual coding, not a rule.
+                        fundId: type?.defaultFundId ?? current.fundId,
+                        projectId:
+                          type?.defaultFundId == null
+                            ? current.projectId
+                            : type.defaultProjectId,
+                      }));
+                    }}
                   >
                     <SelectTrigger id="voucher-pooja-type" className="w-full">
                       <SelectValue placeholder="Select a pooja type" />

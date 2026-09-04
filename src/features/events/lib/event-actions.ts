@@ -40,6 +40,9 @@ export interface EventTypeInput {
   nameEn?: string;
   frequencyType: 'weekly' | 'monthly_twice' | 'monthly_once' | 'annual' | 'multi_day';
   noOfInstances: number;
+  /** The coding receipts for this pooja take. Null clears the suggestion. */
+  defaultFundId?: number | null;
+  defaultProjectId?: number | null;
 }
 
 export async function createEventType(input: EventTypeInput): Promise<ActionResult> {
