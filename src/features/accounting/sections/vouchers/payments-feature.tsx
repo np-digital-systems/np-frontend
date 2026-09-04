@@ -5,9 +5,11 @@ import { getActiveYear, getToday } from '@/lib/format';
 import { VoucherRegister } from '../../components/voucher-register';
 import { getAccountingAccess } from '../../lib/accounting-access';
 import {
+  getActivityOptions,
   getBankAccountOptions,
   getFundOptions,
   getPostableAccounts,
+  getPartyOptions,
   getPoojaTypes,
   getPoojas,
   getProjectOptions,
@@ -32,6 +34,8 @@ export async function PaymentVouchersFeature() {
     funds,
     projects,
     bankAccounts,
+    activities,
+    parties,
     poojaTypes,
     poojas,
   ] = await Promise.all([
@@ -40,6 +44,8 @@ export async function PaymentVouchersFeature() {
     getFundOptions(),
     getProjectOptions(),
     getBankAccountOptions(),
+    getActivityOptions(),
+    getPartyOptions(),
     getPoojaTypes(),
     getPoojas(),
   ]);
@@ -55,6 +61,8 @@ export async function PaymentVouchersFeature() {
         funds={funds}
         projects={projects}
         bankAccounts={bankAccounts}
+        activities={activities}
+        parties={parties}
         poojaTypes={poojaTypes}
         poojas={poojas}
         access={access}
