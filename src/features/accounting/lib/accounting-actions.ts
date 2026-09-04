@@ -54,17 +54,24 @@ async function guarded<T>(
    Vouchers
    ------------------------------------------------------------------------- */
 
+export interface VoucherLineInput {
+  accountId: number;
+  amount: number;
+  fundId: number;
+  projectId: number | null;
+  activityId: number | null;
+}
+
 export interface VoucherInput {
   kind: VoucherKind;
   date: string;
   description: string;
-  amount: number;
-  accountId: number;
-  fundId: number;
-  projectId: number | null;
+  /** The heads this voucher is coded to; the total is their sum. */
+  lines: readonly VoucherLineInput[];
   mode: PaymentMode;
   bankAccountId: number | null;
   chequeNo: string | null;
+  partyId?: number | null;
   party: string;
   manualVoucherNo?: string | null;
   eventRef?: string | null;
@@ -78,13 +85,17 @@ function voucherBody(input: VoucherInput) {
     kind: input.kind,
     date: input.date,
     description: input.description,
-    amount: input.amount,
-    accountId: input.accountId,
-    fundId: input.fundId,
-    projectId: input.projectId ?? undefined,
+    lines: input.lines.map((line) => ({
+      accountId: line.accountId,
+      amount: line.amount,
+      fundId: line.fundId,
+      projectId: line.projectId ?? undefined,
+      activityId: line.activityId ?? undefined,
+    })),
     mode: input.mode,
     bankAccountId: input.bankAccountId ?? undefined,
     chequeNo: input.chequeNo || undefined,
+    partyId: input.partyId ?? undefined,
     party: input.party,
     manualVoucherNo: input.manualVoucherNo || undefined,
     eventRef: input.eventRef || undefined,
@@ -174,6 +185,7 @@ export interface AccountInput {
   parentId?: number | null;
   isPostable?: boolean;
   openingBalance?: number;
+  defaultPartyId?: number | null;
 }
 
 export async function createAccount(input: AccountInput): Promise<ActionResult> {
@@ -182,6 +194,7 @@ export async function createAccount(input: AccountInput): Promise<ActionResult> 
       ...input,
       nameEn: input.nameEn || undefined,
       parentId: input.parentId ?? undefined,
+      defaultPartyId: input.defaultPartyId ?? undefined,
     }),
   );
 }
@@ -198,6 +211,7 @@ export async function updateAccount(
       isPostable: input.isPostable,
       isActive: input.isActive,
       openingBalance: input.openingBalance,
+      defaultPartyId: input.defaultPartyId,
     }),
   );
 }
@@ -205,6 +219,115 @@ export async function updateAccount(
 export async function deactivateAccount(id: number): Promise<ActionResult> {
   return guarded((access) => access.canManageAccounts, 'You cannot change the chart of accounts.', () =>
     api.delete(`/accounts/${id}`),
+  );
+}
+
+/* -------------------------------------------------------------------------
+   Activities — what an entry was for
+   ------------------------------------------------------------------------- */
+
+export interface ActivityInput {
+  nameTa: string;
+  nameEn?: string;
+  kind?: 'pooja' | 'service' | 'facility' | 'general';
+  defaultFundId?: number | null;
+  parentId?: number | null;
+}
+
+export async function createActivity(input: ActivityInput): Promise<ActionResult> {
+  return guarded(
+    (access) => access.canManageActivities,
+    'You cannot change the list of activities.',
+    () =>
+      api.post('/activities', {
+        ...input,
+        nameEn: input.nameEn || undefined,
+        defaultFundId: input.defaultFundId ?? undefined,
+        parentId: input.parentId ?? undefined,
+      }),
+  );
+}
+
+export async function updateActivity(
+  id: number,
+  input: Partial<ActivityInput> & { isActive?: boolean },
+): Promise<ActionResult> {
+  return guarded(
+    (access) => access.canManageActivities,
+    'You cannot change the list of activities.',
+    () =>
+      api.patch(`/activities/${id}`, {
+        nameTa: input.nameTa,
+        nameEn: input.nameEn || undefined,
+        kind: input.kind,
+        defaultFundId: input.defaultFundId,
+        parentId: input.parentId,
+        isActive: input.isActive,
+      }),
+  );
+}
+
+export async function deactivateActivity(id: number): Promise<ActionResult> {
+  return guarded(
+    (access) => access.canManageActivities,
+    'You cannot change the list of activities.',
+    () => api.delete(`/activities/${id}`),
+  );
+}
+
+/* -------------------------------------------------------------------------
+   Parties — who an entry was with
+   ------------------------------------------------------------------------- */
+
+export interface PartyInput {
+  nameTa: string;
+  nameEn?: string;
+  kind?: 'sponsor' | 'staff' | 'vendor' | 'devotee';
+  userId?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+}
+
+export async function createParty(input: PartyInput): Promise<ActionResult> {
+  return guarded(
+    (access) => access.canManageParties,
+    'You cannot change the list of parties.',
+    () =>
+      api.post('/parties', {
+        ...input,
+        nameEn: input.nameEn || undefined,
+        userId: input.userId || undefined,
+        phone: input.phone || undefined,
+        notes: input.notes || undefined,
+      }),
+  );
+}
+
+export async function updateParty(
+  id: number,
+  input: Partial<PartyInput> & { isActive?: boolean },
+): Promise<ActionResult> {
+  return guarded(
+    (access) => access.canManageParties,
+    'You cannot change the list of parties.',
+    () =>
+      api.patch(`/parties/${id}`, {
+        nameTa: input.nameTa,
+        nameEn: input.nameEn || undefined,
+        kind: input.kind,
+        userId: input.userId,
+        phone: input.phone,
+        notes: input.notes,
+        isActive: input.isActive,
+      }),
+  );
+}
+
+export async function deactivateParty(id: number): Promise<ActionResult> {
+  return guarded(
+    (access) => access.canManageParties,
+    'You cannot change the list of parties.',
+    () => api.delete(`/parties/${id}`),
   );
 }
 

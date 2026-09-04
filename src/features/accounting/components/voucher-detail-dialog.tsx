@@ -66,12 +66,25 @@ export function VoucherDetailDialog({
                 />
               )}
               <Detail label={partyLabel(voucher.kind)} value={voucher.party} />
-              <Detail
-                label="Ledger Account"
-                value={`${voucher.account.code} · ${voucher.account.name}`}
-              />
-              <Detail label="Fund" value={voucher.fund.name} />
-              <Detail label="Project" value={voucher.project?.name ?? '—'} />
+              {/*
+                * Every head, not just the first: a split voucher that showed
+                * one would be describing a different entry from the one posted.
+                */}
+              {voucher.lines.map((line) => (
+                <Detail
+                  key={line.id}
+                  label={
+                    voucher.lines.length > 1
+                      ? `Head ${line.lineNo} · ${formatCurrency(line.amount)}`
+                      : 'Ledger Account'
+                  }
+                  value={
+                    `${line.account.code} · ${line.account.name}` +
+                    ` — ${line.fund.name}` +
+                    (line.project ? ` / ${line.project.name}` : '')
+                  }
+                />
+              ))}
               <Detail
                 label="Mode"
                 value={PAYMENT_MODE_LABELS[voucher.mode]}
@@ -86,10 +99,6 @@ export function VoucherDetailDialog({
 
               {voucher.chequeNo && (
                 <Detail label="Cheque No" value={voucher.chequeNo} />
-              )}
-
-              {voucher.eventRef && (
-                <Detail label="Related Event" value={voucher.eventRef} />
               )}
             </dl>
 

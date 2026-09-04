@@ -48,16 +48,18 @@ import { AccountTypeBadge } from '../../components/account-type-badge';
 import { Amount } from '../../components/amount';
 import type { AccountingAccess } from '../../lib/accounting-access';
 import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABELS } from '../../lib/accounting-data';
-import type { AccountRecord, AccountType } from '../../types';
+import type { AccountRecord, AccountType, PartyRef } from '../../types';
 
 interface ChartOfAccountsScreenProps {
   initialAccounts: readonly AccountRecord[];
+  parties: readonly PartyRef[];
   access: AccountingAccess;
   year: number;
 }
 
 export function ChartOfAccountsScreen({
   initialAccounts,
+  parties,
   access,
   year,
 }: ChartOfAccountsScreenProps) {
@@ -127,6 +129,7 @@ export function ChartOfAccountsScreen({
               nameEn: draft.name,
               parentId: draft.parentId,
               isActive: draft.isActive,
+              defaultPartyId: draft.defaultPartyId,
               // The API settles an opening balance once entries post against
               // the head, so an unchanged figure is left out of the request
               // rather than resent and refused.
@@ -142,6 +145,7 @@ export function ChartOfAccountsScreen({
               type: draft.type,
               parentId: draft.parentId,
               openingBalance: draft.openingBalance,
+              defaultPartyId: draft.defaultPartyId,
             }),
       () => {
         setEditing(null);
@@ -309,6 +313,7 @@ export function ChartOfAccountsScreen({
           open={formOpen}
           onOpenChange={setFormOpen}
           account={editing}
+          parties={parties}
           parents={groups}
           existing={accounts}
           onSubmit={handleSubmit}

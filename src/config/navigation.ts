@@ -229,6 +229,22 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         requiredPermission: 'account:view',
       },
       {
+        id: 'activities',
+        label: 'Activities',
+        href: ACCOUNTING_ROUTES.activities,
+        icon: 'list',
+        description: 'What entries are reported under — poojas and services',
+        requiredPermission: 'activity:view',
+      },
+      {
+        id: 'parties',
+        label: 'Parties',
+        href: ACCOUNTING_ROUTES.parties,
+        icon: 'list',
+        description: 'Sponsors, staff and vendors entries are with',
+        requiredPermission: 'party:view',
+      },
+      {
         id: 'transactions',
         label: 'Transactions',
         href: ACCOUNTING_ROUTES.transactions,

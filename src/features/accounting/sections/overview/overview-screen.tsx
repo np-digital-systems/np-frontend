@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { Amount } from '../../components/amount';
 import type { AccountingAccess } from '../../lib/accounting-access';
 import {
+  codingSummary,
   formatCurrency,
   formatShortDate,
 } from '../../lib/accounting-data';
@@ -200,7 +201,7 @@ function PendingPanel({
                     {voucher.party}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-text-muted">
-                    {voucher.fund.name} · {voucher.createdBy.name}
+                    {codingSummary(voucher).fund} · {voucher.createdBy.name}
                   </p>
                 </div>
 

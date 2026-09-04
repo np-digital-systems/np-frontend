@@ -2,6 +2,8 @@ import type { BadgeStatus } from '@/components/portal/ui';
 
 import type {
   AccountType,
+  ActivityKind,
+  PartyKind,
   BankAccountType,
   PaymentMode,
   VoucherKind,
@@ -58,6 +60,34 @@ export const ACCOUNT_NATURAL_SIDE: Record<AccountType, 'debit' | 'credit'> = {
   equity: 'credit',
   income: 'credit',
   expense: 'debit',
+};
+
+export const ACTIVITY_KINDS: readonly ActivityKind[] = [
+  'pooja',
+  'service',
+  'facility',
+  'general',
+];
+
+export const ACTIVITY_KIND_LABELS: Record<ActivityKind, string> = {
+  pooja: 'Pooja',
+  service: 'Service',
+  facility: 'Facility',
+  general: 'General',
+};
+
+export const PARTY_KINDS: readonly PartyKind[] = [
+  'sponsor',
+  'staff',
+  'vendor',
+  'devotee',
+];
+
+export const PARTY_KIND_LABELS: Record<PartyKind, string> = {
+  sponsor: 'Sponsor',
+  staff: 'Staff',
+  vendor: 'Vendor',
+  devotee: 'Devotee',
 };
 
 export const PAYMENT_MODES: readonly PaymentMode[] = [
@@ -122,4 +152,22 @@ export function nextReference(
     .reduce((max, entry) => Math.max(max, Number(entry.ref.slice(prefix.length)) || 0), 0);
 
   return `${prefix}${String(highest + 1).padStart(4, '0')}`;
+}
+
+/**
+ * How a voucher's coding reads in one line.
+ *
+ * A split voucher names its first head and counts the rest, so a list stays a
+ * list. Everything is on the voucher itself for anyone who opens it.
+ */
+export function codingSummary(voucher: {
+  lines: readonly { account: { name: string }; fund: { name: string } }[];
+}): { account: string; fund: string } {
+  const [first, ...rest] = voucher.lines;
+  const more = rest.length > 0 ? ` +${rest.length}` : '';
+
+  return {
+    account: first ? `${first.account.name}${more}` : '—',
+    fund: first ? `${first.fund.name}${more}` : '—',
+  };
 }

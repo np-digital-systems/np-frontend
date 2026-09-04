@@ -2,13 +2,20 @@ import 'server-only';
 
 import { api, getAll, type Page } from '@/lib/api';
 
+import { getTranslations } from 'next-intl/server';
+
 import { getEventTypes, getEvents } from '@/features/events/lib/event-service';
+import { instanceLabel } from '@/features/events/lib/public-event-presentation';
 
 import type {
   Account,
   AccountRecord,
   AccountRef,
   AccountingSummary,
+  ActivityRecord,
+  ActivityRef,
+  PartyRecord,
+  PartyRef,
   BankAccount,
   BankAccountRecord,
   BankAccountRef,
@@ -57,7 +64,58 @@ export async function getPostableAccounts(): Promise<readonly AccountRef[]> {
     query: { postableOnly: true, isActive: true },
   });
 
-  return accounts.map(({ id, code, name, nameTa, type }) => ({ id, code, name, nameTa, type }));
+  return accounts.map(({ id, code, name, nameTa, type, defaultPartyId }) => ({
+    id,
+    code,
+    name,
+    nameTa,
+    type,
+    defaultPartyId,
+  }));
+}
+
+/* -------------------------------------------------------------------------
+   Activities and parties — the two analytical dimensions
+   ------------------------------------------------------------------------- */
+
+export async function getActivityRecords(
+  financialYearId?: number,
+): Promise<readonly ActivityRecord[]> {
+  return api.get<readonly ActivityRecord[]>('/activities', {
+    query: { financialYearId },
+  });
+}
+
+export async function getActivityOptions(): Promise<readonly ActivityRef[]> {
+  const activities = await api.get<readonly ActivityRecord[]>('/activities', {
+    query: { isActive: true },
+  });
+
+  return activities.map(({ id, name, nameEn, kind, defaultFundId }) => ({
+    id,
+    name,
+    nameEn,
+    kind,
+    defaultFundId,
+  }));
+}
+
+export async function getPartyRecords(financialYearId?: number): Promise<readonly PartyRecord[]> {
+  return api.get<readonly PartyRecord[]>('/parties', { query: { financialYearId } });
+}
+
+export async function getPartyOptions(): Promise<readonly PartyRef[]> {
+  const parties = await api.get<readonly PartyRecord[]>('/parties', {
+    query: { isActive: true },
+  });
+
+  return parties.map(({ id, name, nameEn, kind, userId }) => ({
+    id,
+    name,
+    nameEn,
+    kind,
+    userId,
+  }));
 }
 
 /* -------------------------------------------------------------------------
@@ -233,19 +291,36 @@ export async function getPoojaTypes(): Promise<readonly PoojaTypeRef[]> {
     id: type.id,
     name: type.name,
     nameEn: type.nameEn,
-    defaultFundId: type.defaultFundId,
-    defaultProjectId: type.defaultProjectId,
+    activityId: type.activityId,
   }));
 }
 
 export async function getPoojas(): Promise<readonly PoojaRef[]> {
-  const events = await getEvents();
+  /*
+   * The API renders the slot in English ("Week 1") for its own callers. The
+   * voucher form is read in Tamil, so the label is rebuilt here from the raw
+   * frequency and number — the same parts, and the same helper, the public
+   * calendar uses to say "1ஆம் வாரம்".
+   */
+  const [events, translate] = await Promise.all([
+    getEvents(),
+    getTranslations('Events.instance'),
+  ]);
 
   return events.map((event) => ({
     id: event.id,
     eventTypeId: event.eventTypeId,
-    label: event.instanceLabel,
+    label:
+      instanceLabel(
+        {
+          frequencyType: event.eventType.frequencyType,
+          instanceIdentifier: event.instanceIdentifier,
+          customInstanceName: event.customInstanceName,
+        },
+        translate,
+      ) ?? event.instanceLabel,
     date: event.scheduledDate,
     sponsorName: event.sponsor?.fullName ?? null,
+    sponsorId: event.sponsorId,
   }));
 }

@@ -1,6 +1,8 @@
 export {
   AccountOverviewFeature,
   ChartOfAccountsFeature,
+  ActivitiesFeature,
+  PartiesFeature,
   TransactionsFeature,
   CashBookFeature,
   BankBookFeature,

@@ -13,9 +13,8 @@ export interface EventType {
     readonly nameEn: string;
   readonly frequencyType: FrequencyType;
     readonly noOfInstances: number;
-  /** Where a receipt for this pooja is carried, offered when one is raised. */
-  readonly defaultFundId: number | null;
-  readonly defaultProjectId: number | null;
+  /** The activity a receipt for this pooja is coded to; it carries the fund. */
+  readonly activityId: number | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

@@ -1,3 +1,4 @@
+import { codingSummary } from '@/features/accounting/lib/accounting-data';
 import 'server-only';
 
 import type { BadgeStatus } from '@/components/portal/ui';
@@ -112,8 +113,8 @@ export async function getApprovalSummary(): Promise<ApprovalSummary> {
       type: voucher.kind === 'receipt' ? 'Receipt Voucher' : 'Payment Voucher',
       amount: currency(voucher.amount),
       payee: voucher.party,
-      fund: voucher.fund.name,
-      project: voucher.project?.name ?? '—',
+      fund: codingSummary(voucher).fund,
+      project: voucher.lines[0]?.project?.name ?? '—',
       createdBy: voucher.createdBy.name,
     })),
     queue: pending.slice(0, 3).map((voucher) => ({

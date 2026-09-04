@@ -11,6 +11,8 @@ import {
 import {
   ACCOUNT_TYPES,
   ACCOUNT_TYPE_LABELS,
+  ACTIVITY_KINDS,
+  PARTY_KINDS,
   PAYMENT_MODES,
   opensAtZero,
 } from './accounting-data';
@@ -23,14 +25,23 @@ export const ACCOUNT_CODE_PREFIX = {
   expense: '5',
 } as const;
 
+const voucherLineSchema = z.object({
+  accountId: z.number().int().positive('Choose a ledger account.'),
+  amount: positiveAmount('Each amount'),
+  fundId: z.number().int().positive('Choose a fund.'),
+  projectId: z.number().int().positive().nullable(),
+  activityId: z.number().int().positive().nullable(),
+});
+
 export const voucherSchema = z
   .object({
     date: isoDate,
     description: requiredText('A description'),
-    amount: positiveAmount('The amount'),
-    accountId: z.number().int().positive('Choose a ledger account.'),
-    fundId: z.number().int().positive('Choose a fund.'),
-    projectId: z.number().int().positive().nullable(),
+    lines: z
+      .array(voucherLineSchema)
+      .min(1, 'A voucher needs at least one head.')
+      .max(50),
+    partyId: z.number().int().positive().nullable(),
     mode: z.enum(PAYMENT_MODES),
     bankAccountId: z.number().int().positive().nullable(),
     chequeNo: optionalText(32),
@@ -72,6 +83,7 @@ export const accountSchema = z
     type: z.enum(ACCOUNT_TYPES),
     parentId: z.number().int().positive().nullable(),
     openingBalance: nonNegativeAmount('The opening balance'),
+    defaultPartyId: z.number().int().positive().nullable(),
     isActive: z.boolean(),
   })
   .superRefine((draft, ctx) => {
@@ -93,6 +105,22 @@ export const accountSchema = z
       });
     }
   });
+
+export const activitySchema = z.object({
+  nameTa: requiredText('A Tamil name'),
+  nameEn: optionalText(),
+  kind: z.enum(ACTIVITY_KINDS),
+  defaultFundId: z.number().int().positive().nullable(),
+  isActive: z.boolean(),
+});
+
+export const partySchema = z.object({
+  nameTa: requiredText('A Tamil name'),
+  nameEn: optionalText(),
+  kind: z.enum(PARTY_KINDS),
+  phone: optionalText(32),
+  isActive: z.boolean(),
+});
 
 export const bankAccountSchema = z.object({
   label: requiredText('A label'),
@@ -122,3 +150,5 @@ export const rejectionSchema = z.object({
 export type VoucherInput = z.input<typeof voucherSchema>;
 export type AccountInput = z.input<typeof accountSchema>;
 export type BankAccountInput = z.input<typeof bankAccountSchema>;
+export type ActivityInput = z.input<typeof activitySchema>;
+export type PartyInput = z.input<typeof partySchema>;

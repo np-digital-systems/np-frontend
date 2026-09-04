@@ -1,6 +1,8 @@
 export const ACCOUNTING_ROUTES = {
   overview: '/accounting',
   chartOfAccounts: '/accounting/chart-of-accounts',
+  activities: '/accounting/activities',
+  parties: '/accounting/parties',
   transactions: '/accounting/transactions',
   cashBook: '/accounting/cash-book',
   bankBook: '/accounting/bank-book',

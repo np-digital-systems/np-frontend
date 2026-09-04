@@ -67,7 +67,12 @@ export function applyVoucherFilters(
       return false;
     }
 
-    if (filters.fundId !== 'all' && voucher.fundId !== filters.fundId) {
+    // A split voucher sits in more than one fund, so it matches if any of its
+    // heads does — the alternative is hiding half of what the filter names.
+    if (
+      filters.fundId !== 'all' &&
+      !voucher.lines.some((line) => line.fundId === filters.fundId)
+    ) {
       return false;
     }
 
@@ -81,10 +86,11 @@ export function applyVoucherFilters(
       voucher.ref,
       voucher.party,
       voucher.description,
-      voucher.account.name,
-      voucher.fund.name,
-      voucher.project?.name ?? '',
-      voucher.eventRef ?? '',
+      ...voucher.lines.flatMap((line) => [
+        line.account.name,
+        line.fund.name,
+        line.project?.name ?? '',
+      ]),
     ]
       .join(' ')
       .toLowerCase()

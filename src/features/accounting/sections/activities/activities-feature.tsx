@@ -3,32 +3,32 @@ import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
-import { getAccountRecords, getPartyOptions } from '../../lib/accounting-service';
+import { getActivityRecords, getFundOptions } from '../../lib/accounting-service';
 
-import { ChartOfAccountsScreen } from './chart-of-accounts-screen';
+import { ActivitiesScreen } from './activities-screen';
 
-export async function ChartOfAccountsFeature() {
+export async function ActivitiesFeature() {
   const { permissions } = await requireSession();
   const access = getAccountingAccess(permissions);
 
-  if (!access.canViewAccounts) {
+  if (!access.canViewActivities) {
     return (
       <PageShell>
-        <AccessDenied description="The chart of accounts is limited to administrators and accountants." />
+        <AccessDenied description="Activities are limited to administrators and accountants." />
       </PageShell>
     );
   }
 
-  const [initialAccounts, parties] = await Promise.all([
-    getAccountRecords(),
-    getPartyOptions(),
+  const [initialActivities, funds] = await Promise.all([
+    getActivityRecords(),
+    getFundOptions(),
   ]);
 
   return (
     <PageShell>
-      <ChartOfAccountsScreen
-        initialAccounts={initialAccounts}
-        parties={parties}
+      <ActivitiesScreen
+        initialActivities={initialActivities}
+        funds={funds}
         access={access}
         year={getActiveYear(getToday())}
       />
