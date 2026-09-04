@@ -120,6 +120,10 @@ export interface Voucher {
   readonly fundId: number;
   readonly projectId: number | null;
 
+  /** What it was for, and who it was with. */
+  readonly activityId: number | null;
+  readonly partyId: number | null;
+
   readonly mode: PaymentMode;
     readonly bankAccountId: number | null;
   readonly chequeNo: string | null;
@@ -195,10 +199,63 @@ export interface PoojaTypeRef {
   readonly id: number;
   readonly name: string;
   readonly nameEn: string;
-  /** The coding a receipt for this pooja takes unless the clerk changes it. */
-  readonly defaultFundId: number | null;
-  readonly defaultProjectId: number | null;
+  /** The activity a receipt for this pooja is coded to; it carries the fund. */
+  readonly activityId: number | null;
 }
+
+export type ActivityKind = 'pooja' | 'service' | 'facility' | 'general';
+
+/**
+ * What an entry was for.
+ *
+ * The one dimension that sits on both sides of the books, so a pooja can be
+ * read whole — sponsorship in against the priest time it cost.
+ */
+export interface Activity {
+  readonly id: number;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly kind: ActivityKind;
+  readonly defaultFundId: number | null;
+  readonly parentId: number | null;
+  readonly isActive: boolean;
+}
+
+export interface ActivityRecord extends Activity {
+  readonly entryCount: number;
+  readonly income: number;
+  readonly expenses: number;
+  readonly net: number;
+}
+
+export type ActivityRef = Pick<Activity, 'id' | 'name' | 'nameEn' | 'kind' | 'defaultFundId'>;
+
+export type PartyKind = 'sponsor' | 'staff' | 'vendor' | 'devotee';
+
+/**
+ * Who an entry was with.
+ *
+ * The subsidiary ledger: people never become heads in the chart of accounts,
+ * so one salaries head serves every kurukkal and the question "what did we pay
+ * him" is answered by grouping on this instead.
+ */
+export interface Party {
+  readonly id: number;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly kind: PartyKind;
+  readonly userId: string | null;
+  readonly phone: string | null;
+  readonly isActive: boolean;
+}
+
+export interface PartyRecord extends Party {
+  readonly entryCount: number;
+  readonly contributed: number;
+  readonly paid: number;
+}
+
+export type PartyRef = Pick<Party, 'id' | 'name' | 'nameEn' | 'kind' | 'userId'>;
 
 /** One dated pooja, with whoever sponsors it. */
 export interface PoojaRef {
@@ -207,6 +264,8 @@ export interface PoojaRef {
   readonly label: string;
   readonly date: string;
   readonly sponsorName: string | null;
+  /** The person behind the sponsorship, so their party can be found. */
+  readonly sponsorId: string | null;
 }
 
 export interface AccountingSummary {

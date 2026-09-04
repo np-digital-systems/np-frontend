@@ -1,5 +1,7 @@
 export { AccountOverviewFeature } from './overview/overview-feature';
 export { ChartOfAccountsFeature } from './accounts/chart-of-accounts-feature';
+export { ActivitiesFeature } from './activities/activities-feature';
+export { PartiesFeature } from './parties/parties-feature';
 export { TransactionsFeature } from './transactions/transactions-feature';
 export { CashBookFeature } from './cash-book/cash-book-feature';
 export { BankBookFeature } from './bank-book/bank-book-feature';
