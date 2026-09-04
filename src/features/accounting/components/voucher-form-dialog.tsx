@@ -41,6 +41,8 @@ import type {
   BankAccountRef,
   FundRef,
   PaymentMode,
+  ActivityRef,
+  PartyRef,
   PoojaRef,
   PoojaTypeRef,
   ProjectRef,
@@ -58,6 +60,9 @@ export interface VoucherDraft {
   mode: PaymentMode;
   bankAccountId: number | null;
   chequeNo: string;
+  /** What it was for, and who it was with. */
+  activityId: number | null;
+  partyId: number | null;
   party: string;
   manualVoucherNo: string;
   eventTypeId: number | null;
@@ -67,6 +72,7 @@ export interface VoucherDraft {
 }
 
 const NO_PROJECT = '__none__';
+const NO_DIMENSION = '__none__';
 
 /**
  * A quiet heading between groups of fields.
@@ -100,6 +106,8 @@ function draftFrom(
       mode: voucher.mode,
       bankAccountId: voucher.bankAccountId,
       chequeNo: voucher.chequeNo ?? '',
+      activityId: voucher.activityId,
+      partyId: voucher.partyId,
       party: voucher.party,
       manualVoucherNo: voucher.manualVoucherNo ?? '',
       eventTypeId: voucher.eventTypeId,
@@ -126,6 +134,8 @@ function draftFrom(
     mode: 'cash',
     bankAccountId: null,
     chequeNo: '',
+    activityId: null,
+    partyId: null,
     party: '',
     manualVoucherNo: '',
     eventTypeId: null,
@@ -144,6 +154,8 @@ interface VoucherFormDialogProps {
   funds: readonly FundRef[];
   projects: readonly ProjectRef[];
   bankAccounts: readonly BankAccountRef[];
+  activities: readonly ActivityRef[];
+  parties: readonly PartyRef[];
   poojaTypes: readonly PoojaTypeRef[];
   poojas: readonly PoojaRef[];
   onSubmit: (draft: VoucherDraft) => void;
@@ -159,6 +171,8 @@ export function VoucherFormDialog({
   funds,
   projects,
   bankAccounts,
+  activities,
+  parties,
   poojaTypes,
   poojas,
   onSubmit,
@@ -218,12 +232,35 @@ export function VoucherFormDialog({
     (type) => type.id === draft.eventTypeId,
   );
 
+  /*
+   * A pooja receipt takes its activity from the pooja type, so the picker is
+   * hidden there — answering it twice could only produce a disagreement.
+   * Everything else names its activity directly.
+   */
+  const activityFromPooja = isPoojaSponsorship && selectedPoojaType != null;
+
   function update<K extends keyof VoucherDraft>(key: K, value: VoucherDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
     function changeFund(fundId: number) {
     setDraft((current) => ({ ...current, fundId, projectId: null }));
+  }
+
+  /*
+   * The activity carries the fund its money is held in, so choosing one
+   * settles both. It is a default and not a rule: the fund below stays
+   * editable for the entry that genuinely belongs somewhere else.
+   */
+  function changeActivity(activityId: number | null) {
+    const activity = activities.find((entry) => entry.id === activityId);
+
+    setDraft((current) => ({
+      ...current,
+      activityId,
+      fundId: activity?.defaultFundId ?? current.fundId,
+      projectId: activity?.defaultFundId == null ? current.projectId : null,
+    }));
   }
 
   function changeMode(mode: PaymentMode) {
@@ -352,6 +389,47 @@ export function VoucherFormDialog({
             </Select>
           </FormField>
 
+          {/*
+            * Hidden for pooja sponsorship: the pooja type already names the
+            * activity, and asking twice could only produce a disagreement.
+            */}
+          {!activityFromPooja && (
+            <FormField
+              id="voucher-activity"
+              label="Activity"
+              hint={
+                activities.length === 0
+                  ? 'No activities exist yet — add one under Accounting.'
+                  : 'What this is reported under. Income and expenditure both carry it.'
+              }
+            >
+              <Select
+                value={
+                  draft.activityId === null
+                    ? NO_DIMENSION
+                    : String(draft.activityId)
+                }
+                onValueChange={(value) =>
+                  changeActivity(value === NO_DIMENSION ? null : Number(value))
+                }
+              >
+                <SelectTrigger id="voucher-activity" className="w-full">
+                  <SelectValue placeholder="Not tied to one" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
+
+                  {activities.map((activity) => (
+                    <SelectItem key={activity.id} value={String(activity.id)}>
+                      {activity.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+
           {isPoojaSponsorship && (
             <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface-2 p-3.5">
               <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
@@ -376,15 +454,15 @@ export function VoucherFormDialog({
                         // invalidates whatever pooja was chosen under the old one.
                         eventId: null,
                         eventRef: null,
-                        // The type carries the fund and project its receipts
-                        // are coded to, so they are answered once on the type
-                        // rather than again on every receipt. Still editable
-                        // below: this is the usual coding, not a rule.
-                        fundId: type?.defaultFundId ?? current.fundId,
-                        projectId:
-                          type?.defaultFundId == null
-                            ? current.projectId
-                            : type.defaultProjectId,
+                        // The type names the activity its receipts are coded
+                        // to, and the activity carries the fund in turn, so
+                        // one choice settles both. Still editable below: this
+                        // is the usual coding, not a rule.
+                        activityId: type?.activityId ?? current.activityId,
+                        fundId:
+                          activities.find(
+                            (entry) => entry.id === type?.activityId,
+                          )?.defaultFundId ?? current.fundId,
                       }));
                     }}
                   >
@@ -429,11 +507,18 @@ export function VoucherFormDialog({
                           ? `${selectedPoojaType?.name ?? ''} — ${pooja.label}`
                           : null,
                         // A receipt is collected from whoever sponsors the
-                        // pooja, so selecting one fills the payer in.
+                        // pooja, so selecting one fills the payer in — both
+                        // the name shown and the party the books group by.
                         party:
                           kind === 'receipt' && pooja?.sponsorName
                             ? pooja.sponsorName
                             : current.party,
+                        partyId:
+                          kind === 'receipt' && pooja?.sponsorId
+                            ? (parties.find(
+                                (entry) => entry.userId === pooja.sponsorId,
+                              )?.id ?? current.partyId)
+                            : current.partyId,
                         // The pooja is the description for these entries;
                         // anything the user already typed is left alone.
                         description:
@@ -474,20 +559,69 @@ export function VoucherFormDialog({
             * of these in, and it only fills what the user has not typed. Asked
             * for first, they would be answered twice.
             */}
-          <FormField id="voucher-party" label={partyLabel(kind)} required>
-            <Input
-              id="voucher-party"
-              value={draft.party}
-              placeholder={
-                kind === 'receipt'
-                  ? 'Devotee, trust or collection point'
-                  : 'Vendor, contractor or payee'
-              }
-              onChange={(changeEvent) =>
-                update('party', changeEvent.target.value)
-              }
-            />
-          </FormField>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField id="voucher-party" label={partyLabel(kind)} required>
+              <Input
+                id="voucher-party"
+                value={draft.party}
+                placeholder={
+                  kind === 'receipt'
+                    ? 'Devotee, trust or collection point'
+                    : 'Vendor, contractor or payee'
+                }
+                onChange={(changeEvent) =>
+                  update('party', changeEvent.target.value)
+                }
+              />
+            </FormField>
+
+            {/*
+              * The name above is what the receipt says; this is who the books
+              * group by. A walk-in donor needs only the name, which is why
+              * this stays optional — but naming a party is what makes "how
+              * much has this sponsor given" answerable at all.
+              */}
+            <FormField
+              id="voucher-party-ref"
+              label="On record as"
+              hint="Links this entry to a sponsor, staff member or vendor."
+            >
+              <Select
+                value={
+                  draft.partyId === null ? NO_DIMENSION : String(draft.partyId)
+                }
+                onValueChange={(value) => {
+                  const partyId = value === NO_DIMENSION ? null : Number(value);
+                  const chosen = parties.find((entry) => entry.id === partyId);
+
+                  setDraft((current) => ({
+                    ...current,
+                    partyId,
+                    // Naming the party fills the printed name too, unless the
+                    // clerk has already written something of their own.
+                    party:
+                      chosen && !current.party.trim()
+                        ? chosen.name
+                        : current.party,
+                  }));
+                }}
+              >
+                <SelectTrigger id="voucher-party-ref" className="w-full">
+                  <SelectValue placeholder="Not on record" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value={NO_DIMENSION}>Not on record</SelectItem>
+
+                  {parties.map((entry) => (
+                    <SelectItem key={entry.id} value={String(entry.id)}>
+                      {entry.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          </div>
 
           <FormField id="voucher-description" label="Description" required>
             <Input
