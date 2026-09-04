@@ -2,6 +2,8 @@ import type { BadgeStatus } from '@/components/portal/ui';
 
 import type {
   AccountType,
+  ActivityKind,
+  PartyKind,
   BankAccountType,
   PaymentMode,
   VoucherKind,
@@ -58,6 +60,34 @@ export const ACCOUNT_NATURAL_SIDE: Record<AccountType, 'debit' | 'credit'> = {
   equity: 'credit',
   income: 'credit',
   expense: 'debit',
+};
+
+export const ACTIVITY_KINDS: readonly ActivityKind[] = [
+  'pooja',
+  'service',
+  'facility',
+  'general',
+];
+
+export const ACTIVITY_KIND_LABELS: Record<ActivityKind, string> = {
+  pooja: 'Pooja',
+  service: 'Service',
+  facility: 'Facility',
+  general: 'General',
+};
+
+export const PARTY_KINDS: readonly PartyKind[] = [
+  'sponsor',
+  'staff',
+  'vendor',
+  'devotee',
+];
+
+export const PARTY_KIND_LABELS: Record<PartyKind, string> = {
+  sponsor: 'Sponsor',
+  staff: 'Staff',
+  vendor: 'Vendor',
+  devotee: 'Devotee',
 };
 
 export const PAYMENT_MODES: readonly PaymentMode[] = [
