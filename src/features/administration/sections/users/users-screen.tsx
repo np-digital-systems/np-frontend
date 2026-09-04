@@ -132,7 +132,15 @@ export function UsersScreen({
 
     run(
       async () => {
-        if (!target) return createUser({ ...profile, role: draft.role });
+        // Only a new staff account carries a password; the API rejects one on
+        // an edit, and a devotee has no sign-in to give it to.
+        if (!target) {
+          return createUser({
+            ...profile,
+            role: draft.role,
+            password: draft.password || undefined,
+          });
+        }
 
         const updated = await updateUser(target.id, profile);
 
