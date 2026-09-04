@@ -64,7 +64,14 @@ export async function getPostableAccounts(): Promise<readonly AccountRef[]> {
     query: { postableOnly: true, isActive: true },
   });
 
-  return accounts.map(({ id, code, name, nameTa, type }) => ({ id, code, name, nameTa, type }));
+  return accounts.map(({ id, code, name, nameTa, type, defaultPartyId }) => ({
+    id,
+    code,
+    name,
+    nameTa,
+    type,
+    defaultPartyId,
+  }));
 }
 
 /* -------------------------------------------------------------------------
