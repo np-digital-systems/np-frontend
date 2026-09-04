@@ -109,6 +109,8 @@ interface LineEditorProps {
   /** Hidden when the pooja type already settles it. */
   showActivity: boolean;
   onChange: (lines: VoucherDraftLine[]) => void;
+  /** The head's usual party, offered to the document when the first is chosen. */
+  onSuggestParty: (partyId: number) => void;
 }
 
 /**
@@ -126,6 +128,7 @@ function LineEditor({
   activities,
   showActivity,
   onChange,
+  onSuggestParty,
 }: LineEditorProps) {
   const accountsByType = useMemo(() => {
     const groups = new Map<string, AccountRef[]>();
@@ -142,6 +145,20 @@ function LineEditor({
 
   function edit(index: number, patch: Partial<VoucherDraftLine>) {
     onChange(lines.map((line, at) => (at === index ? { ...line, ...patch } : line)));
+  }
+
+  /*
+   * A head can name who it is usually with — a kurukkal on his honorarium —
+   * which the first line offers up to the document's payee. Only the first,
+   * and only when nothing has been chosen: the party belongs to the voucher,
+   * and a second head must not quietly overwrite the first one's answer.
+   */
+  function onAccountChange(index: number, accountId: number) {
+    edit(index, { accountId });
+
+    const suggested = accounts.find((entry) => entry.id === accountId)?.defaultPartyId;
+
+    if (index === 0 && suggested != null) onSuggestParty(suggested);
   }
 
   function addLine() {
@@ -204,7 +221,9 @@ function LineEditor({
             >
               <Select
                 value={String(line.accountId)}
-                onValueChange={(value) => edit(index, { accountId: Number(value) })}
+                onValueChange={(value) =>
+                  onAccountChange(index, Number(value))
+                }
               >
                 <SelectTrigger id={`voucher-account-${index}`} className="w-full">
                   <SelectValue />
@@ -611,6 +630,17 @@ export function VoucherFormDialog({
             activities={activities}
             showActivity={!activityFromPooja}
             onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
+            onSuggestParty={(partyId) =>
+              setDraft((current) =>
+                current.partyId === null && !current.party.trim()
+                  ? {
+                      ...current,
+                      partyId,
+                      party: parties.find((entry) => entry.id === partyId)?.name ?? '',
+                    }
+                  : current,
+              )
+            }
           />
 
 
