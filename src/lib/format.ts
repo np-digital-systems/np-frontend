@@ -10,21 +10,40 @@ import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 export const TIME_ZONE = 'Asia/Colombo';
 
+/**
+ * A rupee figure, to the cent.
+ *
+ * Both fraction bounds are pinned at two so every amount reads the same width
+ * and nothing is ever rounded away on screen. This used to cap at zero
+ * decimals, which silently turned Rs 1,250.75 into Rs 1,251 — fine for a
+ * headline, wrong for a ledger, and these are the same books either way. The
+ * API already hands over exactly two decimal places (see `toRupees`), so this
+ * shows what is stored rather than a reading of it.
+ */
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency: 'LKR',
     // "Rs" rather than "LKR", matching how the temple writes its books.
     currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 
+/**
+ * A shortened figure for a chart axis, where a full amount will not fit.
+ *
+ * Deliberately the one place that still rounds: an axis tick reading
+ * "Rs 1,25,038.75" is unreadable and says nothing a gridline needs to say. Use
+ * `formatCurrency` anywhere a number is meant to be read as money — the tooltip
+ * beside these ticks does.
+ */
 export function formatCompact(value: number): string {
-  if (Math.abs(value) >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
-  if (Math.abs(value) >= 1000) return `₹${Math.round(value / 1000)}k`;
+  if (Math.abs(value) >= 100000) return `Rs ${(value / 100000).toFixed(1)}L`;
+  if (Math.abs(value) >= 1000) return `Rs ${Math.round(value / 1000)}k`;
 
-  return `₹${value}`;
+  return `Rs ${value}`;
 }
 
 export function formatSigned(value: number): string {
