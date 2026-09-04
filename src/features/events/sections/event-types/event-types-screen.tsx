@@ -41,7 +41,7 @@ import { FrequencyBadge } from '../../components/frequency-badge';
 import { INSTANCE_MEANING, FREQUENCY_LABELS, FREQUENCY_TYPES } from '../../lib/event-data';
 import type { EventTypeRecord } from '../../types';
 
-import type { FundRef, ProjectRef } from '@/features/accounting/types';
+import type { ActivityRef } from '@/features/accounting/types';
 
 const COLUMNS: DataColumn[] = [
   { key: 'name', label: 'Event Type' },
@@ -54,15 +54,13 @@ const COLUMNS: DataColumn[] = [
 
 interface EventTypesScreenProps {
   initialTypes: readonly EventTypeRecord[];
-  funds: readonly FundRef[];
-  projects: readonly ProjectRef[];
+  activities: readonly ActivityRef[];
   year: number;
 }
 
 export function EventTypesScreen({
   initialTypes,
-  funds,
-  projects,
+  activities,
   year,
 }: EventTypesScreenProps) {
   const types = initialTypes;
@@ -104,8 +102,7 @@ export function EventTypesScreen({
       nameEn: draft.nameEn,
       frequencyType: draft.frequencyType,
       noOfInstances: draft.noOfInstances,
-      defaultFundId: draft.defaultFundId,
-      defaultProjectId: draft.defaultProjectId,
+      activityId: draft.activityId,
     };
 
     run(
@@ -252,8 +249,7 @@ export function EventTypesScreen({
         open={formOpen}
         onOpenChange={setFormOpen}
         eventType={editing}
-        funds={funds}
-        projects={projects}
+        activities={activities}
         onSubmit={handleSubmit}
       />
 
