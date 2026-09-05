@@ -26,7 +26,7 @@ import type {
   ScheduleGroup,
   ScheduleSlot,
   SponsorAssignment,
-  SponsorUser,
+  SponsorParty,
 } from '../../types';
 
 import { ScheduleGroupCard } from './schedule-group-card';
@@ -37,7 +37,7 @@ interface YearlyScheduleScreenProps {
   groups: readonly ScheduleGroup[];
   initialEvents: readonly EventRecord[];
   eventTypes: readonly EventType[];
-  sponsors: readonly SponsorUser[];
+  sponsors: readonly SponsorParty[];
   assignments: readonly SponsorAssignment[];
   access: EventAccess;
   today: string;
@@ -123,7 +123,7 @@ export function YearlyScheduleScreen({
       ),
       scheduled: events.length,
       open: slots.filter((slot) => slot.event === null).length,
-      unsponsored: events.filter((event) => event.sponsorId === null).length,
+      unsponsored: events.filter((event) => event.sponsorPartyId === null).length,
     };
   }, [resolved, events]);
 
@@ -144,7 +144,7 @@ export function YearlyScheduleScreen({
       scheduledDate: '',
       startTime: '',
       endTime: null,
-      sponsorId: slot.defaultSponsor?.id ?? null,
+      sponsorPartyId: slot.defaultSponsor?.id ?? null,
       notes: null,
       isCompleted: false,
       createdAt: '',
@@ -170,7 +170,7 @@ export function YearlyScheduleScreen({
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
-              sponsorId: draft.sponsorId,
+              sponsorPartyId: draft.sponsorPartyId,
               notes: draft.notes || null,
             })
           : createEvent({
@@ -180,7 +180,7 @@ export function YearlyScheduleScreen({
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
-              sponsorId: draft.sponsorId,
+              sponsorPartyId: draft.sponsorPartyId,
               notes: draft.notes || null,
             }),
       () => {
