@@ -3,7 +3,12 @@ import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
-import { getActivityRecords, getFundOptions } from '../../lib/accounting-service';
+import {
+  getActivityRecords,
+  getFundOptions,
+  getPartyOptions,
+  getProjectOptions,
+} from '../../lib/accounting-service';
 
 import { ActivitiesScreen } from './activities-screen';
 
@@ -19,9 +24,11 @@ export async function ActivitiesFeature() {
     );
   }
 
-  const [initialActivities, funds] = await Promise.all([
+  const [initialActivities, funds, projects, parties] = await Promise.all([
     getActivityRecords(),
     getFundOptions(),
+    getProjectOptions(),
+    getPartyOptions(),
   ]);
 
   return (
@@ -29,6 +36,8 @@ export async function ActivitiesFeature() {
       <ActivitiesScreen
         initialActivities={initialActivities}
         funds={funds}
+        projects={projects}
+        parties={parties}
         access={access}
         year={getActiveYear(getToday())}
       />
