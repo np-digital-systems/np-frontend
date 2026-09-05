@@ -48,6 +48,22 @@ function DialogOverlay({
 }
 
 /*
+ * Every kind of layer that can float above a dialog.
+ *
+ * A popover or a dropdown menu is positioned by Radix's popper and lands in
+ * `[data-radix-popper-content-wrapper]`. A select does not: it defaults to
+ * `position="item-aligned"`, which skips the popper entirely and portals a bare
+ * `role="listbox"` to the end of the body. Matching only the wrapper — as this
+ * did — therefore missed every select in the portal, which is most of them.
+ */
+const LAYERS = [
+  "[data-radix-popper-content-wrapper]",
+  '[role="listbox"]',
+  '[role="menu"]',
+  '[data-slot="select-content"]',
+].join(",")
+
+/*
  * A select, dropdown or popover opened inside a dialog is portalled to the end
  * of the body, so it sits outside the dialog in the DOM even though it is
  * plainly inside it on screen. Radix would read a click on one as a click
@@ -64,10 +80,41 @@ function isInsidePopper(event: {
 }): boolean {
   const target = event.detail?.originalEvent?.target ?? event.target
 
-  return (
-    target instanceof Element &&
-    target.closest("[data-radix-popper-content-wrapper]") !== null
-  )
+  return target instanceof Element && target.closest(LAYERS) !== null
+}
+
+/**
+ * Was a dropdown open when the pointer went down?
+ *
+ * The guard above catches a click *on* an open list. It does not catch the
+ * commoner gesture: a list is open, and you click somewhere else to get rid of
+ * it. That click dismisses the list and then reaches the dialog, which reads it
+ * as a click outside itself and closes — taking a half-typed voucher with it.
+ *
+ * By the time the dialog's handler runs the list has already gone from the DOM,
+ * so the question cannot be asked then. This records the answer during the
+ * capture phase, which runs before any of Radix's dismissal handling, and the
+ * handlers below read what it recorded. One click closes the list; the dialog
+ * stays, and the next click outside closes the dialog as usual.
+ */
+function usePopperWasOpen() {
+  const wasOpen = React.useRef(false)
+
+  React.useEffect(() => {
+    const record = () => {
+      wasOpen.current = document.querySelector(LAYERS) !== null
+    }
+
+    document.addEventListener("pointerdown", record, true)
+    document.addEventListener("keydown", record, true)
+
+    return () => {
+      document.removeEventListener("pointerdown", record, true)
+      document.removeEventListener("keydown", record, true)
+    }
+  }, [])
+
+  return wasOpen
 }
 
 function DialogContent({
@@ -80,6 +127,14 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
+  const popperWasOpen = usePopperWasOpen()
+
+  /** True when this interaction's only job was to dismiss a dropdown. */
+  const dismissedAPopper = (event: {
+    target: EventTarget | null
+    detail?: { originalEvent?: Event }
+  }) => isInsidePopper(event) || popperWasOpen.current
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -90,7 +145,7 @@ function DialogContent({
           className
         )}
         onPointerDownOutside={(event) => {
-          if (isInsidePopper(event)) {
+          if (dismissedAPopper(event)) {
             event.preventDefault()
             return
           }
@@ -98,7 +153,7 @@ function DialogContent({
           onPointerDownOutside?.(event)
         }}
         onInteractOutside={(event) => {
-          if (isInsidePopper(event)) {
+          if (dismissedAPopper(event)) {
             event.preventDefault()
             return
           }

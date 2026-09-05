@@ -151,6 +151,16 @@ export interface PortalNavGroup {
   defaultOpen?: boolean;
 }
 
+/*
+ * The portal's navigation, grouped by what somebody is doing rather than by
+ * what kind of record it touches.
+ *
+ * A clerk raising receipts all morning, an accountant reading the books, and a
+ * trustee setting the year up are three different jobs, and the old single
+ * twelve-item "Accounting" group made each of them wade through the other two.
+ * Daily work first, because it is opened a hundred times a day; the things
+ * configured once a year sit at the bottom under Setup.
+ */
 export const portalNavigation: readonly PortalNavGroup[] = [
   {
     id: 'dashboard',
@@ -168,114 +178,10 @@ export const portalNavigation: readonly PortalNavGroup[] = [
   },
 
   {
-    id: 'events',
-    label: 'Event Management',
+    id: 'daily-entry',
+    label: 'Daily Entry',
     defaultOpen: true,
     items: [
-      {
-        id: 'event-calendar',
-        label: 'Event Calendar',
-        href: EVENT_ROUTES.calendar,
-        icon: 'calendar',
-        description: 'Scheduled poojas and festivals for the year',
-        requiredPermission: 'event:view',
-      },
-      {
-        id: 'event-types',
-        label: 'Event Types',
-        href: EVENT_ROUTES.types,
-        icon: 'tag',
-        description: 'Master registry of recurring event categories',
-        requiredPermission: 'event-type:manage',
-      },
-      {
-        id: 'yearly-schedule',
-        label: 'Yearly Schedule',
-        href: EVENT_ROUTES.schedule,
-        icon: 'calendar-days',
-        description: 'Instance slots planned against each event type',
-        requiredPermission: 'event-schedule:view',
-      },
-      {
-        id: 'sponsors',
-        label: 'Sponsors',
-        href: EVENT_ROUTES.sponsors,
-        icon: 'handshake',
-        description: 'Who sponsors each event type and instance',
-        requiredPermission: 'event-sponsor:view',
-      },
-    ],
-  },
-
-  {
-    id: 'accounting',
-    label: 'Accounting',
-    defaultOpen: true,
-    items: [
-      {
-        id: 'account-overview',
-        label: 'Account Overview',
-        href: ACCOUNTING_ROUTES.overview,
-        icon: 'chart',
-        description: 'Income, expenditure and fund position',
-        requiredPermission: 'fund:view',
-      },
-      {
-        id: 'chart-of-accounts',
-        label: 'Chart of Accounts',
-        href: ACCOUNTING_ROUTES.chartOfAccounts,
-        icon: 'list',
-        description: 'The ledger accounts every entry posts to',
-        requiredPermission: 'account:view',
-      },
-      {
-        id: 'activities',
-        label: 'Activities',
-        href: ACCOUNTING_ROUTES.activities,
-        icon: 'list',
-        description: 'What entries are reported under — poojas and services',
-        requiredPermission: 'activity:view',
-      },
-      {
-        id: 'parties',
-        label: 'Parties',
-        href: ACCOUNTING_ROUTES.parties,
-        icon: 'list',
-        description: 'Sponsors, staff and vendors entries are with',
-        requiredPermission: 'party:view',
-      },
-      {
-        id: 'transactions',
-        label: 'Transactions',
-        href: ACCOUNTING_ROUTES.transactions,
-        icon: 'transfer',
-        description: 'The posted ledger',
-        requiredPermission: 'transaction:view',
-      },
-      {
-        id: 'cash-book',
-        label: 'Cash Book',
-        href: ACCOUNTING_ROUTES.cashBook,
-        icon: 'book',
-        description: 'Day-wise cash receipts and payments',
-        requiredPermission: 'cash-book:view',
-      },
-      {
-        id: 'bank-book',
-        label: 'Bank Book',
-        href: ACCOUNTING_ROUTES.bankBook,
-        icon: 'book',
-        description: 'Per-account bank statement',
-        requiredPermission: 'bank-book:view',
-      },
-      {
-        id: 'bank-accounts',
-        label: 'Bank Accounts',
-        href: ACCOUNTING_ROUTES.bankAccounts,
-        icon: 'landmark',
-        description: 'The temple’s bank and fixed deposit accounts',
-        requiredPermission: 'bank-account:view',
-      },
       {
         id: 'receipt-vouchers',
         label: 'Receipt Vouchers',
@@ -301,6 +207,86 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         requiredPermission: 'voucher:approve',
       },
       {
+        id: 'sanththa',
+        label: 'Sanththa',
+        href: CONTRIBUTION_ROUTES.sanththa,
+        icon: 'users',
+        description: 'The members’ subscription register and its dues',
+        requiredPermission: 'contribution:view',
+      },
+    ],
+  },
+
+  {
+    id: 'events',
+    label: 'Events',
+    defaultOpen: true,
+    items: [
+      {
+        id: 'event-calendar',
+        label: 'Event Calendar',
+        href: EVENT_ROUTES.calendar,
+        icon: 'calendar',
+        description: 'Every pooja and festival on the temple year',
+        requiredPermission: 'event:view',
+      },
+      {
+        id: 'yearly-schedule',
+        label: 'Yearly Schedule',
+        href: EVENT_ROUTES.schedule,
+        icon: 'calendar-range',
+        description: 'Every slot of the year, sponsored or not',
+        requiredPermission: 'event-schedule:view',
+      },
+      {
+        id: 'sponsors',
+        label: 'Sponsors',
+        href: EVENT_ROUTES.sponsors,
+        icon: 'handshake',
+        description: 'Who has taken which pooja',
+        requiredPermission: 'event-sponsor:view',
+      },
+    ],
+  },
+
+  {
+    id: 'books',
+    label: 'Books & Reports',
+    defaultOpen: true,
+    items: [
+      {
+        id: 'account-overview',
+        label: 'Account Overview',
+        href: ACCOUNTING_ROUTES.overview,
+        icon: 'chart',
+        description: 'Income, expenditure and fund position',
+        requiredPermission: 'fund:view',
+      },
+      {
+        id: 'cash-book',
+        label: 'Cash Book',
+        href: ACCOUNTING_ROUTES.cashBook,
+        icon: 'book',
+        description: 'Day-wise cash receipts and payments',
+        requiredPermission: 'cash-book:view',
+      },
+      {
+        id: 'bank-book',
+        label: 'Bank Book',
+        href: ACCOUNTING_ROUTES.bankBook,
+        icon: 'book',
+        description: 'Per-account bank statement',
+        requiredPermission: 'bank-book:view',
+      },
+      {
+        id: 'transactions',
+        label: 'Transactions',
+        href: ACCOUNTING_ROUTES.transactions,
+        icon: 'transfer',
+        description: 'The posted ledger',
+        requiredPermission: 'transaction:view',
+      },
+      {
         id: 'reports',
         label: 'Reports',
         href: ACCOUNTING_ROUTES.reports,
@@ -312,10 +298,65 @@ export const portalNavigation: readonly PortalNavGroup[] = [
   },
 
   {
-    id: 'finance',
-    label: 'Financial Management',
-    defaultOpen: true,
+    /*
+     * What the temple owns and what it has put away — deliberately apart from
+     * the books. "Assets" alone read as the accounting sense of the word, which
+     * takes in cash and bank too; this group is the register of property.
+     */
+    id: 'property',
+    label: 'Property & Investments',
     items: [
+      {
+        id: 'assets',
+        label: 'Asset Register',
+        href: FINANCE_ROUTES.assets,
+        icon: 'package',
+        description: 'Jewellery, vahanam, land and equipment the temple owns',
+        requiredPermission: 'asset:view',
+      },
+      {
+        id: 'fixed-deposits',
+        label: 'Fixed Deposits',
+        href: FINANCE_ROUTES.fixedDeposits,
+        icon: 'piggy-bank',
+        description: 'Deposits placed, their maturities and interest',
+        requiredPermission: 'fixed-deposit:view',
+      },
+    ],
+  },
+
+  {
+    /*
+     * The master records every voucher is coded against. Set up once and rarely
+     * touched again, so they sit below the daily work rather than among it.
+     */
+    id: 'setup',
+    label: 'Setup',
+    items: [
+      {
+        id: 'chart-of-accounts',
+        label: 'Chart of Accounts',
+        href: ACCOUNTING_ROUTES.chartOfAccounts,
+        icon: 'list',
+        description: 'The ledger heads every entry posts to',
+        requiredPermission: 'account:view',
+      },
+      {
+        id: 'activities',
+        label: 'Activities',
+        href: ACCOUNTING_ROUTES.activities,
+        icon: 'tag',
+        description: 'What entries are for — poojas, annadhanam, thiruppani',
+        requiredPermission: 'activity:view',
+      },
+      {
+        id: 'parties',
+        label: 'Parties',
+        href: ACCOUNTING_ROUTES.parties,
+        icon: 'user',
+        description: 'Sponsors, staff and vendors entries are with',
+        requiredPermission: 'party:view',
+      },
       {
         id: 'funds',
         label: 'Funds',
@@ -333,36 +374,28 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         requiredPermission: 'project:view',
       },
       {
-        id: 'fixed-deposits',
-        label: 'Fixed Deposits',
-        href: FINANCE_ROUTES.fixedDeposits,
-        icon: 'piggy-bank',
-        description: 'Deposits placed, their maturities and interest',
-        requiredPermission: 'fixed-deposit:view',
+        id: 'bank-accounts',
+        label: 'Bank Accounts',
+        href: ACCOUNTING_ROUTES.bankAccounts,
+        icon: 'landmark',
+        description: 'The temple’s bank and fixed deposit accounts',
+        requiredPermission: 'bank-account:view',
       },
       {
-        id: 'assets',
-        label: 'Assets',
-        href: FINANCE_ROUTES.assets,
-        icon: 'package',
-        description: 'The register of what the temple owns',
-        requiredPermission: 'asset:view',
+        id: 'event-types',
+        label: 'Pooja Types',
+        href: EVENT_ROUTES.types,
+        icon: 'list',
+        description: 'The recurring observances the calendar is built from',
+        requiredPermission: 'event:view',
       },
-    ],
-  },
-
-  {
-    id: 'contributions',
-    label: 'Temple Contributions',
-    defaultOpen: true,
-    items: [
       {
-        id: 'sanththa',
-        label: 'Sanththa',
-        href: CONTRIBUTION_ROUTES.sanththa,
-        icon: 'users',
-        description: 'The members’ subscription register and its dues',
-        requiredPermission: 'contribution:view',
+        id: 'financial-years',
+        label: 'Financial Years',
+        href: ADMIN_ROUTES.financialYears,
+        icon: 'calendar-range',
+        description: 'The year the books are kept in',
+        requiredPermission: 'financial-year:view',
       },
     ],
   },
@@ -370,7 +403,6 @@ export const portalNavigation: readonly PortalNavGroup[] = [
   {
     id: 'administration',
     label: 'Administration',
-    defaultOpen: true,
     items: [
       {
         id: 'users',
@@ -395,14 +427,6 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         icon: 'clipboard',
         description: 'Who did what, and when',
         requiredPermission: 'audit:view',
-      },
-      {
-        id: 'financial-years',
-        label: 'Financial Years',
-        href: ADMIN_ROUTES.financialYears,
-        icon: 'calendar-range',
-        description: 'The year the books are kept in',
-        requiredPermission: 'financial-year:view',
       },
       {
         id: 'settings',

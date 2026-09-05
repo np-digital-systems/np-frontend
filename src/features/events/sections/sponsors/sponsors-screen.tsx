@@ -43,12 +43,12 @@ import {
   type SponsorDraft,
 } from '../../components/sponsor-form-dialog';
 import type { EventAccess } from '../../lib/event-access';
-import type { EventType, SponsorAssignment, SponsorUser } from '../../types';
+import type { EventType, SponsorAssignment, SponsorParty } from '../../types';
 
 interface SponsorsScreenProps {
   initialSponsors: readonly SponsorAssignment[];
   eventTypes: readonly EventType[];
-  sponsors: readonly SponsorUser[];
+  sponsors: readonly SponsorParty[];
   access: EventAccess;
     unsponsoredEvents: number;
   year: number;
@@ -76,7 +76,7 @@ export function SponsorsScreen({
     if (!needle) return assignments;
 
     return assignments.filter((assignment) =>
-      `${assignment.eventType.name} ${assignment.eventType.nameEn} ${assignment.instanceLabel} ${assignment.sponsor.fullName}`
+      `${assignment.eventType.name} ${assignment.eventType.nameEn} ${assignment.instanceLabel} ${assignment.sponsor.name}`
         .toLowerCase()
         .includes(needle),
     );
@@ -87,7 +87,7 @@ export function SponsorsScreen({
       .map((sponsor) => ({
         sponsor,
         slots: assignments.filter(
-          (assignment) => assignment.userId === sponsor.id,
+          (assignment) => assignment.partyId === sponsor.id,
         ),
       }))
       .filter((entry) => entry.slots.length > 0)
@@ -95,7 +95,7 @@ export function SponsorsScreen({
   }, [sponsors, assignments]);
 
   const distinctSponsors = new Set(
-    assignments.map((assignment) => assignment.userId),
+    assignments.map((assignment) => assignment.partyId),
   ).size;
 
   const coveredTypes = new Set(
@@ -116,14 +116,17 @@ export function SponsorsScreen({
     run(
       () => {
         if (target) {
-          return updateSponsor(target.id, { ...placement, userId: draft.userId });
+          return updateSponsor(target.id, {
+            ...placement,
+            partyId: draft.partyId ?? undefined,
+          });
         }
 
-        // A new person is registered and placed in one go; somebody already in
-        // the directory only needs the placement.
-        return draft.person
-          ? registerSponsor({ ...placement, ...draft.person })
-          : addSponsor({ ...placement, userId: draft.userId });
+        // A new party is created and placed in one go; one already on record
+        // only needs the placement.
+        return draft.newParty
+          ? registerSponsor({ ...placement, ...draft.newParty })
+          : addSponsor({ ...placement, partyId: draft.partyId! });
       },
       () => {
         setEditing(null);
@@ -285,7 +288,7 @@ export function SponsorsScreen({
 
                     <DataCell>
                       <span className="text-[13px] text-text-primary">
-                        {assignment.sponsor.fullName}
+                        {assignment.sponsor.name}
                       </span>
                     </DataCell>
 
@@ -354,7 +357,7 @@ export function SponsorsScreen({
               {directory.map(({ sponsor, slots }) => (
                 <Card key={sponsor.id} className="flex flex-col">
                   <CardHeader
-                    title={sponsor.fullName}
+                    title={sponsor.name}
                     description={sponsor.address}
                     action={
                       <span className="rounded-full bg-primary-subtle px-2 py-0.5 text-[11px] font-medium text-primary tabular">
@@ -420,7 +423,7 @@ export function SponsorsScreen({
         confirmLabel="Remove"
         description={
           pendingRemove
-            ? `${pendingRemove.sponsor.fullName} will no longer be offered as a sponsor for ${pendingRemove.eventType.name} — ${pendingRemove.instanceLabel}. Events already scheduled keep their sponsor.`
+            ? `${pendingRemove.sponsor.name} will no longer be offered as a sponsor for ${pendingRemove.eventType.name} — ${pendingRemove.instanceLabel}. Events already scheduled keep their sponsor.`
             : ''
         }
         onConfirm={handleRemove}

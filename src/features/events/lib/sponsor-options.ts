@@ -1,6 +1,6 @@
 import type { ComboboxGroup, ComboboxOption } from '@/components/ui/combobox';
 
-import type { EventType, SponsorAssignment, SponsorUser } from '../types';
+import type { EventType, SponsorAssignment, SponsorParty } from '../types';
 
 import {
   ANY_INSTANCE_LABEL,
@@ -80,7 +80,7 @@ interface SponsorGroupOptions {
   /** Prepended above everything, e.g. the event form's "Unassigned". */
   lead?: ComboboxOption;
   /** Everyone in the directory, shown last so nobody becomes unreachable. */
-  directory?: readonly SponsorUser[];
+  directory?: readonly SponsorParty[];
 }
 
 /**
@@ -112,7 +112,7 @@ export function sponsorGroups(
 
   const rest = forType.filter((assignment) => !pinned.includes(assignment));
 
-  const seen = new Set<string>();
+  const seen = new Set<number>();
   const groups: ComboboxGroup[] = [];
 
   if (lead) groups.push({ options: [lead] });
@@ -123,15 +123,15 @@ export function sponsorGroups(
   ): void {
     const options = from
       .filter((assignment) => {
-        if (seen.has(assignment.userId)) return false;
+        if (seen.has(assignment.partyId)) return false;
 
-        seen.add(assignment.userId);
+        seen.add(assignment.partyId);
 
         return true;
       })
       .map((assignment) => ({
-        value: assignment.userId,
-        label: assignment.sponsor.fullName,
+        value: String(assignment.partyId),
+        label: assignment.sponsor.name,
         description: assignment.instanceLabel,
         keywords: assignment.sponsor.address,
       }));
@@ -156,8 +156,8 @@ export function sponsorGroups(
     const others = directory
       .filter((sponsor) => !seen.has(sponsor.id))
       .map((sponsor) => ({
-        value: sponsor.id,
-        label: sponsor.fullName,
+        value: String(sponsor.id),
+        label: sponsor.name,
         description: sponsor.address || undefined,
       }));
 

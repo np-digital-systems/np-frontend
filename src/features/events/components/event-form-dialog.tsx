@@ -32,7 +32,7 @@ import type {
   EventRecord,
   EventType,
   SponsorAssignment,
-  SponsorUser,
+  SponsorParty,
 } from '../types';
 
 export interface EventDraft {
@@ -42,7 +42,7 @@ export interface EventDraft {
   scheduledDate: string;
   startTime: string;
   endTime: string;
-  sponsorId: string | null;
+  sponsorPartyId: number | null;
   notes: string;
   isCompleted: boolean;
 }
@@ -60,7 +60,7 @@ function draftFrom(
       scheduledDate: event.scheduledDate,
       startTime: event.startTime,
       endTime: event.endTime ?? '',
-      sponsorId: event.sponsorId,
+      sponsorPartyId: event.sponsorPartyId,
       notes: event.notes ?? '',
       isCompleted: event.isCompleted,
     };
@@ -73,7 +73,7 @@ function draftFrom(
     scheduledDate: '',
     startTime: '',
     endTime: '',
-    sponsorId: null,
+    sponsorPartyId: null,
     notes: '',
     isCompleted: false,
   };
@@ -85,7 +85,7 @@ interface EventFormDialogProps {
     event: EventRecord | null;
     mode?: 'create' | 'edit';
   eventTypes: readonly EventType[];
-  sponsors: readonly SponsorUser[];
+  sponsors: readonly SponsorParty[];
   /** Standing registrations, used to put this slot's sponsors on top. */
   assignments: readonly SponsorAssignment[];
   canComplete: boolean;
@@ -165,7 +165,7 @@ export function EventFormDialog({
     const listed =
       !current ||
       groups.some((group) =>
-        group.options.some((option) => option.value === current.id),
+        group.options.some((option) => option.value === String(current.id)),
       );
 
     return listed
@@ -176,8 +176,8 @@ export function EventFormDialog({
             heading: 'Current sponsor',
             options: [
               {
-                value: current.id,
-                label: current.fullName,
+                value: String(current.id),
+                label: current.name,
                 description: 'No longer in the directory',
               },
             ],
@@ -198,14 +198,14 @@ export function EventFormDialog({
    * on a slot, choosing one for them would be a guess, and the list already
    * puts all of them at the top.
    */
-  function soleSponsorOf(eventTypeId: number, instance: number): string | null {
+  function soleSponsorOf(eventTypeId: number, instance: number): number | null {
     const registered = assignments.filter(
       (assignment) =>
         assignment.eventTypeId === eventTypeId &&
         assignment.instanceIdentifier === instance,
     );
 
-    return registered.length === 1 ? registered[0].userId : null;
+    return registered.length === 1 ? registered[0].partyId : null;
   }
 
   /** Retargeting the draft, filling the sponsor in only while it is empty. */
@@ -214,7 +214,7 @@ export function EventFormDialog({
       ...current,
       eventTypeId,
       instanceIdentifier: instance,
-      sponsorId: current.sponsorId ?? soleSponsorOf(eventTypeId, instance),
+      sponsorPartyId: current.sponsorPartyId ?? soleSponsorOf(eventTypeId, instance),
     }));
   }
 
@@ -363,12 +363,19 @@ export function EventFormDialog({
           >
             <Combobox
               id="sponsor"
-              value={draft.sponsorId ?? UNASSIGNED}
+              value={
+                draft.sponsorPartyId === null
+                  ? UNASSIGNED
+                  : String(draft.sponsorPartyId)
+              }
               groups={sponsorChoices}
               searchPlaceholder="Search by name or address…"
               emptyMessage="Nobody matches that search."
               onChange={(value) =>
-                update('sponsorId', value === UNASSIGNED ? null : value)
+                update(
+                  'sponsorPartyId',
+                  value === UNASSIGNED ? null : Number(value),
+                )
               }
             />
           </FormField>

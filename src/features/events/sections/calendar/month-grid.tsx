@@ -165,7 +165,7 @@ function EventChip({ event, interactive, onSelect }: EventChipProps) {
     'w-full rounded-md px-1.5 py-1 text-left text-[11px] leading-tight',
     event.isCompleted
       ? 'bg-success-subtle text-success'
-      : event.sponsorId
+      : event.sponsorPartyId
         ? 'bg-info-subtle text-info'
         : 'bg-warning-subtle text-warning',
   );

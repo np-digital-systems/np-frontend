@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { EntityCombobox } from '@/components/ui/entity-combobox';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -24,7 +25,11 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
-import { ACTIVITY_KINDS, ACTIVITY_KIND_LABELS } from '../lib/accounting-data';
+import {
+  ACTIVITY_KINDS,
+  ACTIVITY_KIND_LABELS,
+  PARTY_KIND_LABELS,
+} from '../lib/accounting-data';
 import { activitySchema } from '../lib/accounting-schemas';
 import type {
   ActivityKind,
@@ -44,10 +49,6 @@ export interface ActivityDraft {
   defaultPartyId: number | null;
   isActive: boolean;
 }
-
-const NO_FUND = '__none__';
-const NO_PROJECT = '__none__';
-const NO_PARTY = '__none__';
 
 function draftFrom(activity: ActivityRecord | null): ActivityDraft {
   if (activity) {
@@ -80,6 +81,11 @@ interface ActivityFormDialogProps {
   funds: readonly FundRef[];
   projects: readonly ProjectRef[];
   parties: readonly PartyRef[];
+  /**
+   * Registers a party typed into the picker and answers with its id, so a
+   * kurukkal nobody has entered yet can be added without abandoning the form.
+   */
+  onCreateParty?: (name: string) => Promise<number | null>;
   onSubmit: (draft: ActivityDraft) => void;
 }
 
@@ -90,10 +96,19 @@ export function ActivityFormDialog({
   funds,
   projects,
   parties,
+  onCreateParty,
   onSubmit,
 }: ActivityFormDialogProps) {
   const [draft, setDraft] = useState<ActivityDraft>(() => draftFrom(activity));
   const [error, setError] = useState<string | null>(null);
+
+  /*
+   * A party created from this form is held here until the server component
+   * re-renders with it. Without that the picker would sit blank on the id it
+   * had just chosen, and look like the creation had failed.
+   */
+  const [added, setAdded] = useState<{ id: number; name: string }[]>([]);
+  const [busy, setBusy] = useState(false);
 
   // A project belongs to one fund, so only that fund's projects can be offered.
   const fundProjects = projects.filter(
@@ -111,6 +126,23 @@ export function ActivityFormDialog({
 
   function update<K extends keyof ActivityDraft>(key: K, value: ActivityDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  async function createAndSelectParty(name: string) {
+    if (!onCreateParty) return;
+
+    setBusy(true);
+    const id = await onCreateParty(name);
+    setBusy(false);
+
+    if (id === null) {
+      setError(`“${name}” could not be added.`);
+      return;
+    }
+
+    setError(null);
+    setAdded((current) => [...current, { id, name }]);
+    update('defaultPartyId', id);
   }
 
   function handleSubmit(formEvent: React.FormEvent) {
@@ -195,36 +227,30 @@ export function ActivityFormDialog({
               label="Fund"
               hint="Offered whenever this activity is chosen."
             >
-              <Select
+              <EntityCombobox
+                id="activity-fund"
                 value={
                   draft.defaultFundId === null
-                    ? NO_FUND
+                    ? null
                     : String(draft.defaultFundId)
                 }
-                onValueChange={(value) =>
+                options={funds.map((fund) => ({
+                  value: String(fund.id),
+                  label: fund.name,
+                }))}
+                noneLabel="Ask each time"
+                searchPlaceholder="Search funds…"
+                emptyMessage="No fund matches that search."
+                onChange={(value) =>
                   setDraft((current) => ({
                     ...current,
-                    defaultFundId: value === NO_FUND ? null : Number(value),
+                    defaultFundId: value === null ? null : Number(value),
                     // A project sits in one fund; carrying it across a fund
                     // change would point the pair at different pots.
                     defaultProjectId: null,
                   }))
                 }
-              >
-                <SelectTrigger id="activity-fund" className="w-full">
-                  <SelectValue placeholder="Ask each time" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={NO_FUND}>Ask each time</SelectItem>
-
-                  {funds.map((fund) => (
-                    <SelectItem key={fund.id} value={String(fund.id)}>
-                      {fund.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </FormField>
           </div>
 
@@ -239,33 +265,27 @@ export function ActivityFormDialog({
               label="Project"
               hint="The piece of work this activity belongs to, where there is one."
             >
-              <Select
+              <EntityCombobox
+                id="activity-project"
                 value={
                   draft.defaultProjectId === null
-                    ? NO_PROJECT
+                    ? null
                     : String(draft.defaultProjectId)
                 }
-                onValueChange={(value) =>
+                options={fundProjects.map((project) => ({
+                  value: String(project.id),
+                  label: project.name,
+                }))}
+                noneLabel="Not part of a project"
+                searchPlaceholder="Search projects…"
+                emptyMessage="No project matches that search."
+                onChange={(value) =>
                   update(
                     'defaultProjectId',
-                    value === NO_PROJECT ? null : Number(value),
+                    value === null ? null : Number(value),
                   )
                 }
-              >
-                <SelectTrigger id="activity-project" className="w-full">
-                  <SelectValue placeholder="Not part of a project" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={NO_PROJECT}>Not part of a project</SelectItem>
-
-                  {fundProjects.map((project) => (
-                    <SelectItem key={project.id} value={String(project.id)}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </FormField>
           )}
 
@@ -279,30 +299,48 @@ export function ActivityFormDialog({
             label="Usually with"
             hint="Offered as the payer or payee. Left blank for anything with no regular counterparty."
           >
-            <Select
+            <EntityCombobox
+              id="activity-party"
               value={
                 draft.defaultPartyId === null
-                  ? NO_PARTY
+                  ? null
                   : String(draft.defaultPartyId)
               }
-              onValueChange={(value) =>
-                update('defaultPartyId', value === NO_PARTY ? null : Number(value))
+              options={[
+                ...parties.map((party) => ({
+                  value: String(party.id),
+                  label: party.name,
+                  description: party.nameEn || undefined,
+                  badge: party.roles
+                    .map((role) => PARTY_KIND_LABELS[role])
+                    .join(' · '),
+                })),
+                // Created from this form and not yet in the server's copy.
+                ...added
+                  .filter(
+                    (entry) => !parties.some((party) => party.id === entry.id),
+                  )
+                  .map((entry) => ({
+                    value: String(entry.id),
+                    label: entry.name,
+                  })),
+              ]}
+              noneLabel="Ask each time"
+              disabled={busy}
+              searchPlaceholder="Search or type a name…"
+              emptyMessage="Nobody matches that search."
+              createLabel={
+                onCreateParty ? (typed) => `Add “${typed}” as a party` : undefined
               }
-            >
-              <SelectTrigger id="activity-party" className="w-full">
-                <SelectValue placeholder="Ask each time" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value={NO_PARTY}>Ask each time</SelectItem>
-
-                {parties.map((party) => (
-                  <SelectItem key={party.id} value={String(party.id)}>
-                    {party.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onCreate={
+                onCreateParty
+                  ? (typed) => void createAndSelectParty(typed)
+                  : undefined
+              }
+              onChange={(value) =>
+                update('defaultPartyId', value === null ? null : Number(value))
+              }
+            />
           </FormField>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">

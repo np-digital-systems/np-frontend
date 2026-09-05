@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 
 import { FormField } from '@/components/portal/ui';
+import { useFormDraft } from '@/hooks/use-form-draft';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
@@ -139,6 +140,12 @@ function LineEditor({
     return [...groups.entries()];
   }, [accounts]);
 
+  /*
+   * Which lines have their fund and project unfolded. Kept per line and not
+   * per form: unfolding one head's coding says nothing about the next.
+   */
+  const [coding, setCoding] = useState<ReadonlySet<number>>(new Set());
+
   function edit(index: number, patch: Partial<VoucherDraftLine>) {
     onChange(lines.map((line, at) => (at === index ? { ...line, ...patch } : line)));
   }
@@ -171,6 +178,11 @@ function LineEditor({
         const activityPoojas = poojas.filter(
           (pooja) => pooja.activityId === line.activityId,
         );
+        const fundName =
+          funds.find((fund) => fund.id === line.fundId)?.name ?? 'no fund';
+        const projectName = projects.find(
+          (project) => project.id === line.projectId,
+        )?.name;
 
         return (
           <div
@@ -231,143 +243,168 @@ function LineEditor({
               </Select>
             </FormField>
 
+            {/*
+              * Activity leads, because it is the one real choice on the line —
+              * the fund and project follow from it. Amount comes last, as it
+              * does on the paper voucher.
+              */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <FormField id={`voucher-fund-${index}`} label="Fund" required>
+              <FormField id={`voucher-activity-${index}`} label="Activity">
                 <Select
-                  value={String(line.fundId)}
-                  onValueChange={(value) =>
-                    edit(index, { fundId: Number(value), projectId: null })
+                  value={
+                    line.activityId === null ? NO_DIMENSION : String(line.activityId)
                   }
+                  onValueChange={(value) => {
+                    const activityId = value === NO_DIMENSION ? null : Number(value);
+                    const chosen = activities.find((entry) => entry.id === activityId);
+
+                    /*
+                     * The activity carries its whole coding — the fund it is
+                     * held in, the project it belongs to, and who it is usually
+                     * with — so this one choice settles all three. Each stays
+                     * editable below: a default is what is usually true, never
+                     * a rule.
+                     */
+                    edit(index, {
+                      activityId,
+                      fundId: chosen?.defaultFundId ?? line.fundId,
+                      projectId: chosen ? chosen.defaultProjectId : line.projectId,
+                      // A different pooja is a different occurrence.
+                      eventId: null,
+                    });
+
+                    if (chosen?.defaultPartyId != null) {
+                      onSuggestParty(chosen.defaultPartyId);
+                    }
+                  }}
                 >
-                  <SelectTrigger id={`voucher-fund-${index}`} className="w-full">
-                    <SelectValue />
+                  <SelectTrigger id={`voucher-activity-${index}`} className="w-full">
+                    <SelectValue placeholder="Not tied to one" />
                   </SelectTrigger>
 
                   <SelectContent>
-                    {funds.map((fund) => (
-                      <SelectItem key={fund.id} value={String(fund.id)}>
-                        {fund.name}
+                    <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
+
+                    {activities.map((option) => (
+                      <SelectItem key={option.id} value={String(option.id)}>
+                        {option.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </FormField>
 
-              <FormField id={`voucher-line-amount-${index}`} label="Amount" required>
-                <Input
-                  id={`voucher-line-amount-${index}`}
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={line.amount || ''}
-                  placeholder="0.00"
-                  onChange={(changeEvent) =>
-                    edit(index, { amount: Number(changeEvent.target.value) || 0 })
+              {/*
+                * Only where the activity is a pooja, and on the line that names
+                * it: a split receipt's second head is the earmarked remainder
+                * and is not for this occurrence at all. It appears on payments
+                * too — the melam for one Friday, not for the month.
+                */}
+              {activity?.kind === 'pooja' && (
+                <FormField
+                  id={`voucher-pooja-${index}`}
+                  label="Which one"
+                  hint={
+                    activityPoojas.length === 0
+                      ? 'None scheduled for this pooja yet.'
+                      : undefined
                   }
-                />
-              </FormField>
+                >
+                  <Select
+                    value={line.eventId === null ? NO_DIMENSION : String(line.eventId)}
+                    onValueChange={(value) => {
+                      const eventId = value === NO_DIMENSION ? null : Number(value);
+
+                      edit(index, { eventId });
+
+                      const pooja = poojas.find((entry) => entry.id === eventId);
+
+                      if (pooja && activity) onPoojaChosen(pooja, activity.name);
+                    }}
+                  >
+                    <SelectTrigger id={`voucher-pooja-${index}`} className="w-full">
+                      <SelectValue placeholder="Not a particular one" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value={NO_DIMENSION}>Not a particular one</SelectItem>
+
+                      {activityPoojas.map((pooja) => (
+                        <SelectItem key={pooja.id} value={String(pooja.id)}>
+                          {pooja.label} · {formatLongDate(pooja.date)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <FormField id={`voucher-activity-${index}`} label="Activity">
-                    <Select
-                      value={
-                        line.activityId === null
-                          ? NO_DIMENSION
-                          : String(line.activityId)
-                      }
-                      onValueChange={(value) => {
-                        const activityId =
-                          value === NO_DIMENSION ? null : Number(value);
-                        const activity = activities.find(
-                          (entry) => entry.id === activityId,
-                        );
+            <FormField id={`voucher-line-amount-${index}`} label="Amount" required>
+              <Input
+                id={`voucher-line-amount-${index}`}
+                type="number"
+                min={0}
+                step={0.01}
+                value={line.amount || ''}
+                placeholder="0.00"
+                className="sm:max-w-48"
+                onChange={(changeEvent) =>
+                  edit(index, { amount: Number(changeEvent.target.value) || 0 })
+                }
+              />
+            </FormField>
 
-                        /*
-                         * The activity carries its whole coding — the fund it
-                         * is held in, the project it belongs to, and who it is
-                         * usually with — so this one choice settles all three.
-                         * Every one of them stays editable: a default is what
-                         * is usually true, never a rule.
-                         */
-                        edit(index, {
-                          activityId,
-                          fundId: activity?.defaultFundId ?? line.fundId,
-                          projectId: activity
-                            ? activity.defaultProjectId
-                            : line.projectId,
-                          // A different pooja is a different occurrence.
-                          eventId: null,
-                        });
+            {/*
+              * Where it will post, stated rather than asked. The fund is a
+              * legal boundary and has to be visible, but the activity settles
+              * it correctly almost every time — so the controls stay folded
+              * away until somebody actually needs to overrule them.
+              */}
+            {!coding.has(index) ? (
+              <div className="flex items-center gap-2 text-xs text-text-muted">
+                <span className="truncate">
+                  Posting to <span className="text-text-secondary">{fundName}</span>
+                  {projectName && (
+                    <>
+                      {' · '}
+                      <span className="text-text-secondary">{projectName}</span>
+                    </>
+                  )}
+                </span>
 
-                        if (activity?.defaultPartyId != null) {
-                          onSuggestParty(activity.defaultPartyId);
-                        }
-                      }}
-                    >
-                      <SelectTrigger id={`voucher-activity-${index}`} className="w-full">
-                        <SelectValue placeholder="Not tied to one" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
-
-                        {activities.map((option) => (
-                          <SelectItem key={option.id} value={String(option.id)}>
-                            {option.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormField>
-
-                {/*
-                  * Only where the activity is a pooja, and on the line that
-                  * names it: a split receipt's second head is the earmarked
-                  * remainder and is not for this occurrence at all. It appears
-                  * on payments too — the melam for one Friday, not the month.
-                  */}
-                {activity?.kind === 'pooja' && (
-                  <FormField
-                    id={`voucher-pooja-${index}`}
-                    label="Which one"
-                    hint={
-                      activityPoojas.length === 0
-                        ? 'None scheduled for this pooja yet.'
-                        : undefined
+                <button
+                  type="button"
+                  className="shrink-0 font-medium text-accent underline-offset-2 hover:underline"
+                  onClick={() =>
+                    setCoding((unfolded) => new Set(unfolded).add(index))
+                  }
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <FormField id={`voucher-fund-${index}`} label="Fund" required>
+                  <Select
+                    value={String(line.fundId)}
+                    onValueChange={(value) =>
+                      edit(index, { fundId: Number(value), projectId: null })
                     }
                   >
-                    <Select
-                      value={line.eventId === null ? NO_DIMENSION : String(line.eventId)}
-                      onValueChange={(value) => {
-                        const eventId =
-                          value === NO_DIMENSION ? null : Number(value);
+                    <SelectTrigger id={`voucher-fund-${index}`} className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
 
-                        edit(index, { eventId });
-
-                        const pooja = poojas.find((entry) => entry.id === eventId);
-
-                        if (pooja && activity) onPoojaChosen(pooja, activity.name);
-                      }}
-                    >
-                      <SelectTrigger id={`voucher-pooja-${index}`} className="w-full">
-                        <SelectValue placeholder="Not a particular one" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value={NO_DIMENSION}>
-                          Not a particular one
+                    <SelectContent>
+                      {funds.map((fund) => (
+                        <SelectItem key={fund.id} value={String(fund.id)}>
+                          {fund.name}
                         </SelectItem>
-
-                        {activityPoojas.map((pooja) => (
-                          <SelectItem key={pooja.id} value={String(pooja.id)}>
-                            {pooja.label} · {formatLongDate(pooja.date)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormField>
-                )}
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
 
                 {/* Only where the fund actually runs projects. */}
                 {fundProjects.length > 0 && (
@@ -398,7 +435,8 @@ function LineEditor({
                     </Select>
                   </FormField>
                 )}
-            </div>
+              </div>
+            )}
           </div>
         );
       })}
@@ -472,6 +510,28 @@ function draftFrom(
   };
 }
 
+/**
+ * Is this draft just the empty form?
+ *
+ * A draft is written on every keystroke, so a dialog merely opened and closed
+ * leaves one behind. Offering to restore *that* would put a banner in front of
+ * somebody who typed nothing, every time. Comparing against a freshly seeded
+ * form answers it without having to track whether anything was touched.
+ */
+function isBlank(
+  draft: VoucherDraft,
+  kind: VoucherKind,
+  voucher: VoucherRecord | null,
+  accounts: readonly AccountRef[],
+  funds: readonly FundRef[],
+  today: string,
+): boolean {
+  return (
+    JSON.stringify(draft) ===
+    JSON.stringify(draftFrom(voucher, kind, accounts, funds, today))
+  );
+}
+
 interface VoucherFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -522,6 +582,21 @@ export function VoucherFormDialog({
     setError(null);
   }
 
+  /*
+   * A voucher is a dozen fields and three lookups. Losing it to a stray click
+   * outside the dialog is the difference between a shrug and doing the whole
+   * thing again, so what is typed is kept and offered back on the next open.
+   * Keyed by the record so a new receipt and an edit never mix.
+   */
+  const { restored, discard } = useFormDraft(
+    `voucher:${voucher?.id ?? 'new'}:${kind}`,
+    draft,
+    { enabled: open },
+  );
+
+  const hasRestorableDraft =
+    restored !== null && !isBlank(restored, kind, voucher, accounts, funds, today);
+
 
   // The document total: summed from the heads, never typed.
   const total = draft.lines.reduce((sum, line) => sum + line.amount, 0);
@@ -569,6 +644,7 @@ export function VoucherFormDialog({
     if (!check()) return;
 
     onSubmit(cleaned(draft));
+    discard();
     onOpenChange(false);
   }
 
@@ -576,6 +652,7 @@ export function VoucherFormDialog({
     if (!check() || !onSubmitForApproval) return;
 
     onSubmitForApproval(cleaned(draft));
+    discard();
     onOpenChange(false);
   }
 
@@ -592,6 +669,35 @@ export function VoucherFormDialog({
               : 'Record money paid out by the temple. Nothing reaches the ledger until it is approved and posted.'}
           </DialogDescription>
         </DialogHeader>
+
+        {hasRestorableDraft && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning-subtle px-3.5 py-2.5">
+            <p className="text-xs text-text-secondary">
+              An unsaved {kind} from earlier is still here.
+            </p>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={discard}
+              >
+                Discard
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  setDraft(restored);
+                  discard();
+                }}
+              >
+                Restore it
+              </Button>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -646,9 +752,8 @@ export function VoucherFormDialog({
                     ? pooja.sponsorName
                     : current.party,
                 partyId:
-                  kind === 'receipt' && pooja.sponsorId
-                    ? (parties.find((entry) => entry.userId === pooja.sponsorId)?.id ??
-                      current.partyId)
+                  kind === 'receipt' && pooja.sponsorPartyId
+                    ? pooja.sponsorPartyId
                     : current.partyId,
                 // The pooja is the description; anything typed is left alone.
                 description: current.description.trim()

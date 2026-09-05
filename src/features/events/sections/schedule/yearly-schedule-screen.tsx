@@ -26,7 +26,7 @@ import type {
   ScheduleGroup,
   ScheduleSlot,
   SponsorAssignment,
-  SponsorUser,
+  SponsorParty,
 } from '../../types';
 
 import { ScheduleGroupCard } from './schedule-group-card';
@@ -37,7 +37,7 @@ interface YearlyScheduleScreenProps {
   groups: readonly ScheduleGroup[];
   initialEvents: readonly EventRecord[];
   eventTypes: readonly EventType[];
-  sponsors: readonly SponsorUser[];
+  sponsors: readonly SponsorParty[];
   assignments: readonly SponsorAssignment[];
   access: EventAccess;
   today: string;
@@ -94,6 +94,9 @@ export function YearlyScheduleScreen({
           const event = occurrences[0] ?? null;
 
           return {
+            // A dense type can show a number the server never sent a slot for;
+            // it has no slot row and nothing may be scheduled against it.
+            slotId: base?.slotId ?? 0,
             instanceIdentifier,
             customInstanceName:
               event?.customInstanceName ?? base?.customInstanceName ?? null,
@@ -102,6 +105,7 @@ export function YearlyScheduleScreen({
               base?.instanceLabel ??
               `#${instanceIdentifier}`,
             defaultSponsor: base?.defaultSponsor ?? null,
+            sponsors: base?.sponsors ?? [],
             sponsorCount: base?.sponsorCount ?? 0,
             eventCount: occurrences.length,
             event,
@@ -123,7 +127,7 @@ export function YearlyScheduleScreen({
       ),
       scheduled: events.length,
       open: slots.filter((slot) => slot.event === null).length,
-      unsponsored: events.filter((event) => event.sponsorId === null).length,
+      unsponsored: events.filter((event) => event.sponsorPartyId === null).length,
     };
   }, [resolved, events]);
 
@@ -144,7 +148,7 @@ export function YearlyScheduleScreen({
       scheduledDate: '',
       startTime: '',
       endTime: null,
-      sponsorId: slot.defaultSponsor?.id ?? null,
+      sponsorPartyId: slot.defaultSponsor?.id ?? null,
       notes: null,
       isCompleted: false,
       createdAt: '',
@@ -170,7 +174,7 @@ export function YearlyScheduleScreen({
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
-              sponsorId: draft.sponsorId,
+              sponsorPartyId: draft.sponsorPartyId,
               notes: draft.notes || null,
             })
           : createEvent({
@@ -180,7 +184,7 @@ export function YearlyScheduleScreen({
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
-              sponsorId: draft.sponsorId,
+              sponsorPartyId: draft.sponsorPartyId,
               notes: draft.notes || null,
             }),
       () => {

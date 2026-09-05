@@ -125,11 +125,11 @@ export async function getPartyOptions(): Promise<readonly PartyRef[]> {
     query: { isActive: true },
   });
 
-  return parties.map(({ id, name, nameEn, kind, userId }) => ({
+  return parties.map(({ id, name, nameEn, roles, userId }) => ({
     id,
     name,
     nameEn,
-    kind,
+    roles,
     userId,
   }));
 }
@@ -362,7 +362,7 @@ export async function getPoojas(): Promise<readonly PoojaRef[]> {
         translate,
       ) ?? event.instanceLabel,
     date: event.scheduledDate,
-    sponsorName: event.sponsor?.fullName ?? null,
-    sponsorId: event.sponsorId,
+    sponsorName: event.sponsor?.name ?? null,
+    sponsorPartyId: event.sponsorPartyId,
   }));
 }

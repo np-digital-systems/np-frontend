@@ -120,7 +120,12 @@ export const activitySchema = z.object({
 export const partySchema = z.object({
   nameTa: requiredText('A Tamil name'),
   nameEn: optionalText(),
-  kind: z.enum(PARTY_KINDS),
+  // At least one: a party with no role at all would fall out of every list
+  // the pickers are built from and become unreachable.
+  roles: z
+    .array(z.enum(PARTY_KINDS))
+    .min(1, 'Choose at least one role')
+    .refine((values) => new Set(values).size === values.length, 'Roles must be distinct'),
   phone: optionalText(32),
   isActive: z.boolean(),
 });

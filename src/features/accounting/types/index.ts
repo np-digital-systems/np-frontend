@@ -262,7 +262,15 @@ export interface Party {
   readonly id: number;
   readonly name: string;
   readonly nameEn: string;
-  readonly kind: PartyKind;
+  /*
+   * Every role the party holds, not one label. The temple's florist who also
+   * sponsors the Friday abhishekam holds both, and is one record in both lists
+   * — filing them twice would split their history down the middle.
+   *
+   * A role groups a list and nothing more. What an entry means is settled by
+   * the account it is coded to.
+   */
+  readonly roles: readonly PartyKind[];
   readonly userId: string | null;
   readonly phone: string | null;
   readonly isActive: boolean;
@@ -274,7 +282,7 @@ export interface PartyRecord extends Party {
   readonly paid: number;
 }
 
-export type PartyRef = Pick<Party, 'id' | 'name' | 'nameEn' | 'kind' | 'userId'>;
+export type PartyRef = Pick<Party, 'id' | 'name' | 'nameEn' | 'roles' | 'userId'>;
 
 /** One dated pooja, with whoever sponsors it. */
 export interface PoojaRef {
@@ -285,8 +293,8 @@ export interface PoojaRef {
   readonly label: string;
   readonly date: string;
   readonly sponsorName: string | null;
-  /** The person behind the sponsorship, so their party can be found. */
-  readonly sponsorId: string | null;
+  /** The sponsoring party itself — a receipt for the pooja is collected from them. */
+  readonly sponsorPartyId: number | null;
 }
 
 export interface AccountingSummary {

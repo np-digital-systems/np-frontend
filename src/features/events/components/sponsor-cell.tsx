@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 
-import type { SponsorUser } from '../types';
+import type { SponsorParty } from '../types';
 
 interface SponsorCellProps {
-  sponsor: SponsorUser | null;
+  sponsor: SponsorParty | null;
     showContact?: boolean;
   className?: string;
 }
@@ -33,7 +33,7 @@ export function SponsorCell({
   return (
     <div className={cn('min-w-0', className)}>
       <p className="truncate text-[13px] text-text-primary">
-        {sponsor.fullName}
+        {sponsor.name}
       </p>
 
       {showContact && (

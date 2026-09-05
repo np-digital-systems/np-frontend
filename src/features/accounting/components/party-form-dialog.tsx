@@ -13,14 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
@@ -31,7 +25,7 @@ import type { PartyKind, PartyRecord } from '../types';
 export interface PartyDraft {
   nameTa: string;
   nameEn: string;
-  kind: PartyKind;
+  roles: PartyKind[];
   phone: string;
   isActive: boolean;
 }
@@ -41,7 +35,7 @@ function draftFrom(party: PartyRecord | null): PartyDraft {
     return {
       nameTa: party.name,
       nameEn: party.nameEn,
-      kind: party.kind,
+      roles: [...party.roles],
       phone: party.phone ?? '',
       isActive: party.isActive,
     };
@@ -50,7 +44,7 @@ function draftFrom(party: PartyRecord | null): PartyDraft {
   return {
     nameTa: '',
     nameEn: '',
-    kind: 'devotee',
+    roles: ['devotee'],
     phone: '',
     isActive: true,
   };
@@ -83,6 +77,19 @@ export function PartyFormDialog({
 
   function update<K extends keyof PartyDraft>(key: K, value: PartyDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  // Kept in the canonical order rather than the order they were ticked, so the
+  // same set of roles reads the same way everywhere it is shown.
+  function toggleRole(kind: PartyKind) {
+    setDraft((current) => ({
+      ...current,
+      roles: current.roles.includes(kind)
+        ? current.roles.filter((role) => role !== kind)
+        : PARTY_KINDS.filter(
+            (role) => role === kind || current.roles.includes(role),
+          ),
+    }));
   }
 
   function handleSubmit(formEvent: React.FormEvent) {
@@ -144,41 +151,50 @@ export function PartyFormDialog({
             />
           </FormField>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
-              id="party-kind"
-              label="Kind"
-              required
-              hint="For grouping the list; it does not limit what they can appear on."
+          {/*
+            * Several, not one. The temple's florist who also sponsors the
+            * Friday abhishekam is one party holding both roles — registering
+            * them twice would split their history down the middle and leave no
+            * screen able to say what the dealings with them amount to.
+            */}
+          <FormField
+            id="party-roles"
+            label="Roles"
+            required
+            hint="For grouping the lists. A party may hold several, and holding one never limits what they can appear on."
+          >
+            <div
+              id="party-roles"
+              role="group"
+              aria-label="Roles"
+              className="grid grid-cols-2 gap-2"
             >
-              <Select
-                value={draft.kind}
-                onValueChange={(value) => update('kind', value as PartyKind)}
-              >
-                <SelectTrigger id="party-kind" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
+              {PARTY_KINDS.map((kind) => (
+                <label
+                  key={kind}
+                  htmlFor={`party-role-${kind}`}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-input has-[:checked]:border-accent has-[:checked]:text-text-primary"
+                >
+                  <Checkbox
+                    id={`party-role-${kind}`}
+                    checked={draft.roles.includes(kind)}
+                    onCheckedChange={() => toggleRole(kind)}
+                  />
+                  {PARTY_KIND_LABELS[kind]}
+                </label>
+              ))}
+            </div>
+          </FormField>
 
-                <SelectContent>
-                  {PARTY_KINDS.map((kind) => (
-                    <SelectItem key={kind} value={kind}>
-                      {PARTY_KIND_LABELS[kind]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <FormField id="party-phone" label="Phone">
-              <Input
-                id="party-phone"
-                value={draft.phone}
-                inputMode="tel"
-                placeholder="077 123 4567"
-                onChange={(changeEvent) => update('phone', changeEvent.target.value)}
-              />
-            </FormField>
-          </div>
+          <FormField id="party-phone" label="Phone">
+            <Input
+              id="party-phone"
+              value={draft.phone}
+              inputMode="tel"
+              placeholder="077 123 4567"
+              onChange={(changeEvent) => update('phone', changeEvent.target.value)}
+            />
+          </FormField>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">

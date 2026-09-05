@@ -39,7 +39,7 @@ import type {
   EventRecord,
   EventType,
   SponsorAssignment,
-  SponsorUser,
+  SponsorParty,
 } from '../../types';
 
 import { EventsTable } from './events-table';
@@ -51,7 +51,7 @@ type View = (typeof VIEWS)[number];
 interface EventsCalendarProps {
   initialEvents: readonly EventRecord[];
   eventTypes: readonly EventType[];
-  sponsors: readonly SponsorUser[];
+  sponsors: readonly SponsorParty[];
   assignments: readonly SponsorAssignment[];
   access: EventAccess;
     today: string;
@@ -119,7 +119,7 @@ export function EventsCalendar({
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
-              sponsorId: draft.sponsorId,
+              sponsorPartyId: draft.sponsorPartyId,
               notes: draft.notes || null,
             })
           : createEvent({
@@ -129,7 +129,7 @@ export function EventsCalendar({
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
-              sponsorId: draft.sponsorId,
+              sponsorPartyId: draft.sponsorPartyId,
               notes: draft.notes || null,
             }),
       () => {
@@ -313,7 +313,7 @@ function applyFilters(
         if (!isOverdue(event, today)) return false;
         break;
       case 'unsponsored':
-        if (event.sponsorId !== null) return false;
+        if (event.sponsorPartyId !== null) return false;
         break;
       case 'all':
         break;
@@ -326,7 +326,7 @@ function applyFilters(
       event.eventType.nameEn,
       event.instanceLabel,
       event.customInstanceName ?? '',
-      event.sponsor?.fullName ?? '',
+      event.sponsor?.name ?? '',
       event.notes ?? '',
     ]
       .join(' ')

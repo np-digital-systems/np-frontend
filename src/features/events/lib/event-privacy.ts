@@ -2,26 +2,26 @@ import type {
   EventRecord,
   ScheduleGroup,
   SponsorAssignment,
-  SponsorUser,
+  SponsorParty,
 } from '../types';
 
-function redact(sponsor: SponsorUser): SponsorUser {
+function redact(sponsor: SponsorParty): SponsorParty {
   return { ...sponsor, phone: null, email: null };
 }
 
 export function redactSponsor(
-  sponsor: SponsorUser | null,
+  sponsor: SponsorParty | null,
   canSeeContact: boolean,
-): SponsorUser | null {
+): SponsorParty | null {
   if (canSeeContact || sponsor === null) return sponsor;
 
   return redact(sponsor);
 }
 
 export function redactSponsors(
-  sponsors: readonly SponsorUser[],
+  sponsors: readonly SponsorParty[],
   canSeeContact: boolean,
-): readonly SponsorUser[] {
+): readonly SponsorParty[] {
   if (canSeeContact) return sponsors;
 
   return sponsors.map(redact);

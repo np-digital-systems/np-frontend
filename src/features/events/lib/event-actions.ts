@@ -72,7 +72,7 @@ export interface EventInput {
   scheduledDate: string;
   startTime: string;
   endTime?: string | null;
-  sponsorId?: string | null;
+  sponsorPartyId?: number | null;
   notes?: string | null;
 }
 
@@ -83,7 +83,7 @@ export async function createEvent(input: EventInput): Promise<ActionResult> {
       ...input,
       customInstanceName: input.customInstanceName || undefined,
       endTime: input.endTime || undefined,
-      sponsorId: input.sponsorId || undefined,
+      sponsorPartyId: input.sponsorPartyId || undefined,
       notes: input.notes || undefined,
     }),
   );
@@ -98,7 +98,7 @@ export async function updateEvent(
       ...input,
       customInstanceName: input.customInstanceName || undefined,
       endTime: input.endTime || undefined,
-      sponsorId: input.sponsorId || undefined,
+      sponsorPartyId: input.sponsorPartyId || undefined,
       notes: input.notes || undefined,
     }),
   );

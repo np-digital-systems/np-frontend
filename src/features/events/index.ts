@@ -36,6 +36,6 @@ export type {
   ScheduleGroup,
   ScheduleSlot,
   SponsorAssignment,
-  SponsorUser,
+  SponsorParty,
   TempleEvent,
 } from './types';
