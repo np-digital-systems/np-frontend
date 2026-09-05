@@ -114,3 +114,19 @@ export interface EventsSummary {
 }
 
 export type { PublicEvent } from './public';
+
+/**
+ * One slot of an event type — the fixed structure of the temple year.
+ *
+ * Named once and left alone: a sponsor attaches to it and a date is set
+ * against it every year, but the slot itself does not change.
+ */
+export interface EventSlot {
+  readonly id: number;
+  readonly instanceIdentifier: number;
+  readonly customInstanceName: string | null;
+  readonly instanceLabel: string;
+  readonly isActive: boolean;
+  readonly sponsorNames: readonly string[];
+  readonly scheduledCount: number;
+}
