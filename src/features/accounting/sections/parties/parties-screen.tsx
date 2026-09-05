@@ -74,7 +74,7 @@ export function PartiesScreen({
     const needle = query.trim().toLowerCase();
 
     return parties.filter((party) => {
-      if (kind !== 'all' && party.kind !== kind) return false;
+      if (kind !== 'all' && !party.roles.includes(kind)) return false;
       if (!needle) return true;
 
       return `${party.name} ${party.nameEn}`.toLowerCase().includes(needle);
@@ -101,14 +101,14 @@ export function PartiesScreen({
           ? updateParty(target.id, {
               nameTa: draft.nameTa,
               nameEn: draft.nameEn,
-              kind: draft.kind,
+              roles: draft.roles,
               phone: draft.phone || null,
               isActive: draft.isActive,
             })
           : createParty({
               nameTa: draft.nameTa,
               nameEn: draft.nameEn,
-              kind: draft.kind,
+              roles: draft.roles,
               phone: draft.phone || null,
             }),
       () => {
@@ -265,7 +265,7 @@ export function PartiesScreen({
                 </DataCell>
 
                 <DataCell nowrap className="text-xs text-text-secondary">
-                  {PARTY_KIND_LABELS[party.kind]}
+                  {party.roles.map((role) => PARTY_KIND_LABELS[role]).join(', ')}
                 </DataCell>
 
                 <DataCell align="right" nowrap className="text-xs tabular">
