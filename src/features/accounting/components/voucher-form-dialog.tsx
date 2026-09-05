@@ -683,9 +683,8 @@ export function VoucherFormDialog({
                     ? pooja.sponsorName
                     : current.party,
                 partyId:
-                  kind === 'receipt' && pooja.sponsorId
-                    ? (parties.find((entry) => entry.userId === pooja.sponsorId)?.id ??
-                      current.partyId)
+                  kind === 'receipt' && pooja.sponsorPartyId
+                    ? pooja.sponsorPartyId
                     : current.partyId,
                 // The pooja is the description; anything typed is left alone.
                 description: current.description.trim()
