@@ -256,11 +256,11 @@ export function SponsorFormDialog({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/*
-              * Always one slot. Every type has them, so "all instances" only
-              * ever meant a row per slot — and the schedule had to fan it back
-              * out to them anyway.
+              * Optional, because a sponsorship starts as a name and becomes an
+              * occasion later. Left open, the sponsor is registered against the
+              * type and waits in the pool the year is filled from.
               */}
-            <FormField id="sponsor-instance" label="Instance" required>
+            <FormField id="sponsor-instance" label="Instance">
               <Combobox
                 id="sponsor-instance"
                 value={
@@ -268,10 +268,12 @@ export function SponsorFormDialog({
                     ? ''
                     : String(draft.instanceIdentifier)
                 }
-                groups={instanceGroups(slots, labelForSlot)}
+                groups={instanceGroups(slots, labelForSlot, tInstance('unassigned'))}
                 searchPlaceholder="Search instances…"
                 emptyMessage="No instance matches that search."
-                onChange={(value) => update('instanceIdentifier', Number(value))}
+                onChange={(value) =>
+                  update('instanceIdentifier', value === '' ? null : Number(value))
+                }
               />
             </FormField>
           </div>
