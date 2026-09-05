@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { FormField } from '@/components/portal/ui';
 import { validate } from '@/lib/validation';
@@ -20,6 +21,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
 import { INSTANCE_MEANING, describeInstance } from '../lib/event-data';
+import { loadEventSlots } from '../lib/event-actions';
+import { slotLabel } from '../lib/public-event-presentation';
 import { eventSchema } from '../lib/event-schemas';
 import {
   UNASSIGNED,
@@ -29,6 +32,7 @@ import {
   sponsorGroups,
 } from '../lib/sponsor-options';
 import type {
+  EventSlot,
   EventRecord,
   EventType,
   SponsorAssignment,
@@ -38,7 +42,6 @@ import type {
 export interface EventDraft {
   eventTypeId: number;
   instanceIdentifier: number;
-  customInstanceName: string;
   scheduledDate: string;
   startTime: string;
   endTime: string;
@@ -56,7 +59,6 @@ function draftFrom(
     return {
       eventTypeId: event.eventTypeId,
       instanceIdentifier: event.instanceIdentifier,
-      customInstanceName: event.customInstanceName ?? '',
       scheduledDate: event.scheduledDate,
       startTime: event.startTime,
       endTime: event.endTime ?? '',
@@ -69,7 +71,6 @@ function draftFrom(
   return {
     eventTypeId: eventTypes[0]?.id ?? 0,
     instanceIdentifier: 1,
-    customInstanceName: '',
     scheduledDate: '',
     startTime: '',
     endTime: '',
@@ -129,13 +130,54 @@ export function EventFormDialog({
     [eventTypes, draft.eventTypeId],
   );
 
+  const tInstance = useTranslations('Events.instance');
+
+  /*
+   * The slots of the chosen type, loaded when it changes.
+   *
+   * Read rather than counted off the type, because the picker has to show the
+   * temple's own name for a slot where it has one — twelve monthly slots read
+   * as twelve Tamil months, not twelve identical "மாதாந்திரம்" rows.
+   */
+  const [slots, setSlots] = useState<readonly EventSlot[]>([]);
+
+  useEffect(() => {
+    const eventTypeId = draft.eventTypeId;
+    let current = true;
+
+    // Resolved through a promise either way, so the only write happens once
+    // the load settles and a type cleared mid-flight cannot land stale slots.
+    Promise.resolve(eventTypeId ? loadEventSlots(eventTypeId) : []).then((loaded) => {
+      if (current) setSlots(loaded);
+    });
+
+    return () => {
+      current = false;
+    };
+  }, [draft.eventTypeId]);
+
+  const labelForSlot = (slot: EventSlot) =>
+    slotLabel(
+      {
+        customInstanceName: slot.customInstanceName,
+        instanceIdentifier: slot.instanceIdentifier,
+        frequencyType: selectedType?.frequencyType ?? 'annual',
+      },
+      tInstance,
+    );
+
+  const labelForInstance = (instanceIdentifier: number) => {
+    const slot = slots.find((row) => row.instanceIdentifier === instanceIdentifier);
+
+    return slot ? labelForSlot(slot) : `#${instanceIdentifier}`;
+  };
+
   const maxInstance = instanceCountOf(selectedType);
 
   const instancePreview = selectedType
     ? describeInstance(
         selectedType.frequencyType,
         draft.instanceIdentifier,
-        draft.customInstanceName || null,
       )
     : '';
 
@@ -286,27 +328,12 @@ export function EventFormDialog({
               <Combobox
                 id="instance-identifier"
                 value={String(draft.instanceIdentifier)}
-                groups={instanceGroups(selectedType)}
+                groups={instanceGroups(slots, labelForSlot)}
                 placeholder="Select an instance"
                 searchPlaceholder="Search instances…"
                 emptyMessage="No instance matches that search."
                 onChange={(value) =>
                   retarget(draft.eventTypeId, Number(value))
-                }
-              />
-            </FormField>
-
-            <FormField
-              id="custom-instance-name"
-              label="Custom Instance Name"
-              hint="The temple's own name for this day, if it has one."
-            >
-              <Input
-                id="custom-instance-name"
-                value={draft.customInstanceName}
-                placeholder="சப்பரம், தேர்…"
-                onChange={(changeEvent) =>
-                  update('customInstanceName', changeEvent.target.value)
                 }
               />
             </FormField>
