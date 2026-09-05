@@ -1,6 +1,7 @@
 'use client';
 
 import { CalendarX, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import {
   DataCell,
@@ -22,6 +23,7 @@ import {
 import { EventName } from '../../components/event-name';
 import { FrequencyBadge } from '../../components/frequency-badge';
 import { SponsorCell } from '../../components/sponsor-cell';
+import { slotLabel } from '../../lib/public-event-presentation';
 import type { EventAccess } from '../../lib/event-access';
 import {
   formatShortDate,
@@ -118,6 +120,8 @@ function MonthBand({
   onDelete,
   onToggleComplete,
 }: MonthBandProps) {
+  const tInstance = useTranslations('Events.instance');
+
   return (
     <>
       <tr className="bg-surface-2">
@@ -148,7 +152,14 @@ function MonthBand({
             <EventName
               name={event.eventType.name}
               nameEn={event.eventType.nameEn}
-              instanceLabel={event.instanceLabel}
+              instanceLabel={slotLabel(
+                {
+                  customInstanceName: event.customInstanceName,
+                  instanceIdentifier: event.instanceIdentifier,
+                  frequencyType: event.eventType.frequencyType,
+                },
+                tInstance,
+              )}
             />
           </DataCell>
 
@@ -220,7 +231,7 @@ function RowActions({
           variant="ghost"
           size="icon-sm"
           onClick={() => onEdit(event)}
-          aria-label={`Edit ${event.eventType.name} — ${event.instanceLabel}`}
+          aria-label={`Edit ${event.eventType.name}`}
         >
           <Pencil />
         </Button>
