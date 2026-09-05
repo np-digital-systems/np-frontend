@@ -10,11 +10,14 @@ import {
 import { resolveDashboard } from './lib/dashboard-registry';
 
 export async function DashboardFeature() {
-  const user = await getCurrentUser();
+  const [user, financialYear] = await Promise.all([
+    getCurrentUser(),
+    getFinancialYear(),
+  ]);
 
   return createElement(resolveDashboard(user.role), {
     user,
-    financialYear: getFinancialYear(),
+    financialYear,
     greeting: getGreeting(),
     today: formatToday(),
   });

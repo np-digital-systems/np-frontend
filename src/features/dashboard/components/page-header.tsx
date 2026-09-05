@@ -1,5 +1,9 @@
 import type { DashboardProps } from '../types';
 
+import {
+  FINANCIAL_YEAR_STATUS_LABELS,
+  financialYearStatusClass,
+} from '@/lib/financial-year-display';
 import { cn } from '@/lib/utils';
 
 type PageHeaderProps = Pick<
@@ -16,7 +20,7 @@ export function PageHeader({
   financialYear,
   subtitle,
 }: PageHeaderProps) {
-  const isOpen = financialYear.status === 'Open';
+  const status = financialYear.status;
 
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -44,13 +48,12 @@ export function PageHeader({
               {financialYear.label}
             </span>
             <span
-              className={
-                isOpen
-                  ? 'rounded-full bg-success-subtle px-1.5 py-0.5 text-[11px] font-medium text-success'
-                  : 'rounded-full bg-neutral-subtle px-1.5 py-0.5 text-[11px] font-medium text-text-muted'
-              }
+              className={cn(
+                'rounded-full px-1.5 py-0.5 text-[11px] font-medium',
+                financialYearStatusClass(status),
+              )}
             >
-              {financialYear.status}
+              {FINANCIAL_YEAR_STATUS_LABELS[status]}
             </span>
           </dd>
         </div>
