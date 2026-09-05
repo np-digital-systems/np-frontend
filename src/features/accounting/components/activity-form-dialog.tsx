@@ -26,17 +26,28 @@ import { Switch } from '@/components/ui/switch';
 
 import { ACTIVITY_KINDS, ACTIVITY_KIND_LABELS } from '../lib/accounting-data';
 import { activitySchema } from '../lib/accounting-schemas';
-import type { ActivityKind, ActivityRecord, FundRef } from '../types';
+import type {
+  ActivityKind,
+  ActivityRecord,
+  FundRef,
+  PartyRef,
+  ProjectRef,
+} from '../types';
 
 export interface ActivityDraft {
   nameTa: string;
   nameEn: string;
   kind: ActivityKind;
+  /** The coding every voucher line takes when this activity is chosen. */
   defaultFundId: number | null;
+  defaultProjectId: number | null;
+  defaultPartyId: number | null;
   isActive: boolean;
 }
 
 const NO_FUND = '__none__';
+const NO_PROJECT = '__none__';
+const NO_PARTY = '__none__';
 
 function draftFrom(activity: ActivityRecord | null): ActivityDraft {
   if (activity) {
@@ -45,6 +56,8 @@ function draftFrom(activity: ActivityRecord | null): ActivityDraft {
       nameEn: activity.nameEn,
       kind: activity.kind,
       defaultFundId: activity.defaultFundId,
+      defaultProjectId: activity.defaultProjectId,
+      defaultPartyId: activity.defaultPartyId,
       isActive: activity.isActive,
     };
   }
@@ -54,6 +67,8 @@ function draftFrom(activity: ActivityRecord | null): ActivityDraft {
     nameEn: '',
     kind: 'pooja',
     defaultFundId: null,
+    defaultProjectId: null,
+    defaultPartyId: null,
     isActive: true,
   };
 }
@@ -63,6 +78,8 @@ interface ActivityFormDialogProps {
   onOpenChange: (open: boolean) => void;
   activity: ActivityRecord | null;
   funds: readonly FundRef[];
+  projects: readonly ProjectRef[];
+  parties: readonly PartyRef[];
   onSubmit: (draft: ActivityDraft) => void;
 }
 
@@ -71,10 +88,17 @@ export function ActivityFormDialog({
   onOpenChange,
   activity,
   funds,
+  projects,
+  parties,
   onSubmit,
 }: ActivityFormDialogProps) {
   const [draft, setDraft] = useState<ActivityDraft>(() => draftFrom(activity));
   const [error, setError] = useState<string | null>(null);
+
+  // A project belongs to one fund, so only that fund's projects can be offered.
+  const fundProjects = projects.filter(
+    (project) => project.fundId === draft.defaultFundId && project.isActive,
+  );
 
   const seed = `${open}|${activity?.id ?? 'new'}`;
   const [lastSeed, setLastSeed] = useState(seed);
@@ -178,7 +202,13 @@ export function ActivityFormDialog({
                     : String(draft.defaultFundId)
                 }
                 onValueChange={(value) =>
-                  update('defaultFundId', value === NO_FUND ? null : Number(value))
+                  setDraft((current) => ({
+                    ...current,
+                    defaultFundId: value === NO_FUND ? null : Number(value),
+                    // A project sits in one fund; carrying it across a fund
+                    // change would point the pair at different pots.
+                    defaultProjectId: null,
+                  }))
                 }
               >
                 <SelectTrigger id="activity-fund" className="w-full">
@@ -197,6 +227,83 @@ export function ActivityFormDialog({
               </Select>
             </FormField>
           </div>
+
+          {/*
+            * Only where the chosen fund actually runs projects. General Fund
+            * carries the poojas and has none, so the field never appears for
+            * them — which is most of the list.
+            */}
+          {fundProjects.length > 0 && (
+            <FormField
+              id="activity-project"
+              label="Project"
+              hint="The piece of work this activity belongs to, where there is one."
+            >
+              <Select
+                value={
+                  draft.defaultProjectId === null
+                    ? NO_PROJECT
+                    : String(draft.defaultProjectId)
+                }
+                onValueChange={(value) =>
+                  update(
+                    'defaultProjectId',
+                    value === NO_PROJECT ? null : Number(value),
+                  )
+                }
+              >
+                <SelectTrigger id="activity-project" className="w-full">
+                  <SelectValue placeholder="Not part of a project" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value={NO_PROJECT}>Not part of a project</SelectItem>
+
+                  {fundProjects.map((project) => (
+                    <SelectItem key={project.id} value={String(project.id)}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+
+          {/*
+            * A head is too coarse to name a person — 5200 Salaries serves the
+            * kurukkal, the melam group and the chef alike. An activity is only
+            * ever one of them, so it is the thing that can remember.
+            */}
+          <FormField
+            id="activity-party"
+            label="Usually with"
+            hint="Offered as the payer or payee. Left blank for anything with no regular counterparty."
+          >
+            <Select
+              value={
+                draft.defaultPartyId === null
+                  ? NO_PARTY
+                  : String(draft.defaultPartyId)
+              }
+              onValueChange={(value) =>
+                update('defaultPartyId', value === NO_PARTY ? null : Number(value))
+              }
+            >
+              <SelectTrigger id="activity-party" className="w-full">
+                <SelectValue placeholder="Ask each time" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value={NO_PARTY}>Ask each time</SelectItem>
+
+                {parties.map((party) => (
+                  <SelectItem key={party.id} value={String(party.id)}>
+                    {party.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">
