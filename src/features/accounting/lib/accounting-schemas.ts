@@ -31,6 +31,7 @@ const voucherLineSchema = z.object({
   fundId: z.number().int().positive('Choose a fund.'),
   projectId: z.number().int().positive().nullable(),
   activityId: z.number().int().positive().nullable(),
+  eventId: z.number().int().positive().nullable(),
 });
 
 export const voucherSchema = z
@@ -111,6 +112,8 @@ export const activitySchema = z.object({
   nameEn: optionalText(),
   kind: z.enum(ACTIVITY_KINDS),
   defaultFundId: z.number().int().positive().nullable(),
+  defaultProjectId: z.number().int().positive().nullable(),
+  defaultPartyId: z.number().int().positive().nullable(),
   isActive: z.boolean(),
 });
 

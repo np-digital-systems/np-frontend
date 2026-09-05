@@ -60,6 +60,7 @@ export interface VoucherLineInput {
   fundId: number;
   projectId: number | null;
   activityId: number | null;
+  eventId: number | null;
 }
 
 export interface VoucherInput {
@@ -91,6 +92,7 @@ function voucherBody(input: VoucherInput) {
       fundId: line.fundId,
       projectId: line.projectId ?? undefined,
       activityId: line.activityId ?? undefined,
+      eventId: line.eventId ?? undefined,
     })),
     mode: input.mode,
     bankAccountId: input.bankAccountId ?? undefined,
@@ -230,8 +232,10 @@ export interface ActivityInput {
   nameTa: string;
   nameEn?: string;
   kind?: 'pooja' | 'service' | 'facility' | 'general';
+  /** The coding a voucher line takes when this activity is chosen. */
   defaultFundId?: number | null;
-  parentId?: number | null;
+  defaultProjectId?: number | null;
+  defaultPartyId?: number | null;
 }
 
 export async function createActivity(input: ActivityInput): Promise<ActionResult> {
@@ -243,7 +247,8 @@ export async function createActivity(input: ActivityInput): Promise<ActionResult
         ...input,
         nameEn: input.nameEn || undefined,
         defaultFundId: input.defaultFundId ?? undefined,
-        parentId: input.parentId ?? undefined,
+        defaultProjectId: input.defaultProjectId ?? undefined,
+        defaultPartyId: input.defaultPartyId ?? undefined,
       }),
   );
 }
@@ -261,7 +266,8 @@ export async function updateActivity(
         nameEn: input.nameEn || undefined,
         kind: input.kind,
         defaultFundId: input.defaultFundId,
-        parentId: input.parentId,
+        defaultProjectId: input.defaultProjectId,
+        defaultPartyId: input.defaultPartyId,
         isActive: input.isActive,
       }),
   );
