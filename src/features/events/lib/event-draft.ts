@@ -1,5 +1,5 @@
 import type { EventDraft } from '../components/event-form-dialog';
-import type { EventRecord, EventType, SponsorUser } from '../types';
+import type { EventRecord, EventType, SponsorParty } from '../types';
 
 import { describeInstance, deriveStatus } from './event-data';
 
@@ -13,7 +13,7 @@ export function materialiseEvent(
     id: number;
     createdAt: string;
     eventTypes: readonly EventType[];
-    sponsors: readonly SponsorUser[];
+    sponsors: readonly SponsorParty[];
     today: string;
   },
 ): EventRecord {
@@ -35,7 +35,7 @@ export function materialiseEvent(
     scheduledDate: draft.scheduledDate,
     startTime: draft.startTime,
     endTime: draft.endTime || null,
-    sponsorId: draft.sponsorId,
+    sponsorPartyId: draft.sponsorPartyId,
     notes: draft.notes.trim() || null,
     isCompleted: draft.isCompleted,
     createdAt: base.createdAt,
@@ -46,7 +46,7 @@ export function materialiseEvent(
     ...event,
     eventType,
     sponsor:
-      base.sponsors.find((sponsor) => sponsor.id === draft.sponsorId) ?? null,
+      base.sponsors.find((sponsor) => sponsor.id === draft.sponsorPartyId) ?? null,
     instanceLabel: describeInstance(
       eventType.frequencyType,
       draft.instanceIdentifier,
