@@ -53,8 +53,17 @@ function DialogOverlay({
  * plainly inside it on screen. Radix would read a click on one as a click
  * outside the dialog and close the whole thing, losing the form. Anything
  * within a popper is therefore treated as inside.
+ *
+ * The click has to be read from `detail.originalEvent`: these events are
+ * dispatched on the dialog, so their own `target` is the dialog every time and
+ * would never match.
  */
-function isInsidePopper(target: EventTarget | null): boolean {
+function isInsidePopper(event: {
+  target: EventTarget | null
+  detail?: { originalEvent?: Event }
+}): boolean {
+  const target = event.detail?.originalEvent?.target ?? event.target
+
   return (
     target instanceof Element &&
     target.closest("[data-radix-popper-content-wrapper]") !== null
@@ -81,7 +90,7 @@ function DialogContent({
           className
         )}
         onPointerDownOutside={(event) => {
-          if (isInsidePopper(event.target)) {
+          if (isInsidePopper(event)) {
             event.preventDefault()
             return
           }
@@ -89,7 +98,7 @@ function DialogContent({
           onPointerDownOutside?.(event)
         }}
         onInteractOutside={(event) => {
-          if (isInsidePopper(event.target)) {
+          if (isInsidePopper(event)) {
             event.preventDefault()
             return
           }
