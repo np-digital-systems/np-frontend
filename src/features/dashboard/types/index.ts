@@ -9,7 +9,10 @@ export interface DashboardProps {
   readonly today: string;
 }
 
+import type { FinancialYearStatus } from '@/lib/financial-year-display';
+
 export interface FinancialYear {
   readonly label: string;
-  readonly status: 'Open' | 'Closed';
+  /** The API's own vocabulary, so nothing has to translate it on the way in. */
+  readonly status: FinancialYearStatus;
 }
