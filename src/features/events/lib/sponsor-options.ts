@@ -1,15 +1,13 @@
 import type { ComboboxGroup, ComboboxOption } from '@/components/ui/combobox';
 
-import type { EventType, SponsorAssignment, SponsorParty } from '../types';
+import type { EventSlot, EventType, SponsorAssignment, SponsorParty } from '../types';
 
 import {
-  ANY_INSTANCE_LABEL,
   DEFAULT_INSTANCE_COUNT,
   describeInstance,
 } from './event-data';
 
 /** The instance picker's stand-in for "no instance — every one of them". */
-export const ANY_INSTANCE = '__any__';
 
 /** The event form's stand-in for an occurrence nobody has taken yet. */
 export const UNASSIGNED = '__unassigned__';
@@ -38,42 +36,33 @@ export function instanceCountOf(eventType: EventType | null): number {
 }
 
 /**
- * Every instance of an event type.
+ * The slots of an event type, as the picker lists them.
  *
- * `includeAny` adds the "all instances" choice a sponsor takes when they give
- * to the type as a whole; a dated occurrence always falls on one instance, so
- * the event form leaves it out.
+ * Built from the slots themselves rather than counted off the type, so the
+ * temple's own name for a slot is what shows: மகோற்சவம் day 11 reads by its
+ * name, and twelve monthly slots read as twelve Tamil months instead of
+ * twelve identical "மாதாந்திரம்" rows with nothing to tell them apart.
+ *
+ * There is no "all instances" choice: every type has slots, so a sponsorship
+ * always names one.
  */
 export function instanceGroups(
-  eventType: EventType | null,
-  { includeAny = false }: { includeAny?: boolean } = {},
+  slots: readonly EventSlot[],
+  labelOf: (slot: EventSlot) => string,
 ): readonly ComboboxGroup[] {
-  const anyGroup: ComboboxGroup = {
-    options: [
-      {
-        value: ANY_INSTANCE,
-        label: ANY_INSTANCE_LABEL,
-        description: 'Offered for every instance of this event type',
-      },
-    ],
-  };
+  if (slots.length === 0) return [];
 
-  if (!eventType) return includeAny ? [anyGroup] : [];
-
-  const instances: ComboboxGroup = {
-    heading: includeAny ? 'Instances' : undefined,
-    options: Array.from({ length: instanceCountOf(eventType) }, (_, index) => {
-      const instanceIdentifier = index + 1;
-
-      return {
-        value: String(instanceIdentifier),
-        label: describeInstance(eventType.frequencyType, instanceIdentifier),
-        keywords: `#${instanceIdentifier}`,
-      };
-    }),
-  };
-
-  return includeAny ? [anyGroup, instances] : [instances];
+  return [
+    {
+      options: slots.map((slot) => ({
+        value: String(slot.instanceIdentifier),
+        label: labelOf(slot),
+        // Searchable by number even when it is named, so a clerk who knows it
+        // as "day 11" still finds it.
+        keywords: `#${slot.instanceIdentifier} ${slot.instanceIdentifier}`,
+      })),
+    },
+  ];
 }
 
 interface SponsorGroupOptions {
@@ -103,12 +92,10 @@ export function sponsorGroups(
 
   const eventTypeName = forType[0]?.eventType.name ?? 'this event type';
 
-  const pinned =
-    instanceIdentifier === null
-      ? []
-      : forType.filter(
-          (assignment) => assignment.instanceIdentifier === instanceIdentifier,
-        );
+  // Every sponsorship names a slot now, so this is a straight match.
+  const pinned = forType.filter(
+    (assignment) => assignment.instanceIdentifier === instanceIdentifier,
+  );
 
   const rest = forType.filter((assignment) => !pinned.includes(assignment));
 
