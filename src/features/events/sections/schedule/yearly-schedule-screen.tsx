@@ -94,6 +94,9 @@ export function YearlyScheduleScreen({
           const event = occurrences[0] ?? null;
 
           return {
+            // A dense type can show a number the server never sent a slot for;
+            // it has no slot row and nothing may be scheduled against it.
+            slotId: base?.slotId ?? 0,
             instanceIdentifier,
             customInstanceName:
               event?.customInstanceName ?? base?.customInstanceName ?? null,
@@ -102,6 +105,7 @@ export function YearlyScheduleScreen({
               base?.instanceLabel ??
               `#${instanceIdentifier}`,
             defaultSponsor: base?.defaultSponsor ?? null,
+            sponsors: base?.sponsors ?? [],
             sponsorCount: base?.sponsorCount ?? 0,
             eventCount: occurrences.length,
             event,
