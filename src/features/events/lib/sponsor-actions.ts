@@ -36,30 +36,29 @@ async function guarded(refused: string, write: () => Promise<unknown>): Promise<
 }
 
 export interface RegisterSponsorInput {
-  fullName: string;
-  nameTa?: string;
-  email?: string;
+  nameTa: string;
+  nameEn?: string;
   phone?: string;
-  address?: string;
   eventTypeId: number;
   instanceIdentifier: number | null;
   customInstanceName?: string;
 }
 
 export type RegisterSponsorResult =
-  | { ok: true; id: string }
+  | { ok: true; id: number }
   | { ok: false; message: string };
 
 /**
- * Register a sponsor against an event type.
+ * Register a sponsor against an event type, creating the party first.
  *
- * A sponsor is a `users` row with no email and no password — the portal keeps
- * one directory of people, and a devotee who has never signed in is exactly
- * that — plus the registration that ties them to the event type they give to.
- * The instance is optional; leaving it out registers them for every instance.
+ * A sponsor is a party — somebody the temple has dealings with — and not an
+ * account. Most of them will never sign in, and the ones who eventually do get
+ * a sign-in attached to the party they already are. Creating a login here, as
+ * this once did, put every walk-in sponsor in the user directory and left the
+ * electricity board with nowhere to sit at all.
  *
  * The two writes are separate calls, so a rejected registration can leave the
- * person in the directory. The message says so rather than pretending nothing
+ * party on record. The message says so rather than pretending nothing
  * happened, since the fix is to register them from the table, not to retype
  * their details.
  */
@@ -72,24 +71,23 @@ export async function registerSponsor(
     return { ok: false, message: 'You cannot register sponsors.' };
   }
 
-  const fullName = input.fullName.trim();
+  const nameTa = input.nameTa.trim();
 
-  if (fullName.length < 2) {
+  if (nameTa.length < 2) {
     return { ok: false, message: 'Enter the sponsor’s name.' };
   }
 
-  let userId: string;
+  let partyId: number;
 
   try {
-    const user = await api.post<{ id: string }>('/users', {
-      nameTa: input.nameTa?.trim() || fullName,
-      fullName,
-      email: input.email?.trim() || undefined,
+    const party = await api.post<{ id: number }>('/parties', {
+      nameTa,
+      nameEn: input.nameEn?.trim() || undefined,
       phone: input.phone?.trim() || undefined,
-      address: input.address?.trim() ?? '',
+      roles: ['sponsor'],
     });
 
-    userId = user.id;
+    partyId = party.id;
   } catch (error) {
     return { ok: false, message: messageFor(error) };
   }
@@ -99,27 +97,27 @@ export async function registerSponsor(
       eventTypeId: input.eventTypeId,
       instanceIdentifier: input.instanceIdentifier ?? undefined,
       customInstanceName: input.customInstanceName || undefined,
-      userId,
+      partyId,
     });
   } catch (error) {
     revalidate();
 
     return {
       ok: false,
-      message: `${fullName} was added to the directory, but not registered as a sponsor: ${messageFor(error)}`,
+      message: `${nameTa} was added to the parties list, but not registered as a sponsor: ${messageFor(error)}`,
     };
   }
 
   revalidate();
 
-  return { ok: true, id: userId };
+  return { ok: true, id: partyId };
 }
 
 export interface SponsorPlacementInput {
   eventTypeId: number;
   instanceIdentifier: number | null;
   customInstanceName?: string;
-  userId: string;
+  partyId: number;
 }
 
 /** Register somebody already in the directory. */
@@ -144,7 +142,7 @@ export async function updateSponsor(
       // event type — so it is sent rather than stripped like a blank string.
       instanceIdentifier:
         input.instanceIdentifier === undefined ? undefined : input.instanceIdentifier,
-      userId: input.userId || undefined,
+      partyId: input.partyId || undefined,
       // A blank name is sent as-is so a custom label can be cleared, which
       // `|| undefined` would silently turn into "leave it alone".
       customInstanceName: input.customInstanceName ?? undefined,
