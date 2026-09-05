@@ -5,6 +5,8 @@ import { useServerAction } from '@/hooks/use-server-action';
 import {
   createEventType,
   deleteEventType,
+  loadEventSlots,
+  updateEventSlot,
   updateEventType,
 } from '../../lib/event-actions';
 
@@ -39,7 +41,8 @@ import {
 } from '../../components/event-type-form-dialog';
 import { FrequencyBadge } from '../../components/frequency-badge';
 import { INSTANCE_MEANING, FREQUENCY_LABELS, FREQUENCY_TYPES } from '../../lib/event-data';
-import type { EventTypeRecord } from '../../types';
+import { EventSlotsDialog } from '../../components/event-slots-dialog';
+import type { EventSlot, EventTypeRecord } from '../../types';
 
 import type { ActivityRef } from '@/features/accounting/types';
 
@@ -67,6 +70,13 @@ export function EventTypesScreen({
   const [query, setQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<EventTypeRecord | null>(null);
+  const [slotsOf, setSlotsOf] = useState<EventTypeRecord | null>(null);
+  const [slots, setSlots] = useState<readonly EventSlot[]>([]);
+
+  async function openSlots(type: EventTypeRecord) {
+    setSlotsOf(type);
+    setSlots(await loadEventSlots(type.id));
+  }
   const [pendingDelete, setPendingDelete] = useState<EventTypeRecord | null>(
     null,
   );
@@ -218,6 +228,19 @@ export function EventTypesScreen({
 
                 <DataCell align="right" nowrap>
                   <div className="flex items-center justify-end gap-1.5">
+                    {/*
+                      * The slots are the structure of this pooja's year, so
+                      * they are opened from the type itself — the one place a
+                      * slot can be named before any date or sponsor exists.
+                      */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openSlots(type)}
+                    >
+                      Slots
+                    </Button>
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -251,6 +274,19 @@ export function EventTypesScreen({
         eventType={editing}
         activities={activities}
         onSubmit={handleSubmit}
+      />
+
+      <EventSlotsDialog
+        open={slotsOf !== null}
+        onOpenChange={(next) => !next && setSlotsOf(null)}
+        eventType={slotsOf}
+        slots={slots}
+        canManage
+        onRename={(slotId, customInstanceName) => {
+          run(() => updateEventSlot(slotId, { customInstanceName }), async () => {
+            if (slotsOf) setSlots(await loadEventSlots(slotsOf.id));
+          });
+        }}
       />
 
       <ConfirmDialog
