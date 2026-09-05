@@ -165,7 +165,9 @@ export function PartyPicker({
 
                     <span className="ml-auto flex items-center gap-2">
                       <span className="text-[10px] tracking-[0.06em] text-text-muted uppercase">
-                        {PARTY_KIND_LABELS[party.kind]}
+                        {party.roles
+                          .map((role) => PARTY_KIND_LABELS[role])
+                          .join(' · ')}
                       </span>
 
                       <Check
