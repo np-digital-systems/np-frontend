@@ -10,12 +10,15 @@ import { PortalSidebar } from '@/components/portal/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 import type { Notification } from '@/features/notification/constants/notification-shapes';
+import type { FinancialYearOption } from '@/lib/financial-year';
 
 interface PortalShellProps {
   children: React.ReactNode;
   navigation: readonly PortalNavGroup[];
   notifications: readonly Notification[];
   user: PortalUser;
+  financialYears: readonly FinancialYearOption[];
+  activeFinancialYear: FinancialYearOption | null;
 }
 
 export function PortalShell({
@@ -23,6 +26,8 @@ export function PortalShell({
   navigation,
   notifications,
   user,
+  financialYears,
+  activeFinancialYear,
 }: PortalShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -38,7 +43,12 @@ export function PortalShell({
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <PortalHeader notifications={notifications} user={user} />
+          <PortalHeader
+            notifications={notifications}
+            user={user}
+            financialYears={financialYears}
+            activeFinancialYear={activeFinancialYear}
+          />
 
           <main className="min-w-0 flex-1">{children}</main>
         </div>
