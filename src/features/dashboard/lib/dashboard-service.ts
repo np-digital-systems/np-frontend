@@ -143,7 +143,7 @@ export async function getUpcomingEvents(limit = 3): Promise<readonly TempleEvent
         year: 'numeric',
       }),
       time: event.endTime ? `${event.startTime} – ${event.endTime}` : event.startTime,
-      sponsor: event.sponsor?.fullName ?? 'Unsponsored',
+      sponsor: event.sponsor?.name ?? 'Unsponsored',
       status: event.status as BadgeStatus,
     }));
 }
