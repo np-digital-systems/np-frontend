@@ -19,12 +19,22 @@ export interface EventType {
   readonly updatedAt: string;
 }
 
-export interface SponsorUser {
-  readonly id: string;
-  readonly fullName: string;
+/**
+ * A sponsor, as the calendar knows one.
+ *
+ * A party, not an account. Sponsorship is a dealing the temple has with
+ * somebody; whether they can also sign in is a separate question, and for most
+ * of them the answer is no. Email and address come from the linked sign-in
+ * where there is one, and are empty otherwise.
+ */
+export interface SponsorParty {
+  readonly id: number;
+  readonly name: string;
+  readonly nameEn: string;
   readonly email: string | null;
   readonly phone: string | null;
   readonly address: string;
+  readonly userId: string | null;
 }
 
 /**
@@ -36,7 +46,7 @@ export interface EventTypeSponsor {
   readonly eventTypeId: number;
   readonly instanceIdentifier: number | null;
   readonly customInstanceName: string | null;
-  readonly userId: string;
+  readonly partyId: number;
   readonly createdAt: string;
 }
 
@@ -48,7 +58,7 @@ export interface TempleEvent {
     readonly scheduledDate: string;
     readonly startTime: string;
   readonly endTime: string | null;
-    readonly sponsorId: string | null;
+    readonly sponsorPartyId: number | null;
   readonly notes: string | null;
   readonly isCompleted: boolean;
   readonly createdAt: string;
@@ -57,7 +67,7 @@ export interface TempleEvent {
 
 export interface EventRecord extends TempleEvent {
   readonly eventType: EventType;
-  readonly sponsor: SponsorUser | null;
+  readonly sponsor: SponsorParty | null;
     readonly instanceLabel: string;
   readonly status: BadgeStatus;
 }
@@ -66,7 +76,7 @@ export interface ScheduleSlot {
   readonly instanceIdentifier: number;
   readonly instanceLabel: string;
   readonly customInstanceName: string | null;
-    readonly defaultSponsor: SponsorUser | null;
+    readonly defaultSponsor: SponsorParty | null;
   readonly sponsorCount: number;
   /** Dates scheduled against this slot this year; a monthly slot carries several. */
   readonly eventCount: number;
@@ -87,7 +97,7 @@ export interface EventTypeRecord extends EventType {
 
 export interface SponsorAssignment extends EventTypeSponsor {
   readonly eventType: EventType;
-  readonly sponsor: SponsorUser;
+  readonly sponsor: SponsorParty;
   readonly instanceLabel: string;
     readonly occurrences: number;
 }
