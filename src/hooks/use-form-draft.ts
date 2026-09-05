@@ -80,11 +80,18 @@ export function useFormDraft<T>(
     setRestored(read<T>(key));
   }, [enabled, key]);
 
-  // Written on every edit rather than on close: a dialog can go away without
-  // warning — a misclick, a reload, a crashed tab — and an unsaved keystroke is
-  // exactly the one worth having kept.
+  /*
+   * Written on every edit rather than on close: a dialog can go away without
+   * warning — a misclick, a reload, a crashed tab — and an unsaved keystroke is
+   * exactly the one worth having kept.
+   *
+   * Nothing is written while an unanswered draft is on offer. Reopening a form
+   * reseeds it to blank, and that blank would otherwise overwrite the very
+   * draft being offered — leaving the restore button working once and the
+   * stored copy gone if they closed the dialog again instead of using it.
+   */
   useEffect(() => {
-    if (!enabled || !opened.current) return;
+    if (!enabled || !opened.current || restored !== null) return;
 
     try {
       sessionStorage.setItem(
@@ -95,7 +102,7 @@ export function useFormDraft<T>(
       // Out of quota or storage denied. The form still works; it just will not
       // survive a mishap, which is no worse than before this existed.
     }
-  }, [enabled, key, current]);
+  }, [enabled, key, current, restored]);
 
   const discard = useCallback(() => {
     setRestored(null);
