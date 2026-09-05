@@ -73,10 +73,14 @@ export interface EventRecord extends TempleEvent {
 }
 
 export interface ScheduleSlot {
+  /** The slot row sponsors and occurrences point at. */
+  readonly slotId: number;
   readonly instanceIdentifier: number;
   readonly instanceLabel: string;
   readonly customInstanceName: string | null;
     readonly defaultSponsor: SponsorParty | null;
+  /** Everyone who takes this slot — the shortlist a year is scheduled from. */
+  readonly sponsors: readonly SponsorParty[];
   readonly sponsorCount: number;
   /** Dates scheduled against this slot this year; a monthly slot carries several. */
   readonly eventCount: number;
