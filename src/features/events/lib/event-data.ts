@@ -181,3 +181,34 @@ export function eventTitle(event: {
 }): string {
   return `${event.eventType.name} — ${event.instanceLabel}`;
 }
+
+/**
+ * The twelve months of the Tamil calendar, as the temple writes them.
+ *
+ * Offered as a list rather than typed, so `மார்கழி`, `மார்கழி மாதம்` and
+ * `Margazhi` cannot all end up naming the same month in different records.
+ *
+ * They cannot be derived from a date: மார்கழி runs from the middle of December
+ * into the middle of January, so a Gregorian month read off the calendar would
+ * be wrong for about half of every one of them. It is also why a monthly pooja
+ * can fall thirteen times in a Gregorian year.
+ */
+export const TAMIL_MONTHS: readonly string[] = [
+  'சித்திரை மாதம்',
+  'வைகாசி மாதம்',
+  'ஆனி மாதம்',
+  'ஆடி மாதம்',
+  'ஆவணி மாதம்',
+  'புரட்டாசி மாதம்',
+  'ஐப்பசி மாதம்',
+  'கார்த்திகை மாதம்',
+  'மார்கழி மாதம்',
+  'தை மாதம்',
+  'மாசி மாதம்',
+  'பங்குனி மாதம்',
+];
+
+/** Whether a type recurs by the month, and so is named by one. */
+export function isMonthly(frequencyType: FrequencyType): boolean {
+  return frequencyType === 'monthly_once' || frequencyType === 'monthly_twice';
+}
