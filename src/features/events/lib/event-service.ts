@@ -8,7 +8,7 @@ import type {
   EventTypeRecord,
   ScheduleGroup,
   SponsorAssignment,
-  SponsorUser,
+  SponsorParty,
 } from '../types';
 
 import { getActiveYear, getToday } from './event-data';
@@ -36,8 +36,8 @@ export async function getEventTypes(): Promise<readonly EventType[]> {
   return getEventTypeRecords();
 }
 
-export async function getSponsorUsers(): Promise<readonly SponsorUser[]> {
-  return getAll<SponsorUser>('/sponsors/directory');
+export async function getSponsorUsers(): Promise<readonly SponsorParty[]> {
+  return getAll<SponsorParty>('/sponsors/directory');
 }
 
 export async function getEvents(
