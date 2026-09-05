@@ -288,18 +288,21 @@ export async function deactivateActivity(id: number): Promise<ActionResult> {
 export interface PartyInput {
   nameTa: string;
   nameEn?: string;
-  kind?: 'sponsor' | 'staff' | 'vendor' | 'devotee';
+  roles?: readonly ('sponsor' | 'staff' | 'vendor' | 'devotee')[];
   userId?: string | null;
   phone?: string | null;
   notes?: string | null;
 }
 
-export async function createParty(input: PartyInput): Promise<ActionResult> {
+/** Returns the new party, so a picker that created one can select it at once. */
+export async function createParty(
+  input: PartyInput,
+): Promise<ActionResult<{ id: number }>> {
   return guarded(
     (access) => access.canManageParties,
     'You cannot change the list of parties.',
     () =>
-      api.post('/parties', {
+      api.post<{ id: number }>('/parties', {
         ...input,
         nameEn: input.nameEn || undefined,
         userId: input.userId || undefined,
@@ -320,7 +323,7 @@ export async function updateParty(
       api.patch(`/parties/${id}`, {
         nameTa: input.nameTa,
         nameEn: input.nameEn || undefined,
-        kind: input.kind,
+        roles: input.roles,
         userId: input.userId,
         phone: input.phone,
         notes: input.notes,
