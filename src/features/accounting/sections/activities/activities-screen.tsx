@@ -46,6 +46,7 @@ import {
 } from '../../lib/accounting-data';
 import {
   createActivity,
+  createParty,
   deactivateActivity,
   updateActivity,
 } from '../../lib/accounting-actions';
@@ -107,6 +108,17 @@ export function ActivitiesScreen({
   );
 
   const { run, error: actionError } = useServerAction();
+
+  /*
+   * Registered as a devotee, which is the role that assumes least. Whoever
+   * they turn out to be to the temple is settled on the parties screen; what
+   * matters here is that the form is not abandoned to go and add them.
+   */
+  async function handleCreateParty(name: string): Promise<number | null> {
+    const result = await createParty({ nameTa: name, roles: ['devotee'] });
+
+    return result.ok ? result.data.id : null;
+  }
 
   function handleSubmit(draft: ActivityDraft) {
     const target = editing;
@@ -349,6 +361,7 @@ export function ActivitiesScreen({
           funds={funds}
           projects={projects}
           parties={parties}
+          onCreateParty={handleCreateParty}
           onSubmit={handleSubmit}
         />
       )}
