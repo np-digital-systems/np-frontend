@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { api } from '@/lib/api';
+import { getActiveFinancialYearId } from '@/lib/financial-year';
 
 import type { LedgerRecord } from '@/features/accounting';
 
@@ -20,10 +21,16 @@ import type {
  *
  * Interest, depreciation and every fund position are worked out server-side
  * from the ledger and the deposit terms, so nothing here recomputes them.
+ *
+ * Movement figures follow the year chosen in the header. Deposits and assets
+ * do not: a deposit runs to its maturity date and an asset depreciates on its
+ * own schedule, neither of which a reporting year has any say over.
  */
 
 export async function getFundRecords(): Promise<readonly FundRecord[]> {
-  return api.get<readonly FundRecord[]>('/funds');
+  return api.get<readonly FundRecord[]>('/funds', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 interface Breakdown {
@@ -33,11 +40,15 @@ interface Breakdown {
 
 export async function getFundDetail(fundId: number): Promise<FundDetail | null> {
   try {
+    const financialYearId = await getActiveFinancialYearId();
+
     const [fund, breakdown, recent] = await Promise.all([
-      api.get<FundRecord>(`/funds/${fundId}`),
-      api.get<Breakdown>(`/funds/${fundId}/breakdown`),
+      api.get<FundRecord>(`/funds/${fundId}`, { query: { financialYearId } }),
+      api.get<Breakdown>(`/funds/${fundId}/breakdown`, { query: { financialYearId } }),
       api
-        .get<{ data: readonly LedgerRecord[] }>('/ledger', { query: { fundId, limit: 10 } })
+        .get<{ data: readonly LedgerRecord[] }>('/ledger', {
+          query: { fundId, limit: 10, financialYearId },
+        })
         .then((page) => page.data),
     ]);
 
@@ -55,7 +66,9 @@ export async function getFundDetails(): Promise<readonly FundDetail[]> {
 }
 
 export async function getProjectRecords(): Promise<readonly ProjectRecord[]> {
-  return api.get<readonly ProjectRecord[]>('/projects');
+  return api.get<readonly ProjectRecord[]>('/projects', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getDepositRecords(): Promise<readonly DepositRecord[]> {
@@ -71,5 +84,7 @@ export async function getAssetCategoryTotals(): Promise<readonly AssetCategoryTo
 }
 
 export async function getFinanceSummary(): Promise<FinanceSummary> {
-  return api.get<FinanceSummary>('/reports/finance-summary');
+  return api.get<FinanceSummary>('/reports/finance-summary', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
