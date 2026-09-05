@@ -41,7 +41,6 @@ export interface RegisterSponsorInput {
   phone?: string;
   eventTypeId: number;
   instanceIdentifier: number | null;
-  customInstanceName?: string;
 }
 
 export type RegisterSponsorResult =
@@ -96,7 +95,6 @@ export async function registerSponsor(
     await api.post('/sponsors', {
       eventTypeId: input.eventTypeId,
       instanceIdentifier: input.instanceIdentifier ?? undefined,
-      customInstanceName: input.customInstanceName || undefined,
       partyId,
     });
   } catch (error) {
@@ -116,7 +114,6 @@ export async function registerSponsor(
 export interface SponsorPlacementInput {
   eventTypeId: number;
   instanceIdentifier: number | null;
-  customInstanceName?: string;
   partyId: number;
 }
 
@@ -126,7 +123,6 @@ export async function addSponsor(input: SponsorPlacementInput): Promise<SponsorR
     api.post('/sponsors', {
       ...input,
       instanceIdentifier: input.instanceIdentifier ?? undefined,
-      customInstanceName: input.customInstanceName || undefined,
     }),
   );
 }
@@ -145,7 +141,6 @@ export async function updateSponsor(
       partyId: input.partyId || undefined,
       // A blank name is sent as-is so a custom label can be cleared, which
       // `|| undefined` would silently turn into "leave it alone".
-      customInstanceName: input.customInstanceName ?? undefined,
     }),
   );
 }

@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 
 import { requireSession } from '@/features/auth/lib/session';
+
+import type { EventSlot } from '../types';
 import { api, ApiError } from '@/lib/api';
 
 import { getEventAccess } from './event-access';
@@ -68,7 +70,6 @@ export async function deleteEventType(id: number): Promise<ActionResult> {
 export interface EventInput {
   eventTypeId: number;
   instanceIdentifier: number;
-  customInstanceName?: string | null;
   scheduledDate: string;
   startTime: string;
   endTime?: string | null;
@@ -81,7 +82,6 @@ export async function createEvent(input: EventInput): Promise<ActionResult> {
   return guarded((a) => a.canCreate, 'You cannot add events to the calendar.', () =>
     api.post('/events', {
       ...input,
-      customInstanceName: input.customInstanceName || undefined,
       endTime: input.endTime || undefined,
       sponsorPartyId: input.sponsorPartyId || undefined,
       notes: input.notes || undefined,
@@ -96,7 +96,6 @@ export async function updateEvent(
   return guarded((a) => a.canUpdate, 'You cannot change calendared events.', () =>
     api.patch(`/events/${id}`, {
       ...input,
-      customInstanceName: input.customInstanceName || undefined,
       endTime: input.endTime || undefined,
       sponsorPartyId: input.sponsorPartyId || undefined,
       notes: input.notes || undefined,
@@ -120,4 +119,28 @@ export async function deleteEvent(id: number): Promise<ActionResult> {
   return guarded((a) => a.canDelete, 'You cannot remove events from the calendar.', () =>
     api.delete(`/events/${id}`),
   );
+}
+
+/** Name a slot, or retire one. The one place a slot's name is set. */
+export async function updateEventSlot(
+  slotId: number,
+  input: { customInstanceName?: string | null; isActive?: boolean },
+): Promise<ActionResult> {
+  return guarded(
+    (access) => access.canManageTypes,
+    'You cannot change pooja types.',
+    () => api.patch(`/event-types/slots/${slotId}`, input),
+  );
+}
+
+/**
+ * A type's slots, for the dialog that names them.
+ *
+ * A server action rather than a service call: the list is read from a client
+ * component, and the API token lives on the server.
+ */
+export async function loadEventSlots(eventTypeId: number): Promise<readonly EventSlot[]> {
+  await requireSession();
+
+  return api.get<readonly EventSlot[]>(`/event-types/${eventTypeId}/slots`);
 }

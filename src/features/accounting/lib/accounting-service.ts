@@ -2,6 +2,7 @@ import 'server-only';
 
 import { api, getAll, type Page } from '@/lib/api';
 import {
+  getActiveCalendarYear,
   getActiveFinancialYearId,
   getFinancialYearContext,
 } from '@/lib/financial-year';
@@ -343,8 +344,13 @@ export async function getPoojas(): Promise<readonly PoojaRef[]> {
    * frequency and number — the same parts, and the same helper, the public
    * calendar uses to say "1ஆம் வாரம்".
    */
+  /*
+   * Scoped to the year the books are open on, not to today. A receipt raised
+   * against 2026 must offer 2026's occurrences — each carries the sponsor who
+   * took it that year, and offering another year's would name the wrong payer.
+   */
   const [events, translate] = await Promise.all([
-    getEvents(),
+    getEvents(await getActiveCalendarYear()),
     getTranslations('Events.instance'),
   ]);
 

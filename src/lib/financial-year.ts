@@ -84,3 +84,20 @@ export async function getFinancialYearContext(): Promise<{
 export async function getActiveFinancialYearId(): Promise<number | undefined> {
   return (await getFinancialYearContext()).active?.id;
 }
+
+/**
+ * The calendar year the active financial year opens in.
+ *
+ * The events calendar is kept by calendar year while the books are kept by
+ * financial year, so anything that reaches from one into the other — the pooja
+ * picker on a receipt, above all — has to say which. Read from the label, which
+ * begins with the opening year whether it reads "2026" or "2026/27".
+ */
+export async function getActiveCalendarYear(): Promise<number> {
+  const { active } = await getFinancialYearContext();
+  const opening = Number(active?.label.slice(0, 4));
+
+  return Number.isFinite(opening) && opening > 0
+    ? opening
+    : new Date().getFullYear();
+}

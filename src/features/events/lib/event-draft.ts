@@ -31,13 +31,14 @@ export function materialiseEvent(
     id: base.id,
     eventTypeId: draft.eventTypeId,
     instanceIdentifier: draft.instanceIdentifier,
-    customInstanceName: draft.customInstanceName.trim() || null,
     scheduledDate: draft.scheduledDate,
     startTime: draft.startTime,
     endTime: draft.endTime || null,
     sponsorPartyId: draft.sponsorPartyId,
     notes: draft.notes.trim() || null,
     isCompleted: draft.isCompleted,
+    // The slot's name is not the day's to set — it is read back from the API.
+    customInstanceName: null as string | null,
     createdAt: base.createdAt,
     updatedAt: now,
   };

@@ -1,6 +1,6 @@
 import type { Locale } from '@/i18n/routing';
 
-import type { PublicEvent } from '../types';
+import type { FrequencyType, PublicEvent } from '../types';
 
 /**
  * Turning an occurrence into words, in the visitor's language.
@@ -235,4 +235,46 @@ const EVENT_IMAGES = [
 
 export function eventImage(eventTypeId: number): string {
   return EVENT_IMAGES[eventTypeId % EVENT_IMAGES.length];
+}
+
+/**
+ * What to call one occurrence or slot, in the reader's language.
+ *
+ * The temple's own name always wins — it is written by hand and means more
+ * than anything derived. Failing that, the frequency renders one: "1ஆம் வாரம்"
+ * rather than "Week 1", because the API returns English for its own callers
+ * and the portal is read in Tamil.
+ */
+export function slotLabel(
+  slot: {
+    customInstanceName?: string | null;
+    instanceIdentifier: number | null;
+    frequencyType: FrequencyType;
+  },
+  translate: (key: string, values?: Record<string, string | number>) => string,
+): string {
+  if (slot.customInstanceName) return slot.customInstanceName;
+
+  const number = slot.instanceIdentifier;
+
+  if (number === null) return translate('all');
+
+  switch (slot.frequencyType) {
+    case 'weekly':
+      return translate('week', { number });
+    case 'monthly_twice':
+      return number === 1
+        ? translate('valarpirai')
+        : number === 2
+          ? translate('theipirai')
+          : translate('occurrence', { number });
+    case 'multi_day':
+      return translate('day', { number });
+    case 'monthly_once':
+      return translate('monthly');
+    case 'annual':
+      return translate('annual');
+    default:
+      return translate('occurrence', { number });
+  }
 }

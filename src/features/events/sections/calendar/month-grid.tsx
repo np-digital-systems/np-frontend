@@ -1,10 +1,12 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+import { slotLabel } from '../../lib/public-event-presentation';
 import type { EventAccess } from '../../lib/event-access';
 import { buildMonthGrid, shiftMonth, WEEKDAY_INITIALS } from '../../lib/calendar-grid';
 import { formatTime, monthName } from '../../lib/event-data';
@@ -150,7 +152,15 @@ interface EventChipProps {
 }
 
 function EventChip({ event, interactive, onSelect }: EventChipProps) {
-  const label = `${event.eventType.name} — ${event.instanceLabel}`;
+  const tInstance = useTranslations('Events.instance');
+  const label = `${event.eventType.name} — ${slotLabel(
+    {
+      customInstanceName: event.customInstanceName,
+      instanceIdentifier: event.instanceIdentifier,
+      frequencyType: event.eventType.frequencyType,
+    },
+    tInstance,
+  )}`;
 
   const content = (
     <>

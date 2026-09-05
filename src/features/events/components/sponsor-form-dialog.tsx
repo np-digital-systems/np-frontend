@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { FormField } from '@/components/portal/ui';
 import { validate } from '@/lib/validation';
@@ -17,21 +18,20 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
-import { describeInstance } from '../lib/event-data';
+import { loadEventSlots } from '../lib/event-actions';
+import { slotLabel } from '../lib/public-event-presentation';
 import { newSponsorSchema, sponsorPlacementSchema } from '../lib/event-schemas';
 import {
-  ANY_INSTANCE,
   eventTypeGroups,
   instanceCountOf,
   instanceGroups,
   sponsorGroups,
 } from '../lib/sponsor-options';
-import type { EventType, SponsorAssignment, SponsorParty } from '../types';
+import type { EventSlot, EventType, SponsorAssignment, SponsorParty } from '../types';
 
 export interface SponsorDraft {
   eventTypeId: number;
   instanceIdentifier: number | null;
-  customInstanceName: string;
   /** Set when the sponsor is a party already on record. */
   partyId: number | null;
   /**
@@ -53,7 +53,6 @@ function draftFrom(
     return {
       eventTypeId: sponsor.eventTypeId,
       instanceIdentifier: sponsor.instanceIdentifier,
-      customInstanceName: sponsor.customInstanceName ?? '',
       partyId: sponsor.partyId,
       newParty: null,
     };
@@ -62,7 +61,6 @@ function draftFrom(
   return {
     eventTypeId: eventTypes[0]?.id ?? 0,
     instanceIdentifier: null,
-    customInstanceName: '',
     partyId: null,
     newParty: null,
   };
@@ -111,6 +109,48 @@ export function SponsorFormDialog({
     () => eventTypes.find((type) => type.id === draft.eventTypeId) ?? null,
     [eventTypes, draft.eventTypeId],
   );
+
+  const tInstance = useTranslations('Events.instance');
+
+  /*
+   * The slots of the chosen type, loaded when it changes.
+   *
+   * Read rather than counted off the type, because the picker has to show the
+   * temple's own name for a slot where it has one — twelve monthly slots read
+   * as twelve Tamil months, not twelve identical "மாதாந்திரம்" rows.
+   */
+  const [slots, setSlots] = useState<readonly EventSlot[]>([]);
+
+  useEffect(() => {
+    const eventTypeId = draft.eventTypeId;
+    let current = true;
+
+    // Resolved through a promise either way, so the only write happens once
+    // the load settles and a type cleared mid-flight cannot land stale slots.
+    Promise.resolve(eventTypeId ? loadEventSlots(eventTypeId) : []).then((loaded) => {
+      if (current) setSlots(loaded);
+    });
+
+    return () => {
+      current = false;
+    };
+  }, [draft.eventTypeId]);
+
+  const labelForSlot = (slot: EventSlot) =>
+    slotLabel(
+      {
+        customInstanceName: slot.customInstanceName,
+        instanceIdentifier: slot.instanceIdentifier,
+        frequencyType: selectedType?.frequencyType ?? 'annual',
+      },
+      tInstance,
+    );
+
+  const labelForInstance = (instanceIdentifier: number) => {
+    const slot = slots.find((row) => row.instanceIdentifier === instanceIdentifier);
+
+    return slot ? labelForSlot(slot) : `#${instanceIdentifier}`;
+  };
 
   const directoryGroups = useMemo(
     () =>
@@ -167,7 +207,6 @@ export function SponsorFormDialog({
     const placement = {
       eventTypeId: draft.eventTypeId,
       instanceIdentifier: draft.instanceIdentifier,
-      customInstanceName: draft.customInstanceName,
     };
 
     const result = newParty
@@ -183,9 +222,6 @@ export function SponsorFormDialog({
 
     onSubmit({
       ...placement,
-      // A custom name labels one slot, so it goes with the instance.
-      customInstanceName:
-        draft.instanceIdentifier === null ? '' : draft.customInstanceName.trim(),
       partyId: newParty ? null : draft.partyId,
       newParty: newParty ? { ...newParty } : null,
     });
@@ -219,39 +255,23 @@ export function SponsorFormDialog({
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="sponsor-instance" label="Instance">
+            {/*
+              * Always one slot. Every type has them, so "all instances" only
+              * ever meant a row per slot — and the schedule had to fan it back
+              * out to them anyway.
+              */}
+            <FormField id="sponsor-instance" label="Instance" required>
               <Combobox
                 id="sponsor-instance"
                 value={
                   draft.instanceIdentifier === null
-                    ? ANY_INSTANCE
+                    ? ''
                     : String(draft.instanceIdentifier)
                 }
-                groups={instanceGroups(selectedType, { includeAny: true })}
+                groups={instanceGroups(slots, labelForSlot)}
                 searchPlaceholder="Search instances…"
                 emptyMessage="No instance matches that search."
-                onChange={(value) =>
-                  update(
-                    'instanceIdentifier',
-                    value === ANY_INSTANCE ? null : Number(value),
-                  )
-                }
-              />
-            </FormField>
-
-            <FormField
-              id="sponsor-instance-name"
-              label="Custom Instance Name"
-              hint="The traditional name of this slot, if it has one."
-            >
-              <Input
-                id="sponsor-instance-name"
-                value={draft.customInstanceName}
-                placeholder="சப்பரம், தேர்…"
-                disabled={draft.instanceIdentifier === null}
-                onChange={(changeEvent) =>
-                  update('customInstanceName', changeEvent.target.value)
-                }
+                onChange={(value) => update('instanceIdentifier', Number(value))}
               />
             </FormField>
           </div>
@@ -260,12 +280,9 @@ export function SponsorFormDialog({
             <p className="-mt-1 rounded-lg bg-surface-2 px-3 py-2 text-xs text-text-secondary">
               Sponsoring{' '}
               <span className="font-medium text-text-primary">
-                {selectedType.name} —{' '}
-                {describeInstance(
-                  selectedType.frequencyType,
-                  draft.instanceIdentifier,
-                  draft.customInstanceName || null,
-                )}
+                {selectedType.name}
+                {draft.instanceIdentifier !== null &&
+                  ` — ${labelForInstance(draft.instanceIdentifier)}`}
               </span>
             </p>
           )}

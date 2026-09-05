@@ -110,7 +110,6 @@ export function SponsorsScreen({
     const placement = {
       eventTypeId: draft.eventTypeId,
       instanceIdentifier: draft.instanceIdentifier,
-      customInstanceName: draft.customInstanceName,
     };
 
     run(

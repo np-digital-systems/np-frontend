@@ -115,7 +115,6 @@ export function EventsCalendar({
       () =>
         target
           ? updateEvent(target.id, {
-              customInstanceName: draft.customInstanceName || null,
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
@@ -125,7 +124,6 @@ export function EventsCalendar({
           : createEvent({
               eventTypeId: draft.eventTypeId,
               instanceIdentifier: draft.instanceIdentifier,
-              customInstanceName: draft.customInstanceName || null,
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
