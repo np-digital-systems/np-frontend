@@ -7,8 +7,6 @@ import {
   describeInstance,
 } from './event-data';
 
-/** The instance picker's stand-in for "no instance — every one of them". */
-
 /** The event form's stand-in for an occurrence nobody has taken yet. */
 export const UNASSIGNED = '__unassigned__';
 
@@ -43,24 +41,36 @@ export function instanceCountOf(eventType: EventType | null): number {
  * name, and twelve monthly slots read as twelve Tamil months instead of
  * twelve identical "மாதாந்திரம்" rows with nothing to tell them apart.
  *
- * There is no "all instances" choice: every type has slots, so a sponsorship
- * always names one.
+ * `unassignedLabel` leads the list with the choice not to place it at all, and
+ * is for sponsors alone: registering the name and settling the occasion later
+ * is how most of that register is filled, and picking it again is how somebody
+ * comes back off a slot they were given by mistake. An occurrence has no such
+ * state — a date always belongs to one slot — so the event form omits it.
  */
 export function instanceGroups(
   slots: readonly EventSlot[],
   labelOf: (slot: EventSlot) => string,
+  unassignedLabel?: string,
 ): readonly ComboboxGroup[] {
-  if (slots.length === 0) return [];
+  if (slots.length === 0 && unassignedLabel === undefined) return [];
+
+  const placements = slots.map((slot) => ({
+    value: String(slot.instanceIdentifier),
+    label: labelOf(slot),
+    // Searchable by number even when it is named, so a clerk who knows it
+    // as "day 11" still finds it.
+    keywords: `#${slot.instanceIdentifier} ${slot.instanceIdentifier}`,
+  }));
 
   return [
     {
-      options: slots.map((slot) => ({
-        value: String(slot.instanceIdentifier),
-        label: labelOf(slot),
-        // Searchable by number even when it is named, so a clerk who knows it
-        // as "day 11" still finds it.
-        keywords: `#${slot.instanceIdentifier} ${slot.instanceIdentifier}`,
-      })),
+      options:
+        unassignedLabel === undefined
+          ? placements
+          : [
+              { value: '', label: unassignedLabel, keywords: 'unassigned none later' },
+              ...placements,
+            ],
     },
   ];
 }
@@ -92,7 +102,8 @@ export function sponsorGroups(
 
   const eventTypeName = forType[0]?.eventType.name ?? 'this event type';
 
-  // Every sponsorship names a slot now, so this is a straight match.
+  // A straight match, nulls included: with no instance chosen, the people
+  // shown first are the ones also waiting to be given one.
   const pinned = forType.filter(
     (assignment) => assignment.instanceIdentifier === instanceIdentifier,
   );

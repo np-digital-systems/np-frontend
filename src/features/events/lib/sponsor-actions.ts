@@ -134,8 +134,9 @@ export async function updateSponsor(
   return guarded('You cannot change sponsor registrations.', () =>
     api.patch(`/sponsors/${id}`, {
       eventTypeId: input.eventTypeId,
-      // Null is meaningful here — it widens the sponsor back out to the whole
-      // event type — so it is sent rather than stripped like a blank string.
+      // Null is meaningful here — it takes the sponsor back off their slot and
+      // returns them to the pool — so it is sent rather than stripped like a
+      // blank string.
       instanceIdentifier:
         input.instanceIdentifier === undefined ? undefined : input.instanceIdentifier,
       partyId: input.partyId || undefined,
