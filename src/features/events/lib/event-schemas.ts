@@ -3,7 +3,6 @@ import { z } from 'zod';
 import {
   isoDate,
   isoTime,
-  optionalEmail,
   optionalText,
   requiredText,
 } from '@/lib/validation';
@@ -21,7 +20,7 @@ export const eventSchema = z
     scheduledDate: isoDate,
     startTime: isoTime,
     endTime: z.union([isoTime, z.literal('')]),
-    sponsorId: z.string().nullable(),
+    sponsorPartyId: z.number().int().positive().nullable(),
     notes: optionalText(1000),
     isCompleted: z.boolean(),
   })
@@ -59,19 +58,27 @@ const sponsorPlacement = {
   customInstanceName: optionalText(),
 };
 
-/** Registering somebody new: their details and the slot in one step. */
+/**
+ * Registering somebody new: their details and the slot in one step.
+ *
+ * A name and a phone number, which is all the temple has for most sponsors.
+ * Email and address belong to a sign-in, and a sponsor does not need one —
+ * the electricity board will never have one, and nor will most devotees.
+ */
 export const newSponsorSchema = z.object({
   ...sponsorPlacement,
-  fullName: requiredText('A sponsor name'),
+  nameTa: requiredText('A sponsor name'),
+  nameEn: optionalText(),
   phone: optionalText(32),
-  email: optionalEmail,
-  address: optionalText(500),
 });
 
 /** Editing an existing registration — the person is chosen, not typed. */
 export const sponsorPlacementSchema = z.object({
   ...sponsorPlacement,
-  userId: z.string().min(1, 'Choose the devotee or trust sponsoring this.'),
+  partyId: z
+    .number()
+    .int()
+    .positive('Choose who is sponsoring this.'),
 });
 
 export type EventInput = z.input<typeof eventSchema>;

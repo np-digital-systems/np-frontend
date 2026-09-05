@@ -130,7 +130,7 @@ export function summarise(
       (event) => !event.isCompleted && event.scheduledDate >= today,
     ).length,
     completed: events.filter((event) => event.isCompleted).length,
-    unsponsored: events.filter((event) => event.sponsorId === null).length,
+    unsponsored: events.filter((event) => event.sponsorPartyId === null).length,
   };
 }
 
