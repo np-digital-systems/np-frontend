@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 
 import { FormField } from '@/components/portal/ui';
+import { useFormDraft } from '@/hooks/use-form-draft';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
@@ -509,6 +510,28 @@ function draftFrom(
   };
 }
 
+/**
+ * Is this draft just the empty form?
+ *
+ * A draft is written on every keystroke, so a dialog merely opened and closed
+ * leaves one behind. Offering to restore *that* would put a banner in front of
+ * somebody who typed nothing, every time. Comparing against a freshly seeded
+ * form answers it without having to track whether anything was touched.
+ */
+function isBlank(
+  draft: VoucherDraft,
+  kind: VoucherKind,
+  voucher: VoucherRecord | null,
+  accounts: readonly AccountRef[],
+  funds: readonly FundRef[],
+  today: string,
+): boolean {
+  return (
+    JSON.stringify(draft) ===
+    JSON.stringify(draftFrom(voucher, kind, accounts, funds, today))
+  );
+}
+
 interface VoucherFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -559,6 +582,21 @@ export function VoucherFormDialog({
     setError(null);
   }
 
+  /*
+   * A voucher is a dozen fields and three lookups. Losing it to a stray click
+   * outside the dialog is the difference between a shrug and doing the whole
+   * thing again, so what is typed is kept and offered back on the next open.
+   * Keyed by the record so a new receipt and an edit never mix.
+   */
+  const { restored, discard } = useFormDraft(
+    `voucher:${voucher?.id ?? 'new'}:${kind}`,
+    draft,
+    { enabled: open },
+  );
+
+  const hasRestorableDraft =
+    restored !== null && !isBlank(restored, kind, voucher, accounts, funds, today);
+
 
   // The document total: summed from the heads, never typed.
   const total = draft.lines.reduce((sum, line) => sum + line.amount, 0);
@@ -606,6 +644,7 @@ export function VoucherFormDialog({
     if (!check()) return;
 
     onSubmit(cleaned(draft));
+    discard();
     onOpenChange(false);
   }
 
@@ -613,6 +652,7 @@ export function VoucherFormDialog({
     if (!check() || !onSubmitForApproval) return;
 
     onSubmitForApproval(cleaned(draft));
+    discard();
     onOpenChange(false);
   }
 
@@ -629,6 +669,35 @@ export function VoucherFormDialog({
               : 'Record money paid out by the temple. Nothing reaches the ledger until it is approved and posted.'}
           </DialogDescription>
         </DialogHeader>
+
+        {hasRestorableDraft && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning-subtle px-3.5 py-2.5">
+            <p className="text-xs text-text-secondary">
+              An unsaved {kind} from earlier is still here.
+            </p>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={discard}
+              >
+                Discard
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  setDraft(restored);
+                  discard();
+                }}
+              >
+                Restore it
+              </Button>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
