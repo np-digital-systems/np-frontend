@@ -78,12 +78,14 @@ export function PartyPicker({
   }
 
   /*
-   * `modal` because this sits inside a dialog. The popover portals to the end
-   * of the body, so without it the dialog's focus trap pulls focus straight
-   * back out and the search box cannot be typed in.
+   * Deliberately not `modal`. A modal popover nested inside a modal dialog has
+   * both of them setting `pointer-events: none` on the body and fighting over
+   * restoring it, and the loser leaves the whole page unclickable. The dialog
+   * already traps and restores focus for everything inside it; the guard in
+   * DialogContent is what keeps a click in here from closing the dialog.
    */
   return (
-    <Popover open={open} onOpenChange={setOpen} modal>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           id={id}
