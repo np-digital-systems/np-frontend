@@ -10,7 +10,6 @@ import {
   getFundOptions,
   getPostableAccounts,
   getPartyOptions,
-  getPoojaTypes,
   getPoojas,
   getProjectOptions,
   getVouchersOfKind,
@@ -36,8 +35,7 @@ export async function PaymentVouchersFeature() {
     bankAccounts,
     activities,
     parties,
-    poojaTypes,
-    poojas,
+      poojas,
   ] = await Promise.all([
     getVouchersOfKind('payment'),
     getPostableAccounts(),
@@ -46,7 +44,6 @@ export async function PaymentVouchersFeature() {
     getBankAccountOptions(),
     getActivityOptions(),
     getPartyOptions(),
-    getPoojaTypes(),
     getPoojas(),
   ]);
 
@@ -63,7 +60,6 @@ export async function PaymentVouchersFeature() {
         bankAccounts={bankAccounts}
         activities={activities}
         parties={parties}
-        poojaTypes={poojaTypes}
         poojas={poojas}
         access={access}
         user={user}

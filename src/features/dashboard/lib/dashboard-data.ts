@@ -1,3 +1,4 @@
+import { getFinancialYearContext } from '@/lib/financial-year';
 import { TIME_ZONE } from '@/lib/format';
 
 import type { FinancialYear } from '../types';
@@ -26,9 +27,21 @@ export function formatToday(now: Date = new Date()): string {
   }).format(now);
 }
 
-export function getFinancialYear(): FinancialYear {
-  // TODO: source from the financial-year service once the API exists.
-  return { label: '2026', status: 'Open' };
+/**
+ * The year the dashboard's figures are captioned with.
+ *
+ * The same year the header is showing — both resolve through
+ * `getFinancialYearContext`, so the caption under a total can never name a
+ * different year from the menu the reader chose it in. Falls back to a dash
+ * rather than inventing a year when the books hold none yet.
+ */
+export async function getFinancialYear(): Promise<FinancialYear> {
+  const { active } = await getFinancialYearContext();
+
+  return {
+    label: active?.label ?? '—',
+    status: active?.status ?? 'upcoming',
+  };
 }
 
 export { formatCurrency, formatCompact } from '@/lib/format';

@@ -27,6 +27,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 
 import { voucherSchema } from '../lib/accounting-schemas';
+import { PartyPicker } from './party-picker';
 import {
   ACCOUNT_TYPE_LABELS,
   PAYMENT_MODES,
@@ -35,7 +36,7 @@ import {
   isBankMode,
   partyLabel,
 } from '../lib/accounting-data';
-import { POOJA_SPONSORSHIP_CODE, formatLongDate } from '../lib/accounting-data';
+import { formatLongDate } from '../lib/accounting-data';
 import type {
   AccountRef,
   AccountType,
@@ -45,7 +46,6 @@ import type {
   ActivityRef,
   PartyRef,
   PoojaRef,
-  PoojaTypeRef,
   ProjectRef,
   VoucherKind,
   VoucherRecord,
@@ -74,12 +74,6 @@ export interface VoucherDraft {
   partyId: number | null;
   party: string;
   manualVoucherNo: string;
-  /*
-   * Which pooja type the pickers are filtered by. Never sent: the occurrence
-   * on the line already knows its type, so storing it too would be a second
-   * copy that nothing keeps in step.
-   */
-  eventTypeId: number | null;
   notes: string;
 }
 
@@ -106,9 +100,10 @@ interface LineEditorProps {
   funds: readonly FundRef[];
   projects: readonly ProjectRef[];
   activities: readonly ActivityRef[];
-  /** Hidden when the pooja type already settles it. */
-  showActivity: boolean;
+  poojas: readonly PoojaRef[];
   onChange: (lines: VoucherDraftLine[]) => void;
+  /** Told when a pooja is picked, so the document can name its sponsor. */
+  onPoojaChosen: (pooja: PoojaRef, activityName: string) => void;
   /** The head's usual party, offered to the document when the first is chosen. */
   onSuggestParty: (partyId: number) => void;
 }
@@ -126,9 +121,10 @@ function LineEditor({
   funds,
   projects,
   activities,
-  showActivity,
+  poojas,
   onChange,
   onSuggestParty,
+  onPoojaChosen,
 }: LineEditorProps) {
   const accountsByType = useMemo(() => {
     const groups = new Map<string, AccountRef[]>();
@@ -145,20 +141,6 @@ function LineEditor({
 
   function edit(index: number, patch: Partial<VoucherDraftLine>) {
     onChange(lines.map((line, at) => (at === index ? { ...line, ...patch } : line)));
-  }
-
-  /*
-   * A head can name who it is usually with — a kurukkal on his honorarium —
-   * which the first line offers up to the document's payee. Only the first,
-   * and only when nothing has been chosen: the party belongs to the voucher,
-   * and a second head must not quietly overwrite the first one's answer.
-   */
-  function onAccountChange(index: number, accountId: number) {
-    edit(index, { accountId });
-
-    const suggested = accounts.find((entry) => entry.id === accountId)?.defaultPartyId;
-
-    if (index === 0 && suggested != null) onSuggestParty(suggested);
   }
 
   function addLine() {
@@ -184,6 +166,10 @@ function LineEditor({
       {lines.map((line, index) => {
         const fundProjects = projects.filter(
           (project) => project.fundId === line.fundId && project.isActive,
+        );
+        const activity = activities.find((entry) => entry.id === line.activityId);
+        const activityPoojas = poojas.filter(
+          (pooja) => pooja.activityId === line.activityId,
         );
 
         return (
@@ -222,7 +208,7 @@ function LineEditor({
               <Select
                 value={String(line.accountId)}
                 onValueChange={(value) =>
-                  onAccountChange(index, Number(value))
+                  edit(index, { accountId: Number(value) })
                 }
               >
                 <SelectTrigger id={`voucher-account-${index}`} className="w-full">
@@ -282,10 +268,8 @@ function LineEditor({
               </FormField>
             </div>
 
-            {(showActivity || fundProjects.length > 0) && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {showActivity && (
-                  <FormField id={`voucher-activity-${index}`} label="Activity">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <FormField id={`voucher-activity-${index}`} label="Activity">
                     <Select
                       value={
                         line.activityId === null
@@ -299,14 +283,26 @@ function LineEditor({
                           (entry) => entry.id === activityId,
                         );
 
-                        // The activity carries the fund it is held in, so
-                        // choosing one settles both. Still editable above.
+                        /*
+                         * The activity carries its whole coding — the fund it
+                         * is held in, the project it belongs to, and who it is
+                         * usually with — so this one choice settles all three.
+                         * Every one of them stays editable: a default is what
+                         * is usually true, never a rule.
+                         */
                         edit(index, {
                           activityId,
                           fundId: activity?.defaultFundId ?? line.fundId,
-                          projectId:
-                            activity?.defaultFundId == null ? line.projectId : null,
+                          projectId: activity
+                            ? activity.defaultProjectId
+                            : line.projectId,
+                          // A different pooja is a different occurrence.
+                          eventId: null,
                         });
+
+                        if (activity?.defaultPartyId != null) {
+                          onSuggestParty(activity.defaultPartyId);
+                        }
                       }}
                     >
                       <SelectTrigger id={`voucher-activity-${index}`} className="w-full">
@@ -316,9 +312,56 @@ function LineEditor({
                       <SelectContent>
                         <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
 
-                        {activities.map((activity) => (
-                          <SelectItem key={activity.id} value={String(activity.id)}>
-                            {activity.name}
+                        {activities.map((option) => (
+                          <SelectItem key={option.id} value={String(option.id)}>
+                            {option.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+
+                {/*
+                  * Only where the activity is a pooja, and on the line that
+                  * names it: a split receipt's second head is the earmarked
+                  * remainder and is not for this occurrence at all. It appears
+                  * on payments too — the melam for one Friday, not the month.
+                  */}
+                {activity?.kind === 'pooja' && (
+                  <FormField
+                    id={`voucher-pooja-${index}`}
+                    label="Which one"
+                    hint={
+                      activityPoojas.length === 0
+                        ? 'None scheduled for this pooja yet.'
+                        : undefined
+                    }
+                  >
+                    <Select
+                      value={line.eventId === null ? NO_DIMENSION : String(line.eventId)}
+                      onValueChange={(value) => {
+                        const eventId =
+                          value === NO_DIMENSION ? null : Number(value);
+
+                        edit(index, { eventId });
+
+                        const pooja = poojas.find((entry) => entry.id === eventId);
+
+                        if (pooja && activity) onPoojaChosen(pooja, activity.name);
+                      }}
+                    >
+                      <SelectTrigger id={`voucher-pooja-${index}`} className="w-full">
+                        <SelectValue placeholder="Not a particular one" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectItem value={NO_DIMENSION}>
+                          Not a particular one
+                        </SelectItem>
+
+                        {activityPoojas.map((pooja) => (
+                          <SelectItem key={pooja.id} value={String(pooja.id)}>
+                            {pooja.label} · {formatLongDate(pooja.date)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -355,8 +398,7 @@ function LineEditor({
                     </Select>
                   </FormField>
                 )}
-              </div>
-            )}
+            </div>
           </div>
         );
       })}
@@ -375,8 +417,6 @@ function draftFrom(
   accounts: readonly AccountRef[],
   funds: readonly FundRef[],
   today: string,
-  /** Recovered from the occurrence the first line names; the form filters by it. */
-  poojaTypeOfFirstLine: number | null,
 ): VoucherDraft {
   if (voucher) {
     return {
@@ -396,7 +436,6 @@ function draftFrom(
       partyId: voucher.partyId,
       party: voucher.party,
       manualVoucherNo: voucher.manualVoucherNo ?? '',
-      eventTypeId: poojaTypeOfFirstLine,
       notes: voucher.notes ?? '',
     };
   }
@@ -429,7 +468,6 @@ function draftFrom(
     partyId: null,
     party: '',
     manualVoucherNo: '',
-    eventTypeId: null,
     notes: '',
   };
 }
@@ -445,7 +483,6 @@ interface VoucherFormDialogProps {
   bankAccounts: readonly BankAccountRef[];
   activities: readonly ActivityRef[];
   parties: readonly PartyRef[];
-  poojaTypes: readonly PoojaTypeRef[];
   poojas: readonly PoojaRef[];
   onSubmit: (draft: VoucherDraft) => void;
     onSubmitForApproval?: (draft: VoucherDraft) => void;
@@ -462,19 +499,15 @@ export function VoucherFormDialog({
   bankAccounts,
   activities,
   parties,
-  poojaTypes,
   poojas,
   onSubmit,
   onSubmitForApproval,
 }: VoucherFormDialogProps) {
   const today = new Date().toISOString().slice(0, 10);
 
-  const poojaTypeOfFirstLine =
-    poojas.find((pooja) => pooja.id === voucher?.lines[0]?.eventId)?.eventTypeId ??
-    null;
 
   const [draft, setDraft] = useState<VoucherDraft>(() =>
-    draftFrom(voucher, kind, accounts, funds, today, poojaTypeOfFirstLine),
+    draftFrom(voucher, kind, accounts, funds, today),
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -485,7 +518,7 @@ export function VoucherFormDialog({
 
   if (lastSeed !== seed) {
     setLastSeed(seed);
-    setDraft(draftFrom(voucher, kind, accounts, funds, today, poojaTypeOfFirstLine));
+    setDraft(draftFrom(voucher, kind, accounts, funds, today));
     setError(null);
   }
 
@@ -496,29 +529,13 @@ export function VoucherFormDialog({
   const needsBank = isBankMode(draft.mode);
 
   // Pooja sponsorship is the one account whose entries have to name a pooja.
-  // Pooja sponsorship is decided by the first head, which is the one a receipt
-  // for a pooja is raised against; a second head is the earmarked remainder.
-  const selectedAccount = accounts.find(
-    (account) => account.id === draft.lines[0]?.accountId,
-  );
-  const isPoojaSponsorship = selectedAccount?.code === POOJA_SPONSORSHIP_CODE;
 
-  const typePoojas = poojas.filter(
-    (pooja) => pooja.eventTypeId === draft.eventTypeId,
-  );
-  const selectedPooja = poojas.find(
-    (pooja) => pooja.id === draft.lines[0]?.eventId,
-  );
-  const selectedPoojaType = poojaTypes.find(
-    (type) => type.id === draft.eventTypeId,
-  );
 
   /*
    * A pooja receipt takes its activity from the pooja type, so the picker is
    * hidden there — answering it twice could only produce a disagreement.
    * Everything else names its activity directly.
    */
-  const activityFromPooja = isPoojaSponsorship && selectedPoojaType != null;
 
   function update<K extends keyof VoucherDraft>(key: K, value: VoucherDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -538,12 +555,6 @@ export function VoucherFormDialog({
   }
 
   function check(): boolean {
-    const pooja = poojaError();
-
-    if (pooja) {
-      setError(pooja);
-      return false;
-    }
 
     const result = validate(voucherSchema, draft);
 
@@ -551,14 +562,6 @@ export function VoucherFormDialog({
     return result.ok;
   }
 
-  function poojaError(): string | null {
-    if (!isPoojaSponsorship) return null;
-    if (draft.eventTypeId === null) return 'Choose the pooja type this entry is for.';
-    if (draft.lines[0]?.eventId == null) {
-      return 'Choose which pooja this entry is for.';
-    }
-    return null;
-  }
 
   function handleSave(formEvent: React.FormEvent) {
     formEvent.preventDefault();
@@ -628,8 +631,31 @@ export function VoucherFormDialog({
             funds={funds}
             projects={projects}
             activities={activities}
-            showActivity={!activityFromPooja}
+            poojas={poojas}
             onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
+            onPoojaChosen={(pooja, activityName) =>
+              setDraft((current) => ({
+                ...current,
+                /*
+                 * A receipt is collected from whoever sponsors the pooja, so
+                 * choosing one names the payer. Not on a payment: there the
+                 * money goes to the melam or the kurukkal, not the sponsor.
+                 */
+                party:
+                  kind === 'receipt' && pooja.sponsorName
+                    ? pooja.sponsorName
+                    : current.party,
+                partyId:
+                  kind === 'receipt' && pooja.sponsorId
+                    ? (parties.find((entry) => entry.userId === pooja.sponsorId)?.id ??
+                      current.partyId)
+                    : current.partyId,
+                // The pooja is the description; anything typed is left alone.
+                description: current.description.trim()
+                  ? current.description
+                  : `${activityName} — ${pooja.label}`,
+              }))
+            }
             onSuggestParty={(partyId) =>
               setDraft((current) =>
                 current.partyId === null && !current.party.trim()
@@ -644,211 +670,38 @@ export function VoucherFormDialog({
           />
 
 
-          {isPoojaSponsorship && (
-            <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface-2 p-3.5">
-              <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-                Which pooja
-              </p>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField id="voucher-pooja-type" label="Pooja Type" required>
-                  <Select
-                    value={
-                      draft.eventTypeId === null ? '' : String(draft.eventTypeId)
-                    }
-                    onValueChange={(value) => {
-                      const type = poojaTypes.find(
-                        (entry) => entry.id === Number(value),
-                      );
-
-                      setDraft((current) => ({
-                        ...current,
-                        eventTypeId: Number(value),
-                        // The type names the activity its receipts are coded
-                        // to, and the activity carries the fund in turn, so
-                        // one choice settles both. It lands on the first head,
-                        // which is the pooja itself — a second head is the
-                        // earmarked remainder and keeps its own coding.
-                        lines: current.lines.map((line, index) =>
-                          index === 0
-                            ? {
-                                ...line,
-                                // The pooja belongs to a type, so changing the
-                                // type invalidates the occurrence beneath it.
-                                eventId: null,
-                                activityId: type?.activityId ?? line.activityId,
-                                fundId:
-                                  activities.find(
-                                    (entry) => entry.id === type?.activityId,
-                                  )?.defaultFundId ?? line.fundId,
-                              }
-                            : line,
-                        ),
-                      }));
-                    }}
-                  >
-                    <SelectTrigger id="voucher-pooja-type" className="w-full">
-                      <SelectValue placeholder="Select a pooja type" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {poojaTypes.map((type) => (
-                        <SelectItem key={type.id} value={String(type.id)}>
-                          {type.name} · {type.nameEn}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-
-                <FormField
-                  id="voucher-pooja"
-                  label="Pooja"
-                  required
-                  hint={
-                    draft.eventTypeId === null
-                      ? 'Choose a pooja type first.'
-                      : typePoojas.length === 0
-                        ? 'No poojas scheduled under this type yet.'
-                        : undefined
-                  }
-                >
-                  <Select
-                    value={
-                      draft.lines[0]?.eventId == null
-                        ? ''
-                        : String(draft.lines[0].eventId)
-                    }
-                    disabled={draft.eventTypeId === null}
-                    onValueChange={(value) => {
-                      const pooja = poojas.find(
-                        (entry) => entry.id === Number(value),
-                      );
-
-                      setDraft((current) => ({
-                        ...current,
-                        // The occurrence sits on the head it is for. A split
-                        // receipt's second head is the earmarked remainder and
-                        // is not for this pooja at all.
-                        lines: current.lines.map((line, index) =>
-                          index === 0 ? { ...line, eventId: Number(value) } : line,
-                        ),
-                        // A receipt is collected from whoever sponsors the
-                        // pooja, so selecting one fills the payer in — both
-                        // the name shown and the party the books group by.
-                        party:
-                          kind === 'receipt' && pooja?.sponsorName
-                            ? pooja.sponsorName
-                            : current.party,
-                        partyId:
-                          kind === 'receipt' && pooja?.sponsorId
-                            ? (parties.find(
-                                (entry) => entry.userId === pooja.sponsorId,
-                              )?.id ?? current.partyId)
-                            : current.partyId,
-                        // The pooja is the description for these entries;
-                        // anything the user already typed is left alone.
-                        description:
-                          pooja && !current.description.trim()
-                            ? `${selectedPoojaType?.name ?? ''} — ${pooja.label}`
-                            : current.description,
-                      }));
-                    }}
-                  >
-                    <SelectTrigger id="voucher-pooja" className="w-full">
-                      <SelectValue placeholder="Select a pooja" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {typePoojas.map((pooja) => (
-                        <SelectItem key={pooja.id} value={String(pooja.id)}>
-                          {pooja.label} · {formatLongDate(pooja.date)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-              </div>
-
-              {selectedPooja && (
-                <p className="text-xs text-text-secondary">
-                  {selectedPoojaType?.name} — {selectedPooja.label}
-                  {selectedPooja.sponsorName
-                    ? ` · sponsored by ${selectedPooja.sponsorName}`
-                    : ' · no sponsor assigned yet'}
-                </p>
-              )}
-            </div>
-          )}
 
           {/*
-            * Below the pooja picker, not above it: choosing a pooja fills both
-            * of these in, and it only fills what the user has not typed. Asked
-            * for first, they would be answered twice.
+            * Below the pooja picker, not above it: choosing a pooja fills this
+            * in from the sponsor, and only where nothing has been typed. Asked
+            * for first, it would be answered twice.
+            *
+            * One control, not two: a name and the record it belongs to are one
+            * answer. Choosing someone links the entry so the books can group by
+            * them; a name that matches nobody is kept as written, which is what
+            * a walk-in hundial donor needs.
             */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="voucher-party" label={partyLabel(kind)} required>
-              <Input
-                id="voucher-party"
-                value={draft.party}
-                placeholder={
-                  kind === 'receipt'
-                    ? 'Devotee, trust or collection point'
-                    : 'Vendor, contractor or payee'
-                }
-                onChange={(changeEvent) =>
-                  update('party', changeEvent.target.value)
-                }
-              />
-            </FormField>
-
-            {/*
-              * The name above is what the receipt says; this is who the books
-              * group by. A walk-in donor needs only the name, which is why
-              * this stays optional — but naming a party is what makes "how
-              * much has this sponsor given" answerable at all.
-              */}
-            <FormField
-              id="voucher-party-ref"
-              label="On record as"
-              hint="Links this entry to a sponsor, staff member or vendor."
-            >
-              <Select
-                value={
-                  draft.partyId === null ? NO_DIMENSION : String(draft.partyId)
-                }
-                onValueChange={(value) => {
-                  const partyId = value === NO_DIMENSION ? null : Number(value);
-                  const chosen = parties.find((entry) => entry.id === partyId);
-
-                  setDraft((current) => ({
-                    ...current,
-                    partyId,
-                    // Naming the party fills the printed name too, unless the
-                    // clerk has already written something of their own.
-                    party:
-                      chosen && !current.party.trim()
-                        ? chosen.name
-                        : current.party,
-                  }));
-                }}
-              >
-                <SelectTrigger id="voucher-party-ref" className="w-full">
-                  <SelectValue placeholder="Not on record" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={NO_DIMENSION}>Not on record</SelectItem>
-
-                  {parties.map((entry) => (
-                    <SelectItem key={entry.id} value={String(entry.id)}>
-                      {entry.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
+          <FormField
+            id="voucher-party"
+            label={partyLabel(kind)}
+            required
+            hint="Choose someone on record, or type a name for a one-off."
+          >
+            <PartyPicker
+              id="voucher-party"
+              name={draft.party}
+              partyId={draft.partyId}
+              parties={parties}
+              placeholder={
+                kind === 'receipt'
+                  ? 'Devotee, trust or collection point'
+                  : 'Vendor, contractor or payee'
+              }
+              onChange={({ name, partyId }) =>
+                setDraft((current) => ({ ...current, party: name, partyId }))
+              }
+            />
+          </FormField>
 
           <FormField id="voucher-description" label="Description" required>
             <Input

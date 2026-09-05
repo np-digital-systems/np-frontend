@@ -16,15 +16,10 @@ export interface Account {
     readonly parentId: number | null;
   readonly isActive: boolean;
     readonly openingBalance: number;
-  /** Party offered whenever this head is chosen. */
-  readonly defaultPartyId: number | null;
   readonly createdAt: string;
 }
 
-export type AccountRef = Pick<
-  Account,
-  'id' | 'code' | 'name' | 'nameTa' | 'type' | 'defaultPartyId'
->;
+export type AccountRef = Pick<Account, 'id' | 'code' | 'name' | 'nameTa' | 'type'>;
 
 export interface AccountRecord extends Account {
   readonly parent: Account | null;
@@ -231,6 +226,8 @@ export interface Activity {
   readonly nameEn: string;
   readonly kind: ActivityKind;
   readonly defaultFundId: number | null;
+  readonly defaultProjectId: number | null;
+  readonly defaultPartyId: number | null;
   readonly isActive: boolean;
 }
 
@@ -241,7 +238,16 @@ export interface ActivityRecord extends Activity {
   readonly net: number;
 }
 
-export type ActivityRef = Pick<Activity, 'id' | 'name' | 'nameEn' | 'kind' | 'defaultFundId'>;
+export type ActivityRef = Pick<
+  Activity,
+  | 'id'
+  | 'name'
+  | 'nameEn'
+  | 'kind'
+  | 'defaultFundId'
+  | 'defaultProjectId'
+  | 'defaultPartyId'
+>;
 
 export type PartyKind = 'sponsor' | 'staff' | 'vendor' | 'devotee';
 
@@ -274,6 +280,8 @@ export type PartyRef = Pick<Party, 'id' | 'name' | 'nameEn' | 'kind' | 'userId'>
 export interface PoojaRef {
   readonly id: number;
   readonly eventTypeId: number;
+  /** The activity this pooja's type is coded to; the picker filters on it. */
+  readonly activityId: number | null;
   readonly label: string;
   readonly date: string;
   readonly sponsorName: string | null;

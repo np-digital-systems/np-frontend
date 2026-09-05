@@ -3,7 +3,7 @@ import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
-import { getAccountRecords, getPartyOptions } from '../../lib/accounting-service';
+import { getAccountRecords } from '../../lib/accounting-service';
 
 import { ChartOfAccountsScreen } from './chart-of-accounts-screen';
 
@@ -19,16 +19,12 @@ export async function ChartOfAccountsFeature() {
     );
   }
 
-  const [initialAccounts, parties] = await Promise.all([
-    getAccountRecords(),
-    getPartyOptions(),
-  ]);
+  const initialAccounts = await getAccountRecords();
 
   return (
     <PageShell>
       <ChartOfAccountsScreen
         initialAccounts={initialAccounts}
-        parties={parties}
         access={access}
         year={getActiveYear(getToday())}
       />

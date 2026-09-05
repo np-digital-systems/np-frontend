@@ -1,6 +1,10 @@
 import 'server-only';
 
 import { api, getAll, type Page } from '@/lib/api';
+import {
+  getActiveFinancialYearId,
+  getFinancialYearContext,
+} from '@/lib/financial-year';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -45,6 +49,11 @@ import { getToday } from './accounting-data';
  * Every balance here is derived server-side from the posted ledger, so nothing
  * in this file recomputes a figure — it would only be a second opinion about
  * money, and two opinions is one too many.
+ *
+ * Every read that carries a balance is scoped to the year chosen in the
+ * header. The picker lists of active funds, projects and heads are not: they
+ * feed form dropdowns, where what matters is whether a thing may still be
+ * posted to, not what it was worth in some year.
  */
 
 /* -------------------------------------------------------------------------
@@ -52,7 +61,9 @@ import { getToday } from './accounting-data';
    ------------------------------------------------------------------------- */
 
 export async function getAccountRecords(): Promise<readonly AccountRecord[]> {
-  return api.get<readonly AccountRecord[]>('/accounts');
+  return api.get<readonly AccountRecord[]>('/accounts', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getAccounts(): Promise<readonly Account[]> {
@@ -64,13 +75,12 @@ export async function getPostableAccounts(): Promise<readonly AccountRef[]> {
     query: { postableOnly: true, isActive: true },
   });
 
-  return accounts.map(({ id, code, name, nameTa, type, defaultPartyId }) => ({
+  return accounts.map(({ id, code, name, nameTa, type }) => ({
     id,
     code,
     name,
     nameTa,
     type,
-    defaultPartyId,
   }));
 }
 
@@ -82,7 +92,7 @@ export async function getActivityRecords(
   financialYearId?: number,
 ): Promise<readonly ActivityRecord[]> {
   return api.get<readonly ActivityRecord[]>('/activities', {
-    query: { financialYearId },
+    query: { financialYearId: financialYearId ?? (await getActiveFinancialYearId()) },
   });
 }
 
@@ -91,17 +101,23 @@ export async function getActivityOptions(): Promise<readonly ActivityRef[]> {
     query: { isActive: true },
   });
 
-  return activities.map(({ id, name, nameEn, kind, defaultFundId }) => ({
-    id,
-    name,
-    nameEn,
-    kind,
-    defaultFundId,
-  }));
+  return activities.map(
+    ({ id, name, nameEn, kind, defaultFundId, defaultProjectId, defaultPartyId }) => ({
+      id,
+      name,
+      nameEn,
+      kind,
+      defaultFundId,
+      defaultProjectId,
+      defaultPartyId,
+    }),
+  );
 }
 
 export async function getPartyRecords(financialYearId?: number): Promise<readonly PartyRecord[]> {
-  return api.get<readonly PartyRecord[]>('/parties', { query: { financialYearId } });
+  return api.get<readonly PartyRecord[]>('/parties', {
+    query: { financialYearId: financialYearId ?? (await getActiveFinancialYearId()) },
+  });
 }
 
 export async function getPartyOptions(): Promise<readonly PartyRef[]> {
@@ -123,7 +139,9 @@ export async function getPartyOptions(): Promise<readonly PartyRef[]> {
    ------------------------------------------------------------------------- */
 
 export async function getFundPositions(): Promise<readonly FundPosition[]> {
-  return api.get<readonly FundPosition[]>('/funds');
+  return api.get<readonly FundPosition[]>('/funds', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getFunds(): Promise<readonly Fund[]> {
@@ -137,7 +155,9 @@ export async function getFundOptions(): Promise<readonly FundRef[]> {
 }
 
 export async function getProjects(): Promise<readonly Project[]> {
-  return api.get<readonly Project[]>('/projects');
+  return api.get<readonly Project[]>('/projects', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getProjectOptions(): Promise<readonly ProjectRef[]> {
@@ -147,7 +167,9 @@ export async function getProjectOptions(): Promise<readonly ProjectRef[]> {
 }
 
 export async function getBankAccountRecords(): Promise<readonly BankAccountRecord[]> {
-  return api.get<readonly BankAccountRecord[]>('/bank-accounts');
+  return api.get<readonly BankAccountRecord[]>('/bank-accounts', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getBankAccounts(): Promise<readonly BankAccount[]> {
@@ -167,15 +189,24 @@ export async function getBankAccountOptions(): Promise<readonly BankAccountRef[]
    ------------------------------------------------------------------------- */
 
 export async function getVouchers(): Promise<readonly VoucherRecord[]> {
-  return getAll<VoucherRecord>('/vouchers');
+  return getAll<VoucherRecord>('/vouchers', {
+    financialYearId: await getActiveFinancialYearId(),
+  });
 }
 
 export async function getVouchersOfKind(kind: VoucherKind): Promise<readonly VoucherRecord[]> {
-  return getAll<VoucherRecord>('/vouchers', { kind });
+  return getAll<VoucherRecord>('/vouchers', {
+    kind,
+    financialYearId: await getActiveFinancialYearId(),
+  });
 }
 
 export async function getPendingVouchers(): Promise<readonly VoucherRecord[]> {
-  return getAll<VoucherRecord>('/vouchers', { status: 'Pending Approval', order: 'asc' });
+  return getAll<VoucherRecord>('/vouchers', {
+    status: 'Pending Approval',
+    order: 'asc',
+    financialYearId: await getActiveFinancialYearId(),
+  });
 }
 
 /* -------------------------------------------------------------------------
@@ -183,7 +214,9 @@ export async function getPendingVouchers(): Promise<readonly VoucherRecord[]> {
    ------------------------------------------------------------------------- */
 
 export async function getLedger(): Promise<readonly LedgerRecord[]> {
-  const page = await api.get<Page<LedgerRecord>>('/ledger', { query: { limit: 100 } });
+  const page = await api.get<Page<LedgerRecord>>('/ledger', {
+    query: { limit: 100, financialYearId: await getActiveFinancialYearId() },
+  });
 
   return page.data;
 }
@@ -194,11 +227,15 @@ interface Book {
 }
 
 export async function getCashBook(): Promise<Book> {
-  return api.get<Book>('/cash-book');
+  return api.get<Book>('/cash-book', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getBankBook(bankAccountId: number): Promise<Book> {
-  return api.get<Book>('/bank-book', { query: { bankAccountId } });
+  return api.get<Book>('/bank-book', {
+    query: { bankAccountId, financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 /* -------------------------------------------------------------------------
@@ -206,33 +243,37 @@ export async function getBankBook(bankAccountId: number): Promise<Book> {
    ------------------------------------------------------------------------- */
 
 export async function getSummary(): Promise<AccountingSummary> {
-  return api.get<AccountingSummary>('/reports/accounting-summary');
+  return api.get<AccountingSummary>('/reports/accounting-summary', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getIncomeStatement(): Promise<IncomeStatement> {
-  return api.get<IncomeStatement>('/reports/income-statement');
+  return api.get<IncomeStatement>('/reports/income-statement', {
+    query: { financialYearId: await getActiveFinancialYearId() },
+  });
 }
 
 export async function getTrialBalance(): Promise<readonly TrialBalanceRow[]> {
-  const report = await api.get<{ rows: readonly TrialBalanceRow[] }>('/reports/trial-balance');
+  const report = await api.get<{ rows: readonly TrialBalanceRow[] }>(
+    '/reports/trial-balance',
+    { query: { financialYearId: await getActiveFinancialYearId() } },
+  );
 
   return report.rows;
 }
 
-interface ApiFinancialYear {
-  readonly label: string;
-  readonly isCurrent: boolean;
-}
-
+/**
+ * The label of the year these figures are for.
+ *
+ * Reads the year chosen in the header rather than asking the API which year is
+ * current: a report captioned "2025/26" while the header says 2024/25 is worse
+ * than no caption at all. Falls back to a dash when the books hold no years.
+ */
 export async function getActiveFinancialYear(): Promise<string> {
-  try {
-    const year = await api.get<ApiFinancialYear>('/financial-years/current');
+  const { active } = await getFinancialYearContext();
 
-    return year.label;
-  } catch {
-    // No year is marked current yet — the books have not been opened.
-    return '—';
-  }
+  return active?.label ?? '—';
 }
 
 /**
@@ -310,6 +351,7 @@ export async function getPoojas(): Promise<readonly PoojaRef[]> {
   return events.map((event) => ({
     id: event.id,
     eventTypeId: event.eventTypeId,
+    activityId: event.eventType.activityId,
     label:
       instanceLabel(
         {

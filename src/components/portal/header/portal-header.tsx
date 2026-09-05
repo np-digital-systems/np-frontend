@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserMenu } from './user-menu'
 
 import type { PortalUser } from '@/features/auth/types/user'
+import type { FinancialYearOption } from '@/lib/financial-year'
 
 import { cn } from '@/lib/utils';
 
@@ -19,10 +20,17 @@ import { cn } from '@/lib/utils';
 interface PortalHeaderProps {
   notifications: readonly Notification[];
   user: PortalUser
+  financialYears: readonly FinancialYearOption[]
+  activeFinancialYear: FinancialYearOption | null
 }
 
 
-export function PortalHeader({ notifications, user }: PortalHeaderProps) {
+export function PortalHeader({
+  notifications,
+  user,
+  financialYears,
+  activeFinancialYear,
+}: PortalHeaderProps) {
   return (
     <header
       className={cn(
@@ -64,7 +72,10 @@ export function PortalHeader({ notifications, user }: PortalHeaderProps) {
           <div className="mx-1.5 hidden h-5 w-px bg-border sm:block" />
 
           {/* Financial year */}
-          <FinancialYearSelector />
+          <FinancialYearSelector
+            years={financialYears}
+            active={activeFinancialYear}
+          />
 
           {/* Notifications */}
           <NotificationMenu notifications={notifications} />

@@ -49,11 +49,19 @@ import {
   deactivateActivity,
   updateActivity,
 } from '../../lib/accounting-actions';
-import type { ActivityKind, ActivityRecord, FundRef } from '../../types';
+import type {
+  ActivityKind,
+  ActivityRecord,
+  FundRef,
+  PartyRef,
+  ProjectRef,
+} from '../../types';
 
 interface ActivitiesScreenProps {
   initialActivities: readonly ActivityRecord[];
   funds: readonly FundRef[];
+  projects: readonly ProjectRef[];
+  parties: readonly PartyRef[];
   access: AccountingAccess;
   year: number;
 }
@@ -61,6 +69,8 @@ interface ActivitiesScreenProps {
 export function ActivitiesScreen({
   initialActivities,
   funds,
+  projects,
+  parties,
   access,
   year,
 }: ActivitiesScreenProps) {
@@ -109,6 +119,8 @@ export function ActivitiesScreen({
               nameEn: draft.nameEn,
               kind: draft.kind,
               defaultFundId: draft.defaultFundId,
+              defaultProjectId: draft.defaultProjectId,
+              defaultPartyId: draft.defaultPartyId,
               isActive: draft.isActive,
             })
           : createActivity({
@@ -116,6 +128,8 @@ export function ActivitiesScreen({
               nameEn: draft.nameEn,
               kind: draft.kind,
               defaultFundId: draft.defaultFundId,
+              defaultProjectId: draft.defaultProjectId,
+              defaultPartyId: draft.defaultPartyId,
             }),
       () => {
         setEditing(null);
@@ -333,6 +347,8 @@ export function ActivitiesScreen({
           onOpenChange={setFormOpen}
           activity={editing}
           funds={funds}
+          projects={projects}
+          parties={parties}
           onSubmit={handleSubmit}
         />
       )}

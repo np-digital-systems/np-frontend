@@ -61,7 +61,6 @@ import type {
   ActivityRef,
   PartyRef,
   PoojaRef,
-  PoojaTypeRef,
   ProjectRef,
   VoucherKind,
   VoucherRecord,
@@ -89,7 +88,6 @@ interface VoucherRegisterProps {
   bankAccounts: readonly BankAccountRef[];
   activities: readonly ActivityRef[];
   parties: readonly PartyRef[];
-  poojaTypes: readonly PoojaTypeRef[];
   poojas: readonly PoojaRef[];
   access: AccountingAccess;
   user: PortalUser;
@@ -107,7 +105,6 @@ export function VoucherRegister({
   bankAccounts,
   activities,
   parties,
-  poojaTypes,
   poojas,
   access,
   user,
@@ -192,6 +189,7 @@ export function VoucherRegister({
         fundId: line.fundId,
         projectId: line.projectId,
         activityId: line.activityId,
+        eventId: line.eventId,
       })),
       mode: draft.mode,
       bankAccountId: draft.bankAccountId,
@@ -475,7 +473,6 @@ export function VoucherRegister({
           bankAccounts={bankAccounts}
           activities={activities}
           parties={parties}
-          poojaTypes={poojaTypes}
           poojas={poojas}
           onSubmit={(draft) => handleSave(draft, false)}
           onSubmitForApproval={
