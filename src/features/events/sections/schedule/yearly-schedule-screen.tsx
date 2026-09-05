@@ -170,7 +170,6 @@ export function YearlyScheduleScreen({
       () =>
         target
           ? updateEvent(target.id, {
-              customInstanceName: draft.customInstanceName || null,
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
@@ -180,7 +179,6 @@ export function YearlyScheduleScreen({
           : createEvent({
               eventTypeId: draft.eventTypeId,
               instanceIdentifier: draft.instanceIdentifier,
-              customInstanceName: draft.customInstanceName || null,
               scheduledDate: draft.scheduledDate,
               startTime: draft.startTime,
               endTime: draft.endTime || null,
