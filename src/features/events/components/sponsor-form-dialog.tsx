@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from 'react';
 
-import { FormField, SegmentedControl } from '@/components/portal/ui';
+import { FormField } from '@/components/portal/ui';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import { Combobox } from '@/components/ui/combobox';
+import { EntityCombobox } from '@/components/ui/entity-combobox';
 import {
   Dialog,
   DialogContent,
@@ -25,29 +26,24 @@ import {
   instanceGroups,
   sponsorGroups,
 } from '../lib/sponsor-options';
-import type { EventType, SponsorAssignment, SponsorUser } from '../types';
-
-/** Whether the person is being typed in or picked out of the directory. */
-type Source = 'New person' | 'From directory';
-
-const SOURCES: readonly Source[] = ['New person', 'From directory'];
+import type { EventType, SponsorAssignment, SponsorParty } from '../types';
 
 export interface SponsorDraft {
   eventTypeId: number;
   instanceIdentifier: number | null;
   customInstanceName: string;
-  /** Set when the sponsor is somebody already in the directory. */
-  userId: string;
-  /** Set when they are being registered for the first time. */
-  person: {
-    fullName: string;
-    phone: string;
-    email: string;
-    address: string;
-  } | null;
+  /** Set when the sponsor is a party already on record. */
+  partyId: number | null;
+  /**
+   * Set instead when they are being registered for the first time, from the
+   * name typed into the picker. A name and a phone number is all the temple
+   * has for most sponsors; email and address belong to a sign-in, and a
+   * sponsor does not need one.
+   */
+  newParty: { nameTa: string; nameEn: string; phone: string } | null;
 }
 
-const EMPTY_PERSON = { fullName: '', phone: '', email: '', address: '' };
+const EMPTY_PARTY = { nameTa: '', nameEn: '', phone: '' };
 
 function draftFrom(
   sponsor: SponsorAssignment | null,
@@ -58,8 +54,8 @@ function draftFrom(
       eventTypeId: sponsor.eventTypeId,
       instanceIdentifier: sponsor.instanceIdentifier,
       customInstanceName: sponsor.customInstanceName ?? '',
-      userId: sponsor.userId,
-      person: null,
+      partyId: sponsor.partyId,
+      newParty: null,
     };
   }
 
@@ -67,8 +63,8 @@ function draftFrom(
     eventTypeId: eventTypes[0]?.id ?? 0,
     instanceIdentifier: null,
     customInstanceName: '',
-    userId: '',
-    person: { ...EMPTY_PERSON },
+    partyId: null,
+    newParty: null,
   };
 }
 
@@ -79,7 +75,7 @@ interface SponsorFormDialogProps {
   sponsor: SponsorAssignment | null;
   eventTypes: readonly EventType[];
   /** Everyone who could be picked instead of being typed in. */
-  directory: readonly SponsorUser[];
+  directory: readonly SponsorParty[];
   assignments: readonly SponsorAssignment[];
   onSubmit: (draft: SponsorDraft) => void;
 }
@@ -98,7 +94,6 @@ export function SponsorFormDialog({
   const [draft, setDraft] = useState<SponsorDraft>(() =>
     draftFrom(sponsor, eventTypes),
   );
-  const [source, setSource] = useState<Source>('New person');
   const [error, setError] = useState<string | null>(null);
 
   // Re-seed when opened for a different record — see the note in
@@ -109,7 +104,6 @@ export function SponsorFormDialog({
   if (lastSeed !== seed) {
     setLastSeed(seed);
     setDraft(draftFrom(sponsor, eventTypes));
-    setSource('New person');
     setError(null);
   }
 
@@ -126,17 +120,29 @@ export function SponsorFormDialog({
     [assignments, directory, draft.eventTypeId, draft.instanceIdentifier],
   );
 
-  const usesDirectory = isEdit || source === 'From directory';
-  const person = draft.person ?? EMPTY_PERSON;
+  const newParty = draft.newParty;
 
   function update<K extends keyof SponsorDraft>(key: K, value: SponsorDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-  function updatePerson(key: keyof typeof EMPTY_PERSON, value: string) {
+  function updateNewParty(key: keyof typeof EMPTY_PARTY, value: string) {
     setDraft((current) => ({
       ...current,
-      person: { ...(current.person ?? EMPTY_PERSON), [key]: value },
+      newParty: { ...(current.newParty ?? EMPTY_PARTY), [key]: value },
+    }));
+  }
+
+  /*
+   * The name typed into the picker becomes the new party's name. A clerk
+   * registering somebody the temple has never dealt with types them in where
+   * they looked for them, rather than being sent to another screen first.
+   */
+  function startNewParty(typed: string) {
+    setDraft((current) => ({
+      ...current,
+      partyId: null,
+      newParty: { ...EMPTY_PARTY, nameTa: typed },
     }));
   }
 
@@ -164,9 +170,9 @@ export function SponsorFormDialog({
       customInstanceName: draft.customInstanceName,
     };
 
-    const result = usesDirectory
-      ? validate(sponsorPlacementSchema, { ...placement, userId: draft.userId })
-      : validate(newSponsorSchema, { ...placement, ...person });
+    const result = newParty
+      ? validate(newSponsorSchema, { ...placement, ...newParty })
+      : validate(sponsorPlacementSchema, { ...placement, partyId: draft.partyId });
 
     if (!result.ok) {
       setError(result.message);
@@ -180,8 +186,8 @@ export function SponsorFormDialog({
       // A custom name labels one slot, so it goes with the instance.
       customInstanceName:
         draft.instanceIdentifier === null ? '' : draft.customInstanceName.trim(),
-      userId: usesDirectory ? draft.userId : '',
-      person: usesDirectory ? null : { ...person },
+      partyId: newParty ? null : draft.partyId,
+      newParty: newParty ? { ...newParty } : null,
     });
 
     onOpenChange(false);
@@ -264,76 +270,87 @@ export function SponsorFormDialog({
             </p>
           )}
 
-          {!isEdit && (
-            <SegmentedControl
-              label="Where the sponsor comes from"
-              options={SOURCES}
-              value={source}
-              onChange={setSource}
-            />
-          )}
+          {newParty ? (
+            /*
+              * Registering somebody new, inline. The picker is left in place
+              * above so the way back is obvious — a clerk who mistypes a name
+              * that does exist can pick the real one without losing the slot
+              * they had already chosen.
+              */
+            <div className="flex flex-col gap-4 rounded-lg border border-accent bg-surface-2 p-3.5">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs text-text-secondary">
+                  Registering a new sponsor. They are added to the parties list
+                  and do not need a sign-in.
+                </p>
 
-          {usesDirectory ? (
-            <FormField id="sponsor-user" label="Sponsor" required>
-              <Combobox
-                id="sponsor-user"
-                value={draft.userId || null}
-                groups={directoryGroups}
-                placeholder="Select a devotee"
-                searchPlaceholder="Search by name or address…"
-                emptyMessage="Nobody in the directory matches that search."
-                onChange={(value) => update('userId', value)}
-              />
-            </FormField>
-          ) : (
-            <>
-              <FormField id="sponsor-name" label="Name" required>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => update('newParty', null)}
+                >
+                  Pick instead
+                </Button>
+              </div>
+
+              <FormField id="sponsor-name" label="Name (Tamil)" required>
                 <Input
                   id="sponsor-name"
-                  value={person.fullName}
+                  value={newParty.nameTa}
                   placeholder="ம. கணேசன் மற்றும் குடும்பத்தினர்"
                   onChange={(changeEvent) =>
-                    updatePerson('fullName', changeEvent.target.value)
+                    updateNewParty('nameTa', changeEvent.target.value)
                   }
                 />
               </FormField>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField id="sponsor-phone" label="Phone">
+                <FormField id="sponsor-name-en" label="Name (English)">
                   <Input
-                    id="sponsor-phone"
-                    value={person.phone}
-                    placeholder="077 111 2222"
+                    id="sponsor-name-en"
+                    value={newParty.nameEn}
+                    placeholder="M. Ganesan & family"
                     onChange={(changeEvent) =>
-                      updatePerson('phone', changeEvent.target.value)
+                      updateNewParty('nameEn', changeEvent.target.value)
                     }
                   />
                 </FormField>
 
-                <FormField id="sponsor-email" label="Email">
+                <FormField id="sponsor-phone" label="Phone">
                   <Input
-                    id="sponsor-email"
-                    type="email"
-                    value={person.email}
-                    placeholder="ganesan@example.com"
+                    id="sponsor-phone"
+                    value={newParty.phone}
+                    inputMode="tel"
+                    placeholder="077 111 2222"
                     onChange={(changeEvent) =>
-                      updatePerson('email', changeEvent.target.value)
+                      updateNewParty('phone', changeEvent.target.value)
                     }
                   />
                 </FormField>
               </div>
-
-              <FormField id="sponsor-address" label="Address">
-                <Input
-                  id="sponsor-address"
-                  value={person.address}
-                  placeholder="நல்லூர், யாழ்ப்பாணம்"
-                  onChange={(changeEvent) =>
-                    updatePerson('address', changeEvent.target.value)
-                  }
-                />
-              </FormField>
-            </>
+            </div>
+          ) : (
+            <FormField
+              id="sponsor-party"
+              label="Sponsor"
+              required
+              hint="Anyone the temple already deals with can sponsor — a vendor as readily as a devotee. Type a new name to register somebody."
+            >
+              <EntityCombobox
+                id="sponsor-party"
+                value={draft.partyId === null ? null : String(draft.partyId)}
+                groups={directoryGroups}
+                placeholder="Search or type a name"
+                searchPlaceholder="Search by name…"
+                emptyMessage="Nobody matches that search."
+                createLabel={(typed) => `Register “${typed}” as a new sponsor`}
+                onCreate={startNewParty}
+                onChange={(value) =>
+                  update('partyId', value === null ? null : Number(value))
+                }
+              />
+            </FormField>
           )}
 
           {error && (
