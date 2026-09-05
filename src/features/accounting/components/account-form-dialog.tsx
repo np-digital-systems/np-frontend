@@ -31,7 +31,7 @@ import {
   opensAtZero,
 } from '../lib/accounting-data';
 import { ACCOUNT_CODE_PREFIX, accountSchema } from '../lib/accounting-schemas';
-import type { Account, AccountRecord, AccountType, PartyRef } from '../types';
+import type { Account, AccountRecord, AccountType } from '../types';
 
 export interface AccountDraft {
   code: string;
@@ -40,13 +40,10 @@ export interface AccountDraft {
   type: AccountType;
   parentId: number | null;
   openingBalance: number;
-  /** Offered whenever this head is chosen — a kurukkal on his honorarium. */
-  defaultPartyId: number | null;
   isActive: boolean;
 }
 
 const NO_PARENT = '__none__';
-const NO_PARTY = '__none__';
 
 function draftFrom(account: AccountRecord | null): AccountDraft {
   if (account) {
@@ -57,7 +54,6 @@ function draftFrom(account: AccountRecord | null): AccountDraft {
       type: account.type,
       parentId: account.parentId,
       openingBalance: account.openingBalance,
-      defaultPartyId: account.defaultPartyId,
       isActive: account.isActive,
     };
   }
@@ -69,7 +65,6 @@ function draftFrom(account: AccountRecord | null): AccountDraft {
     type: 'expense',
     parentId: null,
     openingBalance: 0,
-    defaultPartyId: null,
     isActive: true,
   };
 }
@@ -78,8 +73,6 @@ interface AccountFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   account: AccountRecord | null;
-  /** Who an entry on this head is usually with. */
-  parties: readonly PartyRef[];
     parents: readonly Account[];
   existing: readonly Account[];
   onSubmit: (draft: AccountDraft) => void;
@@ -89,7 +82,6 @@ export function AccountFormDialog({
   open,
   onOpenChange,
   account,
-  parties,
   parents,
   existing,
   onSubmit,
@@ -298,40 +290,6 @@ export function AccountFormDialog({
             </FormField>
           )}
 
-          {/*
-            * A kurukkal's honorarium always goes to the same person, so the
-            * head remembers rather than the clerk retyping it every month.
-            */}
-          <FormField
-            id="account-party"
-            label="Usually with"
-            hint="Offered on every entry against this head. Still changeable on the voucher."
-          >
-            <Select
-              value={
-                draft.defaultPartyId === null
-                  ? NO_PARTY
-                  : String(draft.defaultPartyId)
-              }
-              onValueChange={(value) =>
-                update('defaultPartyId', value === NO_PARTY ? null : Number(value))
-              }
-            >
-              <SelectTrigger id="account-party" className="w-full">
-                <SelectValue placeholder="Ask each time" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value={NO_PARTY}>Ask each time</SelectItem>
-
-                {parties.map((party) => (
-                  <SelectItem key={party.id} value={String(party.id)}>
-                    {party.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">
