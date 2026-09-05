@@ -166,11 +166,6 @@ export function EventFormDialog({
       tInstance,
     );
 
-  const labelForInstance = (instanceIdentifier: number) => {
-    const slot = slots.find((row) => row.instanceIdentifier === instanceIdentifier);
-
-    return slot ? labelForSlot(slot) : `#${instanceIdentifier}`;
-  };
 
   const maxInstance = instanceCountOf(selectedType);
 
