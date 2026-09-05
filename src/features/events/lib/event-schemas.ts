@@ -16,7 +16,6 @@ export const eventSchema = z
       .number()
       .int()
       .min(1, 'The instance number starts at 1.'),
-    customInstanceName: optionalText(),
     scheduledDate: isoDate,
     startTime: isoTime,
     endTime: z.union([isoTime, z.literal('')]),
@@ -55,7 +54,6 @@ const sponsorPlacement = {
     .int()
     .min(1, 'The instance number starts at 1.')
     .nullable(),
-  customInstanceName: optionalText(),
 };
 
 /**
