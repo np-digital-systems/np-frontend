@@ -257,7 +257,8 @@ export function slotLabel(
 
   const number = slot.instanceIdentifier;
 
-  if (number === null) return translate('all');
+  // A sponsor registered against the type but not yet given an occurrence.
+  if (number === null) return translate('unassigned');
 
   switch (slot.frequencyType) {
     case 'weekly':

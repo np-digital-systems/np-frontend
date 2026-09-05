@@ -273,7 +273,7 @@
       "occurrence": "Occurrence {number}",
       "monthly": "Monthly occurrence",
       "annual": "Annual occurrence",
-      "all": "All instances"
+      "unassigned": "Not yet assigned"
     },
     "frequency": {
       "weekly": "Weekly",
