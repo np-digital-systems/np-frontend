@@ -3,6 +3,7 @@ import 'server-only';
 import { api, getAll } from '@/lib/api';
 
 import type {
+  EventSlot,
   EventRecord,
   EventType,
   EventTypeRecord,
@@ -44,6 +45,10 @@ export async function getEvents(
   year: number = getActiveYear(getToday()),
 ): Promise<readonly EventRecord[]> {
   return api.get<readonly EventRecord[]>('/events', { query: { year } });
+}
+
+export async function getEventSlots(eventTypeId: number): Promise<readonly EventSlot[]> {
+  return api.get<readonly EventSlot[]>(`/event-types/${eventTypeId}/slots`);
 }
 
 export async function getSponsorAssignments(
