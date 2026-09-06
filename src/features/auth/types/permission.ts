@@ -93,6 +93,8 @@ export const PERMISSIONS = [
    * money at the counter, so recording a payment is theirs; who is on the
    * register at all is the temple's own record-keeping.
    */
+  'sponsor:view',
+  'sponsor:manage',
   'contribution:view',
   'contribution:record',
   'contribution:manage',
