@@ -116,15 +116,19 @@ export const activitySchema = z.object({
 });
 
 export const partySchema = z.object({
+  type: z.enum(['person', 'organisation']),
   nameTa: requiredText('A Tamil name'),
   nameEn: optionalText(),
-  // At least one: a party with no role at all would fall out of every list
-  // the pickers are built from and become unreachable.
+  // May be empty. The electricity board is a party the temple pays and nothing
+  // more; demanding a role would only invite a meaningless one.
   roles: z
     .array(z.enum(PARTY_KINDS))
-    .min(1, 'Choose at least one role')
     .refine((values) => new Set(values).size === values.length, 'Roles must be distinct'),
   phone: optionalText(32),
+  email: z.union([z.literal(''), z.string().email('Enter a valid email')]),
+  address: optionalText(400),
+  referenceNo: optionalText(80),
+  notes: optionalText(2000),
   isActive: z.boolean(),
 });
 

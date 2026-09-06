@@ -4,6 +4,7 @@ import type {
   AccountType,
   ActivityKind,
   PartyKind,
+  PartyType,
   BankAccountType,
   PaymentMode,
   VoucherKind,
@@ -76,18 +77,18 @@ export const ACTIVITY_KIND_LABELS: Record<ActivityKind, string> = {
   general: 'General',
 };
 
-export const PARTY_KINDS: readonly PartyKind[] = [
-  'sponsor',
-  'staff',
-  'vendor',
-  'devotee',
-];
+/** Sponsorship is absent by design: a sponsor profile is the sponsor role. */
+export const PARTY_KINDS: readonly PartyKind[] = ['devotee', 'vendor', 'staff'];
 
 export const PARTY_KIND_LABELS: Record<PartyKind, string> = {
-  sponsor: 'Sponsor',
-  staff: 'Staff',
-  vendor: 'Vendor',
   devotee: 'Devotee',
+  vendor: 'Vendor',
+  staff: 'Staff',
+};
+
+export const PARTY_TYPE_LABELS: Record<PartyType, string> = {
+  person: 'Person',
+  organisation: 'Organisation',
 };
 
 export const PAYMENT_MODES: readonly PaymentMode[] = [
