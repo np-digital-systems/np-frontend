@@ -29,7 +29,7 @@ const ROLE_CHIP: Record<UserRole, string> = {
   admin: 'bg-primary-subtle text-primary',
   accountant: 'bg-info-subtle text-info',
   cashier: 'bg-success-subtle text-success',
-  user: 'bg-neutral-subtle text-text-muted',
+  member: 'bg-neutral-subtle text-text-muted',
 }
 
 /** Fixed rather than `useId`: the header renders exactly one user menu. */

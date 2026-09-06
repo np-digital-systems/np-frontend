@@ -3,9 +3,12 @@ import type { UserRole } from '@/features/auth/types/user-role';
 
 export interface AdminUser {
   readonly id: string;
+  /** The party this sign-in belongs to; names are edited there. */
+  readonly partyId: number;
   readonly fullName: string;
   readonly nameTa: string;
   readonly email: string;
+  /** From the party, shown read-only; edited in the directory. */
   readonly phone: string;
   readonly address: string;
   readonly role: UserRole;

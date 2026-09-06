@@ -24,13 +24,14 @@ export function sliceBook(
 
   if (selected.length === 0) {
     // Nothing moved in this month, so the closing balance is whatever the
-    // last row before it left behind.
+    // last row before it left behind — the latest of them, which is the one
+    // at the end.
     const priorRows =
       month === 'all'
         ? []
         : rows.filter((row) => periodKeyOf(row.date, month) < month);
 
-    const carried = priorRows[0]?.balance ?? yearOpening;
+    const carried = priorRows[priorRows.length - 1]?.balance ?? yearOpening;
 
     return {
       rows: selected,
@@ -38,9 +39,16 @@ export function sliceBook(
     };
   }
 
-  // Rows arrive newest-first, so the oldest of the slice is the last one.
-  const oldest = selected[selected.length - 1];
-  const newest = selected[0];
+  /*
+   * Rows arrive oldest-first — the order a running balance has to be read in,
+   * and the order the API sorts them (`date asc, id asc`). So the first of the
+   * slice is the oldest and the last is the newest. Reading them the other way
+   * round put the opening one movement too late and the closing one too early,
+   * which showed as a year that opened and closed on the same figure while its
+   * own rows disagreed.
+   */
+  const oldest = selected[0];
+  const newest = selected[selected.length - 1];
 
   const opening = oldest.balance - oldest.inflow + oldest.outflow;
 

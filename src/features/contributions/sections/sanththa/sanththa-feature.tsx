@@ -3,7 +3,11 @@ import { requireSession } from '@/features/auth/lib/session';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getContributionAccess } from '../../lib/contributions-access';
-import { getMemberRecords, getYears } from '../../lib/contributions-service';
+import {
+  getMemberRecords,
+  getSanththaSummary,
+  getYears,
+} from '../../lib/contributions-service';
 
 import { SanththaScreen } from './sanththa-screen';
 
@@ -30,7 +34,10 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
     ? requested
     : getActiveYear(getToday());
 
-  const members = await getMemberRecords(selected);
+  const [members, summary] = await Promise.all([
+    getMemberRecords(selected),
+    getSanththaSummary(selected),
+  ]);
 
   return (
     <PageShell>
@@ -38,6 +45,7 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
         initialMembers={members}
         years={years}
         year={selected}
+        rate={summary.rate}
         access={access}
       />
     </PageShell>

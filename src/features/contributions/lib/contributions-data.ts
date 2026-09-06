@@ -11,14 +11,6 @@ export {
 import type { PaymentMode } from '../types';
 
 /**
- * The yearly subscription every member pays.
- *
- * TODO: move to portal settings once the API exists, so the committee can
- * change the rate without a deploy.
- */
-export const YEARLY_SUBSCRIPTION = 1_500;
-
-/**
  * Where a subscription lands in the books.
  *
  * Every sanththa payment is income to this head, against the general fund —
@@ -44,17 +36,22 @@ export const PAYMENT_MODE_LABELS: Record<PaymentMode, string> = {
  * Pure arithmetic, so both the server page and the client screen can use it —
  * the screen recomputes as its filters change without another round trip.
  */
-export function summarise(records: readonly MemberRecord[]): SanththaSummary {
+export function summarise(
+  records: readonly MemberRecord[],
+  rate: number | null,
+): SanththaSummary {
   const expected = records.filter((member) => member.isActive);
   const paid = records.filter((member) => member.hasPaid);
   const unpaid = expected.filter((member) => !member.hasPaid).length;
 
   return {
+    rate,
     members: records.length,
+    subscribing: expected.length,
     paid: paid.length,
     unpaid,
     collected: paid.reduce((sum, member) => sum + (member.payment?.amount ?? 0), 0),
-    outstanding: unpaid * YEARLY_SUBSCRIPTION,
+    outstanding: unpaid * (rate ?? 0),
   };
 }
 

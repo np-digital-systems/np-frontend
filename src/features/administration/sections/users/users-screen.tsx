@@ -122,27 +122,23 @@ export function UsersScreen({
 
   function handleSubmit(draft: UserDraft) {
     const target = editing;
-    const profile = {
-      nameTa: draft.nameTa || draft.fullName,
-      fullName: draft.fullName,
-      email: draft.email,
-      phone: draft.phone,
-      address: draft.address,
-    };
 
     run(
       async () => {
-        // Only a new staff account carries a password; the API rejects one on
-        // an edit, and a devotee has no sign-in to give it to.
+        // Creating an account registers the person as a party in the same
+        // call; editing one only ever touches the email, because the name and
+        // contact details belong to the party and are edited in the directory.
         if (!target) {
           return createUser({
-            ...profile,
-            role: draft.role,
+            nameTa: draft.nameTa || draft.fullName,
+            nameEn: draft.fullName,
+            email: draft.email,
             password: draft.password || undefined,
+            role: draft.role,
           });
         }
 
-        const updated = await updateUser(target.id, profile);
+        const updated = await updateUser(target.id, { email: draft.email });
 
         if (!updated.ok) return updated;
 
@@ -168,7 +164,7 @@ export function UsersScreen({
   }
 
   const columns: DataColumn[] = [
-    { key: 'user', label: 'User' },
+    { key: 'member', label: 'User' },
     { key: 'role', label: 'Role' },
     { key: 'contact', label: 'Contact' },
     { key: 'sessions', label: 'Sessions', align: 'right' },
@@ -508,7 +504,7 @@ const ROLE_TONE: Record<UserRole, string> = {
   admin: 'bg-primary-subtle text-primary',
   accountant: 'bg-info-subtle text-info',
   cashier: 'bg-warning-subtle text-warning',
-  user: 'bg-neutral-subtle text-text-secondary',
+  member: 'bg-neutral-subtle text-text-secondary',
 };
 
 function RoleChip({ role }: { role: UserRole }) {

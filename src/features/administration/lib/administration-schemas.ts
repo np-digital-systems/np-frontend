@@ -34,7 +34,7 @@ export const userSchema = z.object({
    * the credential someone signs in with. A devotee on the register has no
    * account to sign in to, and often no email either.
    */
-  if (value.role !== 'user' && !value.email) {
+  if (value.role !== 'member' && !value.email) {
     ctx.addIssue({
       code: 'custom',
       path: ['email'],

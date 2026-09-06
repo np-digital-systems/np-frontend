@@ -63,7 +63,7 @@ function draftFrom(user: UserRecord | null): UserDraft {
     email: '',
     phone: '',
     address: '',
-    role: 'user',
+    role: 'member',
     isActive: true,
     password: '',
     passwordConfirmation: '',
@@ -106,7 +106,7 @@ export function UserFormDialog({
    * account. Devotees never sign in, and an edit cannot carry a password at all
    * — UpdateUserDto omits it, and a change goes through reset-password instead.
    */
-  const needsPassword = !user && draft.role !== 'user';
+  const needsPassword = !user && draft.role !== 'member';
 
   const isSelf = user?.id === currentUserId;
   const wasAdmin = user?.role === 'admin' && user.isActive;
@@ -214,9 +214,9 @@ export function UserFormDialog({
             <FormField
               id="user-email"
               label="Email"
-              required={draft.role !== 'user'}
+              required={draft.role !== 'member'}
               hint={
-                draft.role === 'user'
+                draft.role === 'member'
                   ? 'Optional. Most devotees on the register have none.'
                   : 'Staff sign in with this.'
               }

@@ -18,34 +18,49 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
-import { PARTY_KINDS, PARTY_KIND_LABELS } from '../lib/accounting-data';
+import { PARTY_KINDS, PARTY_KIND_LABELS, PARTY_TYPE_LABELS } from '../lib/accounting-data';
 import { partySchema } from '../lib/accounting-schemas';
-import type { PartyKind, PartyRecord } from '../types';
+import type { PartyKind, PartyRecord, PartyType } from '../types';
 
 export interface PartyDraft {
+  type: PartyType;
   nameTa: string;
   nameEn: string;
   roles: PartyKind[];
   phone: string;
+  email: string;
+  address: string;
+  referenceNo: string;
+  notes: string;
   isActive: boolean;
 }
 
 function draftFrom(party: PartyRecord | null): PartyDraft {
   if (party) {
     return {
+      type: party.type,
       nameTa: party.name,
       nameEn: party.nameEn,
       roles: [...party.roles],
       phone: party.phone ?? '',
+      email: party.email ?? '',
+      address: party.address ?? '',
+      referenceNo: party.referenceNo ?? '',
+      notes: party.notes ?? '',
       isActive: party.isActive,
     };
   }
 
   return {
+    type: 'person',
     nameTa: '',
     nameEn: '',
     roles: ['devotee'],
     phone: '',
+    email: '',
+    address: '',
+    referenceNo: '',
+    notes: '',
     isActive: true,
   };
 }
@@ -107,9 +122,9 @@ export function PartyFormDialog({
     onOpenChange(false);
   }
 
-  // A party carried over from a sponsor is the same person the calendar knows,
-  // so their name belongs to the user record rather than to this form.
-  const fromUser = party?.userId != null;
+  // A party that also holds a sign-in is still edited here — the directory is
+  // the one place a name is changed — but the badge says so.
+  const hasAccount = party?.accountId != null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,12 +139,44 @@ export function PartyFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/*
+            * Person or institution. The electricity board has an account
+            * number and no phone; a devotee is the other way round, and the
+            * form asks for what each actually has.
+            */}
+          <FormField
+            id="party-type"
+            label="Kind"
+            required
+            hint="An institution is billed and paid like anyone else, but has no personal details."
+          >
+            <div id="party-type" role="group" aria-label="Kind" className="grid grid-cols-2 gap-2">
+              {(['person', 'organisation'] as const).map((value) => (
+                <label
+                  key={value}
+                  htmlFor={`party-type-${value}`}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-input has-[:checked]:border-accent has-[:checked]:text-text-primary"
+                >
+                  <input
+                    id={`party-type-${value}`}
+                    type="radio"
+                    name="party-type"
+                    className="size-3.5 accent-[var(--accent)]"
+                    checked={draft.type === value}
+                    onChange={() => update('type', value)}
+                  />
+                  {PARTY_TYPE_LABELS[value]}
+                </label>
+              ))}
+            </div>
+          </FormField>
+
           <FormField
             id="party-name-ta"
             label="Name (Tamil)"
             required
             hint={
-              fromUser
+              hasAccount
                 ? 'This party stands for someone who signs in; changing the name here does not rename their account.'
                 : 'Shown on Tamil statements and in the voucher form.'
             }
@@ -160,8 +207,7 @@ export function PartyFormDialog({
           <FormField
             id="party-roles"
             label="Roles"
-            required
-            hint="For grouping the lists. A party may hold several, and holding one never limits what they can appear on."
+            hint="For grouping the lists. A party may hold several, or none — the electricity board is simply someone the temple pays."
           >
             <div
               id="party-roles"
@@ -186,13 +232,50 @@ export function PartyFormDialog({
             </div>
           </FormField>
 
-          <FormField id="party-phone" label="Phone">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField id="party-phone" label="Phone">
+              <Input
+                id="party-phone"
+                value={draft.phone}
+                inputMode="tel"
+                placeholder="077 123 4567"
+                onChange={(changeEvent) => update('phone', changeEvent.target.value)}
+              />
+            </FormField>
+
+            <FormField
+              id="party-reference"
+              label="Account / reference no."
+              hint={
+                draft.type === 'organisation'
+                  ? 'Their electricity, water or customer number.'
+                  : 'Any reference the temple files them under.'
+              }
+            >
+              <Input
+                id="party-reference"
+                value={draft.referenceNo}
+                placeholder="0123456789"
+                onChange={(changeEvent) => update('referenceNo', changeEvent.target.value)}
+              />
+            </FormField>
+          </div>
+
+          <FormField id="party-email" label="Email">
             <Input
-              id="party-phone"
-              value={draft.phone}
-              inputMode="tel"
-              placeholder="077 123 4567"
-              onChange={(changeEvent) => update('phone', changeEvent.target.value)}
+              id="party-email"
+              type="email"
+              value={draft.email}
+              placeholder="name@example.com"
+              onChange={(changeEvent) => update('email', changeEvent.target.value)}
+            />
+          </FormField>
+
+          <FormField id="party-address" label="Address">
+            <Input
+              id="party-address"
+              value={draft.address}
+              onChange={(changeEvent) => update('address', changeEvent.target.value)}
             />
           </FormField>
 

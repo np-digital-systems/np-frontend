@@ -28,7 +28,6 @@ import {
   SANTHTHA_ACCOUNT_CODE,
   SANTHTHA_ACCOUNT_NAME,
   SANTHTHA_FUND_NAME,
-  YEARLY_SUBSCRIPTION,
   formatCurrency,
   getToday,
 } from '../lib/contributions-data';
@@ -47,20 +46,23 @@ interface RecordPaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   member: MemberRecord | null;
   year: number;
+  /** The rate set for the year — the amount the form opens on. */
+  rate: number | null;
   /** Receives the reference of the receipt voucher the server raised. */
   onRecorded: (receiptRef: string) => void;
 }
 
-/** Records the one subscription a member owes for the year. */
+/** Records the one subscription a sponsor owes for the year. */
 export function RecordPaymentDialog({
   open,
   onOpenChange,
   member,
   year,
+  rate,
   onRecorded,
 }: RecordPaymentDialogProps) {
   const [draft, setDraft] = useState<PaymentDraft>({
-    amount: YEARLY_SUBSCRIPTION,
+    amount: rate ?? 0,
     paidOn: getToday(),
     mode: 'cash',
   });
@@ -73,7 +75,7 @@ export function RecordPaymentDialog({
   if (lastSeed !== seed) {
     setLastSeed(seed);
     setDraft({
-      amount: YEARLY_SUBSCRIPTION,
+      amount: rate ?? 0,
       paidOn: getToday(),
       mode: 'cash',
     });
@@ -131,7 +133,11 @@ export function RecordPaymentDialog({
               id="payment-amount"
               label="Amount"
               required
-              hint={`Standard subscription is ${formatCurrency(YEARLY_SUBSCRIPTION)}.`}
+              hint={
+                rate === null
+                  ? `No sanththa has been set for ${year}.`
+                  : `The ${year} sanththa is ${formatCurrency(rate)}.`
+              }
             >
               <Input
                 id="payment-amount"

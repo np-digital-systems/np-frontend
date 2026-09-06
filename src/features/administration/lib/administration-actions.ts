@@ -38,71 +38,64 @@ async function guarded(
 }
 
 /* -------------------------------------------------------------------------
-   Users
+   Staff accounts
+
+   An account is credentials granted to a party. Names and contact details are
+   the party's and are edited in the directory, not here.
    ------------------------------------------------------------------------- */
 
 export interface UserInput {
-  nameTa: string;
-  fullName?: string;
-  email?: string;
+  /** An existing party to grant the sign-in to. Omit to register a new person. */
+  partyId?: number;
+  nameTa?: string;
+  nameEn?: string;
+  email: string;
   password?: string;
-  phone?: string;
-  address?: string;
-  role?: UserRole;
+  role: UserRole;
 }
 
 export async function createUser(input: UserInput): Promise<ActionResult> {
-  return guarded((a) => a.canManageUsers, 'You cannot manage users.', () =>
-    api.post('/users', {
-      nameTa: input.nameTa,
-      fullName: input.fullName || undefined,
-      email: input.email || undefined,
-      password: input.password || undefined,
-      phone: input.phone || undefined,
-      address: input.address ?? '',
+  return guarded((a) => a.canManageUsers, 'You cannot manage accounts.', () =>
+    api.post('/user-accounts', {
+      partyId: input.partyId,
+      nameTa: input.partyId ? undefined : input.nameTa,
+      nameEn: input.partyId ? undefined : input.nameEn || undefined,
+      email: input.email,
+      password: input.password,
       role: input.role,
     }),
   );
 }
 
-export async function updateUser(
-  id: string,
-  input: Omit<UserInput, 'password' | 'role'>,
-): Promise<ActionResult> {
-  return guarded((a) => a.canManageUsers, 'You cannot manage users.', () =>
-    api.patch(`/users/${id}`, {
-      nameTa: input.nameTa,
-      fullName: input.fullName || undefined,
-      email: input.email || undefined,
-      phone: input.phone || undefined,
-      address: input.address,
-    }),
+export async function updateUser(id: string, input: { email: string }): Promise<ActionResult> {
+  return guarded((a) => a.canManageUsers, 'You cannot manage accounts.', () =>
+    api.patch(`/user-accounts/${id}`, { email: input.email }),
   );
 }
 
 /** Changing a role revokes the user's sessions, so it takes effect at once. */
 export async function changeUserRole(id: string, role: UserRole): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot change roles.', () =>
-    api.patch(`/users/${id}/role`, { role }),
+    api.patch(`/user-accounts/${id}/role`, { role }),
   );
 }
 
 export async function resetUserPassword(id: string, password: string): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot reset passwords.', () =>
-    api.post(`/users/${id}/reset-password`, { password }),
+    api.post(`/user-accounts/${id}/reset-password`, { password }),
   );
 }
 
 /** Revoke every session a user holds, without disabling the account. */
 export async function signOutUser(id: string): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot sign other people out.', () =>
-    api.post(`/users/${id}/sign-out`),
+    api.post(`/user-accounts/${id}/sign-out`),
   );
 }
 
 export async function setUserActive(id: string, isActive: boolean): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot manage users.', () =>
-    isActive ? api.post(`/users/${id}/activate`) : api.delete(`/users/${id}`),
+    isActive ? api.post(`/user-accounts/${id}/activate`) : api.delete(`/user-accounts/${id}`),
   );
 }
 

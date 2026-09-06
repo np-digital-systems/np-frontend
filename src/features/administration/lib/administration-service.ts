@@ -19,44 +19,46 @@ import type {
 import { DEFAULT_SETTINGS } from './administration-data';
 
 /* -------------------------------------------------------------------------
-   Users
+   Staff accounts
+
+   A sign-in, not a person. The name comes from the party the account belongs
+   to and is edited in the directory, never here.
    ------------------------------------------------------------------------- */
 
-interface ApiUser {
+interface ApiAccount {
   readonly id: string;
+  readonly partyId: number;
   readonly nameTa: string;
-  readonly fullName: string | null;
-  readonly email: string | null;
+  readonly nameEn: string | null;
+  readonly email: string;
   readonly phone: string | null;
-  readonly address: string;
+  readonly address: string | null;
   readonly role: UserRole;
   readonly isActive: boolean;
-  readonly memberNo: string | null;
-  readonly joinedOn: string | null;
-  readonly subscribes: boolean;
   readonly lastLoginAt: string | null;
   readonly createdAt: string;
 }
 
-function toUserRecord(user: ApiUser, sessions: readonly UserSession[]): UserRecord {
+function toUserRecord(account: ApiAccount, sessions: readonly UserSession[]): UserRecord {
   return {
-    id: user.id,
-    fullName: user.fullName ?? user.nameTa,
-    nameTa: user.nameTa,
-    email: user.email ?? '',
-    phone: user.phone ?? '',
-    address: user.address,
-    role: user.role,
-    isActive: user.isActive,
-    lastLoginAt: user.lastLoginAt,
-    createdAt: user.createdAt,
-    activeSessions: sessions.filter((session) => session.userId === user.id),
-    hasNeverSignedIn: user.lastLoginAt === null,
+    id: account.id,
+    partyId: account.partyId,
+    fullName: account.nameEn ?? account.nameTa,
+    nameTa: account.nameTa,
+    email: account.email,
+    phone: account.phone ?? '',
+    address: account.address ?? '',
+    role: account.role,
+    isActive: account.isActive,
+    lastLoginAt: account.lastLoginAt,
+    createdAt: account.createdAt,
+    activeSessions: sessions.filter((session) => session.userId === account.id),
+    hasNeverSignedIn: account.lastLoginAt === null,
   };
 }
 
 export async function getUserRecords(): Promise<readonly UserRecord[]> {
-  const users = await getAll<ApiUser>('/users');
+  const users = await getAll<ApiAccount>('/user-accounts');
 
   /*
    * Sessions are the signed-in user's own; the API deliberately exposes no
@@ -73,23 +75,25 @@ export async function getUserRecords(): Promise<readonly UserRecord[]> {
 /**
  * Your own record.
  *
- * Distinct from the register: reading `/users` needs `user:manage`, and a
- * devotee looking at their own profile holds nothing of the sort.
+ * Distinct from the account list: reading `/user-accounts` needs `user:manage`,
+ * and a member looking at their own profile holds nothing of the sort.
  */
 export async function getMyProfile(): Promise<UserRecord> {
   const [me, sessions] = await Promise.all([
-    api.get<ApiUser & { permissions?: readonly string[] }>('/auth/me'),
+    api.get<Partial<ApiAccount> & { id: string; nameTa: string; role: UserRole }>('/auth/me'),
     api.get<readonly UserSession[]>('/auth/sessions').catch(() => [] as readonly UserSession[]),
   ]);
 
   return toUserRecord(
     {
-      ...me,
+      id: me.id,
+      partyId: me.partyId ?? 0,
+      nameTa: me.nameTa,
+      nameEn: me.nameEn ?? null,
+      email: me.email ?? '',
       phone: me.phone ?? null,
-      address: me.address ?? '',
-      memberNo: me.memberNo ?? null,
-      joinedOn: me.joinedOn ?? null,
-      subscribes: me.subscribes ?? false,
+      address: me.address ?? null,
+      role: me.role,
       isActive: me.isActive ?? true,
       lastLoginAt: me.lastLoginAt ?? null,
       createdAt: me.createdAt ?? new Date().toISOString(),

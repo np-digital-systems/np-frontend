@@ -126,12 +126,13 @@ export async function getPartyOptions(): Promise<readonly PartyRef[]> {
     query: { isActive: true },
   });
 
-  return parties.map(({ id, name, nameEn, roles, userId }) => ({
+  return parties.map(({ id, type, name, nameEn, roles, isSponsor }) => ({
     id,
+    type,
     name,
     nameEn,
     roles,
-    userId,
+    isSponsor,
   }));
 }
 
