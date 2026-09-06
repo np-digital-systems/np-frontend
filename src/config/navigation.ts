@@ -172,7 +172,7 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         label: 'Dashboard',
         href: '/dashboard',
         icon: 'dashboard',
-        allowedRoles: ['admin', 'accountant', 'cashier', 'user'],
+        allowedRoles: ['admin', 'accountant', 'cashier', 'member'],
       },
     ],
   },
