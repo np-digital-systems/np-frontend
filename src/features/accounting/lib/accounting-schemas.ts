@@ -48,8 +48,12 @@ export const voucherSchema = z
     chequeNo: optionalText(32),
     party: requiredText('This field'),
     manualVoucherNo: optionalText(32),
-    eventTypeId: z.number().int().positive().nullable(),
-    eventId: z.number().int().positive().nullable(),
+    /*
+     * No pooja here. A split receipt names one on the head it was given for
+     * and not on the earmarked remainder beside it, so the occurrence belongs
+     * to the line — see `eventId` on voucherLineSchema. Asking for it twice
+     * could only produce a disagreement.
+     */
     notes: optionalText(1000),
   })
   .refine(
@@ -66,12 +70,6 @@ export const voucherSchema = z
       path: ['chequeNo'],
     },
   );
-
-/** Pooja sponsorship needs the pooja identified before the entry means anything. */
-export function poojaRefinement(isSponsorshipAccount: boolean) {
-  return (draft: { eventTypeId: number | null; eventId: number | null }) =>
-    !isSponsorshipAccount || (draft.eventTypeId !== null && draft.eventId !== null);
-}
 
 export const accountSchema = z
   .object({
