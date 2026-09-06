@@ -5,17 +5,16 @@ import { getActiveYear, getToday } from '@/lib/format';
 
 import type { MemberRecord, PaymentMode, SanththaSummary } from '../types';
 
-import { YEARLY_SUBSCRIPTION } from './contributions-data';
 
-/** A row of `GET /sanththa/register`. */
+/** A row of `GET /sanththa/register` — every active sponsor. */
 interface ApiRegisterRow {
-  readonly id: string;
-  readonly memberNo: string;
+  readonly partyId: number;
+  readonly sponsorNo: string;
   readonly name: string;
   readonly nameTa: string;
   readonly phone: string | null;
-  readonly address: string;
-  readonly joinedOn: string | null;
+  readonly address: string | null;
+  readonly sponsorSince: string | null;
   readonly subscribes: boolean;
   readonly paidYears: readonly number[];
   readonly totalPaid: number;
@@ -24,7 +23,7 @@ interface ApiRegisterRow {
 
 interface ApiPayment {
   readonly id: number;
-  readonly userId: string;
+  readonly sponsorId: number;
   readonly year: number;
   readonly amount: number;
   readonly paidOn: string;
@@ -41,19 +40,19 @@ export async function getMemberRecords(
     api.get<Page<ApiPayment>>('/sanththa/payments', { query: { year, limit: 100 } }),
   ]);
 
-  const byMember = new Map(payments.data.map((payment) => [payment.userId, payment]));
+  const byMember = new Map(payments.data.map((payment) => [payment.sponsorId, payment]));
 
   return register.data.map((member) => {
-    const payment = byMember.get(member.id) ?? null;
+    const payment = byMember.get(member.partyId) ?? null;
 
     return {
-      id: member.id,
-      memberNo: member.memberNo,
+      id: String(member.partyId),
+      memberNo: member.sponsorNo,
       fullName: member.name,
       nameTa: member.nameTa,
       phone: member.phone ?? '',
-      address: member.address,
-      joinedOn: member.joinedOn ?? '',
+      address: member.address ?? '',
+      joinedOn: member.sponsorSince ?? '',
       // "Active" on this screen means still owing the yearly subscription.
       isActive: member.subscribes,
       notes: null,
@@ -61,7 +60,7 @@ export async function getMemberRecords(
       payment: payment
         ? {
             id: payment.id,
-            memberId: payment.userId,
+            memberId: String(payment.sponsorId),
             year: payment.year,
             amount: payment.amount,
             paidOn: payment.paidOn,
@@ -76,7 +75,8 @@ export async function getMemberRecords(
 
 interface ApiSummary {
   readonly year: number;
-  readonly members: number;
+  readonly rate: number | null;
+  readonly sponsors: number;
   readonly subscribing: number;
   readonly paid: number;
   readonly outstanding: number;
@@ -89,11 +89,14 @@ export async function getSanththaSummary(
   const summary = await api.get<ApiSummary>('/sanththa/summary', { query: { year } });
 
   return {
-    members: summary.members,
+    rate: summary.rate,
+    members: summary.sponsors,
+    subscribing: summary.subscribing,
     paid: summary.paid,
     unpaid: summary.outstanding,
     collected: summary.collected,
-    outstanding: summary.outstanding * YEARLY_SUBSCRIPTION,
+    // At the rate set for the year, not a figure compiled into the bundle.
+    outstanding: summary.outstanding * (summary.rate ?? 0),
   };
 }
 
