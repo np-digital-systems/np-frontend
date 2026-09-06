@@ -286,11 +286,16 @@ export async function deactivateActivity(id: number): Promise<ActionResult> {
    ------------------------------------------------------------------------- */
 
 export interface PartyInput {
+  type?: 'person' | 'organisation';
   nameTa: string;
   nameEn?: string;
-  roles?: readonly ('sponsor' | 'staff' | 'vendor' | 'devotee')[];
-  userId?: string | null;
+  /** May be empty — the electricity board is a party with no role. */
+  roles?: readonly ('devotee' | 'vendor' | 'staff')[];
   phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  /** Their account number with us, or ours with them. */
+  referenceNo?: string | null;
   notes?: string | null;
 }
 
@@ -303,10 +308,14 @@ export async function createParty(
     'You cannot change the list of parties.',
     () =>
       api.post<{ id: number }>('/parties', {
-        ...input,
+        type: input.type,
+        nameTa: input.nameTa,
         nameEn: input.nameEn || undefined,
-        userId: input.userId || undefined,
+        roles: input.roles,
         phone: input.phone || undefined,
+        email: input.email || undefined,
+        address: input.address || undefined,
+        referenceNo: input.referenceNo || undefined,
         notes: input.notes || undefined,
       }),
   );
@@ -321,11 +330,14 @@ export async function updateParty(
     'You cannot change the list of parties.',
     () =>
       api.patch(`/parties/${id}`, {
+        type: input.type,
         nameTa: input.nameTa,
         nameEn: input.nameEn || undefined,
         roles: input.roles,
-        userId: input.userId,
         phone: input.phone,
+        email: input.email,
+        address: input.address,
+        referenceNo: input.referenceNo,
         notes: input.notes,
         isActive: input.isActive,
       }),
