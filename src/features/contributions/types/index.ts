@@ -7,10 +7,10 @@
  */
 
 /**
- * A subscribing family or trust.
+ * A sponsor on the register.
  *
- * Keyed by the user id, because the register is not a table of its own: a
- * non-null member number on `users` is what membership means.
+ * Keyed by the party id: a sponsor is a party with a sponsor profile, so the
+ * name and contact details here are the party's.
  */
 export interface SanththaMember {
   readonly id: string;
@@ -46,7 +46,10 @@ export interface MemberRecord extends SanththaMember {
 }
 
 export interface SanththaSummary {
+  /** The fixed amount set for the year, or null if nobody has set one yet. */
+  readonly rate: number | null;
   readonly members: number;
+  readonly subscribing: number;
   readonly paid: number;
   readonly unpaid: number;
   readonly collected: number;

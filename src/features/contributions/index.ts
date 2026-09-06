@@ -8,7 +8,6 @@ export {
 } from './lib/contributions-access';
 
 export { CONTRIBUTION_ROUTES } from './lib/routes';
-export { YEARLY_SUBSCRIPTION } from './lib/contributions-data';
 
 export {
   getMemberRecords,

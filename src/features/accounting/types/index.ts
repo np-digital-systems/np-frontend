@@ -249,7 +249,10 @@ export type ActivityRef = Pick<
   | 'defaultPartyId'
 >;
 
-export type PartyKind = 'sponsor' | 'staff' | 'vendor' | 'devotee';
+export type PartyKind = 'devotee' | 'vendor' | 'staff';
+
+/** A person, or an institution like the electricity board. */
+export type PartyType = 'person' | 'organisation';
 
 /**
  * Who an entry was with.
@@ -260,6 +263,7 @@ export type PartyKind = 'sponsor' | 'staff' | 'vendor' | 'devotee';
  */
 export interface Party {
   readonly id: number;
+  readonly type: PartyType;
   readonly name: string;
   readonly nameEn: string;
   /*
@@ -271,8 +275,15 @@ export interface Party {
    * the account it is coded to.
    */
   readonly roles: readonly PartyKind[];
-  readonly userId: string | null;
+  /** Sponsorship is not a role: it is a profile, and this says whether one exists. */
+  readonly isSponsor: boolean;
+  readonly accountId: string | null;
   readonly phone: string | null;
+  readonly email: string | null;
+  readonly address: string | null;
+  /** Their account number with us, or ours with them. */
+  readonly referenceNo: string | null;
+  readonly notes: string | null;
   readonly isActive: boolean;
 }
 
@@ -282,7 +293,10 @@ export interface PartyRecord extends Party {
   readonly paid: number;
 }
 
-export type PartyRef = Pick<Party, 'id' | 'name' | 'nameEn' | 'roles' | 'userId'>;
+export type PartyRef = Pick<
+  Party,
+  'id' | 'type' | 'name' | 'nameEn' | 'roles' | 'isSponsor'
+>;
 
 /** One dated pooja, with whoever sponsors it. */
 export interface PoojaRef {
