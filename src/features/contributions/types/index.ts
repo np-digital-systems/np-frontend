@@ -55,3 +55,56 @@ export interface SanththaSummary {
   readonly collected: number;
   readonly outstanding: number;
 }
+
+/**
+ * A sponsor on the register.
+ *
+ * Keyed by the party id, because a sponsor is a party with a profile: the name
+ * and contact details here belong to the party, and editing them here edits
+ * the directory entry too.
+ */
+export interface SponsorRecord {
+  readonly partyId: number;
+  readonly sponsorNo: string;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly phone: string;
+  readonly email: string;
+  readonly address: string;
+  readonly sponsorSince: string;
+  /** Whether the annual sanththa is due from them. */
+  readonly subscribes: boolean;
+  readonly isActive: boolean;
+  readonly notes: string | null;
+  /** Standing sponsorships across every observance. */
+  readonly sponsorships: number;
+  readonly paidYears: readonly number[];
+  readonly totalPaid: number;
+  readonly paidThisYear: boolean;
+}
+
+/** Why someone is offered on a collection sheet. Presentation only. */
+export type ContributorReason = 'gave-before' | 'sponsor' | 'vendor' | 'devotee';
+
+export interface Contributor {
+  readonly partyId: number;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly phone: string;
+  readonly reason: ContributorReason;
+  /** What they gave the last time this observance came round. */
+  readonly lastAmount: number | null;
+  readonly lastYear: number | null;
+  readonly paidThisTime: boolean;
+  readonly paidAmount: number | null;
+}
+
+export interface CollectionEvent {
+  readonly id: number;
+  readonly scheduledDate: string;
+  readonly instanceLabel: string;
+  readonly eventTypeName: string;
+  readonly isGeneral: boolean;
+  /** The activity receipts for this observance are coded to; it carries the head. */
+  readonly activityId: number | null;
+}

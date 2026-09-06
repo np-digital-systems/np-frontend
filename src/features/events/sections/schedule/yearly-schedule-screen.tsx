@@ -120,6 +120,17 @@ export function YearlyScheduleScreen({
   const totals = useMemo(() => {
     const slots = resolved.flatMap((group) => group.slots);
 
+    /*
+     * A general observance is funded by collection, so its occurrences carry no
+     * sponsor by design. Counting them as unsponsored would report a gap that
+     * nobody is ever meant to fill.
+     */
+    const generalTypes = new Set(
+      resolved
+        .filter((group) => group.eventType.funding === 'general')
+        .map((group) => group.eventType.id),
+    );
+
     return {
       planned: resolved.reduce(
         (sum, group) => sum + group.eventType.noOfInstances,
@@ -127,7 +138,9 @@ export function YearlyScheduleScreen({
       ),
       scheduled: events.length,
       open: slots.filter((slot) => slot.event === null).length,
-      unsponsored: events.filter((event) => event.sponsorPartyId === null).length,
+      unsponsored: events.filter(
+        (event) => event.sponsorPartyId === null && !generalTypes.has(event.eventTypeId),
+      ).length,
     };
   }, [resolved, events]);
 
@@ -248,7 +261,7 @@ export function YearlyScheduleScreen({
         <StatCard
           label="Unsponsored"
           value={String(totals.unsponsored)}
-          caption="Dated but no sponsor"
+          caption="Dated but no sponsor; general observances excluded"
         />
       </div>
 

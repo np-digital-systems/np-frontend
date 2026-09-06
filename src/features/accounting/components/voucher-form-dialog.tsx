@@ -102,6 +102,8 @@ interface LineEditorProps {
   projects: readonly ProjectRef[];
   activities: readonly ActivityRef[];
   poojas: readonly PoojaRef[];
+  /** Decides which side an activity's default head has to be on to apply. */
+  kind: VoucherKind;
   onChange: (lines: VoucherDraftLine[]) => void;
   /** Told when a pooja is picked, so the document can name its sponsor. */
   onPoojaChosen: (pooja: PoojaRef, activityName: string) => void;
@@ -123,10 +125,35 @@ function LineEditor({
   projects,
   activities,
   poojas,
+  kind,
   onChange,
   onSuggestParty,
   onPoojaChosen,
 }: LineEditorProps) {
+  // Every line of a receipt credits income and every line of a payment debits
+  // expenditure, so this is the only side a default head can usefully be on.
+  const codingSide = kind === 'receipt' ? 'income' : 'expense';
+
+  const accountById = useMemo(
+    () => new Map(accounts.map((account) => [account.id, account])),
+    [accounts],
+  );
+
+  /**
+   * The activities worth offering for a head.
+   *
+   * An activity with no default head is always offered — one nobody has linked
+   * yet must stay reachable, or it vanishes silently from every dropdown.
+   */
+  function activitiesFor(accountId: number): readonly ActivityRef[] {
+    if (!accountId) return activities;
+
+    const matching = activities.filter(
+      (entry) => entry.defaultAccountId === accountId || entry.defaultAccountId === null,
+    );
+
+    return matching.length > 0 ? matching : activities;
+  }
   const accountsByType = useMemo(() => {
     const groups = new Map<string, AccountRef[]>();
 
@@ -213,15 +240,36 @@ function LineEditor({
               required
               hint={
                 index === 0
-                  ? 'The head this posts against in the chart of accounts.'
+                  ? 'The head this posts against. Choosing one narrows the activities below.'
                   : undefined
               }
             >
               <Select
                 value={String(line.accountId)}
-                onValueChange={(value) =>
-                  edit(index, { accountId: Number(value) })
-                }
+                onValueChange={(value) => {
+                  const accountId = Number(value);
+                  const chosen = accountById.get(accountId);
+
+                  /*
+                   * An activity that belongs to a different head is no longer
+                   * offered, so it is cleared rather than left behind
+                   * contradicting the account beside it.
+                   */
+                  const stillOffered = activitiesFor(accountId).some(
+                    (entry) => entry.id === line.activityId,
+                  );
+
+                  edit(index, {
+                    accountId,
+                    ...(stillOffered ? {} : { activityId: null, eventId: null }),
+                  });
+
+                  // Heads that deal with one party only — electricity, water,
+                  // rates — name them so the clerk does not have to.
+                  if (chosen?.defaultPartyId != null) {
+                    onSuggestParty(chosen.defaultPartyId);
+                  }
+                }}
               >
                 <SelectTrigger id={`voucher-account-${index}`} className="w-full">
                   <SelectValue />
@@ -265,8 +313,22 @@ function LineEditor({
                      * editable below: a default is what is usually true, never
                      * a rule.
                      */
+                    /*
+                     * The default head applies only where it sits on the side
+                     * this voucher posts to: an activity's expense head has no
+                     * business filling itself into a receipt.
+                     */
+                    const defaultAccount =
+                      chosen?.defaultAccountId != null
+                        ? accountById.get(chosen.defaultAccountId)
+                        : undefined;
+
                     edit(index, {
                       activityId,
+                      accountId:
+                        defaultAccount?.type === codingSide
+                          ? defaultAccount.id
+                          : line.accountId,
                       fundId: chosen?.defaultFundId ?? line.fundId,
                       projectId: chosen ? chosen.defaultProjectId : line.projectId,
                       // A different pooja is a different occurrence.
@@ -285,7 +347,7 @@ function LineEditor({
                   <SelectContent>
                     <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
 
-                    {activities.map((option) => (
+                    {activitiesFor(line.accountId).map((option) => (
                       <SelectItem key={option.id} value={String(option.id)}>
                         {option.name}
                       </SelectItem>
@@ -738,6 +800,7 @@ export function VoucherFormDialog({
             projects={projects}
             activities={activities}
             poojas={poojas}
+            kind={kind}
             onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
             onPoojaChosen={(pooja, activityName) =>
               setDraft((current) => ({

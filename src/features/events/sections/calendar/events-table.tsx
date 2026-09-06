@@ -13,6 +13,8 @@ import {
   type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
+import { collectionSheetHref } from '@/features/contributions';
+import { Link } from '@/i18n/routing';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -176,6 +178,7 @@ function MonthBand({
               <SponsorCell
                 sponsor={event.sponsor}
                 showContact={access.canSeeSponsorContact}
+                isGeneral={event.eventType.funding === 'general'}
               />
             </DataCell>
           )}
@@ -249,6 +252,19 @@ function RowActions({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-48">
+          {/*
+            * Only for a general observance: a sponsored one is paid for by the
+            * person whose name is already on it, so there is no sheet to walk.
+            */}
+          {event.eventType.funding === 'general' && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link href={collectionSheetHref(event.id)}>Open collection sheet</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
           {access.canComplete && (
             <DropdownMenuItem onSelect={() => onToggleComplete(event)}>
               {event.isCompleted ? 'Reopen event' : 'Mark as completed'}

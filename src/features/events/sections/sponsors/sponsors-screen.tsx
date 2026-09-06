@@ -63,6 +63,17 @@ export function SponsorsScreen({
   year,
 }: SponsorsScreenProps) {
   const assignments = initialSponsors;
+
+  /*
+   * A general observance is funded by collection and takes no named sponsor,
+   * so it is kept out of the picker entirely. The database refuses the
+   * assignment either way; this is what stops anyone reaching that refusal.
+   */
+  const sponsorableTypes = useMemo(
+    () => eventTypes.filter((type) => type.funding !== 'general'),
+    [eventTypes],
+  );
+
   const [query, setQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SponsorAssignment | null>(null);
@@ -206,7 +217,7 @@ export function SponsorsScreen({
         />
         <StatCard
           label="Event Types Covered"
-          value={`${coveredTypes} / ${eventTypes.length}`}
+          value={`${coveredTypes} / ${sponsorableTypes.length}`}
           caption="Have at least one sponsor"
         />
         <StatCard
@@ -408,7 +419,7 @@ export function SponsorsScreen({
           open={formOpen}
           onOpenChange={setFormOpen}
           sponsor={editing}
-          eventTypes={eventTypes}
+          eventTypes={sponsorableTypes}
           directory={sponsors}
           assignments={assignments}
           onSubmit={handleSubmit}

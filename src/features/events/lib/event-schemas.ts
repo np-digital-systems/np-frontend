@@ -35,6 +35,7 @@ export const eventTypeSchema = z.object({
   name: requiredText('A Tamil name'),
   nameEn: optionalText(),
   frequencyType: z.enum(FREQUENCY_TYPES),
+  funding: z.enum(['sponsored', 'general']),
   noOfInstances: z
     .number()
     .int()

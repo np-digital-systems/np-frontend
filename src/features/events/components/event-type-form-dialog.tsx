@@ -29,12 +29,14 @@ import {
   INSTANCE_MEANING,
 } from '../lib/event-data';
 import { eventTypeSchema } from '../lib/event-schemas';
-import type { EventType, FrequencyType } from '../types';
+import type { EventFunding, EventType, FrequencyType } from '../types';
 
 export interface EventTypeDraft {
   name: string;
   nameEn: string;
   frequencyType: FrequencyType;
+  /** `general` observances are paid for by collection and take no sponsor. */
+  funding: EventFunding;
   noOfInstances: number;
   /** The activity receipts for this pooja are coded to. Null offers nothing. */
   activityId: number | null;
@@ -67,6 +69,7 @@ function draftFrom(eventType: EventType | null): EventTypeDraft {
       name: eventType.name,
       nameEn: eventType.nameEn,
       frequencyType: eventType.frequencyType,
+      funding: eventType.funding,
       noOfInstances: eventType.noOfInstances,
       activityId: eventType.activityId,
     };
@@ -76,6 +79,7 @@ function draftFrom(eventType: EventType | null): EventTypeDraft {
     name: '',
     nameEn: '',
     frequencyType: 'multi_day',
+    funding: 'sponsored',
     noOfInstances: DEFAULT_INSTANCE_COUNT.multi_day,
     activityId: null,
   };
@@ -166,6 +170,55 @@ export function EventTypeFormDialog({
                 }))
               }
             />
+          </FormField>
+
+          {/*
+            * Who pays for it. A general observance is funded by a collection
+            * from the village, so it never carries a named sponsor — which is
+            * what lets the schedule tell "nobody assigned yet" apart from
+            * "never has one".
+            */}
+          <FormField
+            id="type-funding"
+            label="Funded by"
+            required
+            hint={
+              draft.funding === 'general'
+                ? 'Collected from devotees. This type takes no registered sponsors.'
+                : 'Sponsors take turns, one per slot per year.'
+            }
+          >
+            <div
+              id="type-funding"
+              role="group"
+              aria-label="Funded by"
+              className="grid grid-cols-2 gap-2"
+            >
+              {(
+                [
+                  ['sponsored', 'Named sponsors'],
+                  ['general', 'General collection'],
+                ] as const
+              ).map(([value, label]) => (
+                <label
+                  key={value}
+                  htmlFor={`type-funding-${value}`}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-input has-[:checked]:border-accent has-[:checked]:text-text-primary"
+                >
+                  <input
+                    id={`type-funding-${value}`}
+                    type="radio"
+                    name="type-funding"
+                    className="size-3.5 accent-[var(--accent)]"
+                    checked={draft.funding === value}
+                    onChange={() =>
+                      setDraft((current) => ({ ...current, funding: value }))
+                    }
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
           </FormField>
 
           <FormField

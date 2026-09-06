@@ -1,3 +1,5 @@
+export type EventFunding = 'sponsored' | 'general';
+
 import type { BadgeStatus } from '@/components/portal/ui';
 
 export type FrequencyType =
@@ -12,6 +14,12 @@ export interface EventType {
     readonly name: string;
     readonly nameEn: string;
   readonly frequencyType: FrequencyType;
+  /**
+   * How the observance is paid for. `general` means a village collection with
+   * no named sponsor, which is what separates "nobody assigned yet" from
+   * "never has one".
+   */
+  readonly funding: EventFunding;
     readonly noOfInstances: number;
   /** The activity a receipt for this pooja is coded to; it carries the fund. */
   readonly activityId: number | null;

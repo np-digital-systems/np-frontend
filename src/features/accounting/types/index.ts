@@ -16,10 +16,18 @@ export interface Account {
     readonly parentId: number | null;
   readonly isActive: boolean;
     readonly openingBalance: number;
+  /**
+   * Offered when this head is chosen. Only for heads dealing with exactly one
+   * party — electricity, water, rates. Never on a shared head like salaries.
+   */
+  readonly defaultPartyId: number | null;
   readonly createdAt: string;
 }
 
-export type AccountRef = Pick<Account, 'id' | 'code' | 'name' | 'nameTa' | 'type'>;
+export type AccountRef = Pick<
+  Account,
+  'id' | 'code' | 'name' | 'nameTa' | 'type' | 'defaultPartyId'
+>;
 
 export interface AccountRecord extends Account {
   readonly parent: Account | null;
@@ -228,6 +236,11 @@ export interface Activity {
   readonly defaultFundId: number | null;
   readonly defaultProjectId: number | null;
   readonly defaultPartyId: number | null;
+  /**
+   * The head this activity normally lands on. One column, not one per side:
+   * `account.type` already says whether it suits a receipt or a payment.
+   */
+  readonly defaultAccountId: number | null;
   readonly isActive: boolean;
 }
 
@@ -247,6 +260,7 @@ export type ActivityRef = Pick<
   | 'defaultFundId'
   | 'defaultProjectId'
   | 'defaultPartyId'
+  | 'defaultAccountId'
 >;
 
 export type PartyKind = 'devotee' | 'vendor' | 'staff';
