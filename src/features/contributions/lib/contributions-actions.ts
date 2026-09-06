@@ -63,11 +63,16 @@ export async function recordSanththaPayment(
       kind: 'receipt',
       date: input.paidOn,
       description: `Sanththa subscription ${input.year} — ${input.memberNo}`,
-      amount: input.amount,
-      accountId: SANTHTHA_ACCOUNT_ID,
-      fundId: SANTHTHA_FUND_ID,
       mode: input.mode,
       party: input.memberName,
+      partyId: Number(input.memberId),
+      lines: [
+        {
+          accountId: SANTHTHA_ACCOUNT_ID,
+          amount: input.amount,
+          fundId: SANTHTHA_FUND_ID,
+        },
+      ],
     });
 
     await api.post(`/vouchers/${voucher.id}/submit`);
@@ -75,7 +80,7 @@ export async function recordSanththaPayment(
     await api.post(`/vouchers/${voucher.id}/post`);
 
     await api.post('/sanththa/payments', {
-      userId: input.memberId,
+      sponsorId: Number(input.memberId),
       year: input.year,
       amount: input.amount,
       paidOn: input.paidOn,
@@ -111,18 +116,18 @@ export type MemberResult =
   | { ok: true; memberNo: string }
   | { ok: false; message: string };
 
-interface UserResponse {
-  readonly id: string;
-  readonly memberNo: string | null;
+interface SponsorResponse {
+  readonly partyId: number;
+  readonly sponsorNo: string;
 }
 
 /**
- * Enrol somebody on the register.
+ * Enrol a sponsor.
  *
- * The member number is not supplied: setting the joining date is what puts a
- * person on the register, and the database allocates the next `S-00n` in the
- * same statement. Two cashiers enrolling at once therefore cannot be handed
- * the same number, which is what reading the highest number off the page did.
+ * The sponsor number is not supplied: the database allocates the next `S-00n`
+ * in the same statement, so two cashiers enrolling at once cannot be handed
+ * the same one. Registering also creates the party, so a sponsor is on the
+ * directory from the moment they are enrolled.
  */
 export async function enrolMember(input: MemberInput): Promise<MemberResult> {
   const { permissions } = await requireSession();
@@ -132,19 +137,18 @@ export async function enrolMember(input: MemberInput): Promise<MemberResult> {
   }
 
   try {
-    const user = await api.post<UserResponse>('/users', {
+    const sponsor = await api.post<SponsorResponse>('/sponsors', {
       nameTa: input.nameTa || input.fullName,
-      fullName: input.fullName,
+      nameEn: input.fullName || undefined,
       phone: input.phone || undefined,
-      address: input.address,
+      address: input.address || undefined,
       notes: input.notes || undefined,
-      joinedOn: new Date().toISOString().slice(0, 10),
       subscribes: input.isActive,
     });
 
     revalidatePath(CONTRIBUTION_ROUTES.sanththa);
 
-    return { ok: true, memberNo: user.memberNo ?? '' };
+    return { ok: true, memberNo: sponsor.sponsorNo };
   } catch (error) {
     return {
       ok: false,
@@ -161,19 +165,20 @@ export async function updateMember(id: string, input: MemberInput): Promise<Memb
   }
 
   try {
-    const user = await api.patch<UserResponse>(`/users/${id}`, {
+    // One call: the name and contact details are written to the party behind
+    // the sponsor, and the subscription flag to the profile.
+    const sponsor = await api.patch<SponsorResponse>(`/sponsors/${id}`, {
       nameTa: input.nameTa || input.fullName,
-      fullName: input.fullName,
+      nameEn: input.fullName || undefined,
       phone: input.phone || undefined,
-      address: input.address,
+      address: input.address || undefined,
       notes: input.notes || undefined,
+      subscribes: input.isActive,
     });
-
-    await api.patch(`/users/${id}/subscription`, { subscribes: input.isActive });
 
     revalidatePath(CONTRIBUTION_ROUTES.sanththa);
 
-    return { ok: true, memberNo: user.memberNo ?? '' };
+    return { ok: true, memberNo: sponsor.sponsorNo };
   } catch (error) {
     return {
       ok: false,
