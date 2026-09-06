@@ -21,8 +21,8 @@ import type { PortalUser } from '../types/user';
 interface MeResponse {
   readonly id: string;
   readonly nameTa: string;
-  readonly fullName: string | null;
-  readonly email: string | null;
+  readonly nameEn: string | null;
+  readonly email: string;
   readonly role: UserRole;
   readonly permissions: readonly string[];
 }
@@ -67,14 +67,14 @@ export const getSession = cache(async (): Promise<PortalSession | null> => {
 
   try {
     const me = await api.get<MeResponse>('/auth/me');
-    const name = me.fullName ?? me.nameTa;
+    const name = me.nameEn ?? me.nameTa;
 
     return {
       user: {
         id: me.id,
         name,
-        email: me.email ?? '',
-        role: isUserRole(me.role) ? me.role : 'user',
+        email: me.email,
+        role: isUserRole(me.role) ? me.role : 'member',
         initials: initialsOf(name),
       },
       permissions: me.permissions as readonly Permission[],
