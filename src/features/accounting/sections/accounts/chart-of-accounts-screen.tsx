@@ -48,16 +48,19 @@ import { AccountTypeBadge } from '../../components/account-type-badge';
 import { Amount } from '../../components/amount';
 import type { AccountingAccess } from '../../lib/accounting-access';
 import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABELS } from '../../lib/accounting-data';
-import type { AccountRecord, AccountType } from '../../types';
+import type { AccountRecord, AccountType, PartyRef } from '../../types';
 
 interface ChartOfAccountsScreenProps {
   initialAccounts: readonly AccountRecord[];
+  /** Offered as a head's usual party, for the few heads that have one. */
+  parties: readonly PartyRef[];
   access: AccountingAccess;
   year: number;
 }
 
 export function ChartOfAccountsScreen({
   initialAccounts,
+  parties,
   access,
   year,
 }: ChartOfAccountsScreenProps) {
@@ -311,6 +314,7 @@ export function ChartOfAccountsScreen({
           account={editing}
           parents={groups}
           existing={accounts}
+          parties={parties}
           onSubmit={handleSubmit}
         />
       )}

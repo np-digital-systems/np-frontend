@@ -109,6 +109,7 @@ export const activitySchema = z.object({
   nameTa: requiredText('A Tamil name'),
   nameEn: optionalText(),
   kind: z.enum(ACTIVITY_KINDS),
+  defaultAccountId: z.number().int().positive().nullable(),
   defaultFundId: z.number().int().positive().nullable(),
   defaultProjectId: z.number().int().positive().nullable(),
   defaultPartyId: z.number().int().positive().nullable(),

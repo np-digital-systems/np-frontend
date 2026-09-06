@@ -66,16 +66,19 @@ import {
   formatStamp,
   timeAgo,
 } from '../../lib/administration-data';
-import type { UserRecord } from '../../types';
+import type { DirectoryPerson, UserRecord } from '../../types';
 
 interface UsersScreenProps {
   initialUsers: readonly UserRecord[];
+  /** People without a sign-in yet, offered when granting one. */
+  directory: readonly DirectoryPerson[];
   currentUserId: string;
   today: string;
 }
 
 export function UsersScreen({
   initialUsers,
+  directory,
   currentUserId,
   today,
 }: UsersScreenProps) {
@@ -129,13 +132,24 @@ export function UsersScreen({
         // call; editing one only ever touches the email, because the name and
         // contact details belong to the party and are edited in the directory.
         if (!target) {
-          return createUser({
-            nameTa: draft.nameTa || draft.fullName,
-            nameEn: draft.fullName,
-            email: draft.email,
-            password: draft.password || undefined,
-            role: draft.role,
-          });
+          // Granting to somebody already in the directory sends their id and
+          // no name: the API must not be given the chance to file them twice.
+          return createUser(
+            draft.partyId !== null
+              ? {
+                  partyId: draft.partyId,
+                  email: draft.email,
+                  password: draft.password || undefined,
+                  role: draft.role,
+                }
+              : {
+                  nameTa: draft.nameTa || draft.fullName,
+                  nameEn: draft.fullName,
+                  email: draft.email,
+                  password: draft.password || undefined,
+                  role: draft.role,
+                },
+          );
         }
 
         const updated = await updateUser(target.id, { email: draft.email });
@@ -456,6 +470,7 @@ export function UsersScreen({
       <SessionsPanel users={users} today={today} />
 
       <UserFormDialog
+        directory={directory}
         open={formOpen}
         onOpenChange={setFormOpen}
         user={editing}

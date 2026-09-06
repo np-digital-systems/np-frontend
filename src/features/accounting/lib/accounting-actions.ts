@@ -236,6 +236,8 @@ export interface ActivityInput {
   defaultFundId?: number | null;
   defaultProjectId?: number | null;
   defaultPartyId?: number | null;
+  /** The head this activity normally lands on. */
+  defaultAccountId?: number | null;
 }
 
 export async function createActivity(input: ActivityInput): Promise<ActionResult> {
@@ -249,6 +251,7 @@ export async function createActivity(input: ActivityInput): Promise<ActionResult
         defaultFundId: input.defaultFundId ?? undefined,
         defaultProjectId: input.defaultProjectId ?? undefined,
         defaultPartyId: input.defaultPartyId ?? undefined,
+        defaultAccountId: input.defaultAccountId ?? undefined,
       }),
   );
 }
@@ -268,6 +271,7 @@ export async function updateActivity(
         defaultFundId: input.defaultFundId,
         defaultProjectId: input.defaultProjectId,
         defaultPartyId: input.defaultPartyId,
+        defaultAccountId: input.defaultAccountId,
         isActive: input.isActive,
       }),
   );

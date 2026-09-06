@@ -17,6 +17,14 @@ export interface AdminUser {
   readonly createdAt: string;
 }
 
+/** A person in the directory, as the sign-in form needs to offer them. */
+export interface DirectoryPerson {
+  readonly partyId: number;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly hasAccount: boolean;
+}
+
 export interface UserSession {
   readonly id: string;
   readonly userId: string;

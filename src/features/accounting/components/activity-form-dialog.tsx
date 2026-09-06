@@ -32,6 +32,7 @@ import {
 } from '../lib/accounting-data';
 import { activitySchema } from '../lib/accounting-schemas';
 import type {
+  AccountRef,
   ActivityKind,
   ActivityRecord,
   FundRef,
@@ -47,6 +48,8 @@ export interface ActivityDraft {
   defaultFundId: number | null;
   defaultProjectId: number | null;
   defaultPartyId: number | null;
+  /** The head this activity normally lands on. */
+  defaultAccountId: number | null;
   isActive: boolean;
 }
 
@@ -56,6 +59,7 @@ function draftFrom(activity: ActivityRecord | null): ActivityDraft {
       nameTa: activity.name,
       nameEn: activity.nameEn,
       kind: activity.kind,
+      defaultAccountId: activity.defaultAccountId,
       defaultFundId: activity.defaultFundId,
       defaultProjectId: activity.defaultProjectId,
       defaultPartyId: activity.defaultPartyId,
@@ -67,6 +71,7 @@ function draftFrom(activity: ActivityRecord | null): ActivityDraft {
     nameTa: '',
     nameEn: '',
     kind: 'pooja',
+    defaultAccountId: null,
     defaultFundId: null,
     defaultProjectId: null,
     defaultPartyId: null,
@@ -81,6 +86,8 @@ interface ActivityFormDialogProps {
   funds: readonly FundRef[];
   projects: readonly ProjectRef[];
   parties: readonly PartyRef[];
+  /** Postable income and expense heads — the only ones a default may name. */
+  accounts: readonly AccountRef[];
   /**
    * Registers a party typed into the picker and answers with its id, so a
    * kurukkal nobody has entered yet can be added without abandoning the form.
@@ -96,6 +103,7 @@ export function ActivityFormDialog({
   funds,
   projects,
   parties,
+  accounts,
   onCreateParty,
   onSubmit,
 }: ActivityFormDialogProps) {
@@ -216,6 +224,37 @@ export function ActivityFormDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </FormField>
+
+            {/*
+              * One head, not one per side. `account.type` already says whether
+              * it suits a receipt or a payment, so the voucher form offers it
+              * only on the side it belongs to — an expense head never fills
+              * itself into a receipt.
+              */}
+            <FormField
+              id="activity-account"
+              label="Ledger head"
+              hint="Filled in when this activity is chosen, and narrows the activity list when the head is chosen first."
+            >
+              <EntityCombobox
+                id="activity-account"
+                value={
+                  draft.defaultAccountId === null
+                    ? null
+                    : String(draft.defaultAccountId)
+                }
+                options={accounts.map((account) => ({
+                  value: String(account.id),
+                  label: `${account.code} · ${account.name}`,
+                }))}
+                noneLabel="Ask each time"
+                searchPlaceholder="Search heads…"
+                emptyMessage="No head matches that search."
+                onChange={(value) =>
+                  update('defaultAccountId', value === null ? null : Number(value))
+                }
+              />
             </FormField>
 
             {/*

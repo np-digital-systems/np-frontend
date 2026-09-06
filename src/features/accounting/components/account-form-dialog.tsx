@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { EntityCombobox } from '@/components/ui/entity-combobox';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -31,7 +32,7 @@ import {
   opensAtZero,
 } from '../lib/accounting-data';
 import { ACCOUNT_CODE_PREFIX, accountSchema } from '../lib/accounting-schemas';
-import type { Account, AccountRecord, AccountType } from '../types';
+import type { Account, AccountRecord, AccountType, PartyRef } from '../types';
 
 export interface AccountDraft {
   code: string;
@@ -40,6 +41,11 @@ export interface AccountDraft {
   type: AccountType;
   parentId: number | null;
   openingBalance: number;
+  /**
+   * Offered when this head is chosen. Only for a head that deals with exactly
+   * one party — electricity, water, rates. Never on a shared head.
+   */
+  defaultPartyId: number | null;
   isActive: boolean;
 }
 
@@ -54,6 +60,7 @@ function draftFrom(account: AccountRecord | null): AccountDraft {
       type: account.type,
       parentId: account.parentId,
       openingBalance: account.openingBalance,
+      defaultPartyId: account.defaultPartyId,
       isActive: account.isActive,
     };
   }
@@ -65,6 +72,7 @@ function draftFrom(account: AccountRecord | null): AccountDraft {
     type: 'expense',
     parentId: null,
     openingBalance: 0,
+    defaultPartyId: null,
     isActive: true,
   };
 }
@@ -75,6 +83,8 @@ interface AccountFormDialogProps {
   account: AccountRecord | null;
     parents: readonly Account[];
   existing: readonly Account[];
+  /** Offered as the head's usual party; empty is the ordinary case. */
+  parties: readonly PartyRef[];
   onSubmit: (draft: AccountDraft) => void;
 }
 
@@ -84,6 +94,7 @@ export function AccountFormDialog({
   account,
   parents,
   existing,
+  parties,
   onSubmit,
 }: AccountFormDialogProps) {
   const [draft, setDraft] = useState<AccountDraft>(() => draftFrom(account));
@@ -290,6 +301,34 @@ export function AccountFormDialog({
             </FormField>
           )}
 
+          {/*
+            * Only worth setting where the head genuinely deals with one party
+            * every time — the electricity board, the water board. A shared
+            * head like salaries serves every kurukkal, and naming one of them
+            * here would put the wrong name on the rest by default.
+            */}
+          <FormField
+            id="account-default-party"
+            label="Usual party"
+            hint="Filled in when this head is chosen. Leave empty for a head that deals with several people."
+          >
+            <EntityCombobox
+              id="account-default-party"
+              value={
+                draft.defaultPartyId === null ? null : String(draft.defaultPartyId)
+              }
+              options={parties.map((party) => ({
+                value: String(party.id),
+                label: party.nameEn ? `${party.name} · ${party.nameEn}` : party.name,
+              }))}
+              noneLabel="Ask each time"
+              searchPlaceholder="Search the directory…"
+              emptyMessage="Nobody matches that search."
+              onChange={(value) =>
+                update('defaultPartyId', value === null ? null : Number(value))
+              }
+            />
+          </FormField>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">

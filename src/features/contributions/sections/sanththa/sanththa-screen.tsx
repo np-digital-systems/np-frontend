@@ -36,6 +36,7 @@ import {
   type MemberDraft,
 } from '../../components/member-form-dialog';
 import { RecordPaymentDialog } from '../../components/record-payment-dialog';
+import { SetRateDialog } from '../../components/set-rate-dialog';
 import type { ContributionAccess } from '../../lib/contributions-access';
 import { REGISTER_READ_ONLY_MESSAGE } from '../../lib/contributions-access';
 import {
@@ -93,6 +94,7 @@ export function SanththaScreen({
   const [status, setStatus] = useState<StatusFilter>('all');
 
   const [formOpen, setFormOpen] = useState(false);
+  const [rateOpen, setRateOpen] = useState(false);
   const [editing, setEditing] = useState<MemberRecord | null>(null);
   const [paying, setPaying] = useState<MemberRecord | null>(null);
   const [, startTransition] = useTransition();
@@ -189,15 +191,21 @@ export function SanththaScreen({
         ].filter(Boolean)}
         actions={
           access.canManage && (
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Add Member
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={() => setRateOpen(true)}>
+                {rate === null ? `Set ${year} sanththa` : `Sanththa ${formatCurrency(rate)}`}
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setEditing(null);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus />
+                Add Member
+              </Button>
+            </div>
           )
         }
       />
@@ -420,6 +428,17 @@ export function SanththaScreen({
           member={editing}
           nextMemberNo=""
           onSubmit={handleMemberSubmit}
+        />
+      )}
+
+      {access.canManage && (
+        <SetRateDialog
+          open={rateOpen}
+          onOpenChange={setRateOpen}
+          year={year}
+          current={rate}
+          subscribing={summary.subscribing}
+          onSaved={() => router.refresh()}
         />
       )}
 
