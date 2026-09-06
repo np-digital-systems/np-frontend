@@ -40,7 +40,6 @@ import type { ContributionAccess } from '../../lib/contributions-access';
 import { REGISTER_READ_ONLY_MESSAGE } from '../../lib/contributions-access';
 import {
   PAYMENT_MODE_LABELS,
-  YEARLY_SUBSCRIPTION,
   formatCurrency,
   formatShortDate,
 } from '../../lib/contributions-data';
@@ -54,21 +53,22 @@ interface SanththaScreenProps {
   initialMembers: readonly MemberRecord[];
   years: readonly number[];
   year: number;
+  /** The fixed amount set for this year, or null if none has been set. */
+  rate: number | null;
   access: ContributionAccess;
 }
 
 /**
  * The sanththa register.
  *
- * One flat subscription per member per year, so the only question this
- * screen answers is who has paid it and who has not.
- *
- * TODO: replace the local mutations with calls to the sanththa API.
+ * One flat subscription per sponsor per year, at the rate set for that year,
+ * so the only question this screen answers is who has paid and who has not.
  */
 export function SanththaScreen({
   initialMembers,
   years,
   year,
+  rate,
   access,
 }: SanththaScreenProps) {
   const router = useRouter();
@@ -97,7 +97,7 @@ export function SanththaScreen({
   const [paying, setPaying] = useState<MemberRecord | null>(null);
   const [, startTransition] = useTransition();
 
-  const summary = useMemo(() => summarise(members), [members]);
+  const summary = useMemo(() => summarise(members, rate), [members, rate]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -169,7 +169,11 @@ export function SanththaScreen({
     <>
       <PortalPageHeader
         title="Sanththa"
-        description={`Yearly temple membership — ${formatCurrency(YEARLY_SUBSCRIPTION)} per member, paid once a year.`}
+        description={
+          rate === null
+            ? `No sanththa has been set for ${year} yet.`
+            : `Yearly temple membership — ${formatCurrency(rate)} per sponsor, paid once a year.`
+        }
         meta={[
           <span key="year" className="tabular">
             {year}
@@ -425,6 +429,7 @@ export function SanththaScreen({
           onOpenChange={(open) => !open && setPaying(null)}
           member={paying}
           year={year}
+          rate={rate}
           onRecorded={handleRecorded}
         />
       )}
