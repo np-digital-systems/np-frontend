@@ -42,12 +42,24 @@ export interface EventTypeDraft {
 
 const NO_DEFAULT = '__none__';
 
+/*
+ * Frequencies whose slot count the calendar decides, not the temple: a year has
+ * 52 weeks, a lunar month two phases, a year one turn.
+ *
+ * `monthly_once` is deliberately not among them. A Tamil year runs twelve
+ * months or thirteen when an intercalary one falls, so the count is the
+ * temple's to set — the same freedom a multi-day festival has over its days.
+ */
 const FIXED_INSTANCE_COUNT: readonly FrequencyType[] = [
   'annual',
-  'monthly_once',
   'monthly_twice',
   'weekly',
 ];
+
+const INSTANCE_HINT: Partial<Record<FrequencyType, string>> = {
+  multi_day: 'How many days the festival runs.',
+  monthly_once: 'Months in the year — 13 when the Tamil calendar adds one.',
+};
 
 function draftFrom(eventType: EventType | null): EventTypeDraft {
   if (eventType) {
@@ -207,7 +219,7 @@ export function EventTypeFormDialog({
             hint={
               instancesFixed
                 ? 'Fixed by the selected frequency.'
-                : 'How many days the festival runs.'
+                : INSTANCE_HINT[draft.frequencyType]
             }
           >
             <Input
