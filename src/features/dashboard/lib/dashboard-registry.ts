@@ -14,7 +14,7 @@ export const DASHBOARD_BY_ROLE = {
   admin: AdminDashboard,
   accountant: AccountantDashboard,
   cashier: CashierDashboard,
-  user: MemberDashboard,
+  member: MemberDashboard,
 } as const satisfies Record<UserRole, ComponentType<DashboardProps>>;
 
 export function resolveDashboard(
