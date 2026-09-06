@@ -13,7 +13,9 @@ import {
   type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
-import { collectionSheetHref } from '@/features/contributions';
+// Straight from the routes module, not the feature barrel: this is a client
+// component, and the barrel pulls the server-only data layer into the bundle.
+import { collectionSheetHref } from '@/features/contributions/lib/routes';
 import { Link } from '@/i18n/routing';
 import {
   DropdownMenu,
