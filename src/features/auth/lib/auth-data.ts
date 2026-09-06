@@ -10,7 +10,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Administrator',
   accountant: 'Accountant',
   cashier: 'Cashier',
-  user: 'Devotee',
+  member: 'Member',
 };
 
 export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
@@ -19,7 +19,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
     'Keeps the books: approves and posts entries, manages funds, generates statements.',
   cashier:
     'Takes money at the counter: drafts receipts and payments and submits them for approval.',
-  user: 'A registered devotee. Sees the temple calendar and nothing operational.',
+  member: 'A sponsor or devotee using the portal. Sees their own record and the calendar.',
 };
 
 interface RolePresentation {
@@ -50,7 +50,7 @@ export const ROLE_PRESENTATION: Record<UserRole, RolePresentation> = {
     highlights: ['Receipts', 'Payments', 'Cash book'],
   },
 
-  user: {
+  member: {
     icon: 'devotee',
     summary: 'The temple calendar, and nothing behind it.',
     highlights: ['Event calendar', 'Personal profile'],
