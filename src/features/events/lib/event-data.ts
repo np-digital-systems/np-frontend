@@ -41,7 +41,8 @@ export const FREQUENCY_LABELS: Record<FrequencyType, string> = {
 export const INSTANCE_MEANING: Record<FrequencyType, string> = {
   weekly: 'Week of the year (1–52)',
   monthly_twice: 'Lunar occurrence (1 = Valarpirai, 2 = Theipirai)',
-  monthly_once: 'Always 1 — the single monthly occurrence',
+  monthly_once:
+    'Month of the year — 12, or 13 when the Tamil calendar adds one',
   multi_day: 'Festival day (1 – number of days)',
   annual: 'Always 1 — the single yearly occurrence',
 };
@@ -49,14 +50,14 @@ export const INSTANCE_MEANING: Record<FrequencyType, string> = {
 export const DEFAULT_INSTANCE_COUNT: Record<FrequencyType, number> = {
   weekly: 52,
   monthly_twice: 2,
-  monthly_once: 1,
+  monthly_once: 12,
   multi_day: 1,
   annual: 1,
 };
 
 const LUNAR_OCCURRENCE: Record<number, string> = {
-  1: 'Valarpirai',
-  2: 'Theipirai',
+  1: 'வளர்பிறை',
+  2: 'தேய்பிறை',
 };
 
 /**
@@ -81,18 +82,18 @@ export function describeInstance(
 
   switch (frequencyType) {
     case 'weekly':
-      return `Week ${instanceIdentifier}`;
+      return `${instanceIdentifier}ஆம் வாரம்`;
     case 'monthly_twice':
       return (
         LUNAR_OCCURRENCE[instanceIdentifier] ??
-        `Occurrence ${instanceIdentifier}`
+        `${instanceIdentifier}ஆம் முறை`
       );
     case 'multi_day':
-      return `Day ${instanceIdentifier}`;
+      return `${instanceIdentifier}ஆம் நாள்`;
     case 'monthly_once':
-      return 'Monthly occurrence';
+      return `${instanceIdentifier}ஆம் மாதம்`;
     case 'annual':
-      return 'Annual occurrence';
+      return 'ஆண்டு நிகழ்வு';
   }
 }
 
