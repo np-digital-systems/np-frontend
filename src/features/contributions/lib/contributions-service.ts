@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { api, type Page } from '@/lib/api';
+import { api, getAll } from '@/lib/api';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import type { MemberRecord, PaymentMode, SanththaSummary } from '../types';
@@ -36,13 +36,13 @@ export async function getMemberRecords(
   year: number = getActiveYear(getToday()),
 ): Promise<readonly MemberRecord[]> {
   const [register, payments] = await Promise.all([
-    api.get<Page<ApiRegisterRow>>('/sanththa/register', { query: { year, limit: 100 } }),
-    api.get<Page<ApiPayment>>('/sanththa/payments', { query: { year, limit: 100 } }),
+    getAll<ApiRegisterRow>('/sanththa/register', { year }),
+    getAll<ApiPayment>('/sanththa/payments', { year }),
   ]);
 
-  const byMember = new Map(payments.data.map((payment) => [payment.sponsorId, payment]));
+  const byMember = new Map(payments.map((payment) => [payment.sponsorId, payment]));
 
-  return register.data.map((member) => {
+  return register.map((member) => {
     const payment = byMember.get(member.partyId) ?? null;
 
     return {
@@ -102,11 +102,9 @@ export async function getSanththaSummary(
 /** Years that have any payment, newest first, always including this one. */
 export async function getYears(): Promise<readonly number[]> {
   const current = getActiveYear(getToday());
-  const register = await api.get<Page<ApiRegisterRow>>('/sanththa/register', {
-    query: { limit: 100 },
-  });
+  const register = await getAll<ApiRegisterRow>('/sanththa/register');
 
-  const years = new Set(register.data.flatMap((member) => member.paidYears));
+  const years = new Set(register.flatMap((member) => member.paidYears));
   years.add(current);
 
   return [...years].sort((a, b) => b - a);
