@@ -99,17 +99,27 @@ export function PartiesScreen({
       () =>
         target
           ? updateParty(target.id, {
+              type: draft.type,
               nameTa: draft.nameTa,
               nameEn: draft.nameEn,
               roles: draft.roles,
               phone: draft.phone || null,
+              email: draft.email || null,
+              address: draft.address || null,
+              referenceNo: draft.referenceNo || null,
+              notes: draft.notes || null,
               isActive: draft.isActive,
             })
           : createParty({
+              type: draft.type,
               nameTa: draft.nameTa,
               nameEn: draft.nameEn,
               roles: draft.roles,
               phone: draft.phone || null,
+              email: draft.email || null,
+              address: draft.address || null,
+              referenceNo: draft.referenceNo || null,
+              notes: draft.notes || null,
             }),
       () => {
         setEditing(null);
