@@ -6,6 +6,7 @@ import { HeartHandshake, Plus, Search, X } from 'lucide-react';
 import {
   ActionError,
   Card,
+  ConfirmDialog,
   DataCell,
   DataRow,
   DataTable,
@@ -22,6 +23,13 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +37,7 @@ import { SponsorFormDialog, type SponsorDraft } from '../../components/sponsor-f
 import type { ContributionAccess } from '../../lib/contributions-access';
 import { REGISTER_READ_ONLY_MESSAGE } from '../../lib/contributions-access';
 import { formatCurrency, formatShortDate } from '../../lib/contributions-data';
-import { enrolSponsor, updateSponsor } from '../../lib/sponsors-actions';
+import { enrolSponsor, retireSponsor, updateSponsor } from '../../lib/sponsors-actions';
 import type { SponsorRecord } from '../../types';
 
 /**
@@ -66,7 +74,7 @@ function Pill({
 type Filter = 'all' | 'subscribing' | 'exempt' | 'retired';
 
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All' },
+  { key: 'all', label: 'All sponsors' },
   { key: 'subscribing', label: 'Subscribing' },
   { key: 'exempt', label: 'Exempt' },
   { key: 'retired', label: 'Retired' },
@@ -91,6 +99,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
   const [filter, setFilter] = useState<Filter>('all');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SponsorRecord | null>(null);
+  const [retiring, setRetiring] = useState<SponsorRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -108,6 +117,8 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
       ),
     };
   }, [sponsors]);
+
+  const isFiltered = query.trim() !== '' || filter !== 'all';
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -187,43 +198,47 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
         <StatCard label={`Collected ${year}`} value={formatCurrency(summary.collected)} />
       </div>
 
-      <Card className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <InputGroup className="min-w-[220px] flex-1">
+      <Card>
+        <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center">
+          <InputGroup className="sm:max-w-xs">
             <InputGroupAddon>
-              <Search className="size-4" />
+              <Search />
             </InputGroupAddon>
             <InputGroupInput
               value={query}
-              placeholder="Search sponsor no, name or phone…"
-              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search sponsors"
+              onChange={(changeEvent) => setQuery(changeEvent.target.value)}
             />
-            {query && (
-              <InputGroupAddon align="inline-end">
-                <button type="button" onClick={() => setQuery('')} aria-label="Clear search">
-                  <X className="size-4" />
-                </button>
-              </InputGroupAddon>
-            )}
           </InputGroup>
 
-          <div className="flex flex-wrap gap-1.5">
-            {FILTERS.map((option) => (
-              <button
-                key={option.key}
-                type="button"
-                onClick={() => setFilter(option.key)}
-                className={cn(
-                  'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
-                  filter === option.key
-                    ? 'border-accent bg-accent-subtle text-text-primary'
-                    : 'border-border bg-surface-2 text-text-secondary hover:border-input',
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <Select value={filter} onValueChange={(value) => setFilter(value as Filter)}>
+            <SelectTrigger className="sm:w-44">
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent>
+              {FILTERS.map((option) => (
+                <SelectItem key={option.key} value={option.key}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="sm:ml-auto"
+              onClick={() => {
+                setQuery('');
+                setFilter('all');
+              }}
+            >
+              <X />
+              Clear
+            </Button>
+          )}
         </div>
 
         <DataTable columns={columns} minWidth={900}>
@@ -272,14 +287,30 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
                   )}
                 </DataCell>
                 {access.canManage && (
-                  <DataCell align="right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => { setEditing(sponsor); setFormOpen(true); }}
-                    >
-                      Edit
-                    </Button>
+                  <DataCell align="right" nowrap>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setEditing(sponsor);
+                          setFormOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+
+                      {sponsor.isActive && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-danger hover:bg-danger-subtle hover:text-danger"
+                          onClick={() => setRetiring(sponsor)}
+                        >
+                          Retire
+                        </Button>
+                      )}
+                    </div>
                   </DataCell>
                 )}
               </DataRow>
@@ -287,6 +318,37 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
           )}
         </DataTable>
       </Card>
+
+      <ConfirmDialog
+        open={retiring !== null}
+        onOpenChange={(open) => !open && setRetiring(null)}
+        title="Retire this sponsor?"
+        description={
+          retiring
+            ? `${retiring.name} (${retiring.sponsorNo}) will no longer be offered when assigning observances or taking the sanththa. Their ${retiring.sponsorships} standing sponsorship(s) and every receipt already naming them are unchanged, and they can be reactivated from Edit.`
+            : ''
+        }
+        confirmLabel="Retire"
+        onConfirm={() => {
+          const target = retiring;
+
+          setRetiring(null);
+
+          if (!target) return;
+
+          startTransition(async () => {
+            const result = await retireSponsor(target.partyId);
+
+            if (!result.ok) {
+              setError(result.message);
+              return;
+            }
+
+            setError(null);
+            router.refresh();
+          });
+        }}
+      />
 
       {access.canManage && (
         <SponsorFormDialog
