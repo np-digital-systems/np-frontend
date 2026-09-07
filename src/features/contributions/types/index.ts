@@ -20,7 +20,13 @@ export interface SanththaMember {
   readonly phone: string;
   readonly address: string;
   readonly joinedOn: string;
-  readonly isActive: boolean;
+  /**
+   * Whether the yearly sanththa is due from them.
+   *
+   * Not the same as being active: an exempt sponsor is still on the calendar
+   * and still sponsors poojas — the temple simply asks no subscription of them.
+   */
+  readonly subscribes: boolean;
   readonly notes: string | null;
 }
 
