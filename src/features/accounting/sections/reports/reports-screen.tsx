@@ -406,12 +406,13 @@ function TrialBalanceTable({
               <AccountTypeBadge type={row.account.type} />
             </DataCell>
 
+            {/* Debit green, credit red — as on the ledger. */}
             <DataCell align="right" nowrap>
-              <Amount value={row.debit} tone="out" dashIfEmpty />
+              <Amount value={row.debit} tone="in" dashIfEmpty />
             </DataCell>
 
             <DataCell align="right" nowrap>
-              <Amount value={row.credit} tone="in" dashIfEmpty />
+              <Amount value={row.credit} tone="out" dashIfEmpty />
             </DataCell>
           </DataRow>
         ))}
@@ -423,10 +424,10 @@ function TrialBalanceTable({
           >
             Totals across {rows.length} accounts
           </td>
-          <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-danger tabular">
+          <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-success tabular">
             {formatCurrency(totals.debit)}
           </td>
-          <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-success tabular">
+          <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-danger tabular">
             {formatCurrency(totals.credit)}
           </td>
         </tr>
