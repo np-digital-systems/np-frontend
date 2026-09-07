@@ -154,8 +154,8 @@ export function SanththaScreen({
   }
 
   const columns: DataColumn[] = [
-    { key: 'no', label: 'Member No' },
-    { key: 'name', label: 'Member' },
+    { key: 'no', label: 'Sponsor No' },
+    { key: 'name', label: 'Sponsor' },
     ...(access.canSeeContact
       ? [{ key: 'phone', label: 'Phone' } as const]
       : []),
@@ -203,7 +203,7 @@ export function SanththaScreen({
                 }}
               >
                 <Plus />
-                Add Member
+                Enrol sponsor
               </Button>
             </div>
           )
@@ -246,7 +246,7 @@ export function SanththaScreen({
           <InputGroupInput
             type="search"
             value={query}
-            placeholder="Search member no, name or phone…"
+            placeholder="Search sponsor no, name or phone…"
             aria-label="Search members"
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -261,7 +261,7 @@ export function SanththaScreen({
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="all">All members</SelectItem>
+            <SelectItem value="all">All sponsors</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="unpaid">Not paid</SelectItem>
           </SelectContent>
@@ -323,7 +323,7 @@ export function SanththaScreen({
             filtered.map((member) => (
               <DataRow
                 key={member.id}
-                className={cn(!member.isActive && 'opacity-60')}
+                className={cn(!member.subscribes && 'opacity-60')}
               >
                 <DataCell nowrap className="ref text-xs text-text-muted">
                   {member.memberNo}
@@ -355,7 +355,7 @@ export function SanththaScreen({
                       />
                       Paid {formatCurrency(member.payment?.amount ?? 0)}
                     </span>
-                  ) : member.isActive ? (
+                  ) : member.subscribes ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-subtle px-2 py-0.5 text-[11px] font-medium text-warning">
                       <span
                         className="size-1.5 rounded-full bg-current"
@@ -365,7 +365,7 @@ export function SanththaScreen({
                     </span>
                   ) : (
                     <span className="text-[11px] text-text-disabled">
-                      Inactive
+                      Exempt
                     </span>
                   )}
                 </DataCell>
@@ -390,7 +390,7 @@ export function SanththaScreen({
 
                 <DataCell align="right" nowrap>
                   <div className="flex items-center justify-end gap-1.5">
-                    {access.canRecord && !member.hasPaid && member.isActive && (
+                    {access.canRecord && !member.hasPaid && member.subscribes && (
                       <Button
                         variant="outline"
                         size="sm"
