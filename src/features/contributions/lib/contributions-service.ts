@@ -53,8 +53,7 @@ export async function getMemberRecords(
       phone: member.phone ?? '',
       address: member.address ?? '',
       joinedOn: member.sponsorSince ?? '',
-      // "Active" on this screen means still owing the yearly subscription.
-      isActive: member.subscribes,
+      subscribes: member.subscribes,
       notes: null,
       hasPaid: member.paidThisYear,
       payment: payment
