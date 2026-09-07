@@ -139,18 +139,25 @@ function LineEditor({
     [accounts],
   );
 
+  /** The activities coded to a head — strictly its own. */
+  function linkedTo(accountId: number): readonly ActivityRef[] {
+    return activities.filter((entry) => entry.defaultAccountId === accountId);
+  }
+
   /**
-   * The activities that belong to a head.
+   * What the activity dropdown offers for a head.
    *
-   * Strictly its own: an activity coded to a different head, or to none at all,
-   * is not what this entry is for. An activity with no head set therefore
-   * appears nowhere until somebody gives it one, which is deliberate — the
-   * alternative offered every pooja under the salaries head.
+   * Its own activities where it has any, so a receipt against pooja income is
+   * never offered the salaries work. Where a head has none coded to it yet the
+   * whole list is offered instead: an empty dropdown would stop a clerk at the
+   * counter over a setting nobody has got round to.
    */
   function activitiesFor(accountId: number): readonly ActivityRef[] {
     if (!accountId) return activities;
 
-    return activities.filter((entry) => entry.defaultAccountId === accountId);
+    const linked = linkedTo(accountId);
+
+    return linked.length > 0 ? linked : activities;
   }
 
   /**
@@ -220,6 +227,7 @@ function LineEditor({
         );
         const activity = activities.find((entry) => entry.id === line.activityId);
         const lineActivities = activitiesFor(line.accountId);
+        const lineLinked = linkedTo(line.accountId);
         const activityPoojas = poojas.filter(
           (pooja) => pooja.activityId === line.activityId,
         );
@@ -268,16 +276,18 @@ function LineEditor({
                   const accountId = Number(value);
                   const chosen = accountById.get(accountId);
                   const offered = activitiesFor(accountId);
+                  const linked = linkedTo(accountId);
 
                   /*
-                   * A head with exactly one activity has already answered the
-                   * question, so it answers it — and carries that activity's
-                   * fund, project and party in with it. Where there are several
-                   * the clerk still chooses; where the one on the line no
-                   * longer belongs to this head, it is cleared rather than left
-                   * contradicting the account beside it.
+                   * A head with exactly one activity coded to it has already
+                   * answered the question, so it answers it — and carries that
+                   * activity's fund, project and party in with it.
+                   *
+                   * Read from what is linked, not from what is offered: a head
+                   * with nothing linked falls back to the whole list, and
+                   * picking for the clerk out of that would be a guess.
                    */
-                  const only = offered.length === 1 ? offered[0] : undefined;
+                  const only = linked.length === 1 ? linked[0] : undefined;
                   const stillOffered = offered.some(
                     (entry) => entry.id === line.activityId,
                   );
@@ -331,10 +341,10 @@ function LineEditor({
                 id={`voucher-activity-${index}`}
                 label="Activity"
                 hint={
-                  lineActivities.length === 0
-                    ? 'No activity is coded to this head yet. Set the head on an activity to see it here.'
-                    : lineActivities.length === 1
-                      ? 'The only activity for this head, filled in for you.'
+                  lineLinked.length === 1
+                    ? 'The only activity for this head, filled in for you.'
+                    : lineLinked.length === 0
+                      ? 'No activity is coded to this head yet, so all are listed. Set the head on an activity to narrow this.'
                       : undefined
                 }
               >
