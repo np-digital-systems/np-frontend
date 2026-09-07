@@ -57,16 +57,17 @@ export async function TransactionsTable() {
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-text-secondary">
                   {txn.project}
                 </td>
+                {/* Debit green, credit red — as on the ledger. */}
                 <td
                   className={`whitespace-nowrap px-4 py-3 text-right text-[13px] tabular ${
-                    txn.debit ? 'text-danger' : 'text-text-disabled'
+                    txn.debit ? 'text-success' : 'text-text-disabled'
                   }`}
                 >
                   {txn.debit ? formatCurrency(txn.debit) : '—'}
                 </td>
                 <td
                   className={`whitespace-nowrap px-4 py-3 text-right text-[13px] tabular ${
-                    txn.credit ? 'text-success' : 'text-text-disabled'
+                    txn.credit ? 'text-danger' : 'text-text-disabled'
                   }`}
                 >
                   {txn.credit ? formatCurrency(txn.credit) : '—'}
