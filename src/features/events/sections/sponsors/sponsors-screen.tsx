@@ -191,7 +191,7 @@ export function SponsorsScreen({
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Registrations"
+          label="Sponsorships"
           value={String(assignments.length)}
           caption="Sponsors on an event type"
         />
