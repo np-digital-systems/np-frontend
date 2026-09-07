@@ -140,19 +140,36 @@ function LineEditor({
   );
 
   /**
-   * The activities worth offering for a head.
+   * The activities that belong to a head.
    *
-   * An activity with no default head is always offered — one nobody has linked
-   * yet must stay reachable, or it vanishes silently from every dropdown.
+   * Strictly its own: an activity coded to a different head, or to none at all,
+   * is not what this entry is for. An activity with no head set therefore
+   * appears nowhere until somebody gives it one, which is deliberate — the
+   * alternative offered every pooja under the salaries head.
    */
   function activitiesFor(accountId: number): readonly ActivityRef[] {
     if (!accountId) return activities;
 
-    const matching = activities.filter(
-      (entry) => entry.defaultAccountId === accountId || entry.defaultAccountId === null,
-    );
+    return activities.filter((entry) => entry.defaultAccountId === accountId);
+  }
 
-    return matching.length > 0 ? matching : activities;
+  /**
+   * The coding an activity carries — its fund, project and usual party.
+   *
+   * Shared by choosing an activity and by having one chosen for you, so a head
+   * with a single activity fills the line exactly as picking it by hand would.
+   */
+  function codingFor(
+    activity: ActivityRef | undefined,
+    line: VoucherDraftLine,
+  ): Partial<VoucherDraftLine> {
+    return {
+      activityId: activity?.id ?? null,
+      fundId: activity?.defaultFundId ?? line.fundId,
+      projectId: activity ? activity.defaultProjectId : line.projectId,
+      // A different activity is a different occurrence.
+      eventId: null,
+    };
   }
   const accountsByType = useMemo(() => {
     const groups = new Map<string, AccountRef[]>();
@@ -202,6 +219,7 @@ function LineEditor({
           (project) => project.fundId === line.fundId && project.isActive,
         );
         const activity = activities.find((entry) => entry.id === line.activityId);
+        const lineActivities = activitiesFor(line.accountId);
         const activityPoojas = poojas.filter(
           (pooja) => pooja.activityId === line.activityId,
         );
@@ -249,26 +267,38 @@ function LineEditor({
                 onValueChange={(value) => {
                   const accountId = Number(value);
                   const chosen = accountById.get(accountId);
+                  const offered = activitiesFor(accountId);
 
                   /*
-                   * An activity that belongs to a different head is no longer
-                   * offered, so it is cleared rather than left behind
+                   * A head with exactly one activity has already answered the
+                   * question, so it answers it — and carries that activity's
+                   * fund, project and party in with it. Where there are several
+                   * the clerk still chooses; where the one on the line no
+                   * longer belongs to this head, it is cleared rather than left
                    * contradicting the account beside it.
                    */
-                  const stillOffered = activitiesFor(accountId).some(
+                  const only = offered.length === 1 ? offered[0] : undefined;
+                  const stillOffered = offered.some(
                     (entry) => entry.id === line.activityId,
                   );
 
                   edit(index, {
                     accountId,
-                    ...(stillOffered ? {} : { activityId: null, eventId: null }),
+                    ...(only
+                      ? codingFor(only, line)
+                      : stillOffered
+                        ? {}
+                        : { activityId: null, eventId: null }),
                   });
 
-                  // Heads that deal with one party only — electricity, water,
-                  // rates — name them so the clerk does not have to.
-                  if (chosen?.defaultPartyId != null) {
-                    onSuggestParty(chosen.defaultPartyId);
-                  }
+                  /*
+                   * The activity's party wins where it has one: it is the more
+                   * specific answer. Otherwise a head that deals with a single
+                   * party — electricity, water, rates — names them.
+                   */
+                  const partyId = only?.defaultPartyId ?? chosen?.defaultPartyId;
+
+                  if (partyId != null) onSuggestParty(partyId);
                 }}
               >
                 <SelectTrigger id={`voucher-account-${index}`} className="w-full">
@@ -297,7 +327,17 @@ function LineEditor({
               * does on the paper voucher.
               */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <FormField id={`voucher-activity-${index}`} label="Activity">
+              <FormField
+                id={`voucher-activity-${index}`}
+                label="Activity"
+                hint={
+                  lineActivities.length === 0
+                    ? 'No activity is coded to this head yet. Set the head on an activity to see it here.'
+                    : lineActivities.length === 1
+                      ? 'The only activity for this head, filled in for you.'
+                      : undefined
+                }
+              >
                 <Select
                   value={
                     line.activityId === null ? NO_DIMENSION : String(line.activityId)
@@ -324,15 +364,11 @@ function LineEditor({
                         : undefined;
 
                     edit(index, {
-                      activityId,
+                      ...codingFor(chosen, line),
                       accountId:
                         defaultAccount?.type === codingSide
                           ? defaultAccount.id
                           : line.accountId,
-                      fundId: chosen?.defaultFundId ?? line.fundId,
-                      projectId: chosen ? chosen.defaultProjectId : line.projectId,
-                      // A different pooja is a different occurrence.
-                      eventId: null,
                     });
 
                     if (chosen?.defaultPartyId != null) {
@@ -347,7 +383,7 @@ function LineEditor({
                   <SelectContent>
                     <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
 
-                    {activitiesFor(line.accountId).map((option) => (
+                    {lineActivities.map((option) => (
                       <SelectItem key={option.id} value={String(option.id)}>
                         {option.name}
                       </SelectItem>
