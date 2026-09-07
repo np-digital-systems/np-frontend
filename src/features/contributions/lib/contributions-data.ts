@@ -40,7 +40,7 @@ export function summarise(
   records: readonly MemberRecord[],
   rate: number | null,
 ): SanththaSummary {
-  const expected = records.filter((member) => member.isActive);
+  const expected = records.filter((member) => member.subscribes);
   const paid = records.filter((member) => member.hasPaid);
   const unpaid = expected.filter((member) => !member.hasPaid).length;
 
