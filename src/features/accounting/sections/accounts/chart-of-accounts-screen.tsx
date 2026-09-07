@@ -129,6 +129,7 @@ export function ChartOfAccountsScreen({
               nameTa: draft.nameTa,
               nameEn: draft.name,
               parentId: draft.parentId,
+              defaultPartyId: draft.defaultPartyId,
               isActive: draft.isActive,
               // The API settles an opening balance once entries post against
               // the head, so an unchanged figure is left out of the request
@@ -144,6 +145,7 @@ export function ChartOfAccountsScreen({
               nameEn: draft.name,
               type: draft.type,
               parentId: draft.parentId,
+              defaultPartyId: draft.defaultPartyId,
               openingBalance: draft.openingBalance,
             }),
       () => {
