@@ -111,6 +111,7 @@ export function EventTypesScreen({
       nameTa: draft.name,
       nameEn: draft.nameEn,
       frequencyType: draft.frequencyType,
+      funding: draft.funding,
       noOfInstances: draft.noOfInstances,
       activityId: draft.activityId,
     };
