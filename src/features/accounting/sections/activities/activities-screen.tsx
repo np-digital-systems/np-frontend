@@ -136,6 +136,7 @@ export function ActivitiesScreen({
               defaultFundId: draft.defaultFundId,
               defaultProjectId: draft.defaultProjectId,
               defaultPartyId: draft.defaultPartyId,
+              defaultAccountId: draft.defaultAccountId,
               isActive: draft.isActive,
             })
           : createActivity({
@@ -145,6 +146,7 @@ export function ActivitiesScreen({
               defaultFundId: draft.defaultFundId,
               defaultProjectId: draft.defaultProjectId,
               defaultPartyId: draft.defaultPartyId,
+              defaultAccountId: draft.defaultAccountId,
             }),
       () => {
         setEditing(null);
