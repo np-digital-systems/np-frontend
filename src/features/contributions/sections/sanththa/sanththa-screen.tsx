@@ -28,7 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useRouter } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
+
+import { CONTRIBUTION_ROUTES } from '../../lib/routes';
 import { cn } from '@/lib/utils';
 
 import {
@@ -196,14 +198,17 @@ export function SanththaScreen({
                 {rate === null ? `Set ${year} sanththa` : `Sanththa ${formatCurrency(rate)}`}
               </Button>
 
-              <Button
-                onClick={() => {
-                  setEditing(null);
-                  setFormOpen(true);
-                }}
-              >
-                <Plus />
-                Enrol sponsor
+              {/*
+                * Enrolling lives on the register, not here. This screen asks
+                * one question — who has paid this year — and having a second
+                * way to create a sponsor only invited the same person to be
+                * entered twice.
+                */}
+              <Button asChild variant="secondary">
+                <Link href={CONTRIBUTION_ROUTES.sponsors}>
+                  <Plus />
+                  Sponsor register
+                </Link>
               </Button>
             </div>
           )
