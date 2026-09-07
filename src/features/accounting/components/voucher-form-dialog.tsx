@@ -824,16 +824,23 @@ export function VoucherFormDialog({
                   : `${activityName} — ${pooja.label}`,
               }))
             }
+            /*
+             * Chosen deliberately, so it wins over whatever was there.
+             *
+             * Filling only an empty field meant picking the right activity
+             * second still left the wrong name on the document. An activity
+             * only carries a default where the party really is always the same
+             * — the kurukkal on his honorarium — so overwriting is what the
+             * clerk means by choosing it. The field stays editable underneath.
+             */
             onSuggestParty={(partyId) =>
-              setDraft((current) =>
-                current.partyId === null && !current.party.trim()
-                  ? {
-                      ...current,
-                      partyId,
-                      party: parties.find((entry) => entry.id === partyId)?.name ?? '',
-                    }
-                  : current,
-              )
+              setDraft((current) => {
+                const party = parties.find((entry) => entry.id === partyId);
+
+                if (!party) return current;
+
+                return { ...current, partyId, party: party.name };
+              })
             }
           />
 
