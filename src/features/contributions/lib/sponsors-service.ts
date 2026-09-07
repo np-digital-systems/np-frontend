@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { api, type Page } from '@/lib/api';
+import { getAll } from '@/lib/api';
 
 import type { SponsorRecord } from '../types';
 
@@ -44,9 +44,7 @@ function toRecord(row: ApiSponsor): SponsorRecord {
 }
 
 export async function getSponsorRecords(year?: number): Promise<readonly SponsorRecord[]> {
-  const page = await api.get<Page<ApiSponsor>>('/sponsors', {
-    query: { year, limit: 200 },
-  });
+  const rows = await getAll<ApiSponsor>('/sponsors', { year });
 
-  return page.data.map(toRecord);
+  return rows.map(toRecord);
 }
