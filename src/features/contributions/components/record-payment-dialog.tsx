@@ -211,7 +211,7 @@ export function RecordPaymentDialog({
             </p>
           ) : posting.configured ? (
             <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text-secondary">
-              Raises a posted receipt voucher to{' '}
+              Raises a receipt voucher to{' '}
               <span className="font-medium text-text-primary">
                 {posting.accountCode} · {posting.accountName}
               </span>{' '}
@@ -221,7 +221,9 @@ export function RecordPaymentDialog({
               <span className="font-medium text-text-primary">
                 {member?.fullName ?? 'the member'}
               </span>
-              . The receipt number is allocated when it is saved.
+              . The receipt number is allocated when it is saved, and it goes to
+              the Approval Centre — nothing reaches the ledger until it is
+              approved and posted.
             </p>
           ) : (
             <p
