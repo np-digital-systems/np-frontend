@@ -19,6 +19,8 @@ export interface RecordPaymentInput {
   amount: number;
   paidOn: string;
   mode: PaymentMode;
+  /** The number off the paper receipt book, where the temple keeps one. */
+  manualVoucherNo: string;
 }
 
 export type RecordPaymentResult =
@@ -77,6 +79,7 @@ export async function recordSanththaPayment(
       amount: input.amount,
       paidOn: input.paidOn,
       mode: input.mode,
+      manualVoucherNo: input.manualVoucherNo.trim() || undefined,
     });
   } catch (error) {
     if (error instanceof ApiError) {
@@ -90,6 +93,59 @@ export async function recordSanththaPayment(
   revalidatePath(ACCOUNTING_ROUTES.receipts);
   revalidatePath(ACCOUNTING_ROUTES.transactions);
   revalidatePath(ACCOUNTING_ROUTES.chartOfAccounts);
+
+  return { ok: true, receiptRef: payment.receiptVoucherRef };
+}
+
+export interface UpdatePaymentInput {
+  amount: number;
+  paidOn: string;
+  mode: PaymentMode;
+  manualVoucherNo: string;
+}
+
+/**
+ * Correct a subscription already taken.
+ *
+ * The server refuses once the receipt has been approved or posted, so this
+ * does not re-check it: a rule enforced in two places is a rule that will
+ * disagree with itself. The message it returns is the one to show.
+ */
+export async function updateSanththaPayment(
+  paymentId: number,
+  input: UpdatePaymentInput,
+): Promise<RecordPaymentResult> {
+  const { permissions } = await requireSession();
+
+  if (!getContributionAccess(permissions).canRecord) {
+    return { ok: false, message: 'You cannot change subscription payments.' };
+  }
+
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    return { ok: false, message: 'Enter an amount greater than zero.' };
+  }
+
+  let payment: PaymentResponse;
+
+  try {
+    payment = await api.patch<PaymentResponse>(`/sanththa/payments/${paymentId}`, {
+      amount: input.amount,
+      paidOn: input.paidOn,
+      mode: input.mode,
+      // A blank clears it, so it is sent as an empty string rather than dropped.
+      manualVoucherNo: input.manualVoucherNo.trim(),
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return { ok: false, message: error.message };
+    }
+
+    return { ok: false, message: 'The portal could not reach the server.' };
+  }
+
+  revalidatePath(CONTRIBUTION_ROUTES.sanththa);
+  revalidatePath(ACCOUNTING_ROUTES.receipts);
+  revalidatePath(ACCOUNTING_ROUTES.transactions);
 
   return { ok: true, receiptRef: payment.receiptVoucherRef };
 }
