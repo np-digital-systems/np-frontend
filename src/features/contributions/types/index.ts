@@ -114,3 +114,19 @@ export interface CollectionEvent {
   /** The activity receipts for this observance are coded to; it carries the head. */
   readonly activityId: number | null;
 }
+
+/**
+ * Where a sanththa subscription lands in the books.
+ *
+ * `configured` is the only thing a screen should gate on: a head can be set
+ * and still not be usable, because the fund comes from the activity that head
+ * belongs to. `problem` says which of those is missing.
+ */
+export interface SanththaPosting {
+  readonly configured: boolean;
+  readonly accountCode: string | null;
+  readonly accountName: string | null;
+  readonly fundName: string | null;
+  readonly activityName: string | null;
+  readonly problem: string | null;
+}
