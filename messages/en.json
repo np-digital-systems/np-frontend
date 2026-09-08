@@ -271,7 +271,7 @@
       "theipirai": "Theipirai",
       "day": "Day {number}",
       "occurrence": "Occurrence {number}",
-      "monthly": "Monthly occurrence",
+      "monthly": "Month {number}",
       "annual": "Annual occurrence",
       "unassigned": "Not yet assigned"
     },
