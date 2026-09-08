@@ -48,7 +48,7 @@ import {
 } from '../../lib/contributions-data';
 import { summarise } from '../../lib/contributions-data';
 import { enrolMember, updateMember } from '../../lib/contributions-actions';
-import type { MemberRecord } from '../../types';
+import type { MemberRecord, SanththaPosting } from '../../types';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid';
 
@@ -58,6 +58,8 @@ interface SanththaScreenProps {
   year: number;
   /** The fixed amount set for this year, or null if none has been set. */
   rate: number | null;
+  /** Where a subscription will be receipted, as the server resolves it. */
+  posting: SanththaPosting;
   access: ContributionAccess;
 }
 
@@ -72,6 +74,7 @@ export function SanththaScreen({
   years,
   year,
   rate,
+  posting,
   access,
 }: SanththaScreenProps) {
   const router = useRouter();
@@ -454,6 +457,7 @@ export function SanththaScreen({
           member={paying}
           year={year}
           rate={rate}
+          posting={posting}
           onRecorded={handleRecorded}
         />
       )}
