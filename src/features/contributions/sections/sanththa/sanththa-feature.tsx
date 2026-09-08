@@ -5,6 +5,7 @@ import { getActiveYear, getToday } from '@/lib/format';
 import { getContributionAccess } from '../../lib/contributions-access';
 import {
   getMemberRecords,
+  getSanththaPosting,
   getSanththaSummary,
   getYears,
 } from '../../lib/contributions-service';
@@ -34,9 +35,10 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
     ? requested
     : getActiveYear(getToday());
 
-  const [members, summary] = await Promise.all([
+  const [members, summary, posting] = await Promise.all([
     getMemberRecords(selected),
     getSanththaSummary(selected),
+    getSanththaPosting(),
   ]);
 
   return (
@@ -46,6 +48,7 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
         years={years}
         year={selected}
         rate={summary.rate}
+        posting={posting}
         access={access}
       />
     </PageShell>
