@@ -3,7 +3,12 @@ import 'server-only';
 import { api, getAll } from '@/lib/api';
 import { getActiveYear, getToday } from '@/lib/format';
 
-import type { MemberRecord, PaymentMode, SanththaSummary } from '../types';
+import type {
+  MemberRecord,
+  PaymentMode,
+  SanththaPosting,
+  SanththaSummary,
+} from '../types';
 
 
 /** A row of `GET /sanththa/register` — every active sponsor. */
@@ -97,6 +102,16 @@ export async function getSanththaSummary(
     // At the rate set for the year, not a figure compiled into the bundle.
     outstanding: summary.outstanding * (summary.rate ?? 0),
   };
+}
+
+/**
+ * Where a subscription will be receipted, as the server resolves it.
+ *
+ * Read rather than assumed, so the counter is told the truth before money
+ * changes hands — including when the answer is "nothing is configured yet".
+ */
+export async function getSanththaPosting(): Promise<SanththaPosting> {
+  return api.get<SanththaPosting>('/sanththa/posting');
 }
 
 /** Years that have any payment, newest first, always including this one. */
