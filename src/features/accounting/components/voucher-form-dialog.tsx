@@ -823,6 +823,7 @@ export function VoucherFormDialog({
             <FormField
               id="voucher-manual-no"
               label="Manual Voucher No"
+              required
               hint="The number on the temple's physical voucher book."
             >
               <Input

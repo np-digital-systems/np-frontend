@@ -3,6 +3,8 @@ import 'server-only';
 import { api, getAll } from '@/lib/api';
 import { getActiveYear, getToday } from '@/lib/format';
 
+import type { BadgeStatus } from '@/components/portal/ui';
+
 import type {
   MemberRecord,
   PaymentMode,
@@ -33,6 +35,9 @@ interface ApiPayment {
   readonly amount: number;
   readonly paidOn: string;
   readonly receiptVoucherRef: string | null;
+  readonly receiptStatus: BadgeStatus | null;
+  readonly manualVoucherNo: string | null;
+  readonly editable: boolean;
   readonly mode: PaymentMode;
   readonly collectedBy: string;
 }
@@ -69,6 +74,9 @@ export async function getMemberRecords(
             amount: payment.amount,
             paidOn: payment.paidOn,
             receiptRef: payment.receiptVoucherRef,
+            receiptStatus: payment.receiptStatus,
+            manualVoucherNo: payment.manualVoucherNo,
+            editable: payment.editable,
             mode: payment.mode,
             collectedBy: payment.collectedBy,
           }

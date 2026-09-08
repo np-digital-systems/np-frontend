@@ -14,20 +14,28 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { EntityCombobox, type EntityOption } from '@/components/ui/entity-combobox';
 import { cn } from '@/lib/utils';
 
 import { TAMIL_MONTHS, isMonthly } from '../lib/event-data';
 import { slotLabel } from '../lib/public-event-presentation';
 import type { EventSlot, EventType } from '../types';
 
-const NO_NAME = '__none__';
+/**
+ * The twelve months, plus whatever this slot is already called.
+ *
+ * The list is the usual answer, not the only one — a month can fall to a name
+ * the calendar has no word for. Carrying the current value as an option is
+ * what lets a custom name show in the trigger rather than reading as unnamed
+ * the moment the picker is reopened on it.
+ */
+function monthOptions(current: string): readonly EntityOption[] {
+  const months = TAMIL_MONTHS.map((month) => ({ value: month, label: month }));
+
+  return current && !TAMIL_MONTHS.includes(current)
+    ? [{ value: current, label: current }, ...months]
+    : months;
+}
 
 interface EventSlotsDialogProps {
   open: boolean;
@@ -112,26 +120,17 @@ export function EventSlotsDialog({
                       * ways. Everything else takes the temple's own words.
                       */}
                     {monthly ? (
-                      <Select
-                        value={value || NO_NAME}
-                        onValueChange={(next) =>
-                          setValue(next === NO_NAME ? '' : next)
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Not named" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          <SelectItem value={NO_NAME}>Not named</SelectItem>
-
-                          {TAMIL_MONTHS.map((month) => (
-                            <SelectItem key={month} value={month}>
-                              {month}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <EntityCombobox
+                        className="w-full"
+                        value={value || null}
+                        options={monthOptions(value)}
+                        noneLabel="Not named"
+                        searchPlaceholder="Search months, or type a name…"
+                        emptyMessage="No month matches that."
+                        createLabel={(typed) => `Name it “${typed}”`}
+                        onCreate={(typed) => setValue(typed)}
+                        onChange={(next) => setValue(next ?? '')}
+                      />
                     ) : (
                       <Input
                         autoFocus

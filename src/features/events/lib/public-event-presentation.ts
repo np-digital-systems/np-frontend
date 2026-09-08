@@ -272,7 +272,10 @@ export function slotLabel(
     case 'multi_day':
       return translate('day', { number });
     case 'monthly_once':
-      return translate('monthly');
+      // Numbered like the weekly and multi-day slots. It used to be one fixed
+      // word, so a twelve-slot year read as twelve identical rows with nothing
+      // to tell them apart — and naming one of them meant guessing which.
+      return translate('monthly', { number });
     case 'annual':
       return translate('annual');
     default:

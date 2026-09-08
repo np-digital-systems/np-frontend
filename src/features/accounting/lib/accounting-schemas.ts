@@ -47,7 +47,9 @@ export const voucherSchema = z
     bankAccountId: z.number().int().positive().nullable(),
     chequeNo: optionalText(32),
     party: requiredText('This field'),
-    manualVoucherNo: optionalText(32),
+    // Required, so every entry can be matched against the paper it was written
+    // on. The book is the record the temple has kept longest.
+    manualVoucherNo: requiredText('A manual voucher number', 60),
     /*
      * No pooja here. A split receipt names one on the head it was given for
      * and not on the earmarked remainder beside it, so the occurrence belongs

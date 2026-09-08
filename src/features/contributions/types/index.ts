@@ -1,3 +1,5 @@
+import type { BadgeStatus } from '@/components/portal/ui';
+
 /**
  * Sanththa — the temple's yearly membership subscription.
  *
@@ -41,6 +43,19 @@ export interface SanththaPayment {
   readonly paidOn: string;
   /** The receipt voucher this subscription was collected on. */
   readonly receiptRef: string | null;
+  /**
+   * Where that receipt has got to — null when none is linked. The values are
+   * the voucher statuses, so `StatusBadge` renders them without translation.
+   */
+  readonly receiptStatus: BadgeStatus | null;
+  /** The number off the paper receipt book, where one was written. */
+  readonly manualVoucherNo: string | null;
+  /**
+   * Whether it may still be corrected in place. The server decides this from
+   * the receipt's status; once approved or posted a mistake is fixed by a
+   * further entry, not a rewrite.
+   */
+  readonly editable: boolean;
   readonly mode: PaymentMode;
   readonly collectedBy: string;
 }

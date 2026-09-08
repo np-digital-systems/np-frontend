@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Search, Users, X } from 'lucide-react';
 
 import {
@@ -13,6 +13,7 @@ import {
   PortalPageHeader,
   ReadOnlyNotice,
   StatCard,
+  StatusBadge,
   type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
@@ -33,10 +34,6 @@ import { Link, useRouter } from '@/i18n/routing';
 import { CONTRIBUTION_ROUTES } from '../../lib/routes';
 import { cn } from '@/lib/utils';
 
-import {
-  MemberFormDialog,
-  type MemberDraft,
-} from '../../components/member-form-dialog';
 import { RecordPaymentDialog } from '../../components/record-payment-dialog';
 import { SetRateDialog } from '../../components/set-rate-dialog';
 import type { ContributionAccess } from '../../lib/contributions-access';
@@ -47,7 +44,6 @@ import {
   formatShortDate,
 } from '../../lib/contributions-data';
 import { summarise } from '../../lib/contributions-data';
-import { enrolMember, updateMember } from '../../lib/contributions-actions';
 import type { MemberRecord, SanththaPosting } from '../../types';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid';
@@ -98,11 +94,9 @@ export function SanththaScreen({
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
 
-  const [formOpen, setFormOpen] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
-  const [editing, setEditing] = useState<MemberRecord | null>(null);
   const [paying, setPaying] = useState<MemberRecord | null>(null);
-  const [, startTransition] = useTransition();
+  const [editingPayment, setEditingPayment] = useState<MemberRecord | null>(null);
 
   const summary = useMemo(() => summarise(members, rate), [members, rate]);
 
@@ -121,33 +115,6 @@ export function SanththaScreen({
     });
   }, [members, query, status]);
 
-  const [memberError, setMemberError] = useState<string | null>(null);
-
-  /**
-   * Enrolling writes through the API and then refreshes.
-   *
-   * The member number comes back from the database rather than being guessed
-   * from the highest one on this page — two cashiers enrolling at the same
-   * moment would otherwise both read the same highest number.
-   */
-  function handleMemberSubmit(draft: MemberDraft) {
-    startTransition(async () => {
-      const result = editing
-        ? await updateMember(editing.id, draft)
-        : await enrolMember(draft);
-
-      if (!result.ok) {
-        setMemberError(result.message);
-        return;
-      }
-
-      setMemberError(null);
-      setEditing(null);
-      setFormOpen(false);
-      router.refresh();
-    });
-  }
-
   /**
    * The payment and its receipt voucher are already written by the time this
    * runs, so there is nothing to patch in — the refresh pulls the register back
@@ -155,6 +122,7 @@ export function SanththaScreen({
    */
   function handleRecorded() {
     setPaying(null);
+    setEditingPayment(null);
     router.refresh();
   }
 
@@ -382,15 +350,29 @@ export function SanththaScreen({
                   {member.payment ? formatShortDate(member.payment.paidOn) : '—'}
                 </DataCell>
 
+                {/*
+                  * The receipt and where it has got to. The status is what
+                  * explains the missing Edit button on the next column over:
+                  * once it is approved or posted, the entry is no longer this
+                  * screen's to change.
+                  */}
                 <DataCell nowrap className="text-xs">
-                  {member.payment?.receiptRef ? (
-                    <span className="ref text-text-secondary">
-                      {member.payment.receiptRef}
-                    </span>
-                  ) : member.payment ? (
-                    <span className="text-text-muted">
-                      {PAYMENT_MODE_LABELS[member.payment.mode]}
-                    </span>
+                  {member.payment ? (
+                    <div className="flex flex-col items-start gap-1">
+                      {member.payment.receiptRef ? (
+                        <span className="ref text-text-secondary">
+                          {member.payment.receiptRef}
+                        </span>
+                      ) : (
+                        <span className="text-text-muted">
+                          {PAYMENT_MODE_LABELS[member.payment.mode]}
+                        </span>
+                      )}
+
+                      {member.payment.receiptStatus && (
+                        <StatusBadge status={member.payment.receiptStatus} />
+                      )}
+                    </div>
                   ) : (
                     <span className="text-text-disabled">—</span>
                   )}
@@ -408,16 +390,20 @@ export function SanththaScreen({
                       </Button>
                     )}
 
-                    {access.canManage && (
+                    {/*
+                      * Corrects the subscription, not the sponsor. Who they are
+                      * is the sponsor register's business; this page is about
+                      * what they paid. It disappears once the receipt has been
+                      * approved or posted, because from there a mistake is
+                      * fixed by a further entry rather than a rewrite.
+                      */}
+                    {access.canRecord && member.payment?.editable && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          setEditing(member);
-                          setFormOpen(true);
-                        }}
+                        onClick={() => setEditingPayment(member)}
                       >
-                        Edit
+                        Edit payment
                       </Button>
                     )}
                   </div>
@@ -427,17 +413,6 @@ export function SanththaScreen({
           )}
         </DataTable>
       </Card>
-
-      {access.canManage && (
-        <MemberFormDialog
-          submitError={memberError}
-          open={formOpen}
-          onOpenChange={setFormOpen}
-          member={editing}
-          nextMemberNo=""
-          onSubmit={handleMemberSubmit}
-        />
-      )}
 
       {access.canManage && (
         <SetRateDialog
@@ -452,12 +427,17 @@ export function SanththaScreen({
 
       {access.canRecord && (
         <RecordPaymentDialog
-          open={paying !== null}
-          onOpenChange={(open) => !open && setPaying(null)}
-          member={paying}
+          open={paying !== null || editingPayment !== null}
+          onOpenChange={(open) => {
+            if (open) return;
+            setPaying(null);
+            setEditingPayment(null);
+          }}
+          member={paying ?? editingPayment}
           year={year}
           rate={rate}
           posting={posting}
+          editing={editingPayment?.payment ?? null}
           onRecorded={handleRecorded}
         />
       )}
