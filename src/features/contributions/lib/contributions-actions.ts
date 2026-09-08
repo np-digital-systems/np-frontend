@@ -79,7 +79,7 @@ export async function recordSanththaPayment(
       amount: input.amount,
       paidOn: input.paidOn,
       mode: input.mode,
-      manualVoucherNo: input.manualVoucherNo.trim() || undefined,
+      manualVoucherNo: input.manualVoucherNo.trim(),
     });
   } catch (error) {
     if (error instanceof ApiError) {
@@ -132,7 +132,6 @@ export async function updateSanththaPayment(
       amount: input.amount,
       paidOn: input.paidOn,
       mode: input.mode,
-      // A blank clears it, so it is sent as an empty string rather than dropped.
       manualVoucherNo: input.manualVoucherNo.trim(),
     });
   } catch (error) {
