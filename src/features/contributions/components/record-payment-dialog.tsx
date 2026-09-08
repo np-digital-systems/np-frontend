@@ -25,15 +25,12 @@ import { validate } from '@/lib/validation';
 import {
   PAYMENT_MODES,
   PAYMENT_MODE_LABELS,
-  SANTHTHA_ACCOUNT_CODE,
-  SANTHTHA_ACCOUNT_NAME,
-  SANTHTHA_FUND_NAME,
   formatCurrency,
   getToday,
 } from '../lib/contributions-data';
 import { recordSanththaPayment } from '../lib/contributions-actions';
 import { paymentSchema } from '../lib/contributions-schemas';
-import type { MemberRecord, PaymentMode } from '../types';
+import type { MemberRecord, PaymentMode, SanththaPosting } from '../types';
 
 export interface PaymentDraft {
   amount: number;
@@ -48,8 +45,13 @@ interface RecordPaymentDialogProps {
   year: number;
   /** The rate set for the year — the amount the form opens on. */
   rate: number | null;
+  /**
+   * Where the receipt will land, read from the server rather than assumed.
+   * Null while it is still loading.
+   */
+  posting: SanththaPosting | null;
   /** Receives the reference of the receipt voucher the server raised. */
-  onRecorded: (receiptRef: string) => void;
+  onRecorded: (receiptRef: string | null) => void;
 }
 
 /** Records the one subscription a sponsor owes for the year. */
@@ -59,6 +61,7 @@ export function RecordPaymentDialog({
   member,
   year,
   rate,
+  posting,
   onRecorded,
 }: RecordPaymentDialogProps) {
   const [draft, setDraft] = useState<PaymentDraft>({
@@ -197,17 +200,38 @@ export function RecordPaymentDialog({
 
           </div>
 
-          <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text-secondary">
-            Raises a posted receipt voucher to{' '}
-            <span className="font-medium text-text-primary">
-              {SANTHTHA_ACCOUNT_CODE} · {SANTHTHA_ACCOUNT_NAME}
-            </span>{' '}
-            against the {SANTHTHA_FUND_NAME}, received from{' '}
-            <span className="font-medium text-text-primary">
-              {member?.fullName ?? 'the member'}
-            </span>
-            . The receipt number is allocated when it is saved.
-          </p>
+          {/*
+            * What the server will actually do, not what this file believes it
+            * will do. An unconfigured head says so here, before the money is
+            * taken, rather than failing on save.
+            */}
+          {posting === null ? (
+            <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text-secondary">
+              Checking where this will be receipted…
+            </p>
+          ) : posting.configured ? (
+            <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text-secondary">
+              Raises a posted receipt voucher to{' '}
+              <span className="font-medium text-text-primary">
+                {posting.accountCode} · {posting.accountName}
+              </span>{' '}
+              against the {posting.fundName}
+              {posting.activityName && <> · {posting.activityName}</>}, received
+              from{' '}
+              <span className="font-medium text-text-primary">
+                {member?.fullName ?? 'the member'}
+              </span>
+              . The receipt number is allocated when it is saved.
+            </p>
+          ) : (
+            <p
+              role="alert"
+              className="rounded-lg bg-warning-subtle px-3 py-2 text-xs leading-relaxed text-text-secondary"
+            >
+              {posting.problem ??
+                'Subscriptions have nowhere to post yet. Set the sanththa head in the accounting settings.'}
+            </p>
+          )}
 
           {error && (
             <p
