@@ -132,6 +132,8 @@ export interface AccountingSettings {
    * one the API refuses that report rather than inventing a total.
    */
   readonly cashAccountId: number | null;
+  /** The income head an annual sanththa subscription is receipted to. */
+  readonly sanththaAccountId: number | null;
   readonly receiptPrefix: string;
   readonly paymentPrefix: string;
     readonly yearStartMonth: number;
