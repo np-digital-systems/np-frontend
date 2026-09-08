@@ -55,6 +55,7 @@ interface SettingsScreenProps {
   user: UserRecord;
   /** Asset heads the cash account may be chosen from. */
   cashAccounts: readonly Account[];
+  incomeAccounts: readonly Account[];
   sessions: readonly UserSession[];
   currentSessionId: string;
   today: string;
@@ -70,6 +71,7 @@ interface SettingsScreenProps {
 export function SettingsScreen({
   user,
   cashAccounts,
+  incomeAccounts,
   sessions,
   currentSessionId,
   today,
@@ -109,12 +111,13 @@ export function SettingsScreen({
 
       if (!temple.ok) return temple;
 
-      const { cashAccountId } = settings.accounting;
+      const { cashAccountId, sanththaAccountId } = settings.accounting;
 
       // An id, or the key left out altogether — never an explicit null.
-      return updateAccountingSettings(
-        cashAccountId === null ? {} : { cashAccountId },
-      );
+      return updateAccountingSettings({
+        ...(cashAccountId === null ? {} : { cashAccountId }),
+        ...(sanththaAccountId === null ? {} : { sanththaAccountId }),
+      });
     });
   }
 
@@ -215,6 +218,7 @@ export function SettingsScreen({
             <AccountingSection
               accounting={settings.accounting}
               cashAccounts={cashAccounts}
+              incomeAccounts={incomeAccounts}
               onChange={(value) => patch('accounting', value)}
             />
           </TabsContent>
@@ -411,10 +415,12 @@ function LocaleSection({
 function AccountingSection({
   accounting,
   cashAccounts,
+  incomeAccounts,
   onChange,
 }: {
   accounting: AccountingSettings;
   cashAccounts: readonly Account[];
+  incomeAccounts: readonly Account[];
   onChange: (value: Partial<AccountingSettings>) => void;
 }) {
   return (
@@ -446,6 +452,43 @@ function AccountingSection({
 
             <SelectContent>
               {cashAccounts.map((account) => (
+                <SelectItem key={account.id} value={String(account.id)}>
+                  {account.code} — {account.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        {/*
+          * Where the annual sanththa is receipted. Only the head is chosen:
+          * the fund and activity follow from the activity that names this head
+          * as its default, so the two cannot drift apart.
+          */}
+        <FormField
+          id="acc-sanththa-account"
+          label="Sanththa income head"
+          hint={
+            incomeAccounts.length
+              ? 'The income head a subscription receipt posts to. Its fund and activity come from the activity that head belongs to.'
+              : 'No income accounts exist yet. Create one under Chart of Accounts first.'
+          }
+        >
+          <Select
+            value={
+              accounting.sanththaAccountId
+                ? String(accounting.sanththaAccountId)
+                : undefined
+            }
+            disabled={incomeAccounts.length === 0}
+            onValueChange={(value) => onChange({ sanththaAccountId: Number(value) })}
+          >
+            <SelectTrigger id="acc-sanththa-account" className="w-full">
+              <SelectValue placeholder="Choose the sanththa head" />
+            </SelectTrigger>
+
+            <SelectContent>
+              {incomeAccounts.map((account) => (
                 <SelectItem key={account.id} value={String(account.id)}>
                   {account.code} — {account.name}
                 </SelectItem>
