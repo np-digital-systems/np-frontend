@@ -17,5 +17,6 @@ export const paymentSchema = z.object({
   amount: positiveAmount('The amount'),
   paidOn: isoDate,
   mode: z.enum(PAYMENT_MODES),
-  receiptRef: optionalText(32),
+  /** The number off the paper receipt book, where the temple keeps one. */
+  manualVoucherNo: optionalText(32),
 });
