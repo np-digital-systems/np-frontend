@@ -228,20 +228,21 @@ export function RecordPaymentDialog({
             </FormField>
 
             {/*
-              * The number off the paper receipt book. Optional, because not
-              * every temple keeps one — and where it does, it is the number the
-              * member is holding, so the voucher carries it beside its own ref.
+              * The number off the paper receipt book — the one the member walks
+              * away holding. Required, so every subscription in the system can
+              * be matched against the paper it was written on.
               */}
             <FormField
               id="payment-manual-no"
               label="Receipt book number"
-              hint="From the printed book, if one was written"
+              required
+              hint="From the printed receipt book"
             >
               <Input
                 id="payment-manual-no"
                 value={draft.manualVoucherNo}
                 maxLength={32}
-                placeholder="Optional"
+                placeholder="e.g. 1234"
                 onChange={(event) =>
                   setDraft((current) => ({
                     ...current,
