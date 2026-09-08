@@ -194,6 +194,7 @@ export const DEFAULT_SETTINGS: PortalSettings = {
   },
   accounting: {
     cashAccountId: null,
+    sanththaAccountId: null,
     receiptPrefix: 'RV',
     paymentPrefix: 'PV',
     yearStartMonth: 1,
