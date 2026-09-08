@@ -35,9 +35,9 @@ interface PaymentResponse {
  *
  * The two are written together on purpose: a subscription that exists only in
  * the register is money the accounts cannot see, which is exactly the gap this
- * closes. The voucher is taken all the way to posted — a counter receipt for a
- * fixed membership fee has nothing to approve — and the subscription then
- * points at it, so the register and the ledger name the same rupees.
+ * closes. The receipt is raised for approval, not posted — taking the money and
+ * accounting for it are two acts by two people, and the queue is where the
+ * second one happens.
  */
 export async function recordSanththaPayment(
   input: RecordPaymentInput,
@@ -63,7 +63,7 @@ export async function recordSanththaPayment(
    * This used to raise the voucher here and walk it through submit, approve
    * and post before recording the subscription — five requests, each able to
    * fail on its own, with a hard-coded account and fund chosen in the browser.
-   * A failure halfway left a posted receipt no subscription pointed at, and the
+   * A failure halfway left a receipt no subscription pointed at, and the
    * account id it named had drifted out of the chart entirely.
    *
    * The server owns all of it now: it reads the head from the accounting
