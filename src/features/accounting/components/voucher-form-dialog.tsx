@@ -102,6 +102,8 @@ interface LineEditorProps {
   projects: readonly ProjectRef[];
   activities: readonly ActivityRef[];
   poojas: readonly PoojaRef[];
+  /** Decides which side an activity's default head has to be on to apply. */
+  kind: VoucherKind;
   onChange: (lines: VoucherDraftLine[]) => void;
   /** Told when a pooja is picked, so the document can name its sponsor. */
   onPoojaChosen: (pooja: PoojaRef, activityName: string) => void;
@@ -123,10 +125,59 @@ function LineEditor({
   projects,
   activities,
   poojas,
+  kind,
   onChange,
   onSuggestParty,
   onPoojaChosen,
 }: LineEditorProps) {
+  // Every line of a receipt credits income and every line of a payment debits
+  // expenditure, so this is the only side a default head can usefully be on.
+  const codingSide = kind === 'receipt' ? 'income' : 'expense';
+
+  const accountById = useMemo(
+    () => new Map(accounts.map((account) => [account.id, account])),
+    [accounts],
+  );
+
+  /** The activities coded to a head — strictly its own. */
+  function linkedTo(accountId: number): readonly ActivityRef[] {
+    return activities.filter((entry) => entry.defaultAccountId === accountId);
+  }
+
+  /**
+   * What the activity dropdown offers for a head.
+   *
+   * Its own activities where it has any, so a receipt against pooja income is
+   * never offered the salaries work. Where a head has none coded to it yet the
+   * whole list is offered instead: an empty dropdown would stop a clerk at the
+   * counter over a setting nobody has got round to.
+   */
+  function activitiesFor(accountId: number): readonly ActivityRef[] {
+    if (!accountId) return activities;
+
+    const linked = linkedTo(accountId);
+
+    return linked.length > 0 ? linked : activities;
+  }
+
+  /**
+   * The coding an activity carries — its fund, project and usual party.
+   *
+   * Shared by choosing an activity and by having one chosen for you, so a head
+   * with a single activity fills the line exactly as picking it by hand would.
+   */
+  function codingFor(
+    activity: ActivityRef | undefined,
+    line: VoucherDraftLine,
+  ): Partial<VoucherDraftLine> {
+    return {
+      activityId: activity?.id ?? null,
+      fundId: activity?.defaultFundId ?? line.fundId,
+      projectId: activity ? activity.defaultProjectId : line.projectId,
+      // A different activity is a different occurrence.
+      eventId: null,
+    };
+  }
   const accountsByType = useMemo(() => {
     const groups = new Map<string, AccountRef[]>();
 
@@ -175,6 +226,8 @@ function LineEditor({
           (project) => project.fundId === line.fundId && project.isActive,
         );
         const activity = activities.find((entry) => entry.id === line.activityId);
+        const lineActivities = activitiesFor(line.accountId);
+        const lineLinked = linkedTo(line.accountId);
         const activityPoojas = poojas.filter(
           (pooja) => pooja.activityId === line.activityId,
         );
@@ -213,15 +266,50 @@ function LineEditor({
               required
               hint={
                 index === 0
-                  ? 'The head this posts against in the chart of accounts.'
+                  ? 'The head this posts against. Choosing one narrows the activities below.'
                   : undefined
               }
             >
               <Select
                 value={String(line.accountId)}
-                onValueChange={(value) =>
-                  edit(index, { accountId: Number(value) })
-                }
+                onValueChange={(value) => {
+                  const accountId = Number(value);
+                  const chosen = accountById.get(accountId);
+                  const offered = activitiesFor(accountId);
+                  const linked = linkedTo(accountId);
+
+                  /*
+                   * A head with exactly one activity coded to it has already
+                   * answered the question, so it answers it — and carries that
+                   * activity's fund, project and party in with it.
+                   *
+                   * Read from what is linked, not from what is offered: a head
+                   * with nothing linked falls back to the whole list, and
+                   * picking for the clerk out of that would be a guess.
+                   */
+                  const only = linked.length === 1 ? linked[0] : undefined;
+                  const stillOffered = offered.some(
+                    (entry) => entry.id === line.activityId,
+                  );
+
+                  edit(index, {
+                    accountId,
+                    ...(only
+                      ? codingFor(only, line)
+                      : stillOffered
+                        ? {}
+                        : { activityId: null, eventId: null }),
+                  });
+
+                  /*
+                   * The activity's party wins where it has one: it is the more
+                   * specific answer. Otherwise a head that deals with a single
+                   * party — electricity, water, rates — names them.
+                   */
+                  const partyId = only?.defaultPartyId ?? chosen?.defaultPartyId;
+
+                  if (partyId != null) onSuggestParty(partyId);
+                }}
               >
                 <SelectTrigger id={`voucher-account-${index}`} className="w-full">
                   <SelectValue />
@@ -249,7 +337,17 @@ function LineEditor({
               * does on the paper voucher.
               */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <FormField id={`voucher-activity-${index}`} label="Activity">
+              <FormField
+                id={`voucher-activity-${index}`}
+                label="Activity"
+                hint={
+                  lineLinked.length === 1
+                    ? 'The only activity for this head, filled in for you.'
+                    : lineLinked.length === 0
+                      ? 'No activity is coded to this head yet, so all are listed. Set the head on an activity to narrow this.'
+                      : undefined
+                }
+              >
                 <Select
                   value={
                     line.activityId === null ? NO_DIMENSION : String(line.activityId)
@@ -265,12 +363,22 @@ function LineEditor({
                      * editable below: a default is what is usually true, never
                      * a rule.
                      */
+                    /*
+                     * The default head applies only where it sits on the side
+                     * this voucher posts to: an activity's expense head has no
+                     * business filling itself into a receipt.
+                     */
+                    const defaultAccount =
+                      chosen?.defaultAccountId != null
+                        ? accountById.get(chosen.defaultAccountId)
+                        : undefined;
+
                     edit(index, {
-                      activityId,
-                      fundId: chosen?.defaultFundId ?? line.fundId,
-                      projectId: chosen ? chosen.defaultProjectId : line.projectId,
-                      // A different pooja is a different occurrence.
-                      eventId: null,
+                      ...codingFor(chosen, line),
+                      accountId:
+                        defaultAccount?.type === codingSide
+                          ? defaultAccount.id
+                          : line.accountId,
                     });
 
                     if (chosen?.defaultPartyId != null) {
@@ -285,7 +393,7 @@ function LineEditor({
                   <SelectContent>
                     <SelectItem value={NO_DIMENSION}>Not tied to one</SelectItem>
 
-                    {activities.map((option) => (
+                    {lineActivities.map((option) => (
                       <SelectItem key={option.id} value={String(option.id)}>
                         {option.name}
                       </SelectItem>
@@ -738,6 +846,7 @@ export function VoucherFormDialog({
             projects={projects}
             activities={activities}
             poojas={poojas}
+            kind={kind}
             onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
             onPoojaChosen={(pooja, activityName) =>
               setDraft((current) => ({
@@ -761,16 +870,23 @@ export function VoucherFormDialog({
                   : `${activityName} — ${pooja.label}`,
               }))
             }
+            /*
+             * Chosen deliberately, so it wins over whatever was there.
+             *
+             * Filling only an empty field meant picking the right activity
+             * second still left the wrong name on the document. An activity
+             * only carries a default where the party really is always the same
+             * — the kurukkal on his honorarium — so overwriting is what the
+             * clerk means by choosing it. The field stays editable underneath.
+             */
             onSuggestParty={(partyId) =>
-              setDraft((current) =>
-                current.partyId === null && !current.party.trim()
-                  ? {
-                      ...current,
-                      partyId,
-                      party: parties.find((entry) => entry.id === partyId)?.name ?? '',
-                    }
-                  : current,
-              )
+              setDraft((current) => {
+                const party = parties.find((entry) => entry.id === partyId);
+
+                if (!party) return current;
+
+                return { ...current, partyId, party: party.name };
+              })
             }
           />
 

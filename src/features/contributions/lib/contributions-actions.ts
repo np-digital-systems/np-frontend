@@ -9,7 +9,6 @@ import { api, ApiError } from '@/lib/api';
 import type { PaymentMode } from '../types';
 
 import { getContributionAccess } from './contributions-access';
-import { SANTHTHA_ACCOUNT_ID, SANTHTHA_FUND_ID } from './contributions-data';
 import { CONTRIBUTION_ROUTES } from './routes';
 
 export interface RecordPaymentInput {
@@ -23,12 +22,12 @@ export interface RecordPaymentInput {
 }
 
 export type RecordPaymentResult =
-  | { ok: true; receiptRef: string }
+  | { ok: true; receiptRef: string | null }
   | { ok: false; message: string };
 
-interface VoucherResponse {
-  readonly id: number;
-  readonly ref: string;
+interface PaymentResponse {
+  /** Null only where a subscription was linked to a receipt raised elsewhere. */
+  readonly receiptVoucherRef: string | null;
 }
 
 /**
@@ -56,36 +55,28 @@ export async function recordSanththaPayment(
     return { ok: false, message: 'Enter an amount greater than zero.' };
   }
 
-  let voucher: VoucherResponse;
+  let payment: PaymentResponse;
 
+  /*
+   * One call, because it is one act.
+   *
+   * This used to raise the voucher here and walk it through submit, approve
+   * and post before recording the subscription — five requests, each able to
+   * fail on its own, with a hard-coded account and fund chosen in the browser.
+   * A failure halfway left a posted receipt no subscription pointed at, and the
+   * account id it named had drifted out of the chart entirely.
+   *
+   * The server owns all of it now: it reads the head from the accounting
+   * settings, takes the fund and activity from the activity that head belongs
+   * to, and names the sponsor as the party.
+   */
   try {
-    voucher = await api.post<VoucherResponse>('/vouchers', {
-      kind: 'receipt',
-      date: input.paidOn,
-      description: `Sanththa subscription ${input.year} — ${input.memberNo}`,
-      mode: input.mode,
-      party: input.memberName,
-      partyId: Number(input.memberId),
-      lines: [
-        {
-          accountId: SANTHTHA_ACCOUNT_ID,
-          amount: input.amount,
-          fundId: SANTHTHA_FUND_ID,
-        },
-      ],
-    });
-
-    await api.post(`/vouchers/${voucher.id}/submit`);
-    await api.post(`/vouchers/${voucher.id}/approve`);
-    await api.post(`/vouchers/${voucher.id}/post`);
-
-    await api.post('/sanththa/payments', {
+    payment = await api.post<PaymentResponse>('/sanththa/payments', {
       sponsorId: Number(input.memberId),
       year: input.year,
       amount: input.amount,
       paidOn: input.paidOn,
       mode: input.mode,
-      receiptVoucherId: voucher.id,
     });
   } catch (error) {
     if (error instanceof ApiError) {
@@ -100,7 +91,7 @@ export async function recordSanththaPayment(
   revalidatePath(ACCOUNTING_ROUTES.transactions);
   revalidatePath(ACCOUNTING_ROUTES.chartOfAccounts);
 
-  return { ok: true, receiptRef: voucher.ref };
+  return { ok: true, receiptRef: payment.receiptVoucherRef };
 }
 
 export interface MemberInput {

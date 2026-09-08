@@ -10,17 +10,17 @@ export {
 
 import type { PaymentMode } from '../types';
 
-/**
- * Where a subscription lands in the books.
+/*
+ * Where a subscription lands in the books is not written here any more.
  *
- * Every sanththa payment is income to this head, against the general fund —
- * it is membership, not a donation to any particular work.
+ * It was: an account id, a fund id and two display names, none of which the
+ * chart of accounts knew about. The id had drifted out of the chart and every
+ * receipt was failing on it, while the names beside it still read plausibly.
+ *
+ * The head is configured once in the accounting settings and the rest follows
+ * it on the server — see `GET /sanththa/posting`, which is what the record
+ * dialog shows so the counter reads the real coding rather than a constant.
  */
-export const SANTHTHA_ACCOUNT_CODE = '4009';
-export const SANTHTHA_ACCOUNT_ID = 409;
-export const SANTHTHA_FUND_ID = 1;
-export const SANTHTHA_ACCOUNT_NAME = 'Sanththa Subscriptions';
-export const SANTHTHA_FUND_NAME = 'General Temple Fund';
 
 export const PAYMENT_MODES: readonly PaymentMode[] = ['cash', 'bank', 'online'];
 
@@ -40,7 +40,7 @@ export function summarise(
   records: readonly MemberRecord[],
   rate: number | null,
 ): SanththaSummary {
-  const expected = records.filter((member) => member.isActive);
+  const expected = records.filter((member) => member.subscribes);
   const paid = records.filter((member) => member.hasPaid);
   const unpaid = expected.filter((member) => !member.hasPaid).length;
 

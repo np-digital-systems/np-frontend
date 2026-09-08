@@ -92,7 +92,7 @@ export async function registerSponsor(
   }
 
   try {
-    await api.post('/sponsors', {
+    await api.post('/event-sponsors', {
       eventTypeId: input.eventTypeId,
       instanceIdentifier: input.instanceIdentifier ?? undefined,
       partyId,
@@ -120,7 +120,7 @@ export interface SponsorPlacementInput {
 /** Register somebody already in the directory. */
 export async function addSponsor(input: SponsorPlacementInput): Promise<SponsorResult> {
   return guarded('You cannot register sponsors.', () =>
-    api.post('/sponsors', {
+    api.post('/event-sponsors', {
       ...input,
       instanceIdentifier: input.instanceIdentifier ?? undefined,
     }),
@@ -132,7 +132,7 @@ export async function updateSponsor(
   input: Partial<SponsorPlacementInput>,
 ): Promise<SponsorResult> {
   return guarded('You cannot change sponsor registrations.', () =>
-    api.patch(`/sponsors/${id}`, {
+    api.patch(`/event-sponsors/${id}`, {
       eventTypeId: input.eventTypeId,
       // Null is meaningful here — it takes the sponsor back off their slot and
       // returns them to the pool — so it is sent rather than stripped like a
@@ -147,5 +147,5 @@ export async function updateSponsor(
 }
 
 export async function removeSponsor(id: number): Promise<SponsorResult> {
-  return guarded('You cannot remove sponsor registrations.', () => api.delete(`/sponsors/${id}`));
+  return guarded('You cannot remove sponsor registrations.', () => api.delete(`/event-sponsors/${id}`));
 }

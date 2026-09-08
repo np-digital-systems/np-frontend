@@ -28,7 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useRouter } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
+
+import { CONTRIBUTION_ROUTES } from '../../lib/routes';
 import { cn } from '@/lib/utils';
 
 import {
@@ -36,6 +38,7 @@ import {
   type MemberDraft,
 } from '../../components/member-form-dialog';
 import { RecordPaymentDialog } from '../../components/record-payment-dialog';
+import { SetRateDialog } from '../../components/set-rate-dialog';
 import type { ContributionAccess } from '../../lib/contributions-access';
 import { REGISTER_READ_ONLY_MESSAGE } from '../../lib/contributions-access';
 import {
@@ -45,7 +48,7 @@ import {
 } from '../../lib/contributions-data';
 import { summarise } from '../../lib/contributions-data';
 import { enrolMember, updateMember } from '../../lib/contributions-actions';
-import type { MemberRecord } from '../../types';
+import type { MemberRecord, SanththaPosting } from '../../types';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid';
 
@@ -55,6 +58,8 @@ interface SanththaScreenProps {
   year: number;
   /** The fixed amount set for this year, or null if none has been set. */
   rate: number | null;
+  /** Where a subscription will be receipted, as the server resolves it. */
+  posting: SanththaPosting;
   access: ContributionAccess;
 }
 
@@ -69,6 +74,7 @@ export function SanththaScreen({
   years,
   year,
   rate,
+  posting,
   access,
 }: SanththaScreenProps) {
   const router = useRouter();
@@ -93,6 +99,7 @@ export function SanththaScreen({
   const [status, setStatus] = useState<StatusFilter>('all');
 
   const [formOpen, setFormOpen] = useState(false);
+  const [rateOpen, setRateOpen] = useState(false);
   const [editing, setEditing] = useState<MemberRecord | null>(null);
   const [paying, setPaying] = useState<MemberRecord | null>(null);
   const [, startTransition] = useTransition();
@@ -152,8 +159,8 @@ export function SanththaScreen({
   }
 
   const columns: DataColumn[] = [
-    { key: 'no', label: 'Member No' },
-    { key: 'name', label: 'Member' },
+    { key: 'no', label: 'Sponsor No' },
+    { key: 'name', label: 'Sponsor' },
     ...(access.canSeeContact
       ? [{ key: 'phone', label: 'Phone' } as const]
       : []),
@@ -189,15 +196,24 @@ export function SanththaScreen({
         ].filter(Boolean)}
         actions={
           access.canManage && (
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus />
-              Add Member
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={() => setRateOpen(true)}>
+                {rate === null ? `Set ${year} sanththa` : `Sanththa ${formatCurrency(rate)}`}
+              </Button>
+
+              {/*
+                * Enrolling lives on the register, not here. This screen asks
+                * one question — who has paid this year — and having a second
+                * way to create a sponsor only invited the same person to be
+                * entered twice.
+                */}
+              <Button asChild variant="secondary">
+                <Link href={CONTRIBUTION_ROUTES.sponsors}>
+                  <Plus />
+                  Sponsor register
+                </Link>
+              </Button>
+            </div>
           )
         }
       />
@@ -238,7 +254,7 @@ export function SanththaScreen({
           <InputGroupInput
             type="search"
             value={query}
-            placeholder="Search member no, name or phone…"
+            placeholder="Search sponsor no, name or phone…"
             aria-label="Search members"
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -253,7 +269,7 @@ export function SanththaScreen({
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="all">All members</SelectItem>
+            <SelectItem value="all">All sponsors</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="unpaid">Not paid</SelectItem>
           </SelectContent>
@@ -315,7 +331,7 @@ export function SanththaScreen({
             filtered.map((member) => (
               <DataRow
                 key={member.id}
-                className={cn(!member.isActive && 'opacity-60')}
+                className={cn(!member.subscribes && 'opacity-60')}
               >
                 <DataCell nowrap className="ref text-xs text-text-muted">
                   {member.memberNo}
@@ -347,7 +363,7 @@ export function SanththaScreen({
                       />
                       Paid {formatCurrency(member.payment?.amount ?? 0)}
                     </span>
-                  ) : member.isActive ? (
+                  ) : member.subscribes ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-subtle px-2 py-0.5 text-[11px] font-medium text-warning">
                       <span
                         className="size-1.5 rounded-full bg-current"
@@ -357,7 +373,7 @@ export function SanththaScreen({
                     </span>
                   ) : (
                     <span className="text-[11px] text-text-disabled">
-                      Inactive
+                      Exempt
                     </span>
                   )}
                 </DataCell>
@@ -382,7 +398,7 @@ export function SanththaScreen({
 
                 <DataCell align="right" nowrap>
                   <div className="flex items-center justify-end gap-1.5">
-                    {access.canRecord && !member.hasPaid && member.isActive && (
+                    {access.canRecord && !member.hasPaid && member.subscribes && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -423,6 +439,17 @@ export function SanththaScreen({
         />
       )}
 
+      {access.canManage && (
+        <SetRateDialog
+          open={rateOpen}
+          onOpenChange={setRateOpen}
+          year={year}
+          current={rate}
+          subscribing={summary.subscribing}
+          onSaved={() => router.refresh()}
+        />
+      )}
+
       {access.canRecord && (
         <RecordPaymentDialog
           open={paying !== null}
@@ -430,6 +457,7 @@ export function SanththaScreen({
           member={paying}
           year={year}
           rate={rate}
+          posting={posting}
           onRecorded={handleRecorded}
         />
       )}

@@ -38,7 +38,7 @@ export async function getEventTypes(): Promise<readonly EventType[]> {
 }
 
 export async function getSponsorUsers(): Promise<readonly SponsorParty[]> {
-  return getAll<SponsorParty>('/sponsors/directory');
+  return getAll<SponsorParty>('/event-sponsors/directory');
 }
 
 export async function getEvents(
@@ -54,7 +54,7 @@ export async function getEventSlots(eventTypeId: number): Promise<readonly Event
 export async function getSponsorAssignments(
   year: number = getActiveYear(getToday()),
 ): Promise<readonly SponsorAssignment[]> {
-  return api.get<readonly SponsorAssignment[]>('/sponsors', { query: { year } });
+  return api.get<readonly SponsorAssignment[]>('/event-sponsors', { query: { year } });
 }
 
 export async function getScheduleGroups(

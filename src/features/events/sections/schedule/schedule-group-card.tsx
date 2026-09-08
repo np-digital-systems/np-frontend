@@ -161,6 +161,7 @@ export function ScheduleGroupCard({
                         <SponsorCell
                           sponsor={event ? event.sponsor : slot.defaultSponsor}
                           showContact={false}
+                          isGeneral={eventType.funding === 'general'}
                         />
 
                         {!event && slot.defaultSponsor && (

@@ -10,13 +10,11 @@ import {
 } from '../../lib/sponsor-actions';
 
 import { useMemo, useState } from 'react';
-import { Handshake, Mail, Phone, Search, UserRoundPlus } from 'lucide-react';
+import { Handshake, Search, UserRoundPlus } from 'lucide-react';
 
 import {
   ActionError,
   Card,
-  CardBody,
-  CardHeader,
   ConfirmDialog,
   DataCell,
   DataRow,
@@ -34,7 +32,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { EventName } from '../../components/event-name';
 import { FrequencyBadge } from '../../components/frequency-badge';
@@ -63,6 +60,17 @@ export function SponsorsScreen({
   year,
 }: SponsorsScreenProps) {
   const assignments = initialSponsors;
+
+  /*
+   * A general observance is funded by collection and takes no named sponsor,
+   * so it is kept out of the picker entirely. The database refuses the
+   * assignment either way; this is what stops anyone reaching that refusal.
+   */
+  const sponsorableTypes = useMemo(
+    () => eventTypes.filter((type) => type.funding !== 'general'),
+    [eventTypes],
+  );
+
   const [query, setQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SponsorAssignment | null>(null);
@@ -81,18 +89,6 @@ export function SponsorsScreen({
         .includes(needle),
     );
   }, [assignments, query]);
-
-  const directory = useMemo(() => {
-    return sponsors
-      .map((sponsor) => ({
-        sponsor,
-        slots: assignments.filter(
-          (assignment) => assignment.partyId === sponsor.id,
-        ),
-      }))
-      .filter((entry) => entry.slots.length > 0)
-      .sort((a, b) => b.slots.length - a.slots.length);
-  }, [sponsors, assignments]);
 
   const distinctSponsors = new Set(
     assignments.map((assignment) => assignment.partyId),
@@ -159,11 +155,11 @@ export function SponsorsScreen({
   return (
     <>
       <PortalPageHeader
-        title="Sponsors"
-        description="Who sponsors each event type — and, where it is set, the instance they traditionally take."
+        title="Pooja Sponsorships"
+        description="Which sponsor has taken which observance. Sponsors themselves are enrolled on the sponsor register; this places them against a pooja."
         meta={[
           <span key="assignments" className="tabular">
-            {assignments.length} registrations
+            {assignments.length} sponsorships
           </span>,
           <span key="sponsors" className="tabular">
             {distinctSponsors} sponsors
@@ -181,7 +177,7 @@ export function SponsorsScreen({
               }}
             >
               <UserRoundPlus />
-              New Sponsor
+              Register a sponsorship
             </Button>
           )
         }
@@ -195,7 +191,7 @@ export function SponsorsScreen({
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Registrations"
+          label="Sponsorships"
           value={String(assignments.length)}
           caption="Sponsors on an event type"
         />
@@ -206,7 +202,7 @@ export function SponsorsScreen({
         />
         <StatCard
           label="Event Types Covered"
-          value={`${coveredTypes} / ${eventTypes.length}`}
+          value={`${coveredTypes} / ${sponsorableTypes.length}`}
           caption="Have at least one sponsor"
         />
         <StatCard
@@ -216,12 +212,7 @@ export function SponsorsScreen({
         />
       </div>
 
-      <Tabs defaultValue="assignments">
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList>
-            <TabsTrigger value="assignments">Registrations</TabsTrigger>
-            <TabsTrigger value="directory">Sponsor Directory</TabsTrigger>
-          </TabsList>
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end">
 
           <InputGroup className="w-full sm:w-64">
             <InputGroupAddon>
@@ -238,7 +229,6 @@ export function SponsorsScreen({
           </InputGroup>
         </div>
 
-        <TabsContent value="assignments">
           <Card>
             <DataTable columns={columns} minWidth={access.canSeeSponsorContact ? 1000 : 840}>
               {filtered.length === 0 ? (
@@ -340,75 +330,13 @@ export function SponsorsScreen({
               )}
             </DataTable>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="directory">
-          {directory.length === 0 ? (
-            <Card>
-              <EmptyState
-                icon={Handshake}
-                title="No sponsors registered yet"
-                description="Sponsors appear here once they are registered against an event type."
-              />
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {directory.map(({ sponsor, slots }) => (
-                <Card key={sponsor.id} className="flex flex-col">
-                  <CardHeader
-                    title={sponsor.name}
-                    description={sponsor.address}
-                    action={
-                      <span className="rounded-full bg-primary-subtle px-2 py-0.5 text-[11px] font-medium text-primary tabular">
-                        {slots.length}
-                      </span>
-                    }
-                  />
-
-                  <CardBody className="flex flex-1 flex-col gap-3">
-                    <ul className="flex flex-col gap-1.5">
-                      {slots.map((slot) => (
-                        <li
-                          key={slot.id}
-                          className="flex items-baseline justify-between gap-3"
-                        >
-                          <span className="min-w-0 truncate text-[13px] text-text-primary">
-                            {slot.eventType.name}
-                          </span>
-                          <span className="shrink-0 text-[11px] text-text-muted">
-                            {slot.instanceLabel}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {access.canSeeSponsorContact && (
-                      <div className="mt-auto flex flex-col gap-1 border-t border-border pt-3">
-                        <span className="flex items-center gap-1.5 text-xs text-text-secondary tabular">
-                          <Phone className="size-3 text-text-muted" aria-hidden />
-                          {sponsor.phone}
-                        </span>
-
-                        <span className="flex items-center gap-1.5 truncate text-xs text-text-muted">
-                          <Mail className="size-3" aria-hidden />
-                          {sponsor.email}
-                        </span>
-                      </div>
-                    )}
-                  </CardBody>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
 
       {access.canManageSponsors && (
         <SponsorFormDialog
           open={formOpen}
           onOpenChange={setFormOpen}
           sponsor={editing}
-          eventTypes={eventTypes}
+          eventTypes={sponsorableTypes}
           directory={sponsors}
           assignments={assignments}
           onSubmit={handleSubmit}

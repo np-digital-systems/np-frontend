@@ -10,14 +10,16 @@ import {
 } from '@/lib/validation';
 
 export const userSchema = z.object({
+  /** Null when registering a new person rather than granting to an existing one. */
+  partyId: z.number().int().positive().nullable(),
   /*
    * The Tamil name is the record; the English one is a convenience.
    *
-   * The register is kept in Tamil, and most devotees have no email at all, so
-   * those are the two the API treats as optional — this follows it rather than
-   * demanding more of a devotee than the temple does.
+   * Optional here rather than required, because a sign-in granted to somebody
+   * already in the directory carries no name at all — theirs is on the party.
+   * The refinement below demands it only when registering a new person.
    */
-  nameTa: requiredText('A Tamil name'),
+  nameTa: optionalText(160),
   fullName: optionalText(),
   email: optionalEmail,
   phone: optionalText(32),
@@ -27,6 +29,15 @@ export const userSchema = z.object({
   password: optionalText(128),
   passwordConfirmation: optionalText(128),
 }).superRefine((value, ctx) => {
+  // A new person needs a name; an existing one already has one on their party.
+  if (value.partyId === null && !value.nameTa?.trim()) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['nameTa'],
+      message: 'Pick somebody from the directory, or give a Tamil name to register them.',
+    });
+  }
+
   /*
    * Staff sign in; devotees do not.
    *

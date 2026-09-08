@@ -40,7 +40,7 @@ function draftFrom(member: MemberRecord | null, nextNo: string): MemberDraft {
       phone: member.phone,
       address: member.address,
       notes: member.notes ?? '',
-      isActive: member.isActive,
+      isActive: member.subscribes,
     };
   }
 
@@ -110,10 +110,12 @@ export function MemberFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {member ? `Edit ${member.memberNo}` : 'New Member'}
+            {member ? `Edit ${member.memberNo}` : 'Enrol a sponsor'}
           </DialogTitle>
           <DialogDescription>
-            A sanththa member pays one subscription a year.
+            {member
+              ? 'Names and contact details belong to this person’s directory entry, so a change here reaches every screen they appear on.'
+              : 'Enrolling registers the person in the directory and allocates their sponsor number. It does not create a sign-in.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -124,7 +126,7 @@ export function MemberFormDialog({
               * set, and is permanent once issued because it is printed on
               * receipts — so it is shown, never typed.
               */}
-            <FormField id="member-no" label="Member No">
+            <FormField id="member-no" label="Sponsor No">
               <Input
                 id="member-no"
                 value={member ? draft.memberNo : 'Assigned on save'}
@@ -185,10 +187,11 @@ export function MemberFormDialog({
                 htmlFor="member-active"
                 className="text-xs font-medium text-text-secondary"
               >
-                Active member
+                Pays the annual sanththa
               </Label>
               <p className="mt-0.5 text-[11px] text-text-muted">
-                Inactive members keep their history but are not counted as due.
+                Clear this for an exempt sponsor. They stay on the calendar and keep their
+                history; the temple simply asks no subscription of them.
               </p>
             </div>
 

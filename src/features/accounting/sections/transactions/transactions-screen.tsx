@@ -386,12 +386,19 @@ export function TransactionsScreen({
                     )}
                   </DataCell>
 
+                  {/*
+                    * Debit green, credit red — the ledger convention, and not
+                    * the money-in/money-out one the tones are named for. A
+                    * debit is the left side of an entry, not a gain: on this
+                    * table the cash a receipt brings in is a debit, and the
+                    * income head that explains it is the credit.
+                    */}
                   <DataCell align="right" nowrap>
-                    <Amount value={entry.debit} tone="out" />
+                    <Amount value={entry.debit} tone="in" />
                   </DataCell>
 
                   <DataCell align="right" nowrap>
-                    <Amount value={entry.credit} tone="in" />
+                    <Amount value={entry.credit} tone="out" />
                   </DataCell>
 
                   <DataCell nowrap>
@@ -409,10 +416,10 @@ export function TransactionsScreen({
                     ? `Totals for ${filtered.length} filtered entries`
                     : `Totals for all ${filtered.length} entries`}
                 </td>
-                <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-danger tabular">
+                <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-success tabular">
                   {formatCurrency(totals.debit)}
                 </td>
-                <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-success tabular">
+                <td className="px-4 py-2.5 text-right text-[13px] font-semibold text-danger tabular">
                   {formatCurrency(totals.credit)}
                 </td>
                 <td />

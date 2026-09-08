@@ -76,12 +76,13 @@ export async function getPostableAccounts(): Promise<readonly AccountRef[]> {
     query: { postableOnly: true, isActive: true },
   });
 
-  return accounts.map(({ id, code, name, nameTa, type }) => ({
+  return accounts.map(({ id, code, name, nameTa, type, defaultPartyId }) => ({
     id,
     code,
     name,
     nameTa,
     type,
+    defaultPartyId,
   }));
 }
 
@@ -103,13 +104,23 @@ export async function getActivityOptions(): Promise<readonly ActivityRef[]> {
   });
 
   return activities.map(
-    ({ id, name, nameEn, kind, defaultFundId, defaultProjectId, defaultPartyId }) => ({
+    ({
       id,
       name,
       nameEn,
       kind,
       defaultFundId,
       defaultProjectId,
+      defaultPartyId,
+      defaultAccountId,
+    }) => ({
+      id,
+      name,
+      nameEn,
+      kind,
+      defaultFundId,
+      defaultProjectId,
+      defaultAccountId,
       defaultPartyId,
     }),
   );

@@ -7,6 +7,7 @@ import {
   getActivityRecords,
   getFundOptions,
   getPartyOptions,
+  getPostableAccounts,
   getProjectOptions,
 } from '../../lib/accounting-service';
 
@@ -24,11 +25,12 @@ export async function ActivitiesFeature() {
     );
   }
 
-  const [initialActivities, funds, projects, parties] = await Promise.all([
+  const [initialActivities, funds, projects, parties, accounts] = await Promise.all([
     getActivityRecords(),
     getFundOptions(),
     getProjectOptions(),
     getPartyOptions(),
+    getPostableAccounts(),
   ]);
 
   return (
@@ -38,6 +40,7 @@ export async function ActivitiesFeature() {
         funds={funds}
         projects={projects}
         parties={parties}
+        accounts={accounts}
         access={access}
         year={getActiveYear(getToday())}
       />

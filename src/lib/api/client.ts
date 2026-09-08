@@ -182,13 +182,36 @@ export const api = {
  * The API paginates the large ones; a screen that renders a whole list asks for
  * the maximum page rather than pretending pagination does not exist.
  */
+/**
+ * Every row of a listing, not the first page of it.
+ *
+ * The API caps `limit` at 100, so a single request quietly returns the first
+ * hundred and drops the rest — which for a register of 136 sponsors means 36
+ * people missing from a screen that gives no sign anything is absent. Reading
+ * to the end is the only honest answer for a list a human is counting.
+ *
+ * The page cap is a guard against an endpoint that never stops saying there is
+ * more; it is not expected to be reached.
+ */
 export async function getAll<T>(
   path: string,
   query?: Query,
 ): Promise<readonly T[]> {
-  const result = await api.get<Page<T> | T[]>(path, {
-    query: { limit: 100, ...query },
-  });
+  const MAX_PAGES = 100;
+  const rows: T[] = [];
 
-  return Array.isArray(result) ? result : result.data;
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const result = await api.get<Page<T> | T[]>(path, {
+      query: { limit: 100, ...query, page },
+    });
+
+    // Some endpoints answer with a bare array; there is nothing to page.
+    if (Array.isArray(result)) return result;
+
+    rows.push(...result.data);
+
+    if (!result.meta.hasNextPage) break;
+  }
+
+  return rows;
 }

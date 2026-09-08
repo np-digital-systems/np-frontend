@@ -17,6 +17,14 @@ export interface AdminUser {
   readonly createdAt: string;
 }
 
+/** A person in the directory, as the sign-in form needs to offer them. */
+export interface DirectoryPerson {
+  readonly partyId: number;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly hasAccount: boolean;
+}
+
 export interface UserSession {
   readonly id: string;
   readonly userId: string;
@@ -124,6 +132,8 @@ export interface AccountingSettings {
    * one the API refuses that report rather than inventing a total.
    */
   readonly cashAccountId: number | null;
+  /** The income head an annual sanththa subscription is receipted to. */
+  readonly sanththaAccountId: number | null;
   readonly receiptPrefix: string;
   readonly paymentPrefix: string;
     readonly yearStartMonth: number;

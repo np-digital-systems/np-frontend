@@ -7,6 +7,7 @@ import { formatLongDate, } from '@/lib/format';
 
 import type {
   AuditDay,
+  DirectoryPerson,
   AuditEntry,
   FinancialYearRecord,
   PermissionGroup,
@@ -100,6 +101,30 @@ export async function getMyProfile(): Promise<UserRecord> {
     },
     sessions.map((session) => ({ ...session, userId: me.id })),
   );
+}
+
+/**
+ * Everyone in the directory, for the sign-in form.
+ *
+ * Reading it here rather than typing a name is what keeps a portal login from
+ * filing an existing sponsor a second time.
+ */
+export async function getDirectory(): Promise<readonly DirectoryPerson[]> {
+  const parties = await api
+    .get<readonly { id: number; name: string; nameEn: string; accountId: string | null; type: string }[]>(
+      '/parties',
+      { query: { isActive: true, type: 'person' } },
+    )
+    .catch(() => []);
+
+  return parties
+    .filter((party) => party.accountId === null)
+    .map((party) => ({
+      partyId: party.id,
+      name: party.name,
+      nameEn: party.nameEn,
+      hasAccount: false,
+    }));
 }
 
 export async function countUsersByRole(): Promise<Record<UserRole, number>> {

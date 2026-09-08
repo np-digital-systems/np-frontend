@@ -233,11 +233,14 @@ export function SponsorFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Sponsor' : 'New Sponsor'}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? 'Edit sponsorship' : 'Register a sponsorship'}
+          </DialogTitle>
           <DialogDescription>
-            A sponsor belongs to an event type. Name an instance to tie them to
-            one slot, or leave it as all instances and they will be offered for
-            every occurrence of the type.
+            Places a sponsor against an observance — it does not enrol them; that
+            happens on the sponsor register. Name an instance to tie them to one
+            slot, or leave it as all instances and they will be offered for every
+            occurrence of the type.
           </DialogDescription>
         </DialogHeader>
 

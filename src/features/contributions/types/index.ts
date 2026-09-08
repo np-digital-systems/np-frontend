@@ -20,7 +20,13 @@ export interface SanththaMember {
   readonly phone: string;
   readonly address: string;
   readonly joinedOn: string;
-  readonly isActive: boolean;
+  /**
+   * Whether the yearly sanththa is due from them.
+   *
+   * Not the same as being active: an exempt sponsor is still on the calendar
+   * and still sponsors poojas — the temple simply asks no subscription of them.
+   */
+  readonly subscribes: boolean;
   readonly notes: string | null;
 }
 
@@ -54,4 +60,73 @@ export interface SanththaSummary {
   readonly unpaid: number;
   readonly collected: number;
   readonly outstanding: number;
+}
+
+/**
+ * A sponsor on the register.
+ *
+ * Keyed by the party id, because a sponsor is a party with a profile: the name
+ * and contact details here belong to the party, and editing them here edits
+ * the directory entry too.
+ */
+export interface SponsorRecord {
+  readonly partyId: number;
+  readonly sponsorNo: string;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly phone: string;
+  readonly email: string;
+  readonly address: string;
+  readonly sponsorSince: string;
+  /** Whether the annual sanththa is due from them. */
+  readonly subscribes: boolean;
+  readonly isActive: boolean;
+  readonly notes: string | null;
+  /** Standing sponsorships across every observance. */
+  readonly sponsorships: number;
+  readonly paidYears: readonly number[];
+  readonly totalPaid: number;
+  readonly paidThisYear: boolean;
+}
+
+/** Why someone is offered on a collection sheet. Presentation only. */
+export type ContributorReason = 'gave-before' | 'sponsor' | 'vendor' | 'devotee';
+
+export interface Contributor {
+  readonly partyId: number;
+  readonly name: string;
+  readonly nameEn: string;
+  readonly phone: string;
+  readonly reason: ContributorReason;
+  /** What they gave the last time this observance came round. */
+  readonly lastAmount: number | null;
+  readonly lastYear: number | null;
+  readonly paidThisTime: boolean;
+  readonly paidAmount: number | null;
+}
+
+export interface CollectionEvent {
+  readonly id: number;
+  readonly scheduledDate: string;
+  readonly instanceLabel: string;
+  readonly eventTypeName: string;
+  readonly isGeneral: boolean;
+  /** The activity receipts for this observance are coded to; it carries the head. */
+  readonly activityId: number | null;
+}
+
+/**
+ * Where a sanththa subscription lands in the books.
+ *
+ * `configured` is the only thing a screen should gate on: a head can be set
+ * and still not be usable, because the fund comes from the activity that head
+ * belongs to. `problem` says which of those is missing.
+ */
+export interface SanththaPosting {
+  readonly configured: boolean;
+  readonly accountCode: string | null;
+  readonly accountName: string | null;
+  readonly fundName: string | null;
+  readonly activityName: string | null;
+  readonly problem: string | null;
 }

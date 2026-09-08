@@ -26,11 +26,21 @@ export async function SettingsFeature() {
    * lives on the asset side of the chart, so offering the rest would only
    * invite a choice the API is going to reject.
    */
-  const cashAccounts = access.canManageSettings
-    ? (await getAccounts().catch(() => [])).filter(
-        (account) => account.type === 'asset' && account.isActive,
-      )
+  const chart = access.canManageSettings
+    ? await getAccounts().catch(() => [])
     : [];
+
+  const cashAccounts = chart.filter(
+    (account) => account.type === 'asset' && account.isActive,
+  );
+
+  /*
+   * The income heads a subscription can be receipted to. Same reasoning as
+   * above, on the other side of the chart — and the API rejects anything else.
+   */
+  const incomeAccounts = chart.filter(
+    (account) => account.type === 'income' && account.isActive,
+  );
 
   if (!record) {
     return (
@@ -51,6 +61,7 @@ export async function SettingsFeature() {
         currentSessionId={record.activeSessions[0]?.id ?? ''}
         today={today}
         cashAccounts={cashAccounts}
+        incomeAccounts={incomeAccounts}
         initialSettings={
           access.canManageSettings ? (await getPortalSettings()) : null
         }
