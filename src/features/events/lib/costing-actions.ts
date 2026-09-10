@@ -8,7 +8,7 @@ import { api, ApiError } from '@/lib/api';
 import { getEventAccess } from './event-access';
 import { EVENT_ROUTES } from './routes';
 import type { ActionResult } from './event-actions';
-import type { CostingLineDraft, EventBudget } from '../types/costing';
+import type { CostingLineDraft, EventBudget, ExpectedAmounts } from '../types/costing';
 
 /**
  * Every costing write goes through here.
@@ -163,4 +163,17 @@ export async function loadEventBudget(eventId: number): Promise<EventBudget> {
   await requireSession();
 
   return api.get<EventBudget>(`/events/${eventId}/budget`);
+}
+
+/**
+ * What one occurrence is expected to cost, read from a client component.
+ *
+ * The voucher form calls this the moment a pooja instance is chosen, so the
+ * amount fills itself in without the cashier going to look it up. A server
+ * action rather than a service call: the API token lives on the server.
+ */
+export async function loadExpectedAmounts(eventId: number): Promise<ExpectedAmounts> {
+  await requireSession();
+
+  return api.get<ExpectedAmounts>(`/events/${eventId}/expected`);
 }
