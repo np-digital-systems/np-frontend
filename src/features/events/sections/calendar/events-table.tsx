@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 // Straight from the routes module, not the feature barrel: this is a client
 // component, and the barrel pulls the server-only data layer into the bundle.
 import { collectionSheetHref } from '@/features/contributions/lib/routes';
+import { eventBudgetRoute } from '../../lib/routes';
 import { Link } from '@/i18n/routing';
 import {
   DropdownMenu,
@@ -55,7 +56,8 @@ export function EventsTable({
   onDelete,
   onToggleComplete,
 }: EventsTableProps) {
-  const showActions = access.canUpdate || access.canDelete || access.canComplete;
+  const showActions =
+    access.canUpdate || access.canDelete || access.canComplete || access.canViewCostings;
 
   const columns: DataColumn[] = [
     { key: 'date', label: 'Date' },
@@ -262,6 +264,20 @@ function RowActions({
             <>
               <DropdownMenuItem asChild>
                 <Link href={collectionSheetHref(event.id)}>Open collection sheet</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
+          {/*
+            * What this day was quoted at, against what it actually cost. Open
+            * to anyone who may see costings — the committee's question after a
+            * festival is which head went over, and it is asked of the day.
+            */}
+          {access.canViewCostings && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link href={eventBudgetRoute(event.id)}>Budget and actual</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
