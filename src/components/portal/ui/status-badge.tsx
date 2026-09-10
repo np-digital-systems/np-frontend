@@ -35,6 +35,10 @@ const STATUS_TONE: Record<BadgeStatus, Tone> = {
   Today: 'warning',
   Unassigned: 'neutral',
   Rejected: 'danger',
+  'In force': 'success',
+  Superseded: 'neutral',
+  'Not raised': 'neutral',
+  'In progress': 'warning',
 };
 
 interface StatusBadgeProps {
