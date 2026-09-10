@@ -132,3 +132,23 @@ export interface CostingLineDraft {
   chargedToSponsor: boolean;
   items: CostingItemDraft[];
 }
+
+/** One head an occurrence is expected to spend on. */
+export interface ExpectedLine {
+  readonly accountId: number;
+  readonly label: string;
+  readonly amount: number;
+}
+
+/**
+ * What an occurrence is expected to cost, for a voucher form to fill from.
+ *
+ * `costed` says where the figures came from: the day's frozen budget, or the
+ * costing in force on its date. A form shows the difference to nobody, but it
+ * is the difference between what a family was quoted and what today's rate is.
+ */
+export interface ExpectedAmounts {
+  readonly costed: boolean;
+  readonly sponsorAmount: number | null;
+  readonly lines: readonly ExpectedLine[];
+}
