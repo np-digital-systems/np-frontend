@@ -3,13 +3,16 @@
 import { Check, Clock, FileText, Send, X } from 'lucide-react';
 
 import { StatusBadge } from '@/components/portal/ui';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import type { PortalUser } from '@/features/auth/types/user';
 import { cn } from '@/lib/utils';
 
 import {
@@ -18,6 +21,11 @@ import {
   formatLongDate,
   partyLabel,
 } from '../lib/accounting-data';
+import {
+  SELF_APPROVAL_MESSAGE,
+  canApproveVoucher,
+  type AccountingAccess,
+} from '../lib/accounting-access';
 import { STATUS_MEANING } from '../lib/voucher-workflow';
 import type { VoucherRecord } from '../types';
 
@@ -25,12 +33,20 @@ interface VoucherDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   voucher: VoucherRecord | null;
+  access: AccountingAccess;
+  user: PortalUser;
+  onApprove: (voucher: VoucherRecord) => void;
+  onReject: (voucher: VoucherRecord) => void;
 }
 
 export function VoucherDetailDialog({
   open,
   onOpenChange,
   voucher,
+  access,
+  user,
+  onApprove,
+  onReject,
 }: VoucherDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -38,8 +54,16 @@ export function VoucherDetailDialog({
         {voucher && (
           <>
             <DialogHeader>
-              <div className="flex items-center justify-between gap-3">
-                <DialogTitle className="ref">{voucher.ref}</DialogTitle>
+              {/*
+                * The close button is absolutely positioned at top-2 right-2, so
+                * the badge needs room to its left or the two sit on top of each
+                * other. `min-w-0` lets a long ref truncate rather than shove
+                * the badge under it.
+                */}
+              <div className="flex items-center justify-between gap-3 pr-7">
+                <DialogTitle className="ref min-w-0 truncate">
+                  {voucher.ref}
+                </DialogTitle>
                 <StatusBadge status={voucher.status} />
               </div>
 
@@ -59,32 +83,16 @@ export function VoucherDetailDialog({
 
             <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
               <Detail label="Date" value={formatLongDate(voucher.date)} />
-              {voucher.manualVoucherNo && (
-                <Detail
-                  label="Manual Voucher No"
-                  value={voucher.manualVoucherNo}
-                />
-              )}
-              <Detail label={partyLabel(voucher.kind)} value={voucher.party} />
               {/*
-                * Every head, not just the first: a split voucher that showed
-                * one would be describing a different entry from the one posted.
+                * Always shown, dash and all. It is the number on the paper the
+                * payer is holding, so "there isn't one" is itself worth seeing
+                * — a row that simply vanished read as though nobody had looked.
                 */}
-              {voucher.lines.map((line) => (
-                <Detail
-                  key={line.id}
-                  label={
-                    voucher.lines.length > 1
-                      ? `Head ${line.lineNo} · ${formatCurrency(line.amount)}`
-                      : 'Ledger Account'
-                  }
-                  value={
-                    `${line.account.code} · ${line.account.name}` +
-                    ` — ${line.fund.name}` +
-                    (line.project ? ` / ${line.project.name}` : '')
-                  }
-                />
-              ))}
+              <Detail
+                label="Manual Voucher No"
+                value={voucher.manualVoucherNo || '—'}
+              />
+              <Detail label={partyLabel(voucher.kind)} value={voucher.party} />
               <Detail
                 label="Mode"
                 value={PAYMENT_MODE_LABELS[voucher.mode]}
@@ -101,6 +109,53 @@ export function VoucherDetailDialog({
                 <Detail label="Cheque No" value={voucher.chequeNo} />
               )}
             </dl>
+
+            {/*
+              * The coding, given its own block and its own lines.
+              *
+              * Account, fund and project used to be crammed into one truncating
+              * cell, so the fund a receipt posts against — a legal boundary —
+              * was the first thing cut off. Every head is listed: a split
+              * voucher showing one would describe a different entry from the
+              * one that posted.
+              */}
+            <div>
+              <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+                {voucher.lines.length > 1 ? 'Ledger coding' : 'Ledger account'}
+              </p>
+
+              <div className="mt-2 flex flex-col divide-y divide-border rounded-lg border border-border">
+                {voucher.lines.map((line) => (
+                  <div key={line.id} className="px-3.5 py-2.5">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="text-[13px] text-text-primary">
+                        <span className="ref">{line.account.code}</span>
+                        {' · '}
+                        {line.account.name}
+                      </p>
+
+                      {voucher.lines.length > 1 && (
+                        <p className="shrink-0 text-[13px] font-medium text-text-primary tabular">
+                          {formatCurrency(line.amount)}
+                        </p>
+                      )}
+                    </div>
+
+                    <p className="mt-1 text-xs text-text-secondary">
+                      {line.fund.name}
+                      {line.project && (
+                        <>
+                          {' · '}
+                          <span className="text-text-muted">
+                            {line.project.name}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <div>
               <p className="text-xs text-text-muted">Description</p>
@@ -130,11 +185,73 @@ export function VoucherDetailDialog({
             )}
 
             <Trail voucher={voucher} />
+
+            <VoucherDecision
+              voucher={voucher}
+              access={access}
+              user={user}
+              onApprove={() => {
+                onApprove(voucher);
+                onOpenChange(false);
+              }}
+              onReject={() => {
+                onReject(voucher);
+                onOpenChange(false);
+              }}
+            />
           </>
         )}
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * Deciding on the entry you are looking at.
+ *
+ * An approver reads the detail to make up their mind, so this is where the
+ * decision belongs — sending them back to hunt for the right row afterwards is
+ * how the wrong voucher gets approved. Where they may not act, the reason is
+ * stated rather than left as a dead disabled row in a menu.
+ */
+function VoucherDecision({
+  voucher,
+  access,
+  user,
+  onApprove,
+  onReject,
+}: {
+  voucher: VoucherRecord;
+  access: AccountingAccess;
+  user: PortalUser;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  if (canApproveVoucher(voucher, access, user)) {
+    return (
+      <DialogFooter>
+        <Button variant="outline" onClick={onReject}>
+          Reject
+        </Button>
+        <Button onClick={onApprove}>Approve</Button>
+      </DialogFooter>
+    );
+  }
+
+  const isOwnPending =
+    access.canApprove &&
+    voucher.status === 'Pending Approval' &&
+    voucher.createdBy.id === user.id;
+
+  if (isOwnPending) {
+    return (
+      <p className="rounded-lg bg-surface-2 px-3.5 py-2.5 text-xs leading-relaxed text-text-secondary">
+        {SELF_APPROVAL_MESSAGE}
+      </p>
+    );
+  }
+
+  return null;
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
