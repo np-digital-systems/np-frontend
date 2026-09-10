@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Clock, FileText, Send, X } from 'lucide-react';
+import { Check, Clock, FileText, Info, Send, X } from 'lucide-react';
 
 import { StatusBadge } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
@@ -72,43 +72,53 @@ export function VoucherDetailDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="rounded-lg bg-surface-2 px-4 py-3">
-              <p className="text-xs text-text-muted">
+            {/*
+              * The figure is what the reader came for, so it leads — and it is
+              * the one place the kind is spelled out in words, which is what
+              * tells a receipt from a payment at a glance.
+              */}
+            <div className="rounded-lg border border-border bg-surface-2 px-4 py-3.5">
+              <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
                 {voucher.kind === 'receipt' ? 'Amount received' : 'Amount paid'}
               </p>
-              <p className="mt-0.5 text-2xl font-semibold leading-none tracking-[-0.02em] text-text-primary tabular">
+              <p className="mt-1 text-2xl leading-none font-semibold tracking-[-0.02em] text-text-primary tabular">
                 {formatCurrency(voucher.amount)}
               </p>
             </div>
 
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-              <Detail label="Date" value={formatLongDate(voucher.date)} />
-              {/*
-                * Always shown, dash and all. It is the number on the paper the
-                * payer is holding, so "there isn't one" is itself worth seeing
-                * — a row that simply vanished read as though nobody had looked.
-                */}
-              <Detail
-                label="Manual Voucher No"
-                value={voucher.manualVoucherNo || '—'}
-              />
-              <Detail label={partyLabel(voucher.kind)} value={voucher.party} />
-              <Detail
-                label="Mode"
-                value={PAYMENT_MODE_LABELS[voucher.mode]}
-              />
-
-              {voucher.bankAccount && (
+            <Section title="Details">
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                <Detail label="Date" value={formatLongDate(voucher.date)} />
+                {/*
+                  * Always shown, dash and all. It is the number on the paper the
+                  * payer is holding, so "there isn't one" is itself worth seeing
+                  * — a row that simply vanished read as though nobody had looked.
+                  */}
                 <Detail
-                  label="Bank Account"
-                  value={voucher.bankAccount.label}
+                  label="Manual Voucher No"
+                  value={voucher.manualVoucherNo || '—'}
                 />
-              )}
+                <Detail
+                  label={partyLabel(voucher.kind)}
+                  value={voucher.party}
+                />
+                <Detail
+                  label="Mode"
+                  value={PAYMENT_MODE_LABELS[voucher.mode]}
+                />
 
-              {voucher.chequeNo && (
-                <Detail label="Cheque No" value={voucher.chequeNo} />
-              )}
-            </dl>
+                {voucher.bankAccount && (
+                  <Detail
+                    label="Bank Account"
+                    value={voucher.bankAccount.label}
+                  />
+                )}
+
+                {voucher.chequeNo && (
+                  <Detail label="Cheque No" value={voucher.chequeNo} />
+                )}
+              </dl>
+            </Section>
 
             {/*
               * The coding, given its own block and its own lines.
@@ -119,18 +129,18 @@ export function VoucherDetailDialog({
               * voucher showing one would describe a different entry from the
               * one that posted.
               */}
-            <div>
-              <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-                {voucher.lines.length > 1 ? 'Ledger coding' : 'Ledger account'}
-              </p>
-
-              <div className="mt-2 flex flex-col divide-y divide-border rounded-lg border border-border">
+            <Section
+              title={voucher.lines.length > 1 ? 'Ledger coding' : 'Ledger account'}
+            >
+              <div className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border">
                 {voucher.lines.map((line) => (
                   <div key={line.id} className="px-3.5 py-2.5">
                     <div className="flex items-baseline justify-between gap-3">
-                      <p className="text-[13px] text-text-primary">
-                        <span className="ref">{line.account.code}</span>
-                        {' · '}
+                      <p className="min-w-0 text-[13px] text-text-primary">
+                        <span className="ref text-text-secondary">
+                          {line.account.code}
+                        </span>
+                        <span className="mx-1.5 text-text-disabled">·</span>
                         {line.account.name}
                       </p>
 
@@ -145,7 +155,7 @@ export function VoucherDetailDialog({
                       {line.fund.name}
                       {line.project && (
                         <>
-                          {' · '}
+                          <span className="mx-1.5 text-text-disabled">·</span>
                           <span className="text-text-muted">
                             {line.project.name}
                           </span>
@@ -155,22 +165,20 @@ export function VoucherDetailDialog({
                   </div>
                 ))}
               </div>
-            </div>
+            </Section>
 
-            <div>
-              <p className="text-xs text-text-muted">Description</p>
-              <p className="mt-0.5 text-[13px] text-text-primary">
+            <Section title="Description">
+              <p className="text-[13px] leading-relaxed text-text-primary">
                 {voucher.description}
               </p>
-            </div>
+            </Section>
 
             {voucher.notes && (
-              <div>
-                <p className="text-xs text-text-muted">Notes</p>
-                <p className="mt-0.5 text-[13px] leading-relaxed text-text-secondary">
+              <Section title="Notes">
+                <p className="text-[13px] leading-relaxed text-text-secondary">
                   {voucher.notes}
                 </p>
-              </div>
+              </Section>
             )}
 
             {voucher.rejectionReason && (
@@ -245,13 +253,39 @@ function VoucherDecision({
 
   if (isOwnPending) {
     return (
-      <p className="rounded-lg bg-surface-2 px-3.5 py-2.5 text-xs leading-relaxed text-text-secondary">
+      <p className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-xs leading-relaxed text-text-secondary">
+        <Info className="mt-px size-3.5 shrink-0 text-text-muted" aria-hidden />
         {SELF_APPROVAL_MESSAGE}
       </p>
     );
   }
 
   return null;
+}
+
+/**
+ * One labelled block of the sheet.
+ *
+ * The dialog carries three scales and they were being used interchangeably:
+ * a section heading, a field label and a value. Pinning the heading here is
+ * what keeps Description sitting at the same level as Ledger account rather
+ * than looking like a stray field between them.
+ */
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <h3 className="mb-2 text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
@@ -317,10 +351,10 @@ function Trail({ voucher }: { voucher: VoucherRecord }) {
   }
 
   return (
-    <div className="border-t border-border pt-3">
-      <p className="mb-2.5 text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+    <div className="border-t border-border pt-3.5">
+      <h3 className="mb-2.5 text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
         Trail
-      </p>
+      </h3>
 
       <ol className="flex flex-col gap-2.5">
         {steps.map((step) => (
