@@ -16,6 +16,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+// Straight from the actions module, not the events barrel: that barrel pulls
+// the server-only data layer into this client bundle.
+import { loadExpectedAmounts } from '@/features/events/lib/costing-actions';
 import {
   Select,
   SelectContent,
@@ -688,6 +691,44 @@ export function VoucherFormDialog({
     setLastSeed(seed);
     setDraft(draftFrom(voucher, kind, accounts, funds, today));
     setError(null);
+  }
+
+  /**
+   * Fill a line's amount from what the pooja is expected to cost.
+   *
+   * Only into an empty box. A figure the clerk has already typed is a figure
+   * somebody decided on — the shop bill was higher, the family rounded up — and
+   * a helpful default that overwrites it is worse than no default at all.
+   *
+   * A receipt takes the sponsor's quote; a payment takes the costing line that
+   * shares its head, so choosing the melam pooja on the melam head fills the
+   * melam figure and nothing else. Where the pooja has no costing behind it,
+   * nothing happens and the clerk types as before.
+   */
+  async function fillFromCosting(eventId: number, lineIndex: number) {
+    const expected = await loadExpectedAmounts(eventId).catch(() => null);
+
+    if (!expected) return;
+
+    setDraft((current) => {
+      const line = current.lines[lineIndex];
+
+      if (!line || line.amount > 0) return current;
+
+      const amount =
+        kind === 'receipt'
+          ? (expected.sponsorAmount ?? 0)
+          : (expected.lines.find((entry) => entry.accountId === line.accountId)?.amount ?? 0);
+
+      if (amount <= 0) return current;
+
+      return {
+        ...current,
+        lines: current.lines.map((entry, at) =>
+          at === lineIndex ? { ...entry, amount } : entry,
+        ),
+      };
+    });
   }
 
   /*
