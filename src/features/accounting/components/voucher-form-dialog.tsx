@@ -106,7 +106,7 @@ interface LineEditorProps {
   kind: VoucherKind;
   onChange: (lines: VoucherDraftLine[]) => void;
   /** Told when a pooja is picked, so the document can name its sponsor. */
-  onPoojaChosen: (pooja: PoojaRef, activityName: string) => void;
+  onPoojaChosen: (pooja: PoojaRef, activityName: string, lineIndex: number) => void;
   /** The head's usual party, offered to the document when the first is chosen. */
   onSuggestParty: (partyId: number) => void;
 }
@@ -427,7 +427,7 @@ function LineEditor({
 
                       const pooja = poojas.find((entry) => entry.id === eventId);
 
-                      if (pooja && activity) onPoojaChosen(pooja, activity.name);
+                      if (pooja && activity) onPoojaChosen(pooja, activity.name, index);
                     }}
                   >
                     <SelectTrigger id={`voucher-pooja-${index}`} className="w-full">
@@ -849,7 +849,7 @@ export function VoucherFormDialog({
             poojas={poojas}
             kind={kind}
             onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
-            onPoojaChosen={(pooja, activityName) =>
+            onPoojaChosen={(pooja, activityName, lineIndex) => {
               setDraft((current) => ({
                 ...current,
                 /*
@@ -869,8 +869,10 @@ export function VoucherFormDialog({
                 description: current.description.trim()
                   ? current.description
                   : `${activityName} — ${pooja.label}`,
-              }))
-            }
+              }));
+
+              void fillFromCosting(pooja.id, lineIndex);
+            }}
             /*
              * Chosen deliberately, so it wins over whatever was there.
              *
