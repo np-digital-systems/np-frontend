@@ -226,6 +226,10 @@ export function ApprovalsScreen({
         open={viewing !== null}
         onOpenChange={(open) => !open && setViewing(null)}
         voucher={viewing}
+        access={access}
+        user={user}
+        onApprove={(voucher) => run(() => approveVoucher(voucher.id))}
+        onReject={(voucher) => setRejecting(voucher)}
       />
 
       <RejectDialog
