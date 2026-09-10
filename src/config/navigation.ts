@@ -105,6 +105,7 @@ export type PortalIcon =
   | 'tag'
   | 'calendar-days'
   | 'handshake'
+  | 'coins'
   | 'chart'
   | 'transfer'
   | 'receipt'
@@ -253,6 +254,14 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         icon: 'handshake',
         description: 'Which sponsor has taken which pooja, and which slots are still open',
         requiredPermission: 'event-sponsor:view',
+      },
+      {
+        id: 'event-costings',
+        label: 'Pooja Costings',
+        href: EVENT_ROUTES.costings,
+        icon: 'coins',
+        description: 'What each pooja is expected to cost, and what its sponsor is quoted',
+        requiredPermission: 'event-costing:view',
       },
     ],
   },
