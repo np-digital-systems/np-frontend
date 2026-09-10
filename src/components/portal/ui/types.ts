@@ -10,7 +10,13 @@ export type BadgeStatus =
   | 'Active'
   | 'Completed'
   | 'Unassigned'
-  | 'Today';
+  | 'Today'
+  // A pooja costing: the version being quoted from, and the ones it replaced.
+  | 'In force'
+  | 'Superseded'
+  // A budget line, measured against the vouchers raised for it.
+  | 'Not raised'
+  | 'In progress';
 
 export interface PeriodPoint {
   readonly label: string;
