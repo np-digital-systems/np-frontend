@@ -48,7 +48,6 @@ export async function EventBudgetFeature({ eventId }: EventBudgetFeatureProps) {
         event={event}
         budget={budget}
         bankAccounts={[...bankAccounts]}
-        canManage={access.canManageCostings}
         canRaiseVouchers={access.canRaiseEventVouchers}
       />
     </PageShell>
