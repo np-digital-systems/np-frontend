@@ -64,20 +64,19 @@ export function itemsTotal(line: { items: readonly { amount: number }[] }): numb
 /**
  * What saving a change to this costing will actually do.
  *
- * Not a refusal — the temple asked for one act, save, and this is the sentence
- * that says what it means today. A costing nobody has quoted from is simply
- * corrected; one that has priced an occurrence is versioned instead.
+ * Not a refusal — the temple asked for one act, save, and this says what it
+ * means today. A version written earlier is kept as the record of what the rate
+ * was; one written today is simply corrected, because a morning of typing is
+ * one act rather than fifteen versions of one.
  */
-export function revisionNotice(costing: CostingRecord): string | null {
-  if (costing.usedByEvents > 0) {
-    const plural = costing.usedByEvents === 1 ? '' : 's';
-
-    return (
-      `${costing.usedByEvents} occurrence${plural} were quoted from this version. ` +
-      'Saving a change keeps it as it stands and opens a new version from today, ' +
-      'so those occurrences keep the figures they were quoted at.'
-    );
+export function revisionNotice(costing: CostingRecord, today: string): string | null {
+  if (costing.effectiveFrom >= today) {
+    return 'Written today, so saving corrects it. Tomorrow, a change would keep this as an earlier version.';
   }
 
-  return null;
+  return (
+    `In force since ${costing.effectiveFrom}. Saving a change keeps these figures ` +
+    'as an earlier version and applies the new ones from today, so any day already ' +
+    'held at this rate still reads it.'
+  );
 }
