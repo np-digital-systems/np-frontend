@@ -22,7 +22,7 @@ import { Link } from '@/i18n/routing';
 import { formatCurrency, formatSigned } from '@/lib/format';
 
 import { RaiseVoucherDialog } from '../../components/raise-voucher-dialog';
-import { costEvent, raiseEventPayment, raiseEventReceipt } from '../../lib/costing-actions';
+import { raiseEventPayment, raiseEventReceipt } from '../../lib/costing-actions';
 import { BUDGET_LINE_BADGE } from '../../lib/costing-data';
 import { formatEventDate } from '../../lib/event-data';
 import { EVENT_ROUTES } from '../../lib/routes';
@@ -43,7 +43,6 @@ interface EventBudgetScreenProps {
   event: EventRecord;
   budget: EventBudget;
   bankAccounts: readonly { id: number; label: string }[];
-  canManage: boolean;
   canRaiseVouchers: boolean;
 }
 
@@ -51,14 +50,15 @@ export function EventBudgetScreen({
   event,
   budget,
   bankAccounts,
-  canManage,
   canRaiseVouchers,
 }: EventBudgetScreenProps) {
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [payingLine, setPayingLine] = useState<BudgetLine | null>(null);
 
-  const { run, error: actionError, pending } = useServerAction();
+  const { run, error: actionError } = useServerAction();
 
+  // Nothing is costed onto a day any more: the version in force on the day's
+  // own date is what priced it, resolved fresh each time this is opened.
   const costed = budget.lines.length > 0;
   const quoted = budget.sponsorAmount ?? 0;
   const received = budget.sponsorReceived ?? 0;
@@ -90,16 +90,6 @@ export function EventBudgetScreen({
           </div>
 
           <div className="flex items-center gap-2">
-            {canManage && (
-              <Button
-                variant={costed ? 'outline' : 'default'}
-                disabled={pending || budget.isFrozen}
-                onClick={() => run(() => costEvent(event.id))}
-              >
-                {costed ? 'Re-cost this day' : 'Cost this day'}
-              </Button>
-            )}
-
             {canRaiseVouchers && costed && (
               <Button onClick={() => setReceiptOpen(true)}>
                 <ReceiptText />
@@ -116,10 +106,10 @@ export function EventBudgetScreen({
         <Card>
           <EmptyState
             icon={Scale}
-            title="This day has not been costed"
+            title="No costing covers this day"
             description={
               budget.problem ??
-              'Costing it copies the figures in force onto the day and freezes them there.'
+              'Write a costing for this pooja and it applies to this day at once.'
             }
           />
         </Card>
@@ -156,11 +146,7 @@ export function EventBudgetScreen({
           <Card>
             <CardHeader
               title="Budget against actual"
-              description={
-                budget.isFrozen
-                  ? 'This day is marked complete, so its budget is what it was quoted at.'
-                  : 'The budget is the plan; the vouchers are the truth. A line is settled once its voucher is posted.'
-              }
+              description="The costing is the plan; the vouchers are the truth. A line is settled once its voucher is posted."
             />
 
             <DataTable columns={COLUMNS} minWidth={920}>
