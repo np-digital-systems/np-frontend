@@ -105,13 +105,6 @@ export async function deleteCosting(id: number): Promise<ActionResult> {
   );
 }
 
-/** Freeze the costing in force onto one occurrence. */
-export async function costEvent(eventId: number): Promise<ActionResult> {
-  return guarded((access) => access.canManageCostings, CANNOT_MANAGE, () =>
-    api.post(`/events/${eventId}/budget`),
-  );
-}
-
 export interface MovementInput {
   date?: string;
   mode: 'cash' | 'bank' | 'cheque' | 'online';
