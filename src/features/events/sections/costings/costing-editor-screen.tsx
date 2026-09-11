@@ -101,7 +101,7 @@ export function CostingEditorScreen({
 
   const readOnly = isReadOnly(costing);
   const editable = canManage && !readOnly;
-  const notice = revisionNotice(costing);
+  const notice = revisionNotice(costing, new Date().toISOString().slice(0, 10));
 
   /*
    * Everything below is added up here, live, from the same lines the server
