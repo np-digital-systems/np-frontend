@@ -86,6 +86,10 @@ export const PERMISSIONS = [
   'event-sponsor:view',
   'event-sponsor:manage',
 
+  // What a pooja is expected to cost, and what its sponsor is asked for.
+  'event-costing:view',
+  'event-costing:manage',
+
   /*
    * Temple contributions.
    *

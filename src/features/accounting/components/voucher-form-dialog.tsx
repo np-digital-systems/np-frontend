@@ -16,6 +16,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+// Straight from the actions module, not the events barrel: that barrel pulls
+// the server-only data layer into this client bundle.
+import { loadExpectedAmounts } from '@/features/events/lib/costing-actions';
 import {
   Select,
   SelectContent,
@@ -106,7 +109,7 @@ interface LineEditorProps {
   kind: VoucherKind;
   onChange: (lines: VoucherDraftLine[]) => void;
   /** Told when a pooja is picked, so the document can name its sponsor. */
-  onPoojaChosen: (pooja: PoojaRef, activityName: string) => void;
+  onPoojaChosen: (pooja: PoojaRef, activityName: string, lineIndex: number) => void;
   /** The head's usual party, offered to the document when the first is chosen. */
   onSuggestParty: (partyId: number) => void;
 }
@@ -427,7 +430,7 @@ function LineEditor({
 
                       const pooja = poojas.find((entry) => entry.id === eventId);
 
-                      if (pooja && activity) onPoojaChosen(pooja, activity.name);
+                      if (pooja && activity) onPoojaChosen(pooja, activity.name, index);
                     }}
                   >
                     <SelectTrigger id={`voucher-pooja-${index}`} className="w-full">
@@ -690,6 +693,44 @@ export function VoucherFormDialog({
     setError(null);
   }
 
+  /**
+   * Fill a line's amount from what the pooja is expected to cost.
+   *
+   * Only into an empty box. A figure the clerk has already typed is a figure
+   * somebody decided on — the shop bill was higher, the family rounded up — and
+   * a helpful default that overwrites it is worse than no default at all.
+   *
+   * A receipt takes the sponsor's quote; a payment takes the costing line that
+   * shares its head, so choosing the melam pooja on the melam head fills the
+   * melam figure and nothing else. Where the pooja has no costing behind it,
+   * nothing happens and the clerk types as before.
+   */
+  async function fillFromCosting(eventId: number, lineIndex: number) {
+    const expected = await loadExpectedAmounts(eventId).catch(() => null);
+
+    if (!expected) return;
+
+    setDraft((current) => {
+      const line = current.lines[lineIndex];
+
+      if (!line || line.amount > 0) return current;
+
+      const amount =
+        kind === 'receipt'
+          ? (expected.sponsorAmount ?? 0)
+          : (expected.lines.find((entry) => entry.accountId === line.accountId)?.amount ?? 0);
+
+      if (amount <= 0) return current;
+
+      return {
+        ...current,
+        lines: current.lines.map((entry, at) =>
+          at === lineIndex ? { ...entry, amount } : entry,
+        ),
+      };
+    });
+  }
+
   /*
    * A voucher is a dozen fields and three lookups. Losing it to a stray click
    * outside the dialog is the difference between a shrug and doing the whole
@@ -849,7 +890,7 @@ export function VoucherFormDialog({
             poojas={poojas}
             kind={kind}
             onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
-            onPoojaChosen={(pooja, activityName) =>
+            onPoojaChosen={(pooja, activityName, lineIndex) => {
               setDraft((current) => ({
                 ...current,
                 /*
@@ -869,8 +910,10 @@ export function VoucherFormDialog({
                 description: current.description.trim()
                   ? current.description
                   : `${activityName} — ${pooja.label}`,
-              }))
-            }
+              }));
+
+              void fillFromCosting(pooja.id, lineIndex);
+            }}
             /*
              * Chosen deliberately, so it wins over whatever was there.
              *

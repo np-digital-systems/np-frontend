@@ -14,6 +14,11 @@ export interface Account {
   readonly nameTa: string;
   readonly type: AccountType;
     readonly parentId: number | null;
+  /**
+   * Whether entries may land on this head. False for a grouping head, which
+   * exists to total its children and can never be posted to itself.
+   */
+  readonly isPostable: boolean;
   readonly isActive: boolean;
     readonly openingBalance: number;
   /**

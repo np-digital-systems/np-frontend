@@ -485,6 +485,10 @@ export function VoucherRegister({
         open={viewing !== null}
         onOpenChange={(open) => !open && setViewing(null)}
         voucher={viewing}
+        access={access}
+        user={user}
+        onApprove={(voucher) => run(() => approveVoucher(voucher.id))}
+        onReject={(voucher) => setRejecting(voucher)}
       />
 
       <RejectDialog
@@ -554,11 +558,6 @@ function RowActions({
   const mayPost = canPostVoucher(voucher, access);
   const mayDelete = canDeleteVoucher(voucher, access, user);
 
-    const blockedBySelfApproval =
-    access.canApprove &&
-    voucher.status === 'Pending Approval' &&
-    voucher.createdBy.id === user.id;
-
   return (
     <div className="flex items-center justify-end gap-1.5">
       {mayApprove && (
@@ -605,12 +604,6 @@ function RowActions({
                 Reject
               </DropdownMenuItem>
             </>
-          )}
-
-          {blockedBySelfApproval && (
-            <DropdownMenuItem disabled>
-              You cannot approve your own entry
-            </DropdownMenuItem>
           )}
 
           {mayPost && (
