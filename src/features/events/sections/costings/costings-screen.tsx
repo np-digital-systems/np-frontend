@@ -34,6 +34,7 @@ import {
   appliedVersions,
   canDelete,
   costingBadge,
+  versionLabel,
   describePeriod,
   describeScope,
   draftOf,
@@ -399,7 +400,13 @@ function PlanRow({
                   }`}
                   onClick={() => onShow(version.id)}
                 >
-                  <span className="tabular">{describePeriod(version)}</span>
+                  {/*
+                    * The number leads, because it is what tells them apart now.
+                    * Three applied in one afternoon differ by minutes, and a
+                    * reader cannot scan a column of near-identical instants.
+                    */}
+                  <span className="font-medium">{versionLabel(version)}</span>
+                  <span className="tabular text-text-muted">{describePeriod(version)}</span>
                   <span className="tabular font-medium">
                     {formatCurrency(version.sponsorAmount)}
                   </span>
