@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, ReceiptText, Scale } from 'lucide-react';
+import { ArrowLeft, Scale } from 'lucide-react';
 
 import {
   ActionError,
@@ -22,7 +22,7 @@ import { Link } from '@/i18n/routing';
 import { formatCurrency, formatSigned } from '@/lib/format';
 
 import { RaiseVoucherDialog } from '../../components/raise-voucher-dialog';
-import { raiseEventPayment, raiseEventReceipt } from '../../lib/costing-actions';
+import { raiseEventPayment } from '../../lib/costing-actions';
 import { BUDGET_LINE_BADGE } from '../../lib/costing-data';
 import { formatEventDate } from '../../lib/event-data';
 import { EVENT_ROUTES } from '../../lib/routes';
@@ -52,7 +52,6 @@ export function EventBudgetScreen({
   bankAccounts,
   canRaiseVouchers,
 }: EventBudgetScreenProps) {
-  const [receiptOpen, setReceiptOpen] = useState(false);
   const [payingLine, setPayingLine] = useState<BudgetLine | null>(null);
 
   const { run, error: actionError } = useServerAction();
@@ -73,30 +72,19 @@ export function EventBudgetScreen({
           </Link>
         </Button>
 
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-semibold tracking-[-0.01em] text-text-primary">
-                {event.eventType.name}
-              </h1>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold tracking-[-0.01em] text-text-primary">
+              {event.eventType.name}
+            </h1>
 
-              <StatusBadge status={event.status} />
-            </div>
-
-            <p className="text-sm text-text-secondary">
-              {event.instanceLabel} · {formatEventDate(event.scheduledDate)}
-              {event.sponsor ? ` · ${event.sponsor.name}` : ' · no sponsor named'}
-            </p>
+            <StatusBadge status={event.status} />
           </div>
 
-          <div className="flex items-center gap-2">
-            {canRaiseVouchers && costed && (
-              <Button onClick={() => setReceiptOpen(true)}>
-                <ReceiptText />
-                Raise receipt
-              </Button>
-            )}
-          </div>
+          <p className="text-sm text-text-secondary">
+            {event.instanceLabel} · {formatEventDate(event.scheduledDate)}
+            {event.sponsor ? ` · ${event.sponsor.name}` : ' · no sponsor named'}
+          </p>
         </div>
       </div>
 
@@ -223,33 +211,12 @@ export function EventBudgetScreen({
         </>
       )}
 
-      <RaiseVoucherDialog
-        kind="receipt"
-        open={receiptOpen}
-        onOpenChange={setReceiptOpen}
-        title="Raise the sponsor’s receipt"
-        description={
-          event.sponsor
-            ? `${event.sponsor.name} was quoted ${formatCurrency(quoted)}. Everything but the date, how the money came and the book number is filled in already.`
-            : 'This occurrence has no sponsor named, so a receipt cannot be raised for it.'
-        }
-        defaultAmount={quoted}
-        bankAccounts={bankAccounts}
-        onSubmit={(movement) => {
-          run(
-            () => raiseEventReceipt(event.id, movement),
-            () => setReceiptOpen(false),
-          );
-        }}
-      />
-
       {/*
         * One payee per voucher. The lines are settled one at a time here for
         * that reason — the goods shop and the melam group are two documents,
         * two signatures and two receipts, never one.
         */}
       <RaiseVoucherDialog
-        kind="payment"
         open={payingLine !== null}
         onOpenChange={(next) => !next && setPayingLine(null)}
         title="Raise a payment"

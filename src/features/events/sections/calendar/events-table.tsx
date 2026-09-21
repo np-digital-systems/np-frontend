@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarX, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { CalendarX, MoreHorizontal, Pencil, Scale, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import {
@@ -27,6 +27,7 @@ import {
 import { EventName } from '../../components/event-name';
 import { FrequencyBadge } from '../../components/frequency-badge';
 import { SponsorCell } from '../../components/sponsor-cell';
+import { eventBudgetRoute } from '../../lib/routes';
 import { slotLabel } from '../../lib/public-event-presentation';
 import type { EventAccess } from '../../lib/event-access';
 import {
@@ -55,7 +56,8 @@ export function EventsTable({
   onDelete,
   onToggleComplete,
 }: EventsTableProps) {
-  const showActions = access.canUpdate || access.canDelete || access.canComplete;
+  const showActions =
+    access.canUpdate || access.canDelete || access.canComplete || access.canViewCostings;
 
   const columns: DataColumn[] = [
     { key: 'date', label: 'Date' },
@@ -262,6 +264,23 @@ function RowActions({
             <>
               <DropdownMenuItem asChild>
                 <Link href={collectionSheetHref(event.id)}>Open collection sheet</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
+          {/*
+            * The way in to what this day was quoted at, and to the receipt and
+            * payments raised from it. The page keyed by the occurrence, not by
+            * the costing: the costing is a rate, this is the day it priced.
+            */}
+          {access.canViewCostings && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link href={eventBudgetRoute(event.id)}>
+                  <Scale />
+                  Open budget
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>

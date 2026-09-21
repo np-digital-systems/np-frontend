@@ -1,28 +1,20 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Coins, Plus, Search } from 'lucide-react';
+import { ChevronRight, Coins, Plus } from 'lucide-react';
 
 import {
   ActionError,
   Card,
+  CardBody,
   CardHeader,
   ConfirmDialog,
-  DataCell,
-  DataRow,
-  DataTable,
-  DataTableEmpty,
   EmptyState,
   PortalPageHeader,
   StatusBadge,
-  type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '@/components/ui/input-group';
+import { Input } from '@/components/ui/input';
 import { useServerAction } from '@/hooks/use-server-action';
 import { Link } from '@/i18n/routing';
 import { formatCurrency } from '@/lib/format';
@@ -36,22 +28,15 @@ import { copyCosting, createCosting, deleteCosting } from '../../lib/costing-act
 import {
   costingBadge,
   describePeriod,
-  describeScope,
-  describeScopeReach,
+  groupCostings,
+  lineTitle,
+  todayISO,
+  versionOn,
+  type CostingPlan,
 } from '../../lib/costing-data';
 import { costingRoute } from '../../lib/routes';
 import type { CostingRecord } from '../../types/costing';
 import type { EventTypeRecord } from '../../types';
-
-const COLUMNS: DataColumn[] = [
-  { key: 'scope', label: 'Pooja' },
-  { key: 'period', label: 'Applies' },
-  { key: 'status', label: 'Status' },
-  { key: 'quote', label: 'Quoted', align: 'right' },
-  { key: 'cost', label: 'Expected cost', align: 'right' },
-  { key: 'used', label: 'Costed', align: 'right' },
-  { key: 'actions', label: 'Actions', align: 'right', srOnly: true },
-];
 
 interface CostingsScreenProps {
   costings: readonly CostingRecord[];
@@ -64,32 +49,21 @@ export function CostingsScreen({
   eventTypes,
   canManage,
 }: CostingsScreenProps) {
-  const [query, setQuery] = useState('');
+  const [asAt, setAsAt] = useState(todayISO);
+  const [open, setOpen] = useState<string | null>(null);
+  const [showing, setShowing] = useState<Record<string, number>>({});
   const [formOpen, setFormOpen] = useState(false);
   const [copying, setCopying] = useState<CostingRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostingRecord | null>(null);
 
   const { run, error: actionError, pending } = useServerAction();
 
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+  const groups = useMemo(() => groupCostings(costings), [costings]);
 
-    if (!needle) return costings;
-
-    return costings.filter((costing) =>
-      describeScope(costing).toLowerCase().includes(needle),
-    );
-  }, [costings, query]);
-
-  const inForce = costings.filter((costing) => costing.isInForce);
-  const replaced = costings.length - inForce.length;
+  const planCount = groups.reduce((total, group) => total + group.plans.length, 0);
+  const revisions = costings.length - planCount;
 
   function handleCreate(draft: CostingHeaderDraft) {
-    /*
-     * Saved empty, on purpose. The lines are written on the editor this opens
-     * into, which is the one place they live — asking for the first of them
-     * here and the rest somewhere else is what made the old dialog confusing.
-     */
     run(
       () => createCosting({ eventTypeId: draft.eventTypeId, slotId: draft.slotId }),
       () => setFormOpen(false),
@@ -100,13 +74,13 @@ export function CostingsScreen({
     <>
       <PortalPageHeader
         title="Pooja Costings"
-        description="What each pooja is expected to cost, and what its sponsor is asked for. A saved costing applies until you change it; changing one keeps the old figures for the days already quoted at them."
+        description="What each pooja is expected to cost, and what its sponsor is asked for. A saved costing applies until you change it; changing one keeps the old figures as an earlier version."
         meta={[
-          <span key="force" className="tabular">
-            {inForce.length} in use
+          <span key="plans" className="tabular">
+            {planCount} plan{planCount === 1 ? '' : 's'}
           </span>,
-          <span key="replaced" className="tabular">
-            {replaced} earlier version{replaced === 1 ? '' : 's'}
+          <span key="revisions" className="tabular">
+            {revisions} earlier version{revisions === 1 ? '' : 's'}
           </span>,
         ]}
         actions={
@@ -121,126 +95,84 @@ export function CostingsScreen({
 
       <ActionError message={actionError} />
 
+      {/*
+        * The whole screen reads as of one date.
+        *
+        * "What were we paying in 2024" is the question the versions exist to
+        * answer, and answering it by expanding six plans and comparing their
+        * periods is work the reader should not be doing. Set the date and every
+        * plan below shows the version that was in force then.
+        */}
       <Card>
-        <CardHeader
-          title="Versions"
-          description="A costing written for one instance beats the one written for the whole type."
-          action={
-            <InputGroup className="w-full sm:w-56">
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
+        <CardBody className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+              Showing the rates in force on
+            </p>
 
-              <InputGroupInput
-                type="search"
-                value={query}
-                placeholder="Search costings…"
-                aria-label="Search costings"
-                onChange={(changeEvent) => setQuery(changeEvent.target.value)}
-              />
-            </InputGroup>
-          }
-        />
+            <p className="text-xs text-text-secondary">
+              {asAt === todayISO()
+                ? 'Today. Change the date to read an earlier year.'
+                : 'An earlier date. Every plan below shows what it was then.'}
+            </p>
+          </div>
 
-        <DataTable columns={COLUMNS} minWidth={960}>
-          {filtered.length === 0 ? (
-            <DataTableEmpty colSpan={COLUMNS.length}>
-              <EmptyState
-                icon={Coins}
-                title={
-                  costings.length === 0
-                    ? 'No costings yet'
-                    : 'No costings match that search'
-                }
-                description={
-                  costings.length === 0
-                    ? 'Write one costing for a pooja type and every instance of it is covered. Add a costing for a single instance only where the money is actually different.'
-                    : 'Try a different pooja name, or clear the search.'
-                }
-              />
-            </DataTableEmpty>
-          ) : (
-            filtered.map((costing) => (
-              <DataRow key={costing.id}>
-                <DataCell>
-                  <Link
-                    href={costingRoute(costing.id)}
-                    className="font-medium text-text-primary hover:underline"
-                  >
-                    {describeScope(costing)}
-                  </Link>
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              aria-label="Show the rates in force on"
+              className="w-44"
+              value={asAt}
+              onChange={(changeEvent) => setAsAt(changeEvent.target.value)}
+            />
 
-                  <p className="text-xs text-text-muted">
-                    {describeScopeReach(costing)}
-                  </p>
-                </DataCell>
-
-                <DataCell nowrap className="tabular text-xs text-text-secondary">
-                  {describePeriod(costing)}
-                </DataCell>
-
-                <DataCell nowrap>
-                  <StatusBadge status={costingBadge(costing)} />
-                </DataCell>
-
-                <DataCell align="right" nowrap className="tabular">
-                  {formatCurrency(costing.sponsorAmount)}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="tabular text-text-secondary">
-                  {formatCurrency(costing.expenseTotal)}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="tabular">
-                  {costing.usedByEvents > 0 ? (
-                    costing.usedByEvents
-                  ) : (
-                    <span className="text-text-disabled">—</span>
-                  )}
-                </DataCell>
-
-                <DataCell align="right" nowrap>
-                  <div className="flex items-center justify-end gap-1.5">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={costingRoute(costing.id)}>
-                        {canManage && costing.isInForce ? 'Edit' : 'Open'}
-                      </Link>
-                    </Button>
-
-                    {canManage && (
-                      <>
-                        {/*
-                          * Copy writes day two of a festival from day one, and
-                          * starts a fresh version from a replaced one.
-                          */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCopying(costing)}
-                        >
-                          Copy
-                        </Button>
-
-                        {costing.isInForce && costing.usedByEvents === 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={pending}
-                            className="text-danger hover:bg-danger-subtle hover:text-danger"
-                            onClick={() => setPendingDelete(costing)}
-                          >
-                            Delete
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </DataCell>
-              </DataRow>
-            ))
-          )}
-        </DataTable>
+            {asAt !== todayISO() && (
+              <Button variant="ghost" size="sm" onClick={() => setAsAt(todayISO())}>
+                Today
+              </Button>
+            )}
+          </div>
+        </CardBody>
       </Card>
+
+      {groups.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={Coins}
+            title="No costings yet"
+            description="Write one costing for a pooja type and every instance of it is covered. Add a costing for a single instance only where the money is actually different."
+          />
+        </Card>
+      ) : (
+        groups.map((group) => (
+          <Card key={group.eventTypeId}>
+            <CardHeader
+              title={group.eventTypeName}
+              description={`${group.plans.length} plan${group.plans.length === 1 ? '' : 's'} — the one written for an instance beats the one written for the whole pooja`}
+            />
+
+            <CardBody className="flex flex-col gap-1.5">
+              {group.plans.map((plan) => (
+                <PlanRow
+                  key={plan.key}
+                  plan={plan}
+                  asAt={asAt}
+                  isOpen={open === plan.key}
+                  showingId={showing[plan.key]}
+                  canManage={canManage}
+                  pending={pending}
+                  onToggle={() => setOpen(open === plan.key ? null : plan.key)}
+                  onShow={(costingId) =>
+                    setShowing((current) => ({ ...current, [plan.key]: costingId }))
+                  }
+                  onCopy={setCopying}
+                  onDelete={setPendingDelete}
+                />
+              ))}
+            </CardBody>
+          </Card>
+        ))
+      )}
 
       <CostingFormDialog
         open={formOpen}
@@ -264,11 +196,11 @@ export function CostingsScreen({
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        onOpenChange={(open) => !open && setPendingDelete(null)}
+        onOpenChange={(next) => !next && setPendingDelete(null)}
         title="Delete this costing?"
         description={
           pendingDelete
-            ? `The costing for ${describeScope(pendingDelete)} will be removed. Only a version nothing was costed from can be deleted.`
+            ? `The costing for ${pendingDelete.eventTypeName}${pendingDelete.slotLabel ? ` — ${pendingDelete.slotLabel}` : ''} will be removed. Only a version nothing was quoted from can be deleted.`
             : ''
         }
         onConfirm={() => {
@@ -280,5 +212,177 @@ export function CostingsScreen({
         }}
       />
     </>
+  );
+}
+
+interface PlanRowProps {
+  plan: CostingPlan;
+  asAt: string;
+  isOpen: boolean;
+  /** Which version the reader clicked, if any. */
+  showingId: number | undefined;
+  canManage: boolean;
+  pending: boolean;
+  onToggle: () => void;
+  onShow: (costingId: number) => void;
+  onCopy: (costing: CostingRecord) => void;
+  onDelete: (costing: CostingRecord) => void;
+}
+
+/**
+ * One plan, with its versions and their lines folded underneath.
+ *
+ * Opening it is reading, never editing. Finding what the kurukkal was paid in
+ * 2026 should not feel like the same gesture as changing it, so the figures
+ * open in place and Edit stays a page of its own.
+ */
+function PlanRow({
+  plan,
+  asAt,
+  isOpen,
+  showingId,
+  canManage,
+  pending,
+  onToggle,
+  onShow,
+  onCopy,
+  onDelete,
+}: PlanRowProps) {
+  const atDate = versionOn(plan, asAt);
+  const current = plan.versions.find((version) => version.effectiveTo === null) ?? null;
+
+  // What the reader asked to see, else what applied on the chosen date, else
+  // the newest thing there is — a plan written after that date still has to
+  // show something rather than an empty row.
+  const shown =
+    plan.versions.find((version) => version.id === showingId) ??
+    atDate ??
+    plan.versions[0];
+
+  return (
+    <div className="rounded-lg border border-border bg-surface-2">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-2.5">
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-label={`${isOpen ? 'Hide' : 'Show'} versions of ${plan.scopeLabel}`}
+          className="flex items-center gap-2 text-left"
+          onClick={onToggle}
+        >
+          <ChevronRight
+            className={`size-4 shrink-0 text-text-muted transition-transform ${isOpen ? 'rotate-90' : ''}`}
+            aria-hidden
+          />
+        </button>
+
+        <button type="button" className="min-w-0 text-left" onClick={onToggle}>
+          <p className="truncate text-sm font-medium text-text-primary">
+            {plan.scopeLabel}
+          </p>
+
+          <p className="text-xs text-text-muted">
+            {plan.versions.length} version{plan.versions.length === 1 ? '' : 's'}
+            {atDate === null && ' · none in force on that date'}
+          </p>
+        </button>
+
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium tabular text-text-primary">
+            {atDate ? formatCurrency(atDate.sponsorAmount) : '—'}
+          </span>
+
+          {canManage && current && (
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={costingRoute(current.id)}>Edit</Link>
+              </Button>
+
+              <Button variant="outline" size="sm" onClick={() => onCopy(current)}>
+                Copy
+              </Button>
+
+              {current.usedByEvents === 0 && plan.versions.length === 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={pending}
+                  className="text-danger hover:bg-danger-subtle hover:text-danger"
+                  onClick={() => onDelete(current)}
+                >
+                  Delete
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="flex flex-col gap-2.5 border-t border-border px-3 py-3">
+          {plan.versions.length > 1 && (
+            <div className="flex flex-wrap gap-1.5">
+              {plan.versions.map((version) => (
+                <button
+                  key={version.id}
+                  type="button"
+                  className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                    version.id === shown.id
+                      ? 'border-accent text-text-primary'
+                      : 'border-border text-text-secondary hover:border-input'
+                  }`}
+                  onClick={() => onShow(version.id)}
+                >
+                  <span className="tabular">{describePeriod(version)}</span>
+                  <span className="tabular font-medium">
+                    {formatCurrency(version.sponsorAmount)}
+                  </span>
+                  <StatusBadge status={costingBadge(version)} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {shown.lines.length === 0 ? (
+            <p className="py-3 text-center text-xs text-text-muted">
+              This version has no lines yet.
+            </p>
+          ) : (
+            <div className="flex flex-col">
+              {shown.lines.map((line) => (
+                <div
+                  key={line.id}
+                  className="grid grid-cols-[1fr_auto] items-baseline gap-3 border-b border-border py-1.5 last:border-b-0"
+                >
+                  <span className="min-w-0 truncate text-xs text-text-secondary">
+                    <span className="tabular">{line.account.code}</span> ·{' '}
+                    {lineTitle(line)}
+                    {line.partyName && (
+                      <span className="text-text-muted"> · {line.partyName}</span>
+                    )}
+                    {!line.chargedToSponsor && (
+                      <span className="text-text-muted"> · temple bears</span>
+                    )}
+                  </span>
+
+                  <span className="text-xs tabular text-text-primary">
+                    {formatCurrency(line.amount)}
+                  </span>
+                </div>
+              ))}
+
+              <div className="mt-1.5 grid grid-cols-[1fr_auto] items-baseline gap-3 border-t border-border pt-2">
+                <span className="text-xs font-semibold text-text-secondary">
+                  Sponsor is quoted
+                </span>
+
+                <span className="text-sm font-semibold tabular text-text-primary">
+                  {formatCurrency(shown.sponsorAmount)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
