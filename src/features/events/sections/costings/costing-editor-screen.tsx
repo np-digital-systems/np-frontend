@@ -8,6 +8,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  ConfirmDialog,
   ReadOnlyNotice,
   StatCard,
   StatusBadge,
@@ -22,11 +23,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useServerAction } from '@/hooks/use-server-action';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { formatCurrency } from '@/lib/format';
 import { validate } from '@/lib/validation';
 
-import { updateCosting } from '../../lib/costing-actions';
+import { applyCosting, updateCosting } from '../../lib/costing-actions';
 import {
   costingBadge,
   describePeriod,
@@ -98,10 +99,12 @@ export function CostingEditorScreen({
   const [error, setError] = useState<string | null>(null);
 
   const { run, error: actionError, pending } = useServerAction();
+  const router = useRouter();
+  const [applying, setApplying] = useState(false);
 
   const readOnly = isReadOnly(costing);
   const editable = canManage && !readOnly;
-  const notice = revisionNotice(costing, new Date().toISOString().slice(0, 10));
+  const notice = revisionNotice(costing);
 
   /*
    * Everything below is added up here, live, from the same lines the server
@@ -121,6 +124,12 @@ export function CostingEditorScreen({
     );
   }
 
+  /*
+   * Saving the version in force writes to that scope's draft, which is a row
+   * this page is not on. Following it is the whole difference between "my edit
+   * vanished" and "my edit is waiting to be applied" — the figures here really
+   * are unchanged, because not changing them is the point.
+   */
   function handleSave() {
     const result = validate(costingLinesSchema, lines);
 
@@ -130,7 +139,18 @@ export function CostingEditorScreen({
     }
 
     setError(null);
-    run(() => updateCosting(costing.id, { lines: result.data as CostingLineDraft[] }));
+
+    run(async () => {
+      const saved = await updateCosting(costing.id, {
+        lines: result.data as CostingLineDraft[],
+      });
+
+      if (saved.ok && saved.costingId !== undefined && saved.costingId !== costing.id) {
+        router.replace(costingRoute(saved.costingId));
+      }
+
+      return saved;
+    });
   }
 
   return (
@@ -165,15 +185,39 @@ export function CostingEditorScreen({
                 Add line
               </Button>
 
-              <Button onClick={handleSave} disabled={pending}>
+              <Button variant="outline" onClick={handleSave} disabled={pending}>
                 Save
               </Button>
+
+              {/*
+                * Only on the draft. Applying is the act that changes what a
+                * family is asked for, so it belongs on the row that is waiting
+                * to become the rate, never on the one already being quoted.
+                */}
+              {costing.isDraft && (
+                <Button onClick={() => setApplying(true)} disabled={pending}>
+                  Apply costing
+                </Button>
+              )}
             </div>
           )}
         </div>
       </div>
 
       <ActionError message={actionError} />
+
+      <ConfirmDialog
+        open={applying}
+        onOpenChange={setApplying}
+        title="Apply this costing?"
+        description={`${describeScope(costing)} will be quoted at ${formatCurrency(costing.sponsorAmount)} from today. The version it replaces is kept as the record of what the rate was until now.`}
+        onConfirm={() => {
+          run(() => applyCosting(costing.id), () => {
+            setApplying(false);
+            router.replace(EVENT_ROUTES.costings);
+          });
+        }}
+      />
 
       {readOnly && (
         <ReadOnlyNotice message="This version was replaced by a later one. It is kept as it stands, because it is the answer to what this pooja cost that year." />
