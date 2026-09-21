@@ -114,19 +114,6 @@ export interface MovementInput {
   manualVoucherNo: string;
 }
 
-export async function raiseEventReceipt(
-  eventId: number,
-  input: MovementInput & { amount?: number },
-): Promise<ActionResult> {
-  return guarded((access) => access.canRaiseEventVouchers, 'You cannot raise receipts.', () =>
-    api.post(`/events/${eventId}/vouchers/receipt`, {
-      ...input,
-      bankAccountId: input.bankAccountId ?? undefined,
-      chequeNo: input.chequeNo || undefined,
-    }),
-  );
-}
-
 export async function raiseEventPayment(
   eventId: number,
   input: MovementInput & {
@@ -170,3 +157,4 @@ export async function loadExpectedAmounts(eventId: number): Promise<ExpectedAmou
 
   return api.get<ExpectedAmounts>(`/events/${eventId}/expected`);
 }
+
