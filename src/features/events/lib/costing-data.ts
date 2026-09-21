@@ -3,14 +3,14 @@ import type { BadgeStatus } from '@/components/portal/ui';
 import type { BudgetLineStatus, CostingLine, CostingRecord } from '../types/costing';
 
 /**
- * A costing is either the one being quoted from or a version it replaced.
+ * Where a costing stands: written, quoted from, or replaced.
  *
- * There is no third state and nothing to switch: what is saved applies, and a
- * revision closes the old row rather than deactivating it. Calling a replaced
- * version "Cancelled" would say something untrue about it — it is still the
- * answer to what this pooja cost that year.
+ * A replaced version is not "Cancelled" — it is still the answer to what this
+ * pooja cost that year, and the year-by-year report is read from it.
  */
 export function costingBadge(costing: CostingRecord): BadgeStatus {
+  if (costing.isDraft) return 'Draft';
+
   return costing.isInForce ? 'In force' : 'Superseded';
 }
 
@@ -27,9 +27,14 @@ export function describeScope(costing: CostingRecord): string {
     : costing.eventTypeName;
 }
 
-/** A replaced version is read-only: it is what a year's report is read from. */
+/**
+ * A replaced version is read-only: it is what a year's report is read from.
+ *
+ * A draft is not. It is the one row here that may be rewritten as often as the
+ * committee likes, because nothing has been quoted from it.
+ */
 export function isReadOnly(costing: CostingRecord): boolean {
-  return !costing.isInForce;
+  return !costing.isInForce && !costing.isDraft;
 }
 
 export function describeScopeReach(costing: CostingRecord): string {
@@ -38,11 +43,16 @@ export function describeScopeReach(costing: CostingRecord): string {
     : 'This instance only';
 }
 
-/** The period a version covers, as it reads on a screen. */
+/**
+ * The period a version covers, as it reads on a screen.
+ *
+ * A first version has no start — it priced the pooja before anyone wrote it
+ * down, which is what lets a festival kept in August be costed in September.
+ */
 export function describePeriod(costing: CostingRecord): string {
-  return costing.effectiveTo
-    ? `${costing.effectiveFrom} → ${costing.effectiveTo}`
-    : `${costing.effectiveFrom} → open`;
+  const from = costing.effectiveFrom ?? 'Always';
+
+  return costing.effectiveTo ? `${from} → ${costing.effectiveTo}` : `${from} → open`;
 }
 
 /**
@@ -65,19 +75,27 @@ export function itemsTotal(line: { items: readonly { amount: number }[] }): numb
  * What saving a change to this costing will actually do.
  *
  * Not a refusal — the temple asked for one act, save, and this says what it
- * means today. A version written earlier is kept as the record of what the rate
- * was; one written today is simply corrected, because a morning of typing is
- * one act rather than fifteen versions of one.
+ * means. Saving never changes what anything is quoted at: it writes a draft,
+ * and applying that draft is the separate act that does.
  */
-export function revisionNotice(costing: CostingRecord, today: string): string | null {
-  if (costing.effectiveFrom >= today) {
-    return 'Written today, so saving corrects it. Tomorrow, a change would keep this as an earlier version.';
+export function revisionNotice(costing: CostingRecord): string | null {
+  if (costing.isDraft) {
+    return (
+      'A draft. Nothing is quoted at these figures yet — the costing it replaces ' +
+      'stays in force until you apply this one.'
+    );
   }
 
+  if (!costing.isInForce) return null;
+
+  const since =
+    costing.effectiveFrom === null
+      ? 'This is the first version, so it has priced every day of this pooja so far'
+      : `In force since ${costing.effectiveFrom}`;
+
   return (
-    `In force since ${costing.effectiveFrom}. Saving a change keeps these figures ` +
-    'as an earlier version and applies the new ones from today, so any day already ' +
-    'held at this rate still reads it.'
+    `${since}. Saving does not change it: the new figures go to a draft, and ` +
+    'this version goes on being quoted until that draft is applied.'
   );
 }
 
@@ -129,8 +147,9 @@ export function groupCostings(costings: readonly CostingRecord[]): PoojaGroup[] 
   const groups = new Map<number, CostingPlan[]>();
 
   for (const [key, versions] of plans) {
+    // An open start is the earliest there is, so it sorts last among versions.
     const newestFirst = [...versions].sort((a, b) =>
-      b.effectiveFrom.localeCompare(a.effectiveFrom),
+      (b.effectiveFrom ?? '').localeCompare(a.effectiveFrom ?? ''),
     );
     const head = newestFirst[0];
 
@@ -177,9 +196,24 @@ export function versionOn(plan: CostingPlan, on: string): CostingRecord | null {
   return (
     plan.versions.find(
       (version) =>
-        version.effectiveFrom <= on && (version.effectiveTo === null || version.effectiveTo >= on),
+        // A draft has no start and no end, so it covers every date there is.
+        // It prices none of them, and a list that showed it as the figure for
+        // a day would be quoting what nobody has agreed to yet.
+        !version.isDraft &&
+        (version.effectiveFrom === null || version.effectiveFrom <= on) &&
+        (version.effectiveTo === null || version.effectiveTo >= on),
     ) ?? null
   );
+}
+
+/** The draft waiting on this plan, if the committee has written one. */
+export function draftOf(plan: CostingPlan): CostingRecord | null {
+  return plan.versions.find((version) => version.isDraft) ?? null;
+}
+
+/** The versions that have actually been in force, newest first. */
+export function appliedVersions(plan: CostingPlan): readonly CostingRecord[] {
+  return plan.versions.filter((version) => !version.isDraft);
 }
 
 /** Today, as the API writes a date. */
