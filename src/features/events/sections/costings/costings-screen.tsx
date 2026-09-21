@@ -32,6 +32,7 @@ import {
 } from '../../lib/costing-actions';
 import {
   appliedVersions,
+  canDelete,
   costingBadge,
   describePeriod,
   describeScope,
@@ -212,7 +213,7 @@ export function CostingsScreen({
           pendingDelete
             ? pendingDelete.isDraft
               ? `The draft for ${describeScope(pendingDelete)} will be thrown away. Nothing has been quoted from it, and the version in force is untouched.`
-              : `The costing for ${describeScope(pendingDelete)} will be removed. Only a version nothing was quoted from can be deleted.`
+              : `The empty costing for ${describeScope(pendingDelete)} will be removed. It has no expense lines, so nothing was ever priced by it.`
             : ''
         }
         onConfirm={() => {
@@ -294,6 +295,7 @@ function PlanRow({
   // calling it the version in force would put figures nobody has agreed to
   // where the screen says what the temple is quoting.
   const current = applied.find((version) => version.isInForce) ?? null;
+  const removable = draft ?? (current && canDelete(current) ? current : null);
 
   // What the reader asked to see, else what applied on the chosen date, else
   // the newest thing there is — a plan written after that date still has to
@@ -361,20 +363,20 @@ function PlanRow({
               )}
 
               {/*
-                * A draft may always be discarded: nothing was quoted from it.
-                * An applied version may go only while it is the sole one and no
-                * day was costed from it, because anything else is the answer to
-                * what a pooja cost that year.
+                * Only what never priced anything — a draft, or a costing with
+                * no expense lines. Once figures have been applied the row is
+                * the record of what the pooja cost while it was in force, and
+                * the way past it is a new version rather than a deletion.
                 */}
-              {(draft ?? (current?.usedByEvents === 0 && applied.length === 1 ? current : null)) && (
+              {removable && (
                 <Button
                   variant="ghost"
                   size="sm"
                   disabled={pending}
                   className="text-danger hover:bg-danger-subtle hover:text-danger"
-                  onClick={() => onDelete(draft ?? current!)}
+                  onClick={() => onDelete(removable)}
                 >
-                  {draft ? 'Discard draft' : 'Delete'}
+                  {removable.isDraft ? 'Discard draft' : 'Delete'}
                 </Button>
               )}
             </div>
