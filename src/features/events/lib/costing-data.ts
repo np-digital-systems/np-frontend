@@ -44,15 +44,46 @@ export function describeScopeReach(costing: CostingRecord): string {
 }
 
 /**
+ * Sri Lanka keeps UTC+05:30 all year and observes no daylight saving, so the
+ * temple's own day can be bounded by a constant rather than a timezone library.
+ */
+const TEMPLE_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** An instant as the temple reads a clock: its own date and time of day. */
+function templeMoment(iso: string): string {
+  const at = new Date(new Date(iso).getTime() + TEMPLE_OFFSET_MS);
+
+  return `${at.toISOString().slice(0, 10)} ${at.toISOString().slice(11, 16)}`;
+}
+
+/**
+ * What a version is called: Version 3, or Draft before it has become one.
+ *
+ * The number is what tells versions apart now. Three applied in one afternoon
+ * differ by minutes, and a period is no longer something a reader can tell them
+ * apart by at a glance.
+ */
+export function versionLabel(costing: CostingRecord): string {
+  if (costing.versionNo === null) return 'Draft';
+
+  return `Version ${costing.versionNo}`;
+}
+
+/**
  * The period a version covers, as it reads on a screen.
  *
- * A first version has no start — it priced the pooja before anyone wrote it
- * down, which is what lets a festival kept in August be costed in September.
+ * Date and time both, because a version now begins at an instant: the committee
+ * may revise three times in an afternoon, and the day alone would print the
+ * three of them identically. A first version has no start — it priced the pooja
+ * before anyone wrote it down, which is what lets a festival kept in August be
+ * costed in September.
  */
 export function describePeriod(costing: CostingRecord): string {
-  const from = costing.effectiveFrom ?? 'Always';
+  const from = costing.effectiveFrom ? templeMoment(costing.effectiveFrom) : 'Always';
+  const to = costing.effectiveTo ? templeMoment(costing.effectiveTo) : 'open';
 
-  return costing.effectiveTo ? `${from} → ${costing.effectiveTo}` : `${from} → open`;
+  return `${from} → ${to}`;
 }
 
 /**
@@ -193,16 +224,43 @@ function bySlot(a: CostingPlan, b: CostingPlan): number {
  * have answered then.
  */
 export function versionOn(plan: CostingPlan, on: string): CostingRecord | null {
+  /*
+   * Against the day's own bounds, and as times rather than text.
+   *
+   * The stored bound is an instant like 2026-09-21T10:30:00.000Z and `on` is a
+   * bare 2026-09-21, so comparing the two as strings puts the version applied
+   * that morning AFTER the day it was applied on — the longer string sorts
+   * later — and the row would show the version before it, or nothing at all.
+   */
+  const from = new Date(`${on}T00:00:00.000Z`).getTime() - TEMPLE_OFFSET_MS;
+  const to = from + DAY_MS;
+
+  const covering = plan.versions.filter((version) => {
+    // A draft has no start and no end, so it covers every date there is. It
+    // prices none of them, and a list that showed it as the figure for a day
+    // would be quoting what nobody has agreed to yet.
+    if (version.isDraft) return false;
+
+    const started = version.effectiveFrom === null || new Date(version.effectiveFrom).getTime() < to;
+    const open = version.effectiveTo === null || new Date(version.effectiveTo).getTime() > from;
+
+    return started && open;
+  });
+
+  /*
+   * The last one applied during the day prices it — the figure the committee
+   * had settled on by the time the day was over. The earlier ones are kept as
+   * the record of a decision, not as a price anybody was quoted.
+   */
   return (
-    plan.versions.find(
-      (version) =>
-        // A draft has no start and no end, so it covers every date there is.
-        // It prices none of them, and a list that showed it as the figure for
-        // a day would be quoting what nobody has agreed to yet.
-        !version.isDraft &&
-        (version.effectiveFrom === null || version.effectiveFrom <= on) &&
-        (version.effectiveTo === null || version.effectiveTo >= on),
-    ) ?? null
+    covering.reduce<CostingRecord | null>((latest, version) => {
+      if (!latest) return version;
+
+      const at = version.effectiveFrom ? new Date(version.effectiveFrom).getTime() : -Infinity;
+      const best = latest.effectiveFrom ? new Date(latest.effectiveFrom).getTime() : -Infinity;
+
+      return at > best || (at === best && version.id > latest.id) ? version : latest;
+    }, null) ?? null
   );
 }
 
