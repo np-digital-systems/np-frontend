@@ -46,9 +46,13 @@ export interface CostingRecord {
   /** Null covers every instance of the type. */
   readonly slotId: number | null;
   readonly slotLabel: string | null;
-  readonly effectiveFrom: string;
+  /** Null means it has always applied: the first version this scope ever had. */
+  readonly effectiveFrom: string | null;
   readonly effectiveTo: string | null;
-  /** Nothing switches a costing on: the one still open is the one in force. */
+  /** A draft prices nothing until the committee applies it. */
+  readonly status: CostingStatus;
+  readonly isDraft: boolean;
+  /** The version being quoted from today. A draft is not one, open end or not. */
   readonly isInForce: boolean;
   /** The lines charged to the sponsor, added up. */
   readonly sponsorAmount: number;
@@ -132,6 +136,14 @@ export interface CostingLineDraft {
   chargedToSponsor: boolean;
   items: CostingItemDraft[];
 }
+
+/**
+ * Where a costing stands.
+ *
+ * Spelled as the API sends it, camel case and all, so that no mapping step sits
+ * between the two and quietly falls out of date.
+ */
+export type CostingStatus = 'draft' | 'inForce' | 'superseded';
 
 /** One head an occurrence is expected to spend on. */
 export interface ExpectedLine {
