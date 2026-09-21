@@ -46,7 +46,6 @@ export interface MovementDraft {
 }
 
 interface RaiseVoucherDialogProps {
-  kind: 'receipt' | 'payment';
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -68,7 +67,6 @@ interface RaiseVoucherDialogProps {
  * like a voucher typed from nothing.
  */
 export function RaiseVoucherDialog({
-  kind,
   open,
   onOpenChange,
   title,
@@ -157,11 +155,7 @@ export function RaiseVoucherDialog({
               id="voucher-amount"
               label="Amount"
               required
-              hint={
-                kind === 'payment'
-                  ? 'Filled in from the budget. Change it to what was really paid.'
-                  : 'Filled in from the quote. Change it if the family rounded up.'
-              }
+              hint="Filled in from the budget. Change it to what was really paid."
             >
               <Input
                 id="voucher-amount"
@@ -237,7 +231,7 @@ export function RaiseVoucherDialog({
               <Input
                 id="voucher-book-no"
                 value={draft.manualVoucherNo}
-                placeholder={kind === 'receipt' ? 'RV / 0412' : 'PV / 0188'}
+                placeholder="PV / 0188"
                 onChange={(changeEvent) =>
                   setDraft((current) => ({
                     ...current,
