@@ -24,10 +24,18 @@ import {
   type CostingHeaderDraft,
 } from '../../components/costing-form-dialog';
 import { CopyCostingDialog } from '../../components/copy-costing-dialog';
-import { copyCosting, createCosting, deleteCosting } from '../../lib/costing-actions';
 import {
+  applyCosting,
+  copyCosting,
+  createCosting,
+  deleteCosting,
+} from '../../lib/costing-actions';
+import {
+  appliedVersions,
   costingBadge,
   describePeriod,
+  describeScope,
+  draftOf,
   groupCostings,
   lineTitle,
   todayISO,
@@ -55,6 +63,7 @@ export function CostingsScreen({
   const [formOpen, setFormOpen] = useState(false);
   const [copying, setCopying] = useState<CostingRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostingRecord | null>(null);
+  const [pendingApply, setPendingApply] = useState<CostingRecord | null>(null);
 
   const { run, error: actionError, pending } = useServerAction();
 
@@ -167,6 +176,7 @@ export function CostingsScreen({
                   }
                   onCopy={setCopying}
                   onDelete={setPendingDelete}
+                  onApply={setPendingApply}
                 />
               ))}
             </CardBody>
@@ -197,10 +207,12 @@ export function CostingsScreen({
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(next) => !next && setPendingDelete(null)}
-        title="Delete this costing?"
+        title={pendingDelete?.isDraft ? 'Discard this draft?' : 'Delete this costing?'}
         description={
           pendingDelete
-            ? `The costing for ${pendingDelete.eventTypeName}${pendingDelete.slotLabel ? ` — ${pendingDelete.slotLabel}` : ''} will be removed. Only a version nothing was quoted from can be deleted.`
+            ? pendingDelete.isDraft
+              ? `The draft for ${describeScope(pendingDelete)} will be thrown away. Nothing has been quoted from it, and the version in force is untouched.`
+              : `The costing for ${describeScope(pendingDelete)} will be removed. Only a version nothing was quoted from can be deleted.`
             : ''
         }
         onConfirm={() => {
@@ -209,6 +221,31 @@ export function CostingsScreen({
           if (!target) return;
 
           run(() => deleteCosting(target.id), () => setPendingDelete(null));
+        }}
+      />
+
+      {/*
+        * Applying is confirmed and deleting a draft is not, which is the right
+        * way round: throwing away figures nobody has been quoted is undoable by
+        * typing them again, while applying them closes the version before it
+        * and changes what the temple asks a family for.
+        */}
+      <ConfirmDialog
+        open={pendingApply !== null}
+        onOpenChange={(next) => !next && setPendingApply(null)}
+        title="Apply this costing?"
+        description={
+          pendingApply
+            ? `${describeScope(pendingApply)} will be quoted at ${formatCurrency(pendingApply.sponsorAmount)} from today. ` +
+              'The version it replaces is kept as the record of what the rate was until now.'
+            : ''
+        }
+        onConfirm={() => {
+          const target = pendingApply;
+
+          if (!target) return;
+
+          run(() => applyCosting(target.id), () => setPendingApply(null));
         }}
       />
     </>
@@ -227,6 +264,7 @@ interface PlanRowProps {
   onShow: (costingId: number) => void;
   onCopy: (costing: CostingRecord) => void;
   onDelete: (costing: CostingRecord) => void;
+  onApply: (costing: CostingRecord) => void;
 }
 
 /**
@@ -247,9 +285,15 @@ function PlanRow({
   onShow,
   onCopy,
   onDelete,
+  onApply,
 }: PlanRowProps) {
   const atDate = versionOn(plan, asAt);
-  const current = plan.versions.find((version) => version.effectiveTo === null) ?? null;
+  const draft = draftOf(plan);
+  const applied = appliedVersions(plan);
+  // By status, not by an open end date: a draft has one of those too, and
+  // calling it the version in force would put figures nobody has agreed to
+  // where the screen says what the temple is quoting.
+  const current = applied.find((version) => version.isInForce) ?? null;
 
   // What the reader asked to see, else what applied on the chosen date, else
   // the newest thing there is — a plan written after that date still has to
@@ -281,7 +325,8 @@ function PlanRow({
           </p>
 
           <p className="text-xs text-text-muted">
-            {plan.versions.length} version{plan.versions.length === 1 ? '' : 's'}
+            {applied.length} version{applied.length === 1 ? '' : 's'}
+            {draft && ' · 1 draft waiting'}
             {atDate === null && ' · none in force on that date'}
           </p>
         </button>
@@ -291,25 +336,45 @@ function PlanRow({
             {atDate ? formatCurrency(atDate.sponsorAmount) : '—'}
           </span>
 
-          {canManage && current && (
+          {canManage && (draft || current) && (
             <div className="flex items-center gap-1.5">
+              {draft && (
+                <Button size="sm" disabled={pending} onClick={() => onApply(draft)}>
+                  Apply
+                </Button>
+              )}
+
+              {/*
+                * Edit goes to the draft once there is one. That is where a save
+                * would land anyway, and sending the committee to the version in
+                * force would let them type over figures they had already
+                * revised without ever seeing the revision.
+                */}
               <Button variant="outline" size="sm" asChild>
-                <Link href={costingRoute(current.id)}>Edit</Link>
+                <Link href={costingRoute((draft ?? current)!.id)}>Edit</Link>
               </Button>
 
-              <Button variant="outline" size="sm" onClick={() => onCopy(current)}>
-                Copy
-              </Button>
+              {current && (
+                <Button variant="outline" size="sm" onClick={() => onCopy(current)}>
+                  Copy
+                </Button>
+              )}
 
-              {current.usedByEvents === 0 && plan.versions.length === 1 && (
+              {/*
+                * A draft may always be discarded: nothing was quoted from it.
+                * An applied version may go only while it is the sole one and no
+                * day was costed from it, because anything else is the answer to
+                * what a pooja cost that year.
+                */}
+              {(draft ?? (current?.usedByEvents === 0 && applied.length === 1 ? current : null)) && (
                 <Button
                   variant="ghost"
                   size="sm"
                   disabled={pending}
                   className="text-danger hover:bg-danger-subtle hover:text-danger"
-                  onClick={() => onDelete(current)}
+                  onClick={() => onDelete(draft ?? current!)}
                 >
-                  Delete
+                  {draft ? 'Discard draft' : 'Delete'}
                 </Button>
               )}
             </div>
