@@ -152,3 +152,17 @@ export interface ExpectedAmounts {
   readonly sponsorAmount: number | null;
   readonly lines: readonly ExpectedLine[];
 }
+
+/** One costing that spends on a given head, for repricing them together. */
+export interface HeadUsage {
+  readonly costingId: number;
+  readonly eventTypeId: number;
+  readonly eventTypeName: string;
+  readonly slotLabel: string | null;
+  readonly scope: string;
+  readonly effectiveFrom: string;
+  readonly amount: number;
+  readonly partyName: string | null;
+  /** Decided by its items, so it is not repriced from here. */
+  readonly isItemised: boolean;
+}
