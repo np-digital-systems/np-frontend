@@ -31,6 +31,7 @@ import { applyCosting, updateCosting } from '../../lib/costing-actions';
 import {
   costingBadge,
   describePeriod,
+  versionLabel,
   describeScope,
   describeScopeReach,
   isReadOnly,
@@ -174,7 +175,7 @@ export function CostingEditorScreen({
             </div>
 
             <p className="text-sm text-text-secondary">
-              {describeScopeReach(costing)} · {describePeriod(costing)}
+              {versionLabel(costing)} · {describeScopeReach(costing)} · {describePeriod(costing)}
             </p>
           </div>
 
@@ -307,8 +308,9 @@ export function CostingEditorScreen({
                     : 'border-border bg-surface-2'
                 }`}
               >
-                <span className="text-xs tabular text-text-secondary">
-                  {describePeriod(version)}
+                <span className="text-xs text-text-secondary">
+                  <span className="font-medium text-text-primary">{versionLabel(version)}</span>
+                  <span className="tabular text-text-muted"> · {describePeriod(version)}</span>
                   {version.usedByEvents > 0 && (
                     <span className="text-text-muted">
                       {' '}
