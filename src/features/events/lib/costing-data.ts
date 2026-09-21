@@ -206,6 +206,18 @@ export function versionOn(plan: CostingPlan, on: string): CostingRecord | null {
   );
 }
 
+/**
+ * Whether a costing may be thrown away.
+ *
+ * Only what never priced anything: a draft, which was never applied, and an
+ * empty one, which priced nothing even if it was. An applied costing with
+ * figures on it is the answer to what this pooja cost while it was in force,
+ * and the way to change that is to edit it and apply a new version.
+ */
+export function canDelete(costing: CostingRecord): boolean {
+  return costing.isDraft || costing.lines.length === 0;
+}
+
 /** The draft waiting on this plan, if the committee has written one. */
 export function draftOf(plan: CostingPlan): CostingRecord | null {
   return plan.versions.find((version) => version.isDraft) ?? null;
