@@ -46,9 +46,15 @@ export interface CostingRecord {
   /** Null covers every instance of the type. */
   readonly slotId: number | null;
   readonly slotLabel: string | null;
-  /** Null means it has always applied: the first version this scope ever had. */
+  /**
+   * The instant it took over, as an ISO timestamp. Null means it has always
+   * applied: the first version this scope ever had.
+   */
   readonly effectiveFrom: string | null;
+  /** The instant its successor took over. Null means still in force. */
   readonly effectiveTo: string | null;
+  /** 1, 2, 3 within the scope. Null while it is still a draft. */
+  readonly versionNo: number | null;
   /** A draft prices nothing until the committee applies it. */
   readonly status: CostingStatus;
   readonly isDraft: boolean;
