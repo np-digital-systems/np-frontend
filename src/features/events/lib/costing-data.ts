@@ -48,7 +48,6 @@ export function describeScopeReach(costing: CostingRecord): string {
  * temple's own day can be bounded by a constant rather than a timezone library.
  */
 const TEMPLE_OFFSET_MS = 5.5 * 60 * 60 * 1000;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** An instant as the temple reads a clock: its own date and time of day. */
 function templeMoment(iso: string): string {
@@ -92,9 +91,13 @@ export function describePeriod(costing: CostingRecord): string {
  * The label is an override, not a requirement: most headings are named well
  * enough by the head they post to, and making the temple retype "Melam" beside
  * `5310 Melam` would only give the two a way to disagree.
+ *
+ * The head's Tamil name, because that is the one the committee reads. The
+ * romanisation is for the books and for anyone who cannot read the script, and
+ * it belongs beside the code rather than as the name of the thing.
  */
 export function lineTitle(line: CostingLine): string {
-  return line.label ?? line.account.name;
+  return line.label ?? line.account.nameTa;
 }
 
 /** A heading with items is a total that must equal them. */
@@ -122,7 +125,9 @@ export function revisionNotice(costing: CostingRecord): string | null {
   const since =
     costing.effectiveFrom === null
       ? 'This is the first version, so it has priced every day of this pooja so far'
-      : `In force since ${costing.effectiveFrom}`;
+      : // Read as a clock, not as the instant the database stores. The raw ISO
+        // string is not something the committee should ever be shown.
+        `In force since ${templeMoment(costing.effectiveFrom)}`;
 
   return (
     `${since}. Saving does not change it: the new figures go to a draft, and ` +
@@ -217,54 +222,6 @@ function bySlot(a: CostingPlan, b: CostingPlan): number {
 }
 
 /**
- * The version a plan was quoted at on a date, or null if none was.
- *
- * The same rule the API resolves an occurrence by, applied to a date the reader
- * chose: set it to a day in 2024 and every plan answers as the temple would
- * have answered then.
- */
-export function versionOn(plan: CostingPlan, on: string): CostingRecord | null {
-  /*
-   * Against the day's own bounds, and as times rather than text.
-   *
-   * The stored bound is an instant like 2026-09-21T10:30:00.000Z and `on` is a
-   * bare 2026-09-21, so comparing the two as strings puts the version applied
-   * that morning AFTER the day it was applied on — the longer string sorts
-   * later — and the row would show the version before it, or nothing at all.
-   */
-  const from = new Date(`${on}T00:00:00.000Z`).getTime() - TEMPLE_OFFSET_MS;
-  const to = from + DAY_MS;
-
-  const covering = plan.versions.filter((version) => {
-    // A draft has no start and no end, so it covers every date there is. It
-    // prices none of them, and a list that showed it as the figure for a day
-    // would be quoting what nobody has agreed to yet.
-    if (version.isDraft) return false;
-
-    const started = version.effectiveFrom === null || new Date(version.effectiveFrom).getTime() < to;
-    const open = version.effectiveTo === null || new Date(version.effectiveTo).getTime() > from;
-
-    return started && open;
-  });
-
-  /*
-   * The last one applied during the day prices it — the figure the committee
-   * had settled on by the time the day was over. The earlier ones are kept as
-   * the record of a decision, not as a price anybody was quoted.
-   */
-  return (
-    covering.reduce<CostingRecord | null>((latest, version) => {
-      if (!latest) return version;
-
-      const at = version.effectiveFrom ? new Date(version.effectiveFrom).getTime() : -Infinity;
-      const best = latest.effectiveFrom ? new Date(latest.effectiveFrom).getTime() : -Infinity;
-
-      return at > best || (at === best && version.id > latest.id) ? version : latest;
-    }, null) ?? null
-  );
-}
-
-/**
  * Whether a costing may be thrown away.
  *
  * Only what never priced anything: a draft, which was never applied, and an
@@ -286,7 +243,3 @@ export function appliedVersions(plan: CostingPlan): readonly CostingRecord[] {
   return plan.versions.filter((version) => !version.isDraft);
 }
 
-/** Today, as the API writes a date. */
-export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
