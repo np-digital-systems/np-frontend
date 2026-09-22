@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { ArrowLeft, Scale } from 'lucide-react';
 
 import {
-  ActionError,
   Card,
   CardHeader,
   DataCell,
@@ -17,17 +15,14 @@ import {
   type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
-import { useServerAction } from '@/hooks/use-server-action';
 import { Link } from '@/i18n/routing';
 import { formatCurrency, formatSigned } from '@/lib/format';
 
-import { RaiseVoucherDialog } from '../../components/raise-voucher-dialog';
-import { raiseEventPayment } from '../../lib/costing-actions';
 import { BUDGET_LINE_BADGE } from '../../lib/costing-data';
 import { formatEventDate } from '../../lib/event-data';
 import { EVENT_ROUTES } from '../../lib/routes';
 import type { EventRecord } from '../../types';
-import type { BudgetLine, EventBudget } from '../../types/costing';
+import type { EventBudget } from '../../types/costing';
 
 const COLUMNS: DataColumn[] = [
   { key: 'head', label: 'Head' },
@@ -36,25 +31,17 @@ const COLUMNS: DataColumn[] = [
   { key: 'actual', label: 'Actual', align: 'right' },
   { key: 'variance', label: 'Difference', align: 'right' },
   { key: 'status', label: 'Status' },
-  { key: 'actions', label: 'Actions', align: 'right', srOnly: true },
 ];
 
 interface EventBudgetScreenProps {
   event: EventRecord;
   budget: EventBudget;
-  bankAccounts: readonly { id: number; label: string }[];
-  canRaiseVouchers: boolean;
 }
 
 export function EventBudgetScreen({
   event,
   budget,
-  bankAccounts,
-  canRaiseVouchers,
 }: EventBudgetScreenProps) {
-  const [payingLine, setPayingLine] = useState<BudgetLine | null>(null);
-
-  const { run, error: actionError } = useServerAction();
 
   // Nothing is costed onto a day any more: the version in force on the day's
   // own date is what priced it, resolved fresh each time this is opened.
@@ -88,8 +75,6 @@ export function EventBudgetScreen({
         </div>
       </div>
 
-      <ActionError message={actionError} />
-
       {!costed ? (
         <Card>
           <EmptyState
@@ -103,7 +88,15 @@ export function EventBudgetScreen({
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/*
+            * Three figures, not four.
+            *
+            * What the sponsor is quoted and what the day is budgeted at are the
+            * same number unless the temple bears a line itself, which it rarely
+            * does — so the budget is carried as the caption on what was really
+            * spent, where it is read against it rather than beside it.
+            */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <StatCard
               label="Sponsor was quoted"
               value={formatCurrency(quoted)}
@@ -114,9 +107,11 @@ export function EventBudgetScreen({
               }
             />
 
-            <StatCard label="Budgeted" value={formatCurrency(budget.budgetedTotal)} />
-
-            <StatCard label="Actual" value={formatCurrency(budget.actualTotal)} />
+            <StatCard
+              label="Actual"
+              value={formatCurrency(budget.actualTotal)}
+              caption={`${formatCurrency(budget.budgetedTotal)} budgeted`}
+            />
 
             {/*
               * Positive is an overspend, which is why it is the unwelcome
@@ -126,7 +121,16 @@ export function EventBudgetScreen({
               label="Difference"
               value={formatSigned(budget.variance)}
               caption={
-                budget.variance > 0 ? 'Over the budget' : 'Within the budget'
+                /*
+                 * Nothing spent is not the same as spending less than planned,
+                 * and calling it "within the budget" reads as a result when it
+                 * only means no voucher has been coded to the day yet.
+                 */
+                budget.actualTotal === 0
+                  ? 'Nothing spent yet'
+                  : budget.variance > 0
+                    ? 'Over the budget'
+                    : 'Within the budget'
               }
             />
           </div>
@@ -134,7 +138,7 @@ export function EventBudgetScreen({
           <Card>
             <CardHeader
               title="Budget against actual"
-              description="The costing is the plan; the vouchers are the truth. A line is settled once its voucher is posted."
+              description="What each head was planned to cost, against what has been spent. A line settles when its voucher is posted."
             />
 
             <DataTable columns={COLUMNS} minWidth={920}>
@@ -192,17 +196,6 @@ export function EventBudgetScreen({
                       <StatusBadge status={BUDGET_LINE_BADGE[line.status]} />
                     </DataCell>
 
-                    <DataCell align="right" nowrap>
-                      {canRaiseVouchers && line.status === 'Not raised' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setPayingLine(line)}
-                        >
-                          Pay
-                        </Button>
-                      )}
-                    </DataCell>
                   </DataRow>
                 ))
               )}
@@ -211,41 +204,6 @@ export function EventBudgetScreen({
         </>
       )}
 
-      {/*
-        * One payee per voucher. The lines are settled one at a time here for
-        * that reason — the goods shop and the melam group are two documents,
-        * two signatures and two receipts, never one.
-        */}
-      <RaiseVoucherDialog
-        open={payingLine !== null}
-        onOpenChange={(next) => !next && setPayingLine(null)}
-        title="Raise a payment"
-        description={
-          payingLine
-            ? `${payingLine.label}, budgeted at ${formatCurrency(payingLine.budgeted)}${payingLine.partyName ? ` and usually paid to ${payingLine.partyName}` : ''}. Change the amount to what was really paid.`
-            : ''
-        }
-        defaultAmount={payingLine?.budgeted ?? 0}
-        needsPayee={payingLine?.partyName === null}
-        bankAccounts={bankAccounts}
-        onSubmit={(movement, extras) => {
-          const target = payingLine;
-
-          if (!target) return;
-
-          run(
-            () =>
-              raiseEventPayment(event.id, {
-                ...movement,
-                lines: [
-                  { budgetLineId: Number(target.id), amount: movement.amount },
-                ],
-                party: extras?.party,
-              }),
-            () => setPayingLine(null),
-          );
-        }}
-      />
     </>
   );
 }
