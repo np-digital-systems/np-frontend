@@ -153,24 +153,6 @@ export interface MovementInput {
   manualVoucherNo: string;
 }
 
-export async function raiseEventPayment(
-  eventId: number,
-  input: MovementInput & {
-    lines: { budgetLineId: number; amount?: number }[];
-    partyId?: number | null;
-    party?: string;
-  },
-): Promise<ActionResult> {
-  return guarded((access) => access.canRaiseEventVouchers, 'You cannot raise payments.', () =>
-    api.post(`/events/${eventId}/vouchers/payment`, {
-      ...input,
-      bankAccountId: input.bankAccountId ?? undefined,
-      chequeNo: input.chequeNo || undefined,
-      partyId: input.partyId ?? undefined,
-      party: input.party || undefined,
-    }),
-  );
-}
 
 /**
  * The budget for one occurrence, read from a client component.
