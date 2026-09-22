@@ -17,9 +17,7 @@ export interface CostingItem {
   readonly id: number;
   readonly lineNo: number;
   readonly label: string;
-  readonly quantity: number;
-  readonly unitAmount: number;
-  /** Quantity times the unit price. Never typed. */
+  /** What this part of the head comes to. The heading is these added up. */
   readonly amount: number;
 }
 
@@ -129,8 +127,7 @@ export interface EventBudget {
  */
 export interface CostingItemDraft {
   label: string;
-  quantity: number;
-  unitAmount: number;
+  amount: number;
 }
 
 export interface CostingLineDraft {
