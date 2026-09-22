@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ChevronRight, Coins, Plus } from 'lucide-react';
+import { ChevronRight, Coins, MoreHorizontal, Plus } from 'lucide-react';
 
 import {
   ActionError,
@@ -14,7 +14,13 @@ import {
   StatusBadge,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useServerAction } from '@/hooks/use-server-action';
 import { Link } from '@/i18n/routing';
 import { formatCurrency } from '@/lib/format';
@@ -34,17 +40,15 @@ import {
   appliedVersions,
   canDelete,
   costingBadge,
-  versionLabel,
   describePeriod,
+  versionLabel,
   describeScope,
   draftOf,
   groupCostings,
   lineTitle,
-  todayISO,
-  versionOn,
   type CostingPlan,
 } from '../../lib/costing-data';
-import { costingRoute } from '../../lib/routes';
+import { costingHistoryRoute, costingRoute } from '../../lib/routes';
 import type { CostingRecord } from '../../types/costing';
 import type { EventTypeRecord } from '../../types';
 
@@ -59,9 +63,7 @@ export function CostingsScreen({
   eventTypes,
   canManage,
 }: CostingsScreenProps) {
-  const [asAt, setAsAt] = useState(todayISO);
   const [open, setOpen] = useState<string | null>(null);
-  const [showing, setShowing] = useState<Record<string, number>>({});
   const [formOpen, setFormOpen] = useState(false);
   const [copying, setCopying] = useState<CostingRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostingRecord | null>(null);
@@ -106,46 +108,6 @@ export function CostingsScreen({
 
       <ActionError message={actionError} />
 
-      {/*
-        * The whole screen reads as of one date.
-        *
-        * "What were we paying in 2024" is the question the versions exist to
-        * answer, and answering it by expanding six plans and comparing their
-        * periods is work the reader should not be doing. Set the date and every
-        * plan below shows the version that was in force then.
-        */}
-      <Card>
-        <CardBody className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-              Showing the rates in force on
-            </p>
-
-            <p className="text-xs text-text-secondary">
-              {asAt === todayISO()
-                ? 'Today. Change the date to read an earlier year.'
-                : 'An earlier date. Every plan below shows what it was then.'}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Input
-              type="date"
-              aria-label="Show the rates in force on"
-              className="w-44"
-              value={asAt}
-              onChange={(changeEvent) => setAsAt(changeEvent.target.value)}
-            />
-
-            {asAt !== todayISO() && (
-              <Button variant="ghost" size="sm" onClick={() => setAsAt(todayISO())}>
-                Today
-              </Button>
-            )}
-          </div>
-        </CardBody>
-      </Card>
-
       {groups.length === 0 ? (
         <Card>
           <EmptyState
@@ -167,15 +129,10 @@ export function CostingsScreen({
                 <PlanRow
                   key={plan.key}
                   plan={plan}
-                  asAt={asAt}
                   isOpen={open === plan.key}
-                  showingId={showing[plan.key]}
                   canManage={canManage}
                   pending={pending}
                   onToggle={() => setOpen(open === plan.key ? null : plan.key)}
-                  onShow={(costingId) =>
-                    setShowing((current) => ({ ...current, [plan.key]: costingId }))
-                  }
                   onCopy={setCopying}
                   onDelete={setPendingDelete}
                   onApply={setPendingApply}
@@ -210,6 +167,7 @@ export function CostingsScreen({
         open={pendingDelete !== null}
         onOpenChange={(next) => !next && setPendingDelete(null)}
         title={pendingDelete?.isDraft ? 'Discard this draft?' : 'Delete this costing?'}
+        confirmLabel={pendingDelete?.isDraft ? 'Discard draft' : 'Delete'}
         description={
           pendingDelete
             ? pendingDelete.isDraft
@@ -236,6 +194,8 @@ export function CostingsScreen({
         open={pendingApply !== null}
         onOpenChange={(next) => !next && setPendingApply(null)}
         title="Apply this costing?"
+        confirmLabel="Apply costing"
+        tone="default"
         description={
           pendingApply
             ? `${describeScope(pendingApply)} will be quoted at ${formatCurrency(pendingApply.sponsorAmount)} from today. ` +
@@ -256,14 +216,11 @@ export function CostingsScreen({
 
 interface PlanRowProps {
   plan: CostingPlan;
-  asAt: string;
   isOpen: boolean;
   /** Which version the reader clicked, if any. */
-  showingId: number | undefined;
   canManage: boolean;
   pending: boolean;
   onToggle: () => void;
-  onShow: (costingId: number) => void;
   onCopy: (costing: CostingRecord) => void;
   onDelete: (costing: CostingRecord) => void;
   onApply: (costing: CostingRecord) => void;
@@ -278,18 +235,14 @@ interface PlanRowProps {
  */
 function PlanRow({
   plan,
-  asAt,
   isOpen,
-  showingId,
   canManage,
   pending,
   onToggle,
-  onShow,
   onCopy,
   onDelete,
   onApply,
 }: PlanRowProps) {
-  const atDate = versionOn(plan, asAt);
   const draft = draftOf(plan);
   const applied = appliedVersions(plan);
   // By status, not by an open end date: a draft has one of those too, and
@@ -298,13 +251,12 @@ function PlanRow({
   const current = applied.find((version) => version.isInForce) ?? null;
   const removable = draft ?? (current && canDelete(current) ? current : null);
 
-  // What the reader asked to see, else what applied on the chosen date, else
-  // the newest thing there is — a plan written after that date still has to
-  // show something rather than an empty row.
-  const shown =
-    plan.versions.find((version) => version.id === showingId) ??
-    atDate ??
-    plan.versions[0];
+  /*
+   * What is in force, else the draft, else the newest thing there is. A plan
+   * whose only costing is an unapplied draft still has to show the figures
+   * somebody typed rather than an empty row.
+   */
+  const shown = current ?? draft ?? plan.versions[0];
 
   return (
     <div className="rounded-lg border border-border bg-surface-2">
@@ -328,58 +280,109 @@ function PlanRow({
           </p>
 
           <p className="text-xs text-text-muted">
-            {applied.length} version{applied.length === 1 ? '' : 's'}
-            {draft && ' · 1 draft waiting'}
-            {atDate === null && ' · none in force on that date'}
+            {applied.length === 0
+              ? 'Not applied yet'
+              : `${applied.length} version${applied.length === 1 ? '' : 's'}`}
+            {draft && applied.length > 0 && ' · draft waiting'}
           </p>
         </button>
 
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium tabular text-text-primary">
-            {atDate ? formatCurrency(atDate.sponsorAmount) : '—'}
+            {current ? formatCurrency(current.sponsorAmount) : '—'}
           </span>
 
           {canManage && (draft || current) && (
             <div className="flex items-center gap-1.5">
+              {/*
+                * One button carries the act, the rest go behind the menu.
+                *
+                * Four buttons in a row made every plan look equally urgent and
+                * the row unreadable at a glance. Applying is the only one that
+                * changes what a family is quoted, so it is the only one that
+                * earns a place on the surface — and only while there is a draft
+                * worth applying.
+                */}
               {draft && (
-                <Button size="sm" disabled={pending} onClick={() => onApply(draft)}>
+                <Button
+                  size="sm"
+                  disabled={pending || draft.lines.length === 0}
+                  title={
+                    draft.lines.length === 0
+                      ? 'This draft has no expense lines yet'
+                      : undefined
+                  }
+                  onClick={() => onApply(draft)}
+                >
                   Apply
                 </Button>
               )}
 
-              {/*
-                * Edit goes to the draft once there is one. That is where a save
-                * would land anyway, and sending the committee to the version in
-                * force would let them type over figures they had already
-                * revised without ever seeing the revision.
-                */}
-              <Button variant="outline" size="sm" asChild>
-                <Link href={costingRoute((draft ?? current)!.id)}>Edit</Link>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`More actions for ${plan.scopeLabel}`}
+                  >
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
 
-              {current && (
-                <Button variant="outline" size="sm" onClick={() => onCopy(current)}>
-                  Copy
-                </Button>
-              )}
+                <DropdownMenuContent align="end" className="w-52">
+                  {/*
+                    * Edit goes to the draft once there is one. That is where a
+                    * save would land anyway, and sending the committee to the
+                    * version in force would let them type over figures they had
+                    * already revised without ever seeing the revision.
+                    */}
+                  <DropdownMenuItem asChild>
+                    <Link href={costingRoute((draft ?? current)!.id)}>
+                      {draft ? 'Edit draft' : 'Edit costing'}
+                    </Link>
+                  </DropdownMenuItem>
 
-              {/*
-                * Only what never priced anything — a draft, or a costing with
-                * no expense lines. Once figures have been applied the row is
-                * the record of what the pooja cost while it was in force, and
-                * the way past it is a new version rather than a deletion.
-                */}
-              {removable && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={pending}
-                  className="text-danger hover:bg-danger-subtle hover:text-danger"
-                  onClick={() => onDelete(removable)}
-                >
-                  {removable.isDraft ? 'Discard draft' : 'Delete'}
-                </Button>
-              )}
+                  {/*
+                    * Reachable without going through the editor. Reading what a
+                    * pooja used to cost is a question the committee asks far
+                    * more often than they change a figure, and routing it
+                    * through Edit put a page that can be typed into between
+                    * them and an answer.
+                    */}
+                  {applied.length > 0 && (
+                    <DropdownMenuItem asChild>
+                      <Link href={costingHistoryRoute((current ?? applied[0]).id)}>
+                        Version history
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  {current && (
+                    <DropdownMenuItem onSelect={() => onCopy(current)}>
+                      Copy to another instance
+                    </DropdownMenuItem>
+                  )}
+
+                  {/*
+                    * Only what never priced anything — a draft, or a costing
+                    * with no expense lines. Once figures have been applied the
+                    * row is the record of what the pooja cost while it was in
+                    * force, and the way past it is a new version.
+                    */}
+                  {removable && (
+                    <>
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onSelect={() => onDelete(removable)}
+                      >
+                        {removable.isDraft ? 'Discard draft' : 'Delete costing'}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>
@@ -387,34 +390,23 @@ function PlanRow({
 
       {isOpen && (
         <div className="flex flex-col gap-2.5 border-t border-border px-3 py-3">
-          {plan.versions.length > 1 && (
-            <div className="flex flex-wrap gap-1.5">
-              {plan.versions.map((version) => (
-                <button
-                  key={version.id}
-                  type="button"
-                  className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-                    version.id === shown.id
-                      ? 'border-accent text-text-primary'
-                      : 'border-border text-text-secondary hover:border-input'
-                  }`}
-                  onClick={() => onShow(version.id)}
-                >
-                  {/*
-                    * The number leads, because it is what tells them apart now.
-                    * Three applied in one afternoon differ by minutes, and a
-                    * reader cannot scan a column of near-identical instants.
-                    */}
-                  <span className="font-medium">{versionLabel(version)}</span>
-                  <span className="tabular text-text-muted">{describePeriod(version)}</span>
-                  <span className="tabular font-medium">
-                    {formatCurrency(version.sponsorAmount)}
-                  </span>
-                  <StatusBadge status={costingBadge(version)} />
-                </button>
-              ))}
-            </div>
-          )}
+          {/*
+            * What is in force on the chosen date, and nothing else.
+            *
+            * The version chips that used to sit here asked this list to be a
+            * history browser as well as a list of plans, and clicking one
+            * changed the figures underneath without changing the row's own
+            * heading. A plan reads as one rate; the versions behind it belong
+            * on the plan's own page, where there is room to say which is which.
+            */}
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-text-secondary">
+              <span className="font-medium text-text-primary">{versionLabel(shown)}</span>
+              <span className="tabular text-text-muted"> · {describePeriod(shown)}</span>
+            </span>
+
+            <StatusBadge status={costingBadge(shown)} />
+          </div>
 
           {shown.lines.length === 0 ? (
             <p className="py-3 text-center text-xs text-text-muted">
