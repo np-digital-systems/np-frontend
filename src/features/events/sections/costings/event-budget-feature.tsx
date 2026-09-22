@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 
 import { AccessDenied, PageShell } from '@/components/portal/ui';
-import { getBankAccountOptions } from '@/features/accounting/lib/accounting-service';
 import { requireSession } from '@/features/auth/lib/session';
 import { isApiError } from '@/lib/api';
 
@@ -33,23 +32,15 @@ export async function EventBudgetFeature({ eventId }: EventBudgetFeatureProps) {
   });
 
   /*
-   * The bank accounts are loaded whether or not a voucher is raised today: the
-   * mode is chosen on the form, and a cashier who picks "cheque" should not
-   * have the page fetch its options at that moment.
+   * No bank accounts and no voucher form. This page reads what the day was
+   * quoted at against what the ledger says it cost; the vouchers themselves are
+   * written on the Receipt and Payment Voucher pages.
    */
-  const [budget, bankAccounts] = await Promise.all([
-    getEventBudget(eventId),
-    access.canRaiseEventVouchers ? getBankAccountOptions() : Promise.resolve([]),
-  ]);
+  const budget = await getEventBudget(eventId);
 
   return (
     <PageShell>
-      <EventBudgetScreen
-        event={event}
-        budget={budget}
-        bankAccounts={[...bankAccounts]}
-        canRaiseVouchers={access.canRaiseEventVouchers}
-      />
+      <EventBudgetScreen event={event} budget={budget} />
     </PageShell>
   );
 }
