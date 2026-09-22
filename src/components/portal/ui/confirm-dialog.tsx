@@ -19,6 +19,13 @@ interface ConfirmDialogProps {
   title: string;
   description: ReactNode;
   confirmLabel?: string;
+  /*
+   * Destructive by default, because most confirmations here are. An act that
+   * goes forward rather than takes something away — applying a costing — must
+   * say so: a red button labelled for deletion asks the reader to approve one
+   * thing while doing another.
+   */
+  tone?: 'destructive' | 'default';
   onConfirm: () => void;
 }
 
@@ -28,6 +35,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = 'Delete',
+  tone = 'destructive',
   onConfirm,
 }: ConfirmDialogProps) {
   return (
@@ -40,7 +48,10 @@ export function ConfirmDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onConfirm}>
+          <AlertDialogAction
+            variant={tone === 'destructive' ? 'destructive' : 'default'}
+            onClick={onConfirm}
+          >
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
