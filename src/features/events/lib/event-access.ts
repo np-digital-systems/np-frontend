@@ -20,7 +20,6 @@ export interface EventAccess {
   readonly canViewCostings: boolean;
   readonly canManageCostings: boolean;
   /** Filling a voucher in from a budget is still raising a voucher. */
-  readonly canRaiseEventVouchers: boolean;
 
     readonly canWrite: boolean;
 
@@ -51,14 +50,6 @@ export function getEventAccess(granted: readonly Permission[]): EventAccess {
 
     canViewCostings: can(granted, 'event-costing:view'),
     canManageCostings: can(granted, 'event-costing:manage'),
-    /*
-     * Two permissions, not one. Costing a pooja is planning; raising the
-     * voucher is money. A cashier who may do the second has no business
-     * rewriting the figures it is filled in from.
-     */
-    canRaiseEventVouchers:
-      can(granted, 'receipt-voucher:create') || can(granted, 'payment-voucher:create'),
-
     canWrite: canCreate || canUpdate || canDelete,
     canSeeSponsorContact: canManageSponsors,
   };

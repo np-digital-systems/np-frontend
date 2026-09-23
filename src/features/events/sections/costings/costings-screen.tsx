@@ -1,28 +1,26 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Coins, Plus, Search } from 'lucide-react';
+import { ChevronRight, Coins, MoreHorizontal, Plus } from 'lucide-react';
 
 import {
   ActionError,
   Card,
+  CardBody,
   CardHeader,
   ConfirmDialog,
-  DataCell,
-  DataRow,
-  DataTable,
-  DataTableEmpty,
   EmptyState,
   PortalPageHeader,
   StatusBadge,
-  type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '@/components/ui/input-group';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useServerAction } from '@/hooks/use-server-action';
 import { Link } from '@/i18n/routing';
 import { formatCurrency } from '@/lib/format';
@@ -32,26 +30,27 @@ import {
   type CostingHeaderDraft,
 } from '../../components/costing-form-dialog';
 import { CopyCostingDialog } from '../../components/copy-costing-dialog';
-import { copyCosting, createCosting, deleteCosting } from '../../lib/costing-actions';
 import {
+  applyCosting,
+  copyCosting,
+  createCosting,
+  deleteCosting,
+} from '../../lib/costing-actions';
+import {
+  appliedVersions,
+  canDelete,
   costingBadge,
   describePeriod,
+  versionLabel,
   describeScope,
-  describeScopeReach,
+  draftOf,
+  groupCostings,
+  lineTitle,
+  type CostingPlan,
 } from '../../lib/costing-data';
-import { costingRoute } from '../../lib/routes';
+import { costingHistoryRoute, costingRoute } from '../../lib/routes';
 import type { CostingRecord } from '../../types/costing';
 import type { EventTypeRecord } from '../../types';
-
-const COLUMNS: DataColumn[] = [
-  { key: 'scope', label: 'Pooja' },
-  { key: 'period', label: 'Applies' },
-  { key: 'status', label: 'Status' },
-  { key: 'quote', label: 'Quoted', align: 'right' },
-  { key: 'cost', label: 'Expected cost', align: 'right' },
-  { key: 'used', label: 'Costed', align: 'right' },
-  { key: 'actions', label: 'Actions', align: 'right', srOnly: true },
-];
 
 interface CostingsScreenProps {
   costings: readonly CostingRecord[];
@@ -64,32 +63,20 @@ export function CostingsScreen({
   eventTypes,
   canManage,
 }: CostingsScreenProps) {
-  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [copying, setCopying] = useState<CostingRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostingRecord | null>(null);
+  const [pendingApply, setPendingApply] = useState<CostingRecord | null>(null);
 
   const { run, error: actionError, pending } = useServerAction();
 
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+  const groups = useMemo(() => groupCostings(costings), [costings]);
 
-    if (!needle) return costings;
-
-    return costings.filter((costing) =>
-      describeScope(costing).toLowerCase().includes(needle),
-    );
-  }, [costings, query]);
-
-  const inForce = costings.filter((costing) => costing.isInForce);
-  const replaced = costings.length - inForce.length;
+  const planCount = groups.reduce((total, group) => total + group.plans.length, 0);
+  const revisions = costings.length - planCount;
 
   function handleCreate(draft: CostingHeaderDraft) {
-    /*
-     * Saved empty, on purpose. The lines are written on the editor this opens
-     * into, which is the one place they live — asking for the first of them
-     * here and the rest somewhere else is what made the old dialog confusing.
-     */
     run(
       () => createCosting({ eventTypeId: draft.eventTypeId, slotId: draft.slotId }),
       () => setFormOpen(false),
@@ -100,15 +87,7 @@ export function CostingsScreen({
     <>
       <PortalPageHeader
         title="Pooja Costings"
-        description="What each pooja is expected to cost, and what its sponsor is asked for. A saved costing applies until you change it; changing one keeps the old figures for the days already quoted at them."
-        meta={[
-          <span key="force" className="tabular">
-            {inForce.length} in use
-          </span>,
-          <span key="replaced" className="tabular">
-            {replaced} earlier version{replaced === 1 ? '' : 's'}
-          </span>,
-        ]}
+        description="What each pooja is expected to cost, and what its sponsor is asked for."
         actions={
           canManage ? (
             <Button onClick={() => setFormOpen(true)}>
@@ -121,126 +100,40 @@ export function CostingsScreen({
 
       <ActionError message={actionError} />
 
-      <Card>
-        <CardHeader
-          title="Versions"
-          description="A costing written for one instance beats the one written for the whole type."
-          action={
-            <InputGroup className="w-full sm:w-56">
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
+      {groups.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={Coins}
+            title="No costings yet"
+            description="Write one costing for a pooja type and every instance of it is covered. Add a costing for a single instance only where the money is actually different."
+          />
+        </Card>
+      ) : (
+        groups.map((group) => (
+          <Card key={group.eventTypeId}>
+            <CardHeader
+              title={group.eventTypeName}
+              description={`${group.plans.length} plan${group.plans.length === 1 ? '' : 's'} — the one written for an instance beats the one written for the whole pooja`}
+            />
 
-              <InputGroupInput
-                type="search"
-                value={query}
-                placeholder="Search costings…"
-                aria-label="Search costings"
-                onChange={(changeEvent) => setQuery(changeEvent.target.value)}
-              />
-            </InputGroup>
-          }
-        />
-
-        <DataTable columns={COLUMNS} minWidth={960}>
-          {filtered.length === 0 ? (
-            <DataTableEmpty colSpan={COLUMNS.length}>
-              <EmptyState
-                icon={Coins}
-                title={
-                  costings.length === 0
-                    ? 'No costings yet'
-                    : 'No costings match that search'
-                }
-                description={
-                  costings.length === 0
-                    ? 'Write one costing for a pooja type and every instance of it is covered. Add a costing for a single instance only where the money is actually different.'
-                    : 'Try a different pooja name, or clear the search.'
-                }
-              />
-            </DataTableEmpty>
-          ) : (
-            filtered.map((costing) => (
-              <DataRow key={costing.id}>
-                <DataCell>
-                  <Link
-                    href={costingRoute(costing.id)}
-                    className="font-medium text-text-primary hover:underline"
-                  >
-                    {describeScope(costing)}
-                  </Link>
-
-                  <p className="text-xs text-text-muted">
-                    {describeScopeReach(costing)}
-                  </p>
-                </DataCell>
-
-                <DataCell nowrap className="tabular text-xs text-text-secondary">
-                  {describePeriod(costing)}
-                </DataCell>
-
-                <DataCell nowrap>
-                  <StatusBadge status={costingBadge(costing)} />
-                </DataCell>
-
-                <DataCell align="right" nowrap className="tabular">
-                  {formatCurrency(costing.sponsorAmount)}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="tabular text-text-secondary">
-                  {formatCurrency(costing.expenseTotal)}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="tabular">
-                  {costing.usedByEvents > 0 ? (
-                    costing.usedByEvents
-                  ) : (
-                    <span className="text-text-disabled">—</span>
-                  )}
-                </DataCell>
-
-                <DataCell align="right" nowrap>
-                  <div className="flex items-center justify-end gap-1.5">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={costingRoute(costing.id)}>
-                        {canManage && costing.isInForce ? 'Edit' : 'Open'}
-                      </Link>
-                    </Button>
-
-                    {canManage && (
-                      <>
-                        {/*
-                          * Copy writes day two of a festival from day one, and
-                          * starts a fresh version from a replaced one.
-                          */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCopying(costing)}
-                        >
-                          Copy
-                        </Button>
-
-                        {costing.isInForce && costing.usedByEvents === 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={pending}
-                            className="text-danger hover:bg-danger-subtle hover:text-danger"
-                            onClick={() => setPendingDelete(costing)}
-                          >
-                            Delete
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </DataCell>
-              </DataRow>
-            ))
-          )}
-        </DataTable>
-      </Card>
+            <CardBody className="flex flex-col gap-1.5">
+              {group.plans.map((plan) => (
+                <PlanRow
+                  key={plan.key}
+                  plan={plan}
+                  isOpen={open === plan.key}
+                  canManage={canManage}
+                  pending={pending}
+                  onToggle={() => setOpen(open === plan.key ? null : plan.key)}
+                  onCopy={setCopying}
+                  onDelete={setPendingDelete}
+                  onApply={setPendingApply}
+                />
+              ))}
+            </CardBody>
+          </Card>
+        ))
+      )}
 
       <CostingFormDialog
         open={formOpen}
@@ -264,11 +157,14 @@ export function CostingsScreen({
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        onOpenChange={(open) => !open && setPendingDelete(null)}
-        title="Delete this costing?"
+        onOpenChange={(next) => !next && setPendingDelete(null)}
+        title={pendingDelete?.isDraft ? 'Discard this draft?' : 'Delete this costing?'}
+        confirmLabel={pendingDelete?.isDraft ? 'Discard draft' : 'Delete'}
         description={
           pendingDelete
-            ? `The costing for ${describeScope(pendingDelete)} will be removed. Only a version nothing was costed from can be deleted.`
+            ? pendingDelete.isDraft
+              ? `The draft for ${describeScope(pendingDelete)} will be thrown away. Nothing has been quoted from it, and the version in force is untouched.`
+              : `The empty costing for ${describeScope(pendingDelete)} will be removed. It has no expense lines, so nothing was ever priced by it.`
             : ''
         }
         onConfirm={() => {
@@ -279,6 +175,272 @@ export function CostingsScreen({
           run(() => deleteCosting(target.id), () => setPendingDelete(null));
         }}
       />
+
+      {/*
+        * Applying is confirmed and deleting a draft is not, which is the right
+        * way round: throwing away figures nobody has been quoted is undoable by
+        * typing them again, while applying them closes the version before it
+        * and changes what the temple asks a family for.
+        */}
+      <ConfirmDialog
+        open={pendingApply !== null}
+        onOpenChange={(next) => !next && setPendingApply(null)}
+        title="Apply this costing?"
+        confirmLabel="Apply costing"
+        tone="default"
+        description={
+          pendingApply
+            ? `${describeScope(pendingApply)} will be quoted at ${formatCurrency(pendingApply.sponsorAmount)} from today. ` +
+              'The version it replaces is kept as the record of what the rate was until now.'
+            : ''
+        }
+        onConfirm={() => {
+          const target = pendingApply;
+
+          if (!target) return;
+
+          run(() => applyCosting(target.id), () => setPendingApply(null));
+        }}
+      />
     </>
+  );
+}
+
+interface PlanRowProps {
+  plan: CostingPlan;
+  isOpen: boolean;
+  /** Which version the reader clicked, if any. */
+  canManage: boolean;
+  pending: boolean;
+  onToggle: () => void;
+  onCopy: (costing: CostingRecord) => void;
+  onDelete: (costing: CostingRecord) => void;
+  onApply: (costing: CostingRecord) => void;
+}
+
+/**
+ * One plan, with its versions and their lines folded underneath.
+ *
+ * Opening it is reading, never editing. Finding what the kurukkal was paid in
+ * 2026 should not feel like the same gesture as changing it, so the figures
+ * open in place and Edit stays a page of its own.
+ */
+function PlanRow({
+  plan,
+  isOpen,
+  canManage,
+  pending,
+  onToggle,
+  onCopy,
+  onDelete,
+  onApply,
+}: PlanRowProps) {
+  const draft = draftOf(plan);
+  const applied = appliedVersions(plan);
+  // By status, not by an open end date: a draft has one of those too, and
+  // calling it the version in force would put figures nobody has agreed to
+  // where the screen says what the temple is quoting.
+  const current = applied.find((version) => version.isInForce) ?? null;
+  const removable = draft ?? (current && canDelete(current) ? current : null);
+
+  /*
+   * What is in force, else the draft, else the newest thing there is. A plan
+   * whose only costing is an unapplied draft still has to show the figures
+   * somebody typed rather than an empty row.
+   */
+  const shown = current ?? draft ?? plan.versions[0];
+
+  return (
+    <div className="rounded-lg border border-border bg-surface-2">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-2.5">
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-label={`${isOpen ? 'Hide' : 'Show'} versions of ${plan.scopeLabel}`}
+          className="flex items-center gap-2 text-left"
+          onClick={onToggle}
+        >
+          <ChevronRight
+            className={`size-4 shrink-0 text-text-muted transition-transform ${isOpen ? 'rotate-90' : ''}`}
+            aria-hidden
+          />
+        </button>
+
+        <button type="button" className="min-w-0 text-left" onClick={onToggle}>
+          <p className="truncate text-sm font-medium text-text-primary">
+            {plan.scopeLabel}
+          </p>
+
+          <p className="text-xs text-text-muted">
+            {applied.length === 0
+              ? 'Not applied yet'
+              : `${applied.length} version${applied.length === 1 ? '' : 's'}`}
+            {draft && applied.length > 0 && ' · draft waiting'}
+          </p>
+        </button>
+
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium tabular text-text-primary">
+            {current ? formatCurrency(current.sponsorAmount) : '—'}
+          </span>
+
+          {canManage && (draft || current) && (
+            <div className="flex items-center gap-1.5">
+              {/*
+                * One button carries the act, the rest go behind the menu.
+                *
+                * Four buttons in a row made every plan look equally urgent and
+                * the row unreadable at a glance. Applying is the only one that
+                * changes what a family is quoted, so it is the only one that
+                * earns a place on the surface — and only while there is a draft
+                * worth applying.
+                */}
+              {draft && (
+                <Button
+                  size="sm"
+                  disabled={pending || draft.lines.length === 0}
+                  title={
+                    draft.lines.length === 0
+                      ? 'This draft has no expense lines yet'
+                      : undefined
+                  }
+                  onClick={() => onApply(draft)}
+                >
+                  Apply
+                </Button>
+              )}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`More actions for ${plan.scopeLabel}`}
+                  >
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end" className="w-52">
+                  {/*
+                    * Edit goes to the draft once there is one. That is where a
+                    * save would land anyway, and sending the committee to the
+                    * version in force would let them type over figures they had
+                    * already revised without ever seeing the revision.
+                    */}
+                  <DropdownMenuItem asChild>
+                    <Link href={costingRoute((draft ?? current)!.id)}>
+                      {draft ? 'Edit draft' : 'Edit costing'}
+                    </Link>
+                  </DropdownMenuItem>
+
+                  {/*
+                    * Reachable without going through the editor. Reading what a
+                    * pooja used to cost is a question the committee asks far
+                    * more often than they change a figure, and routing it
+                    * through Edit put a page that can be typed into between
+                    * them and an answer.
+                    */}
+                  {applied.length > 0 && (
+                    <DropdownMenuItem asChild>
+                      <Link href={costingHistoryRoute((current ?? applied[0]).id)}>
+                        Version history
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  {current && (
+                    <DropdownMenuItem onSelect={() => onCopy(current)}>
+                      Copy to another instance
+                    </DropdownMenuItem>
+                  )}
+
+                  {/*
+                    * Only what never priced anything — a draft, or a costing
+                    * with no expense lines. Once figures have been applied the
+                    * row is the record of what the pooja cost while it was in
+                    * force, and the way past it is a new version.
+                    */}
+                  {removable && (
+                    <>
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onSelect={() => onDelete(removable)}
+                      >
+                        {removable.isDraft ? 'Discard draft' : 'Delete costing'}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="flex flex-col gap-2.5 border-t border-border px-3 py-3">
+          {/*
+            * What is in force on the chosen date, and nothing else.
+            *
+            * The version chips that used to sit here asked this list to be a
+            * history browser as well as a list of plans, and clicking one
+            * changed the figures underneath without changing the row's own
+            * heading. A plan reads as one rate; the versions behind it belong
+            * on the plan's own page, where there is room to say which is which.
+            */}
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-text-secondary">
+              <span className="font-medium text-text-primary">{versionLabel(shown)}</span>
+              <span className="tabular text-text-muted"> · {describePeriod(shown)}</span>
+            </span>
+
+            <StatusBadge status={costingBadge(shown)} />
+          </div>
+
+          {shown.lines.length === 0 ? (
+            <p className="py-3 text-center text-xs text-text-muted">
+              This version has no lines yet.
+            </p>
+          ) : (
+            <div className="flex flex-col">
+              {shown.lines.map((line) => (
+                <div
+                  key={line.id}
+                  className="grid grid-cols-[1fr_auto] items-baseline gap-3 border-b border-border py-1.5 last:border-b-0"
+                >
+                  <span className="min-w-0 truncate text-xs text-text-secondary">
+                    <span className="tabular">{line.account.code}</span> ·{' '}
+                    {lineTitle(line)}
+                    {line.partyName && (
+                      <span className="text-text-muted"> · {line.partyName}</span>
+                    )}
+                    {!line.chargedToSponsor && (
+                      <span className="text-text-muted"> · temple bears</span>
+                    )}
+                  </span>
+
+                  <span className="text-xs tabular text-text-primary">
+                    {formatCurrency(line.amount)}
+                  </span>
+                </div>
+              ))}
+
+              <div className="mt-1.5 grid grid-cols-[1fr_auto] items-baseline gap-3 border-t border-border pt-2">
+                <span className="text-xs font-semibold text-text-secondary">
+                  Sponsor is quoted
+                </span>
+
+                <span className="text-sm font-semibold tabular text-text-primary">
+                  {formatCurrency(shown.sponsorAmount)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

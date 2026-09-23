@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, History, Plus, Trash2 } from 'lucide-react';
 
 import {
   ActionError,
   Card,
   CardBody,
+  CardFooter,
   CardHeader,
+  ConfirmDialog,
   ReadOnlyNotice,
   StatCard,
   StatusBadge,
@@ -22,21 +24,22 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useServerAction } from '@/hooks/use-server-action';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { formatCurrency } from '@/lib/format';
 import { validate } from '@/lib/validation';
 
-import { updateCosting } from '../../lib/costing-actions';
+import { applyCosting, updateCosting } from '../../lib/costing-actions';
 import {
   costingBadge,
   describePeriod,
+  versionLabel,
   describeScope,
   describeScopeReach,
   isReadOnly,
   revisionNotice,
 } from '../../lib/costing-data';
 import { costingLinesSchema } from '../../lib/costing-schemas';
-import { costingRoute, EVENT_ROUTES } from '../../lib/routes';
+import { costingHistoryRoute, costingRoute, EVENT_ROUTES } from '../../lib/routes';
 import type { CostingLineDraft, CostingRecord } from '../../types/costing';
 
 interface AccountOption {
@@ -54,13 +57,11 @@ const NONE = '__none__';
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
-/** An item's amount follows from its quantity; a heading with items is their sum. */
+/** A heading with items is their sum; one without carries its own figure. */
 function lineTotal(line: CostingLineDraft): number {
   if (line.items.length === 0) return line.amount;
 
-  return round2(
-    line.items.reduce((total, item) => total + item.quantity * item.unitAmount, 0),
-  );
+  return round2(line.items.reduce((total, item) => total + item.amount, 0));
 }
 
 function draftFrom(costing: CostingRecord): CostingLineDraft[] {
@@ -70,11 +71,7 @@ function draftFrom(costing: CostingRecord): CostingLineDraft[] {
     label: line.label,
     amount: line.amount,
     chargedToSponsor: line.chargedToSponsor,
-    items: line.items.map((item) => ({
-      label: item.label,
-      quantity: item.quantity,
-      unitAmount: item.unitAmount,
-    })),
+    items: line.items.map((item) => ({ label: item.label, amount: item.amount })),
   }));
 }
 
@@ -98,10 +95,31 @@ export function CostingEditorScreen({
   const [error, setError] = useState<string | null>(null);
 
   const { run, error: actionError, pending } = useServerAction();
+  const router = useRouter();
+  const [applying, setApplying] = useState(false);
+
+  /*
+   * Every version but this one. Listing the page you are already on invites a
+   * click that goes nowhere, and the header above already says which it is.
+   */
+  const earlier = history.filter((version) => version.id !== costing.id);
 
   const readOnly = isReadOnly(costing);
   const editable = canManage && !readOnly;
-  const notice = revisionNotice(costing, new Date().toISOString().slice(0, 10));
+  const notice = revisionNotice(costing);
+
+  /*
+   * What was loaded, kept to compare against. Save asks the committee to commit
+   * to a change, so it has no business being available when there is none —
+   * pressing it would write a draft identical to the version in force and put
+   * an Apply in front of them that would change nothing.
+   */
+  const [saved, setSaved] = useState(() => JSON.stringify(draftFrom(costing)));
+  const dirty = JSON.stringify(lines) !== saved;
+
+  // An empty costing prices nothing, and the API refuses to apply one. Better
+  // to say so on a disabled button than to let the press fail.
+  const applicable = costing.isDraft && lines.length > 0 && !dirty;
 
   /*
    * Everything below is added up here, live, from the same lines the server
@@ -121,6 +139,12 @@ export function CostingEditorScreen({
     );
   }
 
+  /*
+   * Saving the version in force writes to that scope's draft, which is a row
+   * this page is not on. Following it is the whole difference between "my edit
+   * vanished" and "my edit is waiting to be applied" — the figures here really
+   * are unchanged, because not changing them is the point.
+   */
   function handleSave() {
     const result = validate(costingLinesSchema, lines);
 
@@ -130,7 +154,22 @@ export function CostingEditorScreen({
     }
 
     setError(null);
-    run(() => updateCosting(costing.id, { lines: result.data as CostingLineDraft[] }));
+
+    run(async () => {
+      const written = await updateCosting(costing.id, {
+        lines: result.data as CostingLineDraft[],
+      });
+
+      if (written.ok) {
+        if (written.costingId !== undefined && written.costingId !== costing.id) {
+          router.replace(costingRoute(written.costingId));
+        } else {
+          setSaved(JSON.stringify(lines));
+        }
+      }
+
+      return written;
+    });
   }
 
   return (
@@ -154,7 +193,7 @@ export function CostingEditorScreen({
             </div>
 
             <p className="text-sm text-text-secondary">
-              {describeScopeReach(costing)} · {describePeriod(costing)}
+              {versionLabel(costing)} · {describeScopeReach(costing)} · {describePeriod(costing)}
             </p>
           </div>
 
@@ -165,15 +204,62 @@ export function CostingEditorScreen({
                 Add line
               </Button>
 
-              <Button onClick={handleSave} disabled={pending}>
+              {/*
+                * Disabled until something has actually changed. Saving an
+                * unchanged costing would write a draft identical to the version
+                * in force and then offer to apply it, which is a version that
+                * records a decision nobody made.
+                */}
+              <Button
+                variant="outline"
+                onClick={handleSave}
+                disabled={pending || !dirty}
+                title={dirty ? undefined : 'Nothing has changed yet'}
+              >
                 Save
               </Button>
+
+              {/*
+                * Only on the draft. Applying is the act that changes what a
+                * family is asked for, so it belongs on the row that is waiting
+                * to become the rate, never on the one already being quoted.
+                */}
+              {costing.isDraft && (
+                <Button
+                  onClick={() => setApplying(true)}
+                  disabled={pending || !applicable}
+                  title={
+                    lines.length === 0
+                      ? 'Add an expense line first'
+                      : dirty
+                        ? 'Save your changes first'
+                        : undefined
+                  }
+                >
+                  Apply costing
+                </Button>
+              )}
             </div>
           )}
         </div>
       </div>
 
       <ActionError message={actionError} />
+
+      <ConfirmDialog
+        open={applying}
+        onOpenChange={setApplying}
+        title="Apply this costing?"
+        confirmLabel="Apply costing"
+        tone="default"
+        description={`${describeScope(costing)} will be quoted at ${formatCurrency(costing.sponsorAmount)} from today. The version it replaces is kept as the record of what the rate was until now.`}
+        onConfirm={() => {
+          run(() => applyCosting(costing.id), () => {
+            setApplying(false);
+            router.replace(EVENT_ROUTES.costings);
+          });
+        }}
+      />
 
       {readOnly && (
         <ReadOnlyNotice message="This version was replaced by a later one. It is kept as it stands, because it is the answer to what this pooja cost that year." />
@@ -240,12 +326,13 @@ export function CostingEditorScreen({
       </Card>
 
       {/*
-        * What this pooja cost in earlier years.
+        * What this pooja cost before now.
         *
         * Only shown once there is a second version, because a costing written
         * this week has no history to read and an empty card saying so is noise.
+        * The current version is not listed: it is the page you are on.
         */}
-      {history.length > 1 && (
+      {earlier.length > 0 && (
         <Card>
           <CardHeader
             title="Earlier versions"
@@ -253,18 +340,15 @@ export function CostingEditorScreen({
           />
 
           <CardBody className="flex flex-col gap-1.5">
-            {history.map((version) => (
+            {earlier.map((version) => (
               <Link
                 key={version.id}
-                href={costingRoute(version.id)}
-                className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors hover:border-input ${
-                  version.id === costing.id
-                    ? 'border-accent bg-surface-2'
-                    : 'border-border bg-surface-2'
-                }`}
+                href={costingHistoryRoute(costing.id)}
+                className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-left transition-colors hover:border-input"
               >
-                <span className="text-xs tabular text-text-secondary">
-                  {describePeriod(version)}
+                <span className="text-xs text-text-secondary">
+                  <span className="font-medium text-text-primary">{versionLabel(version)}</span>
+                  <span className="tabular text-text-muted"> · {describePeriod(version)}</span>
                   {version.usedByEvents > 0 && (
                     <span className="text-text-muted">
                       {' '}
@@ -282,6 +366,15 @@ export function CostingEditorScreen({
               </Link>
             ))}
           </CardBody>
+
+          <CardFooter>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={costingHistoryRoute(costing.id)}>
+                <History />
+                Open version history
+              </Link>
+            </Button>
+          </CardFooter>
         </Card>
       )}
 
@@ -459,7 +552,7 @@ function LineEditor({
             className="text-xs"
             onClick={() =>
               onChange({
-                items: [...line.items, { label: '', quantity: 1, unitAmount: 0 }],
+                items: [...line.items, { label: '', amount: 0 }],
               })
             }
           >
@@ -474,7 +567,7 @@ function LineEditor({
           {line.items.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-[minmax(0,1fr)_4.5rem_6rem_6rem_auto] items-center gap-2"
+              className="grid grid-cols-[minmax(0,1fr)_8rem_auto] items-center gap-2"
             >
               <Input
                 aria-label="Item"
@@ -486,38 +579,24 @@ function LineEditor({
                 }
               />
 
-              <Input
-                type="number"
-                min={0}
-                step="0.001"
-                aria-label="Quantity"
-                placeholder="Qty"
-                className="text-right"
-                disabled={!editable}
-                value={item.quantity || ''}
-                onChange={(changeEvent) =>
-                  patchItem(index, { quantity: Number(changeEvent.target.value) || 0 })
-                }
-              />
-
+              {/*
+                * The figure itself. The temple agrees what a part of a head
+                * comes to; it does not price by the coconut, so there is no
+                * quantity to multiply and no third number to disagree.
+                */}
               <Input
                 type="number"
                 min={0}
                 step="0.01"
-                aria-label="Price each"
-                placeholder="Each"
+                aria-label="Item amount"
+                placeholder="Amount"
                 className="text-right"
                 disabled={!editable}
-                value={item.unitAmount || ''}
+                value={item.amount || ''}
                 onChange={(changeEvent) =>
-                  patchItem(index, { unitAmount: Number(changeEvent.target.value) || 0 })
+                  patchItem(index, { amount: Number(changeEvent.target.value) || 0 })
                 }
               />
-
-              {/* Quantity times price. There is nothing here to type. */}
-              <span className="text-right text-sm tabular text-text-secondary">
-                {formatCurrency(round2(item.quantity * item.unitAmount))}
-              </span>
 
               {editable && (
                 <Button

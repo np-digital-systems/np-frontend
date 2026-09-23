@@ -6,4 +6,5 @@ export {
   CostingsFeature,
   CostingEditorFeature,
   EventBudgetFeature,
+  VersionHistoryFeature,
 } from './costings';

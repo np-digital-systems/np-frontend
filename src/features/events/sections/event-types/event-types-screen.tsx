@@ -11,13 +11,11 @@ import {
 } from '../../lib/event-actions';
 
 import { useMemo, useState } from 'react';
-import { Plus, Search, Tag } from 'lucide-react';
+import { Plus, Search, Tag, X } from 'lucide-react';
 
 import {
   ActionError,
   Card,
-  CardBody,
-  CardHeader,
   ConfirmDialog,
   DataCell,
   DataRow,
@@ -33,6 +31,13 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import { EventName } from '../../components/event-name';
 import {
@@ -40,18 +45,24 @@ import {
   type EventTypeDraft,
 } from '../../components/event-type-form-dialog';
 import { FrequencyBadge } from '../../components/frequency-badge';
-import { INSTANCE_MEANING, FREQUENCY_LABELS, FREQUENCY_TYPES } from '../../lib/event-data';
+import { FREQUENCY_LABELS, FREQUENCY_TYPES } from '../../lib/event-data';
 import { EventSlotsDialog } from '../../components/event-slots-dialog';
-import type { EventSlot, EventTypeRecord } from '../../types';
+import type { EventSlot, EventTypeRecord, FrequencyType } from '../../types';
 
 import type { ActivityRef } from '@/features/accounting/types';
 
-const COLUMNS: DataColumn[] = [
+/*
+ * The year rides on the column it qualifies. It used to be said once in the
+ * card's heading — "scheduling shown for 2026" — and taking that heading away
+ * to match the other registries would have left a count of dated events with
+ * nothing saying which year they were dated in.
+ */
+const columnsFor = (year: number): DataColumn[] => [
   { key: 'name', label: 'Event Type' },
   { key: 'frequency', label: 'Frequency' },
   { key: 'instances', label: 'Instances', align: 'right' },
   { key: 'slots', label: 'Sponsor Slots', align: 'right' },
-  { key: 'scheduled', label: 'Scheduled', align: 'right' },
+  { key: 'scheduled', label: `${year} Scheduled`, align: 'right' },
   { key: 'actions', label: 'Actions', align: 'right', srOnly: true },
 ];
 
@@ -67,7 +78,10 @@ export function EventTypesScreen({
   year,
 }: EventTypesScreenProps) {
   const types = initialTypes;
+  const columns = useMemo(() => columnsFor(year), [year]);
+
   const [query, setQuery] = useState('');
+  const [frequency, setFrequency] = useState<FrequencyType | 'all'>('all');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<EventTypeRecord | null>(null);
   const [slotsOf, setSlotsOf] = useState<EventTypeRecord | null>(null);
@@ -84,14 +98,16 @@ export function EventTypesScreen({
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    if (!needle) return types;
+    return types.filter((type) => {
+      if (frequency !== 'all' && type.frequencyType !== frequency) return false;
 
-    return types.filter((type) =>
-      `${type.name} ${type.nameEn} ${FREQUENCY_LABELS[type.frequencyType]}`
+      if (!needle) return true;
+
+      return `${type.name} ${type.nameEn} ${FREQUENCY_LABELS[type.frequencyType]}`
         .toLowerCase()
-        .includes(needle),
-    );
-  }, [types, query]);
+        .includes(needle);
+    });
+  }, [types, query, frequency]);
 
   const totalInstances = types.reduce(
     (sum, type) => sum + type.noOfInstances,
@@ -103,7 +119,7 @@ export function EventTypesScreen({
     setFormOpen(true);
   }
 
-  const { run, error: actionError } = useServerAction();
+  const { run, error: actionError, pending } = useServerAction();
 
   function handleSubmit(draft: EventTypeDraft) {
     const target = editing;
@@ -137,15 +153,7 @@ export function EventTypesScreen({
     <>
       <PortalPageHeader
         title="Event Types"
-        description="The permanent registry of recurring poojas and festivals. Every calendar entry is an instance of one of these."
-        meta={[
-          <span key="types" className="tabular">
-            {types.length} event types
-          </span>,
-          <span key="instances" className="tabular">
-            {totalInstances} instances a year
-          </span>,
-        ]}
+        description="Every recurring pooja and festival the temple keeps."
         actions={
           <Button onClick={openCreate}>
             <Plus />
@@ -156,32 +164,65 @@ export function EventTypesScreen({
 
       <ActionError message={actionError} />
 
-      <InstanceReference />
+      {/*
+        * The same toolbar the calendar and the sponsorships list carry: search
+        * on the left, the filters beside it, the table in a plain card below.
+        * It sat inside the card's own heading here, which made this the one
+        * registry in the portal that looked like a different application.
+        */}
+      <div className="flex flex-wrap items-center gap-2">
+        <InputGroup className="w-full sm:w-64">
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+
+          <InputGroupInput
+            type="search"
+            value={query}
+            placeholder="Search event types…"
+            aria-label="Search event types"
+            onChange={(changeEvent) => setQuery(changeEvent.target.value)}
+          />
+        </InputGroup>
+
+        <Select
+          value={frequency}
+          onValueChange={(value) => setFrequency(value as FrequencyType | 'all')}
+        >
+          <SelectTrigger aria-label="Filter by frequency">
+            <SelectValue />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">All frequencies</SelectItem>
+
+            {FREQUENCY_TYPES.map((option) => (
+              <SelectItem key={option} value={option}>
+                {FREQUENCY_LABELS[option]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {(query.trim() !== '' || frequency !== 'all') && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setQuery('');
+              setFrequency('all');
+            }}
+          >
+            <X />
+            Clear
+          </Button>
+        )}
+      </div>
 
       <Card>
-        <CardHeader
-          title="Registry"
-          description={`Sponsor slots and scheduling shown for ${year}`}
-          action={
-            <InputGroup className="w-full sm:w-56">
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
-
-              <InputGroupInput
-                type="search"
-                value={query}
-                placeholder="Search event types…"
-                aria-label="Search event types"
-                onChange={(changeEvent) => setQuery(changeEvent.target.value)}
-              />
-            </InputGroup>
-          }
-        />
-
-        <DataTable columns={COLUMNS} minWidth={820}>
+        <DataTable columns={columns} minWidth={820}>
           {filtered.length === 0 ? (
-            <DataTableEmpty colSpan={COLUMNS.length}>
+            <DataTableEmpty colSpan={columns.length}>
               <EmptyState
                 icon={Tag}
                 title={
@@ -230,16 +271,17 @@ export function EventTypesScreen({
                 <DataCell align="right" nowrap>
                   <div className="flex items-center justify-end gap-1.5">
                     {/*
-                      * The slots are the structure of this pooja's year, so
-                      * they are opened from the type itself — the one place a
-                      * slot can be named before any date or sponsor exists.
+                      * Named from the type itself: this is the one place an
+                      * instance can be named before any date or sponsor for it
+                      * exists. "Names" rather than "Slots" because naming is
+                      * the only thing the dialog does.
                       */}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => openSlots(type)}
                     >
-                      Slots
+                      Names
                     </Button>
 
                     <Button
@@ -283,10 +325,30 @@ export function EventTypesScreen({
         eventType={slotsOf}
         slots={slots}
         canManage
-        onRename={(slotId, customInstanceName) => {
-          run(() => updateEventSlot(slotId, { customInstanceName }), async () => {
-            if (slotsOf) setSlots(await loadEventSlots(slotsOf.id));
-          });
+        pending={pending}
+        onSave={(changes) => {
+          /*
+           * One write per changed name, stopping at the first refusal. A batch
+           * endpoint would be tidier, but the committee names a year in one
+           * sitting and then leaves it alone: this runs two or three times on
+           * the day a festival is set up and never again.
+           */
+          run(
+            async () => {
+              for (const change of changes) {
+                const result = await updateEventSlot(change.slotId, {
+                  customInstanceName: change.customInstanceName,
+                });
+
+                if (!result.ok) return result;
+              }
+
+              return { ok: true as const };
+            },
+            async () => {
+              if (slotsOf) setSlots(await loadEventSlots(slotsOf.id));
+            },
+          );
         }}
       />
 
@@ -302,28 +364,5 @@ export function EventTypesScreen({
         onConfirm={handleDelete}
       />
     </>
-  );
-}
-
-function InstanceReference() {
-  return (
-    <Card>
-      <CardHeader
-        title="How instances are numbered"
-        description="The instance number on an event means something different for each frequency."
-      />
-
-      <CardBody className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-        {FREQUENCY_TYPES.map((frequency) => (
-          <div key={frequency} className="flex flex-col gap-1">
-            <FrequencyBadge frequency={frequency} className="self-start" />
-
-            <p className="text-xs leading-snug text-text-secondary">
-              {INSTANCE_MEANING[frequency]}
-            </p>
-          </div>
-        ))}
-      </CardBody>
-    </Card>
   );
 }

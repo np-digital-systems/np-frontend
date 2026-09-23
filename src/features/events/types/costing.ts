@@ -17,9 +17,7 @@ export interface CostingItem {
   readonly id: number;
   readonly lineNo: number;
   readonly label: string;
-  readonly quantity: number;
-  readonly unitAmount: number;
-  /** Quantity times the unit price. Never typed. */
+  /** What this part of the head comes to. The heading is these added up. */
   readonly amount: number;
 }
 
@@ -46,9 +44,19 @@ export interface CostingRecord {
   /** Null covers every instance of the type. */
   readonly slotId: number | null;
   readonly slotLabel: string | null;
-  readonly effectiveFrom: string;
+  /**
+   * The instant it took over, as an ISO timestamp. Null means it has always
+   * applied: the first version this scope ever had.
+   */
+  readonly effectiveFrom: string | null;
+  /** The instant its successor took over. Null means still in force. */
   readonly effectiveTo: string | null;
-  /** Nothing switches a costing on: the one still open is the one in force. */
+  /** 1, 2, 3 within the scope. Null while it is still a draft. */
+  readonly versionNo: number | null;
+  /** A draft prices nothing until the committee applies it. */
+  readonly status: CostingStatus;
+  readonly isDraft: boolean;
+  /** The version being quoted from today. A draft is not one, open end or not. */
   readonly isInForce: boolean;
   /** The lines charged to the sponsor, added up. */
   readonly sponsorAmount: number;
@@ -119,8 +127,7 @@ export interface EventBudget {
  */
 export interface CostingItemDraft {
   label: string;
-  quantity: number;
-  unitAmount: number;
+  amount: number;
 }
 
 export interface CostingLineDraft {
@@ -132,6 +139,14 @@ export interface CostingLineDraft {
   chargedToSponsor: boolean;
   items: CostingItemDraft[];
 }
+
+/**
+ * Where a costing stands.
+ *
+ * Spelled as the API sends it, camel case and all, so that no mapping step sits
+ * between the two and quietly falls out of date.
+ */
+export type CostingStatus = 'draft' | 'inForce' | 'superseded';
 
 /** One head an occurrence is expected to spend on. */
 export interface ExpectedLine {
@@ -152,3 +167,4 @@ export interface ExpectedAmounts {
   readonly sponsorAmount: number | null;
   readonly lines: readonly ExpectedLine[];
 }
+

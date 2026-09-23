@@ -3,20 +3,16 @@ import { z } from 'zod';
 import { isoDate, optionalText, requiredText } from '@/lib/validation';
 
 /**
- * An item is a quantity at a price.
+ * An item is a name and a figure.
  *
- * That is how the temple buys — ten coconuts at 120 — so both halves are asked
- * for and the amount follows from them. There is no amount to type, and so no
- * way for the three figures to disagree.
+ * The committee agrees what a head comes to and, where it helps, what the parts
+ * of it are. They do not price by the coconut, so nothing here asks them to.
  */
 export const costingItemSchema = z.object({
   label: requiredText('An item name', 160),
-  quantity: z
-    .number({ message: 'A quantity must be a number.' })
-    .positive('A quantity must be greater than zero.'),
-  unitAmount: z
-    .number({ message: 'A unit price must be a number.' })
-    .positive('A unit price must be greater than zero.'),
+  amount: z
+    .number({ message: 'An item amount must be a number.' })
+    .positive('An item amount must be greater than zero.'),
 });
 
 /**

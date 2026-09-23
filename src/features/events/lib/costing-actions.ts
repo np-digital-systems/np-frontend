@@ -71,19 +71,45 @@ export async function createCosting(input: CostingInput): Promise<ActionResult> 
 }
 
 /**
- * Save a costing.
+ * Save a costing. It becomes a draft, and prices nothing until it is applied.
  *
- * One nobody has quoted from is corrected in place. One that has already priced
- * an occurrence is kept as it stands and a new version opened from today, so
- * the family quoted last year goes on being owed what they were told.
+ * Editing a draft rewrites it. Editing the version in force leaves that version
+ * exactly as it is and writes the figures to that scope's draft instead, so the
+ * family being quoted today goes on being quoted what they were told.
+ *
+ * Which is why this one returns an id. The row the temple typed into is not
+ * always the row that was written, and a screen that assumed it was would show
+ * the edit disappearing: the version in force is genuinely unchanged, and the
+ * change is sitting on a draft the page is not looking at.
  */
 export async function updateCosting(
   id: number,
   input: { notes?: string | null; lines?: CostingLineDraft[] },
-): Promise<ActionResult> {
-  return guarded((access) => access.canManageCostings, CANNOT_MANAGE, () =>
-    api.patch(`/event-costings/${id}`, { ...input, notes: input.notes || undefined }),
-  );
+): Promise<ActionResult & { costingId?: number }> {
+  const { permissions } = await requireSession();
+
+  if (!getEventAccess(permissions).canManageCostings) {
+    return { ok: false, message: CANNOT_MANAGE };
+  }
+
+  try {
+    const saved = await api.patch<{ id: number }>(`/event-costings/${id}`, {
+      ...input,
+      notes: input.notes || undefined,
+    });
+
+    for (const route of Object.values(EVENT_ROUTES)) revalidatePath(route);
+
+    revalidatePath(EVENT_ROUTES.costings, 'layout');
+
+    return { ok: true, costingId: saved.id };
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof ApiError ? error.message : 'The portal could not reach the server.',
+    };
+  }
 }
 
 /** Day two of a festival is day one with three figures changed. */
@@ -96,6 +122,19 @@ export async function copyCosting(
       slotId: input.slotId ?? undefined,
       effectiveFrom: input.effectiveFrom || undefined,
     }),
+  );
+}
+
+/**
+ * Put a draft into force. This is the act that changes what a sponsor is asked.
+ *
+ * Saving figures and deciding they now apply are separate on purpose: the first
+ * is worth doing freely, and the second closes the version before it and is
+ * what a year-by-year report reads as the day the rate changed.
+ */
+export async function applyCosting(id: number): Promise<ActionResult> {
+  return guarded((access) => access.canManageCostings, CANNOT_MANAGE, () =>
+    api.post(`/event-costings/${id}/apply`, {}),
   );
 }
 
@@ -114,37 +153,6 @@ export interface MovementInput {
   manualVoucherNo: string;
 }
 
-export async function raiseEventReceipt(
-  eventId: number,
-  input: MovementInput & { amount?: number },
-): Promise<ActionResult> {
-  return guarded((access) => access.canRaiseEventVouchers, 'You cannot raise receipts.', () =>
-    api.post(`/events/${eventId}/vouchers/receipt`, {
-      ...input,
-      bankAccountId: input.bankAccountId ?? undefined,
-      chequeNo: input.chequeNo || undefined,
-    }),
-  );
-}
-
-export async function raiseEventPayment(
-  eventId: number,
-  input: MovementInput & {
-    lines: { budgetLineId: number; amount?: number }[];
-    partyId?: number | null;
-    party?: string;
-  },
-): Promise<ActionResult> {
-  return guarded((access) => access.canRaiseEventVouchers, 'You cannot raise payments.', () =>
-    api.post(`/events/${eventId}/vouchers/payment`, {
-      ...input,
-      bankAccountId: input.bankAccountId ?? undefined,
-      chequeNo: input.chequeNo || undefined,
-      partyId: input.partyId ?? undefined,
-      party: input.party || undefined,
-    }),
-  );
-}
 
 /**
  * The budget for one occurrence, read from a client component.
@@ -170,3 +178,4 @@ export async function loadExpectedAmounts(eventId: number): Promise<ExpectedAmou
 
   return api.get<ExpectedAmounts>(`/events/${eventId}/expected`);
 }
+

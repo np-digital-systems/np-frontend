@@ -6,11 +6,12 @@ export {
   CostingsFeature,
   CostingEditorFeature,
   EventBudgetFeature,
+  VersionHistoryFeature,
 } from './sections';
 
 export { getEventAccess, type EventAccess } from './lib/event-access';
 
-export { EVENT_ROUTES, costingRoute, eventBudgetRoute } from './lib/routes';
+export { EVENT_ROUTES, costingRoute, costingHistoryRoute, eventBudgetRoute } from './lib/routes';
 
 export {
   getApplicableCosting,
