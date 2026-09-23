@@ -91,11 +91,7 @@ export function EventsCalendar({
 
   const summary = useMemo(() => summarise(events, today), [events, today]);
 
-  const overdueCount = useMemo(
-    () => events.filter((event) => isOverdue(event, today)).length,
-    [events, today],
-  );
-
+ 
   function openCreate() {
     setEditing(null);
     setFormOpen(true);
@@ -154,19 +150,7 @@ export function EventsCalendar({
       <PortalPageHeader
         title="Event Calendar"
         description="Every pooja, festival day and recurring observance scheduled for the temple year."
-        meta={[
-          <span key="year" className="tabular">
-            Calendar year {year}
-          </span>,
-          <span key="count" className="tabular">
-            {summary.total} scheduled
-          </span>,
-          overdueCount > 0 ? (
-            <span key="overdue" className="text-warning tabular">
-              {overdueCount} awaiting closing
-            </span>
-          ) : null,
-        ].filter(Boolean)}
+    
         actions={
           <>
             {access.canExport && (
@@ -190,7 +174,7 @@ export function EventsCalendar({
 
       {!access.canWrite && <ReadOnlyNotice message={READ_ONLY_MESSAGE} />}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-3 gap-4 lg:grid-cols-3">
         <StatCard
           label="Total Events"
           value={String(summary.total)}
@@ -205,11 +189,6 @@ export function EventsCalendar({
           label="Completed"
           value={String(summary.completed)}
           caption="Closed and recorded"
-        />
-        <StatCard
-          label="Unsponsored"
-          value={String(summary.unsponsored)}
-          caption="Slots awaiting a devotee"
         />
       </div>
 
