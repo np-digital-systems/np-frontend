@@ -10,7 +10,7 @@ import {
 } from '../../lib/sponsor-actions';
 
 import { useMemo, useState } from 'react';
-import { Handshake, Search, UserRoundPlus } from 'lucide-react';
+import { ChevronRight, Handshake, Search, UserRoundPlus, X } from 'lucide-react';
 
 import {
   ActionError,
@@ -32,6 +32,13 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import { EventName } from '../../components/event-name';
 import { FrequencyBadge } from '../../components/frequency-badge';
@@ -40,7 +47,13 @@ import {
   type SponsorDraft,
 } from '../../components/sponsor-form-dialog';
 import type { EventAccess } from '../../lib/event-access';
-import type { EventType, SponsorAssignment, SponsorParty } from '../../types';
+import { FREQUENCY_LABELS, FREQUENCY_TYPES } from '../../lib/event-data';
+import type {
+  EventType,
+  FrequencyType,
+  SponsorAssignment,
+  SponsorParty,
+} from '../../types';
 
 interface SponsorsScreenProps {
   initialSponsors: readonly SponsorAssignment[];
@@ -72,6 +85,13 @@ export function SponsorsScreen({
   );
 
   const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<number | 'all'>('all');
+  /*
+   * Shut bands rather than open ones, so a pooja added later arrives open.
+   * Tracking the open ones would hide every new type until somebody found it.
+   */
+  const [shut, setShut] = useState<ReadonlySet<number>>(() => new Set());
+  const [frequency, setFrequency] = useState<FrequencyType | 'all'>('all');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SponsorAssignment | null>(null);
   const [pendingRemove, setPendingRemove] = useState<SponsorAssignment | null>(
@@ -81,21 +101,62 @@ export function SponsorsScreen({
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    if (!needle) return assignments;
+    return assignments.filter((assignment) => {
+      if (typeFilter !== 'all' && assignment.eventTypeId !== typeFilter) return false;
 
-    return assignments.filter((assignment) =>
-      `${assignment.eventType.name} ${assignment.eventType.nameEn} ${assignment.instanceLabel} ${assignment.sponsor.name}`
+      if (frequency !== 'all' && assignment.eventType.frequencyType !== frequency) {
+        return false;
+      }
+
+      if (!needle) return true;
+
+      return `${assignment.eventType.name} ${assignment.eventType.nameEn} ${assignment.instanceLabel} ${assignment.sponsor.name}`
         .toLowerCase()
-        .includes(needle),
-    );
-  }, [assignments, query]);
+        .includes(needle);
+    });
+  }, [assignments, query, typeFilter, frequency]);
+
+  /*
+   * The sponsorships of one pooja, kept together.
+   *
+   * A flat list repeated the pooja's name on every row and left the reader to
+   * spot where one ended and the next began — நாலாம் வாரம் under வெள்ளி
+   * அபிஷேகம் reads as an instance; on its own it reads as nothing. The type is
+   * said once, in the band, and the rows beneath it carry only what differs.
+   */
+  const groups = useMemo(() => {
+    const byType = new Map<number, SponsorAssignment[]>();
+
+    for (const assignment of filtered) {
+      const existing = byType.get(assignment.eventTypeId);
+
+      if (existing) existing.push(assignment);
+      else byType.set(assignment.eventTypeId, [assignment]);
+    }
+
+    return [...byType.values()];
+  }, [filtered]);
+
+  const toggleBand = (eventTypeId: number) =>
+    setShut((current) => {
+      const next = new Set(current);
+
+      if (next.has(eventTypeId)) next.delete(eventTypeId);
+      else next.add(eventTypeId);
+
+      return next;
+    });
+
+  const clearFilters = () => {
+    setQuery('');
+    setTypeFilter('all');
+    setFrequency('all');
+  };
+
+  const filtering = query.trim() !== '' || typeFilter !== 'all' || frequency !== 'all';
 
   const distinctSponsors = new Set(
     assignments.map((assignment) => assignment.partyId),
-  ).size;
-
-  const coveredTypes = new Set(
-    assignments.map((assignment) => assignment.eventTypeId),
   ).size;
 
   const { run, error: actionError } = useServerAction();
@@ -138,10 +199,13 @@ export function SponsorsScreen({
     run(() => removeSponsor(target.id), () => setPendingRemove(null));
   }
 
+  /*
+   * No event type column and no frequency column: both are the same on every
+   * row of a band, and a column that never changes within what the reader is
+   * looking at is a column carrying no information.
+   */
   const columns: DataColumn[] = [
-    { key: 'event-type', label: 'Event Type' },
     { key: 'instance', label: 'Instance' },
-    { key: 'frequency', label: 'Frequency' },
     { key: 'sponsor', label: 'Sponsor' },
     ...(access.canSeeSponsorContact
       ? [{ key: 'contact', label: 'Contact' } as const]
@@ -154,20 +218,14 @@ export function SponsorsScreen({
 
   return (
     <>
+      {/*
+        * No meta line. The cards below already carry these counts, and a
+        * heading that repeats them makes the reader check whether the two
+        * agree instead of reading either.
+        */}
       <PortalPageHeader
         title="Pooja Sponsorships"
-        description="Which sponsor has taken which observance. Sponsors themselves are enrolled on the sponsor register; this places them against a pooja."
-        meta={[
-          <span key="assignments" className="tabular">
-            {assignments.length} sponsorships
-          </span>,
-          <span key="sponsors" className="tabular">
-            {distinctSponsors} sponsors
-          </span>,
-          <span key="types" className="tabular">
-            {coveredTypes} event types covered
-          </span>,
-        ]}
+        description="Which sponsor has taken which pooja."
         actions={
           access.canManageSponsors && (
             <Button
@@ -189,21 +247,16 @@ export function SponsorsScreen({
         <ReadOnlyNotice message="You can see who sponsors each event type. Registering and changing sponsors is restricted to administrators." />
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           label="Sponsorships"
           value={String(assignments.length)}
-          caption="Sponsors on an event type"
+          caption="Sponsors placed against a pooja"
         />
         <StatCard
           label="Active Sponsors"
           value={String(distinctSponsors)}
           caption="Devotees and trusts"
-        />
-        <StatCard
-          label="Event Types Covered"
-          value={`${coveredTypes} / ${sponsorableTypes.length}`}
-          caption="Have at least one sponsor"
         />
         <StatCard
           label="Unsponsored Events"
@@ -212,22 +265,66 @@ export function SponsorsScreen({
         />
       </div>
 
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end">
+      <div className="flex flex-wrap items-center gap-2">
+        <InputGroup className="w-full sm:w-64">
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
 
-          <InputGroup className="w-full sm:w-64">
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
+          <InputGroupInput
+            type="search"
+            value={query}
+            placeholder="Search sponsors or poojas…"
+            aria-label="Search registered sponsors"
+            onChange={(changeEvent) => setQuery(changeEvent.target.value)}
+          />
+        </InputGroup>
 
-            <InputGroupInput
-              type="search"
-              value={query}
-              placeholder="Search sponsors or event types…"
-              aria-label="Search registered sponsors"
-              onChange={(changeEvent) => setQuery(changeEvent.target.value)}
-            />
-          </InputGroup>
-        </div>
+        <Select
+          value={typeFilter === 'all' ? 'all' : String(typeFilter)}
+          onValueChange={(value) => setTypeFilter(value === 'all' ? 'all' : Number(value))}
+        >
+          <SelectTrigger aria-label="Filter by event type">
+            <SelectValue />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">All poojas</SelectItem>
+
+            {sponsorableTypes.map((type) => (
+              <SelectItem key={type.id} value={String(type.id)}>
+                {type.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={frequency}
+          onValueChange={(value) => setFrequency(value as FrequencyType | 'all')}
+        >
+          <SelectTrigger aria-label="Filter by frequency">
+            <SelectValue />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">All frequencies</SelectItem>
+
+            {FREQUENCY_TYPES.map((option) => (
+              <SelectItem key={option} value={option}>
+                {FREQUENCY_LABELS[option]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {filtering && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X />
+            Clear
+          </Button>
+        )}
+      </div>
 
           <Card>
             <DataTable columns={columns} minWidth={access.canSeeSponsorContact ? 1000 : 840}>
@@ -238,25 +335,26 @@ export function SponsorsScreen({
                     title={
                       assignments.length === 0
                         ? 'No sponsors registered yet'
-                        : 'No sponsors match that search'
+                        : 'No sponsorships match these filters'
                     }
                     description={
                       assignments.length === 0
-                        ? 'Register devotees against the event types they sponsor.'
-                        : 'Try a different name or clear the search.'
+                        ? 'Register devotees against the poojas they sponsor.'
+                        : 'Try a different name, or clear the filters.'
                     }
                   />
                 </DataTableEmpty>
               ) : (
-                filtered.map((assignment) => (
+                groups.map((group) => (
+                  <TypeBand
+                    key={group[0].eventTypeId}
+                    colSpan={columns.length}
+                    assignments={group}
+                    isOpen={!shut.has(group[0].eventTypeId)}
+                    onToggle={() => toggleBand(group[0].eventTypeId)}
+                  >
+                    {group.map((assignment) => (
                   <DataRow key={assignment.id}>
-                    <DataCell>
-                      <EventName
-                        name={assignment.eventType.name}
-                        nameEn={assignment.eventType.nameEn}
-                      />
-                    </DataCell>
-
                     <DataCell>
                       <span className="text-[13px] text-text-primary">
                         {assignment.instanceLabel}
@@ -267,12 +365,6 @@ export function SponsorsScreen({
                           #{assignment.instanceIdentifier}
                         </span>
                       )}
-                    </DataCell>
-
-                    <DataCell nowrap>
-                      <FrequencyBadge
-                        frequency={assignment.eventType.frequencyType}
-                      />
                     </DataCell>
 
                     <DataCell>
@@ -326,6 +418,8 @@ export function SponsorsScreen({
                       </DataCell>
                     )}
                   </DataRow>
+                    ))}
+                  </TypeBand>
                 ))
               )}
             </DataTable>
@@ -355,6 +449,63 @@ export function SponsorsScreen({
         }
         onConfirm={handleRemove}
       />
+    </>
+  );
+}
+
+interface TypeBandProps {
+  colSpan: number;
+  assignments: readonly SponsorAssignment[];
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+/**
+ * One pooja's sponsorships, under a heading naming it.
+ *
+ * The same band the event calendar puts a month in, for the same reason: a
+ * long table is read in sections, and the thing every row of a section shares
+ * belongs at the top of it rather than repeated down the side.
+ *
+ * It shuts, because வெள்ளி அபிஷேகம் alone is fifty-two rows. Somebody looking
+ * for who has தைப்பொங்கல் should be able to put the weekly pooja away rather
+ * than scroll past it, and the count stays on the heading so a shut band still
+ * answers "how many" without being opened.
+ */
+function TypeBand({ colSpan, assignments, isOpen, onToggle, children }: TypeBandProps) {
+  const [first] = assignments;
+
+  return (
+    <>
+      <tr className="bg-surface-2">
+        <th scope="colgroup" colSpan={colSpan} className="p-0 text-left">
+          <button
+            type="button"
+            aria-expanded={isOpen}
+            className="flex w-full items-center gap-2.5 px-4 py-1.5 text-left transition-colors hover:bg-surface-3"
+            onClick={onToggle}
+          >
+            <ChevronRight
+              className={`size-3.5 shrink-0 text-text-muted transition-transform ${
+                isOpen ? 'rotate-90' : ''
+              }`}
+              aria-hidden
+            />
+
+            <EventName name={first.eventType.name} nameEn={first.eventType.nameEn} />
+
+            <FrequencyBadge frequency={first.eventType.frequencyType} />
+
+            <span className="text-[11px] font-normal text-text-muted tabular">
+              {assignments.length}{' '}
+              {assignments.length === 1 ? 'sponsorship' : 'sponsorships'}
+            </span>
+          </button>
+        </th>
+      </tr>
+
+      {isOpen && children}
     </>
   );
 }
