@@ -87,15 +87,7 @@ export function CostingsScreen({
     <>
       <PortalPageHeader
         title="Pooja Costings"
-        description="What each pooja is expected to cost, and what its sponsor is asked for. A saved costing applies until you change it; changing one keeps the old figures as an earlier version."
-        meta={[
-          <span key="plans" className="tabular">
-            {planCount} plan{planCount === 1 ? '' : 's'}
-          </span>,
-          <span key="revisions" className="tabular">
-            {revisions} earlier version{revisions === 1 ? '' : 's'}
-          </span>,
-        ]}
+        description="What each pooja is expected to cost, and what its sponsor is asked for."
         actions={
           canManage ? (
             <Button onClick={() => setFormOpen(true)}>
