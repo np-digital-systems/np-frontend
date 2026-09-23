@@ -103,7 +103,7 @@ export function EventTypesScreen({
     setFormOpen(true);
   }
 
-  const { run, error: actionError } = useServerAction();
+  const { run, error: actionError, pending } = useServerAction();
 
   function handleSubmit(draft: EventTypeDraft) {
     const target = editing;
@@ -284,10 +284,30 @@ export function EventTypesScreen({
         eventType={slotsOf}
         slots={slots}
         canManage
-        onRename={(slotId, customInstanceName) => {
-          run(() => updateEventSlot(slotId, { customInstanceName }), async () => {
-            if (slotsOf) setSlots(await loadEventSlots(slotsOf.id));
-          });
+        pending={pending}
+        onSave={(changes) => {
+          /*
+           * One write per changed name, stopping at the first refusal. A batch
+           * endpoint would be tidier, but the committee names a year in one
+           * sitting and then leaves it alone: this runs two or three times on
+           * the day a festival is set up and never again.
+           */
+          run(
+            async () => {
+              for (const change of changes) {
+                const result = await updateEventSlot(change.slotId, {
+                  customInstanceName: change.customInstanceName,
+                });
+
+                if (!result.ok) return result;
+              }
+
+              return { ok: true as const };
+            },
+            async () => {
+              if (slotsOf) setSlots(await loadEventSlots(slotsOf.id));
+            },
+          );
         }}
       />
 
