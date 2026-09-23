@@ -230,16 +230,17 @@ export function EventTypesScreen({
                 <DataCell align="right" nowrap>
                   <div className="flex items-center justify-end gap-1.5">
                     {/*
-                      * The slots are the structure of this pooja's year, so
-                      * they are opened from the type itself — the one place a
-                      * slot can be named before any date or sponsor exists.
+                      * Named from the type itself: this is the one place an
+                      * instance can be named before any date or sponsor for it
+                      * exists. "Names" rather than "Slots" because naming is
+                      * the only thing the dialog does.
                       */}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => openSlots(type)}
                     >
-                      Slots
+                      Names
                     </Button>
 
                     <Button
