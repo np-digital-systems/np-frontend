@@ -109,10 +109,7 @@ export function EventTypesScreen({
     });
   }, [types, query, frequency]);
 
-  const totalInstances = types.reduce(
-    (sum, type) => sum + type.noOfInstances,
-    0,
-  );
+  
 
   function openCreate() {
     setEditing(null);

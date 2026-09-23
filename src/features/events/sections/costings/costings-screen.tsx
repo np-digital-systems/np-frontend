@@ -73,8 +73,6 @@ export function CostingsScreen({
 
   const groups = useMemo(() => groupCostings(costings), [costings]);
 
-  const planCount = groups.reduce((total, group) => total + group.plans.length, 0);
-  const revisions = costings.length - planCount;
 
   function handleCreate(draft: CostingHeaderDraft) {
     run(
