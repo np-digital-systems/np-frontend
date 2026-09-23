@@ -47,12 +47,18 @@ interface EventSlotsDialogProps {
 }
 
 /**
- * The slots of one pooja type — the structure of its year.
+ * Naming the instances of one pooja type.
  *
- * The only screen where a slot can be named before anything happens to it. A
- * name set here shows wherever that slot appears afterwards: on the calendar,
- * on the yearly schedule, and on the pooja picker of a receipt. Nothing else
- * names a slot, so there is only ever one answer to what it is called.
+ * The only screen where an instance can be named before anything happens to
+ * it. A name set here shows wherever that instance appears afterwards: on the
+ * calendar, on the yearly schedule, and on the pooja picker of a receipt.
+ * Nothing else names one, so there is only ever one answer to what it is
+ * called.
+ *
+ * Names and nothing else. Who sponsors an instance is answered on the
+ * sponsorships page and how many times it is dated on the calendar, and both
+ * were shown here too — a third copy that could only ever fall out of step
+ * with the other two.
  */
 export function EventSlotsDialog({
   open,
@@ -86,9 +92,8 @@ export function EventSlotsDialog({
         <DialogHeader>
           <DialogTitle>{eventType.name}</DialogTitle>
           <DialogDescription>
-            The {slots.length} slots of this pooja&rsquo;s year. Each is named once
-            and keeps that name every year; dates and sponsors are set against
-            them separately.
+            Name the {slots.length} instances of this pooja&rsquo;s year. A name set
+            here is kept every year and shows wherever the instance appears.
           </DialogDescription>
         </DialogHeader>
 
@@ -176,18 +181,6 @@ export function EventSlotsDialog({
                     >
                       {name}
                     </span>
-
-                    <span className="shrink-0 text-xs text-text-muted">
-                      {slot.sponsorNames.length > 0
-                        ? slot.sponsorNames.join(', ')
-                        : 'no sponsors'}
-                    </span>
-
-                    {slot.scheduledCount > 0 && (
-                      <span className="shrink-0 text-[11px] text-success">
-                        scheduled
-                      </span>
-                    )}
 
                     {canManage && (
                       <Button
