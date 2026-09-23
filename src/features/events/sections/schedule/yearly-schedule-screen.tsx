@@ -211,19 +211,7 @@ export function YearlyScheduleScreen({
       <PortalPageHeader
         title="Yearly Schedule"
         description="Every instance each event type declares, and whether it has been given a date and a sponsor."
-        meta={[
-          <span key="year" className="tabular">
-            Planning year {year}
-          </span>,
-          <span key="scheduled" className="tabular">
-            {totals.scheduled} dated
-          </span>,
-          totals.open > 0 ? (
-            <span key="open" className="text-warning tabular">
-              {totals.open} slots open
-            </span>
-          ) : null,
-        ].filter(Boolean)}
+        
         actions={
           access.canExport && (
             <Button variant="outline">
@@ -261,7 +249,7 @@ export function YearlyScheduleScreen({
         <StatCard
           label="Unsponsored"
           value={String(totals.unsponsored)}
-          caption="Dated but no sponsor; general observances excluded"
+          caption="Dated but no sponsor"
         />
       </div>
 
