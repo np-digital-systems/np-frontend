@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, Pencil, X } from 'lucide-react';
 
 import {
   Dialog,
@@ -15,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EntityCombobox, type EntityOption } from '@/components/ui/entity-combobox';
-import { cn } from '@/lib/utils';
 
 import { TAMIL_MONTHS, isMonthly } from '../lib/event-data';
 import { slotLabel } from '../lib/public-event-presentation';
@@ -37,13 +35,19 @@ function monthOptions(current: string): readonly EntityOption[] {
     : months;
 }
 
+export interface SlotRename {
+  slotId: number;
+  customInstanceName: string | null;
+}
+
 interface EventSlotsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventType: EventType | null;
   slots: readonly EventSlot[];
   canManage: boolean;
-  onRename: (slotId: number, customInstanceName: string | null) => void;
+  pending: boolean;
+  onSave: (changes: readonly SlotRename[]) => void;
 }
 
 /**
@@ -54,6 +58,11 @@ interface EventSlotsDialogProps {
  * calendar, on the yearly schedule, and on the pooja picker of a receipt.
  * Nothing else names one, so there is only ever one answer to what it is
  * called.
+ *
+ * Every row is open at once, and the whole lot saves together. Naming a year
+ * is one sitting — thirteen instances of a festival get their names in one go,
+ * from a list somebody is reading down — and a pencil that had to be clicked,
+ * typed into and ticked for each of them made an afternoon's work out of it.
  *
  * Names and nothing else. Who sponsors an instance is answered on the
  * sponsorships page and how many times it is dated on the calendar, and both
@@ -66,29 +75,52 @@ export function EventSlotsDialog({
   eventType,
   slots,
   canManage,
-  onRename,
+  pending,
+  onSave,
 }: EventSlotsDialogProps) {
   const tInstance = useTranslations('Events.instance');
-  const [editing, setEditing] = useState<number | null>(null);
-  const [value, setValue] = useState('');
+
+  /*
+   * Re-seeded when the dialog is opened on a different pooja, or when the
+   * slots come back from a save. Adjusting state during render rather than in
+   * an effect keeps it to a single pass.
+   */
+  const seed = `${eventType?.id ?? 'none'}|${slots.map((slot) => `${slot.id}:${slot.customInstanceName ?? ''}`).join(',')}`;
+  const [lastSeed, setLastSeed] = useState(seed);
+  const [names, setNames] = useState<Record<number, string>>(() =>
+    Object.fromEntries(slots.map((slot) => [slot.id, slot.customInstanceName ?? ''])),
+  );
+
+  if (lastSeed !== seed) {
+    setLastSeed(seed);
+    setNames(
+      Object.fromEntries(slots.map((slot) => [slot.id, slot.customInstanceName ?? ''])),
+    );
+  }
+
+  /*
+   * Only what actually changed is sent. Opening the dialog and pressing Save
+   * without touching anything should write nothing at all, and a row cleared
+   * back to empty is a name removed rather than a name of "".
+   */
+  const changes = useMemo<SlotRename[]>(
+    () =>
+      slots
+        .filter((slot) => (names[slot.id] ?? '').trim() !== (slot.customInstanceName ?? ''))
+        .map((slot) => ({
+          slotId: slot.id,
+          customInstanceName: (names[slot.id] ?? '').trim() || null,
+        })),
+    [slots, names],
+  );
 
   if (!eventType) return null;
 
   const monthly = isMonthly(eventType.frequencyType);
 
-  function begin(slot: EventSlot) {
-    setEditing(slot.id);
-    setValue(slot.customInstanceName ?? '');
-  }
-
-  function commit(slotId: number) {
-    onRename(slotId, value.trim() || null);
-    setEditing(null);
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{eventType.name}</DialogTitle>
           <DialogDescription>
@@ -97,110 +129,84 @@ export function EventSlotsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
+        <div className="flex flex-col gap-1.5">
           {slots.map((slot) => {
-            const name = slotLabel(
+            /*
+             * The fallback, as a placeholder rather than as a value. A row
+             * showing "ஆண்டுதோறும்" in the same weight as a real name made
+             * eleven unnamed instances read as eleven identically named ones.
+             */
+            const fallback = slotLabel(
               {
-                customInstanceName: slot.customInstanceName,
+                customInstanceName: null,
                 instanceIdentifier: slot.instanceIdentifier,
                 frequencyType: eventType.frequencyType,
               },
               tInstance,
             );
 
+            const value = names[slot.id] ?? '';
+
             return (
-              <div
-                key={slot.id}
-                className="flex items-center gap-3 px-3.5 py-2.5"
-              >
-                <span className="ref w-10 shrink-0 text-xs text-text-muted tabular">
+              <div key={slot.id} className="flex items-center gap-3">
+                <span className="w-7 shrink-0 text-right text-xs text-text-muted tabular">
                   {slot.instanceIdentifier}
                 </span>
 
-                {editing === slot.id ? (
-                  <div className="flex flex-1 items-center gap-2">
-                    {/*
-                      * A monthly slot is named by its Tamil month, chosen from
-                      * the twelve so one month cannot end up spelled three
-                      * ways. Everything else takes the temple's own words.
-                      */}
-                    {monthly ? (
-                      <EntityCombobox
-                        className="w-full"
-                        value={value || null}
-                        options={monthOptions(value)}
-                        noneLabel="Not named"
-                        searchPlaceholder="Search months, or type a name…"
-                        emptyMessage="No month matches that."
-                        createLabel={(typed) => `Name it “${typed}”`}
-                        onCreate={(typed) => setValue(typed)}
-                        onChange={(next) => setValue(next ?? '')}
-                      />
-                    ) : (
-                      <Input
-                        autoFocus
-                        value={value}
-                        placeholder="சப்பரம், தேர்…"
-                        onChange={(changeEvent) => setValue(changeEvent.target.value)}
-                        onKeyDown={(keyEvent) => {
-                          if (keyEvent.key === 'Enter') commit(slot.id);
-                          if (keyEvent.key === 'Escape') setEditing(null);
-                        }}
-                      />
-                    )}
-
-                    <Button
-                      type="button"
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label="Save name"
-                      onClick={() => commit(slot.id)}
-                    >
-                      <Check />
-                    </Button>
-
-                    <Button
-                      type="button"
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label="Cancel"
-                      onClick={() => setEditing(null)}
-                    >
-                      <X />
-                    </Button>
-                  </div>
+                {/*
+                  * A monthly slot is named by its Tamil month, chosen from the
+                  * twelve so one month cannot end up spelled three ways.
+                  * Everything else takes the temple's own words.
+                  */}
+                {monthly ? (
+                  <EntityCombobox
+                    className="w-full"
+                    value={value || null}
+                    options={monthOptions(value)}
+                    noneLabel={fallback}
+                    disabled={!canManage}
+                    searchPlaceholder="Search months, or type a name…"
+                    emptyMessage="No month matches that."
+                    createLabel={(typed) => `Name it “${typed}”`}
+                    onCreate={(typed) => setNames((current) => ({ ...current, [slot.id]: typed }))}
+                    onChange={(next) =>
+                      setNames((current) => ({ ...current, [slot.id]: next ?? '' }))
+                    }
+                  />
                 ) : (
-                  <>
-                    <span
-                      className={cn(
-                        'flex-1 truncate text-[13px]',
-                        slot.customInstanceName
-                          ? 'text-text-primary'
-                          : 'text-text-muted',
-                      )}
-                    >
-                      {name}
-                    </span>
-
-                    {canManage && (
-                      <Button
-                        type="button"
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={`Rename instance ${slot.instanceIdentifier}`}
-                        onClick={() => begin(slot)}
-                      >
-                        <Pencil />
-                      </Button>
-                    )}
-                  </>
+                  <Input
+                    value={value}
+                    placeholder={fallback}
+                    disabled={!canManage}
+                    aria-label={`Name for instance ${slot.instanceIdentifier}`}
+                    onChange={(changeEvent) =>
+                      setNames((current) => ({
+                        ...current,
+                        [slot.id]: changeEvent.target.value,
+                      }))
+                    }
+                  />
                 )}
               </div>
             );
           })}
         </div>
 
-        <DialogFooter showCloseButton />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {canManage ? 'Cancel' : 'Close'}
+          </Button>
+
+          {canManage && (
+            <Button
+              disabled={pending || changes.length === 0}
+              title={changes.length === 0 ? 'No names have changed' : undefined}
+              onClick={() => onSave(changes)}
+            >
+              {changes.length > 0 ? `Save ${changes.length} name${changes.length === 1 ? '' : 's'}` : 'Save names'}
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
