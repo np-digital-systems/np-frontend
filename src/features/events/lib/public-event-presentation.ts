@@ -2,26 +2,15 @@ import type { Locale } from '@/i18n/routing';
 
 import type { FrequencyType, PublicEvent } from '../types';
 
-/**
- * Turning an occurrence into words, in the visitor's language.
- *
- * Everything here is deterministic and timezone-free on purpose. Dates are
- * built at UTC midnight and formatted with `timeZone: 'UTC'`, so the server
- * render and the browser render agree — otherwise a calendar rendered in
- * Colombo and rehydrated in a browser set to another zone would mismatch and
- * React would throw the markup away.
- *
- * The API sends both names and the raw frequency rather than a rendered
- * English label, which is what lets "Week 24" become "வாரம் 24" here rather
- * than arriving already in the wrong language.
- */
+// Dates are built at UTC midnight and formatted with timeZone 'UTC' so server and
+// browser renders match regardless of the visitor's timezone (avoids hydration mismatch).
 
 const INTL_TAG: Record<Locale, string> = {
   en: 'en-GB',
   ta: 'ta-LK',
 };
 
-/** A Sunday, so a week walked forward from it yields weekday names in order. */
+// A Sunday, so walking forward a week yields weekday names in order.
 const KNOWN_SUNDAY = Date.UTC(2024, 0, 7);
 
 function tag(locale: Locale): string {
@@ -40,23 +29,11 @@ function dateFromTime(time: string): Date {
   return new Date(Date.UTC(1970, 0, 1, hours, minutes));
 }
 
-/** The event type's name, in the language the visitor is reading. */
 export function eventName(event: PublicEvent, locale: Locale): string {
   return locale === 'en' ? event.nameEn || event.nameTa : event.nameTa;
 }
 
-/**
- * Which slot of the year this is — "Week 24", "Valarpirai", "Day 3".
- *
- * Null when the slot has nothing to say. A `monthly_once` or `annual` type has
- * exactly one instance, so a label for it would only ever read "Monthly
- * observance" beside a name that already says as much — a badge that repeats
- * the title is worse than no badge. Everything else distinguishes one
- * occurrence of the type from another and earns its place.
- *
- * The temple's own name for a day always wins: it is written by hand and is
- * more meaningful than anything derived.
- */
+// Null for monthly_once and annual: they have one instance, so a label would only repeat the name.
 export function instanceLabel(
   event: Pick<
     PublicEvent,
@@ -87,7 +64,6 @@ export function instanceLabel(
   }
 }
 
-/** The sponsor's name in the visitor's language, or null when nobody sponsors it. */
 export function sponsorName(event: PublicEvent, locale: Locale): string | null {
   return locale === 'en'
     ? (event.sponsorNameEn ?? event.sponsorNameTa)
@@ -119,7 +95,6 @@ export function formatWeekday(iso: string, locale: Locale): string {
   }).format(dateFromIso(iso));
 }
 
-/** The day and month alone, for the date medallion on a card. */
 export function dateParts(
   iso: string,
   locale: Locale,
@@ -138,14 +113,8 @@ export function dateParts(
   };
 }
 
-/**
- * The part of the day a Tamil reader expects before the clock.
- *
- * Intl renders `ta` as a bare "6:30 PM" — Latin day-periods bolted onto Tamil,
- * which reads as translated English. The temple writes its own notices as
- * "மாலை 6:30 மணி", so the day-period is chosen here and the clock is built
- * from it. Each entry covers the hours below `until`.
- */
+// Intl renders Tamil times with Latin AM/PM; the temple writes "மாலை 6:30 மணி".
+// Each entry covers the hours below `until`.
 const TAMIL_DAY_PERIODS: readonly { readonly until: number; readonly word: string }[] = [
   { until: 3, word: 'இரவு' },
   { until: 6, word: 'அதிகாலை' },
@@ -155,7 +124,6 @@ const TAMIL_DAY_PERIODS: readonly { readonly until: number; readonly word: strin
   { until: 24, word: 'இரவு' },
 ];
 
-/** Trails a Tamil time, as in "மாலை 6:30 மணி" — "o'clock", roughly. */
 const TAMIL_OCLOCK = 'மணி';
 
 function tamilTime(time: string): string {
@@ -168,12 +136,10 @@ function tamilTime(time: string): string {
   return `${period.word} ${clock}:${String(minutes).padStart(2, '0')}`;
 }
 
-/** A time on its own — without the trailing "மணי", which belongs to the phrase. */
 export function formatEventTime(time: string, locale: Locale): string {
   if (locale === 'ta') return tamilTime(time);
 
-  // en-GB gives the day-first dates this site wants but lowercases the meridiem;
-  // the rest of the English copy writes "6:00 PM".
+  // en-GB lowercases am/pm; the site writes "6:00 PM".
   return new Intl.DateTimeFormat(tag(locale), {
     hour: 'numeric',
     minute: '2-digit',
@@ -218,13 +184,7 @@ export function weekdayInitials(locale: Locale): readonly string[] {
   );
 }
 
-/**
- * A stock photograph for an occurrence.
- *
- * The calendar carries no images, and a card without one looks broken next to
- * the rest of the site. Picking by event type rather than at random keeps a
- * given pooja looking the same on the card, the calendar and its own page.
- */
+// Picked by event type so a pooja shows the same image on every page.
 const EVENT_IMAGES = [
   '/images/ceremony-puja.png',
   '/images/festival-navaratri.png',
@@ -237,14 +197,6 @@ export function eventImage(eventTypeId: number): string {
   return EVENT_IMAGES[eventTypeId % EVENT_IMAGES.length];
 }
 
-/**
- * What to call one occurrence or slot, in the reader's language.
- *
- * The temple's own name always wins — it is written by hand and means more
- * than anything derived. Failing that, the frequency renders one: "1ஆம் வாரம்"
- * rather than "Week 1", because the API returns English for its own callers
- * and the portal is read in Tamil.
- */
 export function slotLabel(
   slot: {
     customInstanceName?: string | null;
@@ -257,7 +209,7 @@ export function slotLabel(
 
   const number = slot.instanceIdentifier;
 
-  // A sponsor registered against the type but not yet given an occurrence.
+  // A sponsor registered against the type but not yet assigned an occurrence.
   if (number === null) return translate('unassigned');
 
   switch (slot.frequencyType) {
@@ -272,9 +224,6 @@ export function slotLabel(
     case 'multi_day':
       return translate('day', { number });
     case 'monthly_once':
-      // Numbered like the weekly and multi-day slots. It used to be one fixed
-      // word, so a twelve-slot year read as twelve identical rows with nothing
-      // to tell them apart — and naming one of them meant guessing which.
       return translate('monthly', { number });
     case 'annual':
       return translate('annual');

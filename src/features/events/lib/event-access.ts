@@ -19,7 +19,6 @@ export interface EventAccess {
 
   readonly canViewCostings: boolean;
   readonly canManageCostings: boolean;
-  /** Filling a voucher in from a budget is still raising a voucher. */
 
     readonly canWrite: boolean;
 
@@ -56,4 +55,4 @@ export function getEventAccess(granted: readonly Permission[]): EventAccess {
 }
 
 export const READ_ONLY_MESSAGE =
-  'You have view access to the temple calendar. Creating, editing and deleting events is restricted to administrators.';
+  'Only administrators can change events.';

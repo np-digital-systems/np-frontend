@@ -10,13 +10,7 @@ import { EVENT_ROUTES } from './routes';
 import type { ActionResult } from './event-actions';
 import type { CostingLineDraft, EventBudget, ExpectedAmounts } from '../types/costing';
 
-/**
- * Every costing write goes through here.
- *
- * The permission is checked before the call and again by the API, which is not
- * duplication: this one decides what the screen may offer, and that one decides
- * what the books will accept. Only the second is a control.
- */
+// This check only decides what the screen offers; the API enforces the permission.
 async function guarded(
   capability: (access: ReturnType<typeof getEventAccess>) => boolean,
   refused: string,
@@ -51,12 +45,11 @@ const CANNOT_MANAGE = 'You cannot set pooja costings.';
 
 export interface CostingInput {
   eventTypeId: number;
-  /** Left out, the costing covers every instance of the type. */
+  /** Omitted, the costing covers every instance of the type. */
   slotId?: number | null;
-  /** Left out, it applies from today. */
+  /** Omitted, it applies from today. */
   effectiveFrom?: string;
   notes?: string | null;
-  /** A costing may be saved with none; they are written in the editor. */
   lines?: CostingLineDraft[];
 }
 
@@ -70,18 +63,8 @@ export async function createCosting(input: CostingInput): Promise<ActionResult> 
   );
 }
 
-/**
- * Save a costing. It becomes a draft, and prices nothing until it is applied.
- *
- * Editing a draft rewrites it. Editing the version in force leaves that version
- * exactly as it is and writes the figures to that scope's draft instead, so the
- * family being quoted today goes on being quoted what they were told.
- *
- * Which is why this one returns an id. The row the temple typed into is not
- * always the row that was written, and a screen that assumed it was would show
- * the edit disappearing: the version in force is genuinely unchanged, and the
- * change is sitting on a draft the page is not looking at.
- */
+// Editing the in-force version writes to that scope's draft instead, so the
+// returned id may differ from the one passed in.
 export async function updateCosting(
   id: number,
   input: { notes?: string | null; lines?: CostingLineDraft[] },
@@ -112,7 +95,6 @@ export async function updateCosting(
   }
 }
 
-/** Day two of a festival is day one with three figures changed. */
 export async function copyCosting(
   id: number,
   input: { slotId?: number | null; effectiveFrom?: string },
@@ -125,13 +107,7 @@ export async function copyCosting(
   );
 }
 
-/**
- * Put a draft into force. This is the act that changes what a sponsor is asked.
- *
- * Saving figures and deciding they now apply are separate on purpose: the first
- * is worth doing freely, and the second closes the version before it and is
- * what a year-by-year report reads as the day the rate changed.
- */
+// Applying closes the previous version and changes what sponsors are quoted.
 export async function applyCosting(id: number): Promise<ActionResult> {
   return guarded((access) => access.canManageCostings, CANNOT_MANAGE, () =>
     api.post(`/event-costings/${id}/apply`, {}),
@@ -149,33 +125,19 @@ export interface MovementInput {
   mode: 'cash' | 'bank' | 'cheque' | 'online';
   bankAccountId?: number | null;
   chequeNo?: string | null;
-  /** The number on the temple's physical voucher book. Never optional. */
+  /** Number from the temple's physical voucher book. */
   manualVoucherNo: string;
 }
 
-
-/**
- * The budget for one occurrence, read from a client component.
- *
- * A server action rather than a service call, for the same reason the slots
- * are: the API token lives on the server.
- */
+// Reads below are server actions because client components call them and the API token stays on the server.
 export async function loadEventBudget(eventId: number): Promise<EventBudget> {
   await requireSession();
 
   return api.get<EventBudget>(`/events/${eventId}/budget`);
 }
 
-/**
- * What one occurrence is expected to cost, read from a client component.
- *
- * The voucher form calls this the moment a pooja instance is chosen, so the
- * amount fills itself in without the cashier going to look it up. A server
- * action rather than a service call: the API token lives on the server.
- */
 export async function loadExpectedAmounts(eventId: number): Promise<ExpectedAmounts> {
   await requireSession();
 
   return api.get<ExpectedAmounts>(`/events/${eventId}/expected`);
 }
-

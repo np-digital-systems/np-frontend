@@ -60,11 +60,7 @@ const LUNAR_OCCURRENCE: Record<number, string> = {
   2: 'தேய்பிறை',
 };
 
-/**
- * What a sponsor with no instance is: registered against the type, waiting for
- * an occurrence. Not "every slot" — the temple takes the name first and settles
- * which Friday it is later.
- */
+// A sponsor with no instance is waiting to be assigned one, not covering every slot.
 export const ANY_INSTANCE_LABEL = 'Not yet assigned';
 
 export function describeInstance(
@@ -187,17 +183,8 @@ export function eventTitle(event: {
   return `${event.eventType.name} — ${event.instanceLabel}`;
 }
 
-/**
- * The twelve months of the Tamil calendar, as the temple writes them.
- *
- * Offered as a list rather than typed, so `மார்கழி`, `மார்கழி மாதம்` and
- * `Margazhi` cannot all end up naming the same month in different records.
- *
- * They cannot be derived from a date: மார்கழி runs from the middle of December
- * into the middle of January, so a Gregorian month read off the calendar would
- * be wrong for about half of every one of them. It is also why a monthly pooja
- * can fall thirteen times in a Gregorian year.
- */
+// Tamil months don't align with Gregorian months (மார்கழி is mid-Dec to mid-Jan),
+// so they can't be derived from a date. A monthly pooja can occur 13 times a year.
 export const TAMIL_MONTHS: readonly string[] = [
   'சித்திரை மாதம்',
   'வைகாசி மாதம்',
@@ -213,7 +200,6 @@ export const TAMIL_MONTHS: readonly string[] = [
   'பங்குனி மாதம்',
 ];
 
-/** Whether a type recurs by the month, and so is named by one. */
 export function isMonthly(frequencyType: FrequencyType): boolean {
   return frequencyType === 'monthly_once' || frequencyType === 'monthly_twice';
 }
