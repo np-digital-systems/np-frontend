@@ -5,11 +5,7 @@ import type { SponsorParty } from '../types';
 interface SponsorCellProps {
   sponsor: SponsorParty | null;
     showContact?: boolean;
-  /**
-   * A general observance is funded by collection, so having no sponsor is
-   * correct rather than a gap to chase. Saying "unassigned" there would send
-   * somebody looking for a name that is never coming.
-   */
+  /** Collection-funded, so no sponsor is expected. */
   isGeneral?: boolean;
   className?: string;
 }

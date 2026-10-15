@@ -35,23 +35,14 @@ export interface EventTypeDraft {
   name: string;
   nameEn: string;
   frequencyType: FrequencyType;
-  /** `general` observances are paid for by collection and take no sponsor. */
   funding: EventFunding;
   noOfInstances: number;
-  /** The activity receipts for this pooja are coded to. Null offers nothing. */
   activityId: number | null;
 }
 
 const NO_DEFAULT = '__none__';
 
-/*
- * Frequencies whose slot count the calendar decides, not the temple: a year has
- * 52 weeks, a lunar month two phases, a year one turn.
- *
- * `monthly_once` is deliberately not among them. A Tamil year runs twelve
- * months or thirteen when an intercalary one falls, so the count is the
- * temple's to set — the same freedom a multi-day festival has over its days.
- */
+// monthly_once is excluded: a Tamil year has 12 or 13 months, so the temple sets the count.
 const FIXED_INSTANCE_COUNT: readonly FrequencyType[] = [
   'annual',
   'monthly_twice',
@@ -89,7 +80,6 @@ interface EventTypeFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventType: EventType | null;
-  /** Activities a receipt for this pooja may be coded to. */
   activities: readonly { id: number; name: string; nameEn: string }[];
   onSubmit: (draft: EventTypeDraft) => void;
 }
@@ -106,8 +96,7 @@ export function EventTypeFormDialog({
   );
   const [error, setError] = useState<string | null>(null);
 
-  // Re-seed when opened for a different record — see the note in
-  // `event-form-dialog.tsx` on why this happens during render.
+  // Reset the draft when opened for a different record.
   const seed = `${open}|${eventType?.id ?? 'new'}`;
   const [lastSeed, setLastSeed] = useState(seed);
 
@@ -152,8 +141,7 @@ export function EventTypeFormDialog({
             {eventType ? 'Edit Event Type' : 'New Event Type'}
           </DialogTitle>
           <DialogDescription>
-            Event types are the permanent registry. The yearly calendar is
-            built by instantiating them with dates.
+            A recurring pooja or festival.
           </DialogDescription>
         </DialogHeader>
 
@@ -172,20 +160,14 @@ export function EventTypeFormDialog({
             />
           </FormField>
 
-          {/*
-            * Who pays for it. A general observance is funded by a collection
-            * from the village, so it never carries a named sponsor — which is
-            * what lets the schedule tell "nobody assigned yet" apart from
-            * "never has one".
-            */}
           <FormField
             id="type-funding"
             label="Funded by"
             required
             hint={
               draft.funding === 'general'
-                ? 'Collected from devotees. This type takes no registered sponsors.'
-                : 'Sponsors take turns, one per slot per year.'
+                ? 'Funded by collection. No sponsors.'
+                : 'One sponsor per slot each year.'
             }
           >
             <div
@@ -224,7 +206,6 @@ export function EventTypeFormDialog({
           <FormField
             id="type-name-en"
             label="Name (English)"
-            hint="Shown as a secondary line for non-Tamil readers."
           >
             <Input
               id="type-name-en"
@@ -291,11 +272,6 @@ export function EventTypeFormDialog({
             />
           </FormField>
 
-          {/*
-            * Answered once here so that raising a receipt for this pooja does
-            * not ask the same question on every receipt. The activity carries
-            * the fund in turn, so one answer settles both.
-            */}
           <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface-2 p-3.5">
             <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
               Receipts for this pooja
@@ -306,8 +282,8 @@ export function EventTypeFormDialog({
               label="Activity"
               hint={
                 activities.length === 0
-                  ? 'No activities exist yet — add one under Accounting.'
-                  : 'What a receipt for this pooja is reported under, income and expense alike.'
+                  ? 'No activities yet. Add one under Accounting.'
+                  : undefined
               }
             >
               <Select

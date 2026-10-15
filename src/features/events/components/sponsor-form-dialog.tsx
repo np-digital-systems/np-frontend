@@ -32,14 +32,9 @@ import type { EventSlot, EventType, SponsorAssignment, SponsorParty } from '../t
 export interface SponsorDraft {
   eventTypeId: number;
   instanceIdentifier: number | null;
-  /** Set when the sponsor is a party already on record. */
+  /** Set for an existing party. */
   partyId: number | null;
-  /**
-   * Set instead when they are being registered for the first time, from the
-   * name typed into the picker. A name and a phone number is all the temple
-   * has for most sponsors; email and address belong to a sign-in, and a
-   * sponsor does not need one.
-   */
+  /** Set instead when registering a new party. */
   newParty: { nameTa: string; nameEn: string; phone: string } | null;
 }
 
@@ -69,10 +64,9 @@ function draftFrom(
 interface SponsorFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** The registration being edited, or null to register somebody new. */
+  /** Null to create a new sponsorship. */
   sponsor: SponsorAssignment | null;
   eventTypes: readonly EventType[];
-  /** Everyone who could be picked instead of being typed in. */
   directory: readonly SponsorParty[];
   assignments: readonly SponsorAssignment[];
   onSubmit: (draft: SponsorDraft) => void;
@@ -94,8 +88,7 @@ export function SponsorFormDialog({
   );
   const [error, setError] = useState<string | null>(null);
 
-  // Re-seed when opened for a different record — see the note in
-  // `event-form-dialog.tsx` on why this happens during render.
+  // Reset the draft when opened for a different record.
   const seed = `${open}|${sponsor?.id ?? 'new'}`;
   const [lastSeed, setLastSeed] = useState(seed);
 
@@ -112,21 +105,14 @@ export function SponsorFormDialog({
 
   const tInstance = useTranslations('Events.instance');
 
-  /*
-   * The slots of the chosen type, loaded when it changes.
-   *
-   * Read rather than counted off the type, because the picker has to show the
-   * temple's own name for a slot where it has one — twelve monthly slots read
-   * as twelve Tamil months, not twelve identical "மாதாந்திரம்" rows.
-   */
+  // Loaded rather than derived from the type so custom slot names can be shown.
   const [slots, setSlots] = useState<readonly EventSlot[]>([]);
 
   useEffect(() => {
     const eventTypeId = draft.eventTypeId;
     let current = true;
 
-    // Resolved through a promise either way, so the only write happens once
-    // the load settles and a type cleared mid-flight cannot land stale slots.
+    // Always async so a type changed mid-load can't set stale slots.
     Promise.resolve(eventTypeId ? loadEventSlots(eventTypeId) : []).then((loaded) => {
       if (current) setSlots(loaded);
     });
@@ -173,11 +159,6 @@ export function SponsorFormDialog({
     }));
   }
 
-  /*
-   * The name typed into the picker becomes the new party's name. A clerk
-   * registering somebody the temple has never dealt with types them in where
-   * they looked for them, rather than being sent to another screen first.
-   */
   function startNewParty(typed: string) {
     setDraft((current) => ({
       ...current,
@@ -186,7 +167,7 @@ export function SponsorFormDialog({
     }));
   }
 
-  /** Switching the event type can strand an instance the new type lacks. */
+  // Clear the instance if the new type doesn't have it.
   function selectEventType(eventTypeId: number) {
     const nextType = eventTypes.find((type) => type.id === eventTypeId) ?? null;
     const limit = instanceCountOf(nextType);
@@ -234,13 +215,10 @@ export function SponsorFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? 'Edit sponsorship' : 'Register a sponsorship'}
+            {isEdit ? 'Edit sponsorship' : 'Add sponsorship'}
           </DialogTitle>
           <DialogDescription>
-            Places a sponsor against an observance — it does not enrol them; that
-            happens on the sponsor register. Name an instance to tie them to one
-            slot, or leave it as all instances and they will be offered for every
-            occurrence of the type.
+            Leave the instance empty to cover every occurrence.
           </DialogDescription>
         </DialogHeader>
 
@@ -258,11 +236,6 @@ export function SponsorFormDialog({
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/*
-              * Optional, because a sponsorship starts as a name and becomes an
-              * occasion later. Left open, the sponsor is registered against the
-              * type and waits in the pool the year is filled from.
-              */}
             <FormField id="sponsor-instance" label="Instance">
               <Combobox
                 id="sponsor-instance"
@@ -293,18 +266,9 @@ export function SponsorFormDialog({
           )}
 
           {newParty ? (
-            /*
-              * Registering somebody new, inline. The picker is left in place
-              * above so the way back is obvious — a clerk who mistypes a name
-              * that does exist can pick the real one without losing the slot
-              * they had already chosen.
-              */
             <div className="flex flex-col gap-4 rounded-lg border border-accent bg-surface-2 p-3.5">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-xs text-text-secondary">
-                  Registering a new sponsor. They are added to the parties list
-                  and do not need a sign-in.
-                </p>
+                <p className="text-xs text-text-secondary">New sponsor</p>
 
                 <Button
                   type="button"
@@ -357,7 +321,6 @@ export function SponsorFormDialog({
               id="sponsor-party"
               label="Sponsor"
               required
-              hint="Anyone the temple already deals with can sponsor — a vendor as readily as a devotee. Type a new name to register somebody."
             >
               <EntityCombobox
                 id="sponsor-party"
@@ -366,7 +329,7 @@ export function SponsorFormDialog({
                 placeholder="Search or type a name"
                 searchPlaceholder="Search by name…"
                 emptyMessage="Nobody matches that search."
-                createLabel={(typed) => `Register “${typed}” as a new sponsor`}
+                createLabel={(typed) => `Add “${typed}” as a new sponsor`}
                 onCreate={startNewParty}
                 onChange={(value) =>
                   update('partyId', value === null ? null : Number(value))
@@ -394,7 +357,7 @@ export function SponsorFormDialog({
             </Button>
 
             <Button type="submit">
-              {isEdit ? 'Save Changes' : 'Register Sponsor'}
+              {isEdit ? 'Save' : 'Add sponsorship'}
             </Button>
           </DialogFooter>
         </form>
