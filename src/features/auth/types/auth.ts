@@ -1,10 +1,6 @@
 import type { UserRole } from './user-role';
 
-/**
- * Icon keys rather than components: the role options are built on the server
- * and handed to a client component, so everything in them has to survive
- * serialisation. The screen maps a key to a lucide glyph.
- */
+// Icon keys, not components, so the options can be serialised from server to client.
 export type AuthRoleIcon = 'shield' | 'ledger' | 'counter' | 'devotee';
 
 export interface AuthRoleOption {
@@ -13,7 +9,6 @@ export interface AuthRoleOption {
   readonly summary: string;
   readonly icon: AuthRoleIcon;
 
-  /** Two or three things this role opens, in the temple's own words. */
   readonly highlights: readonly string[];
 }
 

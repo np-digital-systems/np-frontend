@@ -27,14 +27,7 @@ export function formatToday(now: Date = new Date()): string {
   }).format(now);
 }
 
-/**
- * The year the dashboard's figures are captioned with.
- *
- * The same year the header is showing — both resolve through
- * `getFinancialYearContext`, so the caption under a total can never name a
- * different year from the menu the reader chose it in. Falls back to a dash
- * rather than inventing a year when the books hold none yet.
- */
+// Uses the header's selected year so captions always match it; a dash when there are no years.
 export async function getFinancialYear(): Promise<FinancialYear> {
   const { active } = await getFinancialYearContext();
 
