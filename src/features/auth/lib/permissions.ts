@@ -1,12 +1,6 @@
 import type { Permission } from '@/features/auth/types/permission';
 
-/**
- * Capability checks against the permissions the server granted this session.
- *
- * The role → capability matrix now lives in the database and is served with the
- * session, so a role whose permissions an administrator edits takes effect
- * without a redeploy. These helpers only ask whether a permission is present.
- */
+// Permissions come from the session (stored in the database), so role edits apply without a redeploy.
 export function can(
   granted: readonly Permission[],
   permission: Permission,

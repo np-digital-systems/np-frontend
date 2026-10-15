@@ -1,11 +1,7 @@
 import type { AuthRoleIcon } from '../types/auth';
 import type { UserRole } from '../types/user-role';
 
-/**
- * The canonical role vocabulary. Roles are defined by this feature, so the
- * names and the one-line intent live here and every other feature reads them
- * from here — the administration screens included.
- */
+// The single source for role names and descriptions; other features import them from here.
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Administrator',
   accountant: 'Accountant',
@@ -25,7 +21,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
 interface RolePresentation {
   readonly icon: AuthRoleIcon;
 
-  /** Shorter than the description above — it has to sit inside a tile. */
+  /** Short form for tiles. */
   readonly summary: string;
 
   readonly highlights: readonly string[];

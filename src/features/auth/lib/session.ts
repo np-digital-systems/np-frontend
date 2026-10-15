@@ -1,5 +1,3 @@
-// Server-only: it reads request cookies via next/headers, so importing it from
-// a client component is a build error by construction.
 import 'server-only';
 
 import { cache } from 'react';
@@ -17,7 +15,6 @@ import type { Permission } from '../types/permission';
 import { USER_ROLES, type UserRole } from '../types/user-role';
 import type { PortalUser } from '../types/user';
 
-/** What `GET /auth/me` returns. */
 interface MeResponse {
   readonly id: string;
   readonly nameTa: string;
@@ -35,7 +32,6 @@ export interface AuthTokens {
 
 export interface PortalSession {
   readonly user: PortalUser;
-  /** Granted by the server, not by a matrix compiled into the bundle. */
   readonly permissions: readonly Permission[];
 }
 
@@ -53,13 +49,7 @@ function initialsOf(name: string): string {
   return letters.toUpperCase();
 }
 
-/**
- * The signed-in session, or null.
- *
- * Cached for the lifetime of one request, so a layout and the page it wraps
- * resolve the identity once rather than calling the API for every component
- * that asks who is signed in.
- */
+// Cached per request so layouts and pages share one API call.
 export const getSession = cache(async (): Promise<PortalSession | null> => {
   const token = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
 
@@ -80,15 +70,14 @@ export const getSession = cache(async (): Promise<PortalSession | null> => {
       permissions: me.permissions as readonly Permission[],
     };
   } catch (error) {
-    // An expired or revoked token is a signed-out visitor, not a crash. The
-    // proxy has already had its chance to refresh before the render began.
+    // Treat an expired or revoked token as signed out; the proxy has already tried to refresh.
     if (error instanceof ApiError && error.isUnauthenticated) return null;
 
     throw error;
   }
 });
 
-/** The signed-in user. Throws when there is no session — routes are guarded. */
+/** Throws when there is no session. */
 export async function requireSession(): Promise<PortalSession> {
   const session = await getSession();
 
@@ -109,12 +98,11 @@ export async function getPermissions(): Promise<readonly Permission[]> {
   return session?.permissions ?? [];
 }
 
-/** Writes the token pair. Only callable from a Server Action or Route Handler. */
+/** Only callable from a Server Action or Route Handler. */
 export async function createSession(tokens: AuthTokens, remember: boolean): Promise<void> {
   const cookieStore = await cookies();
 
-  // No maxAge means a session cookie: it dies with the browser, which is what
-  // a shared counter machine wants.
+  // Without "remember", no maxAge: the cookie ends with the browser (shared counter machines).
   cookieStore.set(
     ACCESS_TOKEN_COOKIE,
     tokens.accessToken,
