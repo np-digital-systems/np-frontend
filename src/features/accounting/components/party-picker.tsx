@@ -24,27 +24,16 @@ import type { PartyRef } from '../types';
 
 interface PartyPickerProps {
   id: string;
-  /** The name as it will be written on the voucher. */
   name: string;
-  /** The record it is linked to, where the name matched one. */
+  /** Null for a typed name that isn't linked to a party. */
   partyId: number | null;
   parties: readonly PartyRef[];
   placeholder: string;
   onChange: (value: { name: string; partyId: number | null }) => void;
 }
 
-/**
- * Who a voucher is with, as one control instead of two.
- *
- * A name and a link to a record are one answer, not two questions, so this
- * asks once. Type a name: matching sponsors, staff and vendors appear, and
- * choosing one links the entry so the books can group by it. Type a name that
- * matches nobody and it is kept as written — the hundial draws walk-in donors
- * all day and none of them need a record.
- *
- * The typed name is always stored either way. A party later renamed cannot
- * rewrite what a posted receipt said it was.
- */
+// Pick a party to link the entry, or keep a typed name for one-off donors. The name is
+// always stored, so renaming a party later never rewrites a posted receipt.
 export function PartyPicker({
   id,
   name,
@@ -59,8 +48,7 @@ export function PartyPicker({
   const linked = parties.find((party) => party.id === partyId);
   const typed = search.trim();
 
-  // Offering to keep a name that already names a party would be two ways to
-  // say the same thing, and the linked one is better.
+  // Don't offer to keep a typed name that already matches a party.
   const canKeepTyped =
     typed.length > 0 &&
     !parties.some((party) => party.name.toLowerCase() === typed.toLowerCase());
@@ -77,13 +65,8 @@ export function PartyPicker({
     setOpen(false);
   }
 
-  /*
-   * Deliberately not `modal`. A modal popover nested inside a modal dialog has
-   * both of them setting `pointer-events: none` on the body and fighting over
-   * restoring it, and the loser leaves the whole page unclickable. The dialog
-   * already traps and restores focus for everything inside it; the guard in
-   * DialogContent is what keeps a click in here from closing the dialog.
-   */
+  // Not modal: a modal popover inside a modal dialog fights over body pointer-events
+  // and can leave the page unclickable. The dialog already traps focus.
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -105,10 +88,6 @@ export function PartyPicker({
           </span>
 
           <span className="flex items-center gap-1.5">
-            {/*
-              * Says at a glance whether this entry can be grouped by person.
-              * A name alone still posts; it just answers no such question.
-              */}
             {name && !linked && (
               <span className="text-[10px] tracking-[0.06em] text-text-muted uppercase">
                 not on record
@@ -121,8 +100,7 @@ export function PartyPicker({
 
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command
-          // Filtering is done here rather than by the list, so a name that
-          // matches nobody still leaves something to click.
+          // Filtered manually so an unmatched name still leaves an option to keep it.
           shouldFilter={false}
         >
           <CommandInput

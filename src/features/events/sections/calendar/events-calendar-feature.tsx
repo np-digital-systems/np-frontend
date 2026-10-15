@@ -24,7 +24,7 @@ export async function EventsCalendarFeature() {
   if (!access.canView) {
     return (
       <PageShell>
-        <AccessDenied description="The temple calendar is available to registered portal users. Contact a temple administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }
@@ -32,9 +32,7 @@ export async function EventsCalendarFeature() {
   const today = getToday();
   const year = getActiveYear(today);
 
-  // Independent reads; waiting for them in sequence would show the page
-  // several round trips late for no reason. The sponsor reads need their own
-  // permission, so a plain calendar viewer simply gets an empty directory.
+  // Sponsor reads need a separate permission; without it the directory is empty.
   const [events, eventTypes, sponsors, assignments] = await Promise.all([
     getEvents(year),
     getEventTypes(),

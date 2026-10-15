@@ -94,8 +94,8 @@ export function SponsorFormDialog({
           </DialogTitle>
           <DialogDescription>
             {sponsor
-              ? 'The name and contact details belong to this person’s directory entry, so a change here reaches every screen they appear on.'
-              : 'Enrolling registers the person in the directory and allocates their sponsor number.'}
+              ? 'Changes apply everywhere this person appears.'
+              : 'Adds them to the directory with a sponsor number.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,7 +104,6 @@ export function SponsorFormDialog({
             id="sponsor-name-ta"
             label="Name (Tamil)"
             required
-            hint="Shown on Tamil receipts and the calendar."
           >
             <Input
               id="sponsor-name-ta"
@@ -160,18 +159,13 @@ export function SponsorFormDialog({
             />
           </FormField>
 
-          {/*
-            * Exemption, not deactivation. A sponsor who does not subscribe
-            * still sponsors poojas; they simply owe no yearly sanththa, so the
-            * register stops counting them as outstanding.
-            */}
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
             <div className="min-w-0 pr-4">
               <Label htmlFor="sponsor-subscribes" className="text-xs font-medium text-text-secondary">
                 Pays the annual sanththa
               </Label>
               <p className="mt-0.5 text-[11px] text-text-tertiary">
-                Clear this for an exempt sponsor; they stay on the calendar either way.
+                Clear for exempt sponsors.
               </p>
             </div>
             <Checkbox
@@ -188,7 +182,7 @@ export function SponsorFormDialog({
                   Active
                 </Label>
                 <p className="mt-0.5 text-[11px] text-text-tertiary">
-                  Retiring hides them from the pickers; their history is kept.
+                  Inactive sponsors are hidden from pickers.
                 </p>
               </div>
               <Checkbox

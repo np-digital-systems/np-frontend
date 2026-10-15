@@ -94,8 +94,7 @@ export function PartyFormDialog({
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-  // Kept in the canonical order rather than the order they were ticked, so the
-  // same set of roles reads the same way everywhere it is shown.
+  // Canonical order, so the same roles always display the same way.
   function toggleRole(kind: PartyKind) {
     setDraft((current) => ({
       ...current,
@@ -122,8 +121,6 @@ export function PartyFormDialog({
     onOpenChange(false);
   }
 
-  // A party that also holds a sign-in is still edited here — the directory is
-  // the one place a name is changed — but the badge says so.
   const hasAccount = party?.accountId != null;
 
   return (
@@ -132,23 +129,15 @@ export function PartyFormDialog({
         <DialogHeader>
           <DialogTitle>{party ? `Edit ${party.name}` : 'New Party'}</DialogTitle>
           <DialogDescription>
-            Who an entry is with. Parties sit beneath the chart of accounts
-            rather than in it — one salaries head serves every kurukkal, and
-            what each was paid is answered by naming them here.
+            Someone the temple receives from or pays.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/*
-            * Person or institution. The electricity board has an account
-            * number and no phone; a devotee is the other way round, and the
-            * form asks for what each actually has.
-            */}
           <FormField
             id="party-type"
             label="Kind"
             required
-            hint="An institution is billed and paid like anyone else, but has no personal details."
           >
             <div id="party-type" role="group" aria-label="Kind" className="grid grid-cols-2 gap-2">
               {(['person', 'organisation'] as const).map((value) => (
@@ -177,8 +166,8 @@ export function PartyFormDialog({
             required
             hint={
               hasAccount
-                ? 'This party stands for someone who signs in; changing the name here does not rename their account.'
-                : 'Shown on Tamil statements and in the voucher form.'
+                ? 'Linked to a sign-in; renaming here does not rename the account.'
+                : undefined
             }
           >
             <Input
@@ -198,16 +187,9 @@ export function PartyFormDialog({
             />
           </FormField>
 
-          {/*
-            * Several, not one. The temple's florist who also sponsors the
-            * Friday abhishekam is one party holding both roles — registering
-            * them twice would split their history down the middle and leave no
-            * screen able to say what the dealings with them amount to.
-            */}
           <FormField
             id="party-roles"
             label="Roles"
-            hint="For grouping the lists. A party may hold several, or none — the electricity board is simply someone the temple pays."
           >
             <div
               id="party-roles"
@@ -249,7 +231,7 @@ export function PartyFormDialog({
               hint={
                 draft.type === 'organisation'
                   ? 'Their electricity, water or customer number.'
-                  : 'Any reference the temple files them under.'
+                  : undefined
               }
             >
               <Input

@@ -14,13 +14,7 @@ import type {
 
 import { getActiveYear, getToday } from './event-data';
 
-/**
- * The events domain, read from the API.
- *
- * The server composes the joins, the instance labels and the derived status,
- * so these are pass-throughs rather than a second implementation of rules the
- * API already applies.
- */
+// Pass-throughs: the API composes joins, instance labels and derived status.
 
 interface ApiEventTypeRecord extends EventType {
   readonly sponsorSlots: number;

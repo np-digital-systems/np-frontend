@@ -47,7 +47,6 @@ export function FinancialYearFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    // The same shape the API insists on, said before the round trip.
     if (!/^\d{4}(\/\d{2,4})?$/.test(draft.label.trim())) {
       setError('The label should look like 2026 or 2026/27.');
       return;
@@ -69,8 +68,7 @@ export function FinancialYearFormDialog({
         <DialogHeader>
           <DialogTitle>New Financial Year</DialogTitle>
           <DialogDescription>
-            A new year starts as upcoming. Open it when the books should begin
-            accepting entries against it.
+            New years start as upcoming until opened.
           </DialogDescription>
         </DialogHeader>
 

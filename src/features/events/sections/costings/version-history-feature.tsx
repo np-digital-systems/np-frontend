@@ -20,7 +20,7 @@ export async function VersionHistoryFeature({ costingId }: VersionHistoryFeature
   if (!access.canViewCostings) {
     return (
       <PageShell>
-        <AccessDenied description="Pooja costings are visible to the accountant and the cashier." />
+        <AccessDenied description="Only the accountant and cashier can view costings." />
       </PageShell>
     );
   }
@@ -33,11 +33,7 @@ export async function VersionHistoryFeature({ costingId }: VersionHistoryFeature
 
   const history = await getCostingHistory(costingId);
 
-  /*
-   * A draft is left out. It has never priced a day, so it is not part of what
-   * this pooja has cost — it belongs on the editor, where it can still be
-   * changed, rather than in the record of what was decided.
-   */
+  // Drafts are excluded: history shows only versions that were applied.
   const versions = history.filter((version) => !version.isDraft);
 
   return (

@@ -7,7 +7,6 @@ import {
   describeInstance,
 } from './event-data';
 
-/** The event form's stand-in for an occurrence nobody has taken yet. */
 export const UNASSIGNED = '__unassigned__';
 
 export function eventTypeGroups(
@@ -33,20 +32,7 @@ export function instanceCountOf(eventType: EventType | null): number {
     : 1;
 }
 
-/**
- * The slots of an event type, as the picker lists them.
- *
- * Built from the slots themselves rather than counted off the type, so the
- * temple's own name for a slot is what shows: மகோற்சவம் day 11 reads by its
- * name, and twelve monthly slots read as twelve Tamil months instead of
- * twelve identical "மாதாந்திரம்" rows with nothing to tell them apart.
- *
- * `unassignedLabel` leads the list with the choice not to place it at all, and
- * is for sponsors alone: registering the name and settling the occasion later
- * is how most of that register is filled, and picking it again is how somebody
- * comes back off a slot they were given by mistake. An occurrence has no such
- * state — a date always belongs to one slot — so the event form omits it.
- */
+// `unassignedLabel` is for sponsors only; an event always belongs to a slot.
 export function instanceGroups(
   slots: readonly EventSlot[],
   labelOf: (slot: EventSlot) => string,
@@ -57,8 +43,7 @@ export function instanceGroups(
   const placements = slots.map((slot) => ({
     value: String(slot.instanceIdentifier),
     label: labelOf(slot),
-    // Searchable by number even when it is named, so a clerk who knows it
-    // as "day 11" still finds it.
+    // Searchable by number even when the slot has a custom name.
     keywords: `#${slot.instanceIdentifier} ${slot.instanceIdentifier}`,
   }));
 
@@ -76,20 +61,12 @@ export function instanceGroups(
 }
 
 interface SponsorGroupOptions {
-  /** Prepended above everything, e.g. the event form's "Unassigned". */
   lead?: ComboboxOption;
-  /** Everyone in the directory, shown last so nobody becomes unreachable. */
+  /** Shown last so any party can still be picked. */
   directory?: readonly SponsorParty[];
 }
 
-/**
- * The sponsor list for a slot, most relevant first.
- *
- * Picking an event type is what makes this list usable: the people registered
- * against it rise to the top, and naming an instance lifts that instance's own
- * sponsors above the rest. Everybody else stays reachable further down, so a
- * one-off sponsor never has to be registered first.
- */
+// Ordered: this instance's sponsors, then the type's sponsors, then the directory.
 export function sponsorGroups(
   assignments: readonly SponsorAssignment[],
   eventTypeId: number,
@@ -102,8 +79,7 @@ export function sponsorGroups(
 
   const eventTypeName = forType[0]?.eventType.name ?? 'this event type';
 
-  // A straight match, nulls included: with no instance chosen, the people
-  // shown first are the ones also waiting to be given one.
+  // Matches nulls too: with no instance chosen, unassigned sponsors come first.
   const pinned = forType.filter(
     (assignment) => assignment.instanceIdentifier === instanceIdentifier,
   );

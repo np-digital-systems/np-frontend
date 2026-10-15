@@ -1,11 +1,4 @@
-/**
- * How a financial year's status is written and coloured.
- *
- * Deliberately separate from `financial-year.ts`, which is `server-only`: the
- * header menu and the dashboard caption are client components and need these
- * at runtime, not just as types. Keeping one table here is what stops the menu
- * saying "Open" while the caption beside it says "open".
- */
+// Separate from the server-only financial-year.ts so client components can use it.
 
 export type FinancialYearStatus = 'open' | 'closed' | 'upcoming';
 

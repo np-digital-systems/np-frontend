@@ -42,7 +42,7 @@ export interface EventTypeInput {
   nameEn?: string;
   frequencyType: 'weekly' | 'monthly_twice' | 'monthly_once' | 'annual' | 'multi_day';
   noOfInstances: number;
-  /** The coding receipts for this pooja take. Null clears the suggestion. */
+  /** Null clears it. */
   activityId?: number | null;
 }
 
@@ -77,7 +77,7 @@ export interface EventInput {
   notes?: string | null;
 }
 
-/** Leaving the sponsor out inherits the slot's sponsor, when it has just one. */
+// An omitted sponsor inherits the slot's sponsor when it has exactly one.
 export async function createEvent(input: EventInput): Promise<ActionResult> {
   return guarded((a) => a.canCreate, 'You cannot add events to the calendar.', () =>
     api.post('/events', {
@@ -121,7 +121,6 @@ export async function deleteEvent(id: number): Promise<ActionResult> {
   );
 }
 
-/** Name a slot, or retire one. The one place a slot's name is set. */
 export async function updateEventSlot(
   slotId: number,
   input: { customInstanceName?: string | null; isActive?: boolean },
@@ -133,12 +132,7 @@ export async function updateEventSlot(
   );
 }
 
-/**
- * A type's slots, for the dialog that names them.
- *
- * A server action rather than a service call: the list is read from a client
- * component, and the API token lives on the server.
- */
+// A server action so client components can read it while the API token stays on the server.
 export async function loadEventSlots(eventTypeId: number): Promise<readonly EventSlot[]> {
   await requireSession();
 

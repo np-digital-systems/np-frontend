@@ -30,7 +30,6 @@ import { SiteEventCard } from './site-event-card';
 
 interface EventDetailProps {
   event: PublicEvent;
-  /** A few other occurrences to offer once this one has been read. */
   alsoUpcoming: readonly PublicEvent[];
   today: string;
 }
@@ -51,13 +50,6 @@ const STANDING_STYLES: Record<Standing, string> = {
   past: 'bg-[#F3F3F4] text-[#6F6757] border-[#D0C5AF]/50',
 };
 
-/**
- * One occurrence, in full.
- *
- * The calendar holds no photographs and only one free-text field, so the page
- * leans on what it does hold — the date, the slot in the year, the hours — and
- * says plainly when there is nothing more to say rather than padding it out.
- */
 export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations('Events.detail');
@@ -69,8 +61,6 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
   const slot = instanceLabel(event, tInstance);
   const sponsor = sponsorName(event, locale);
 
-  // The occurrence tile is dropped rather than left blank when the slot has
-  // nothing to say, so the row stays even instead of carrying a hole.
   const facts = [
     {
       icon: CalendarDays,
@@ -97,7 +87,6 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
 
   return (
     <>
-      {/* ---------------------------------------------------------------- hero */}
       <section className="relative flex h-[46vh] min-h-[360px] items-end overflow-hidden">
         <Image
           src={eventImage(event.eventTypeId)}
@@ -142,7 +131,6 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
         </div>
       </section>
 
-      {/* --------------------------------------------------------------- facts */}
       <PageContainer className="bg-[#FAF9F6] !py-12 md:!py-16">
         <div
           className={cn(
@@ -183,7 +171,6 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
           </div>
         )}
 
-        {/* ------------------------------------------------------ description */}
         <div className="mt-10 rounded-2xl border border-[#E8E0CC] bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:p-10">
           <h2 className="font-heading text-2xl font-semibold text-[#1A1C1C] md:text-3xl">
             {t('about')}
@@ -220,7 +207,6 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
         <SpiritualDivider variant="om" className="pt-4" />
       </PageContainer>
 
-      {/* ----------------------------------------------------------- also next */}
       {alsoUpcoming.length > 0 && (
         <PageContainer className="bg-white !pt-0">
           <h2 className="font-heading mb-8 text-center text-2xl font-semibold text-[#1A1C1C] md:text-3xl">

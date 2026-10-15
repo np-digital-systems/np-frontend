@@ -70,7 +70,6 @@ import type { DirectoryPerson, UserRecord } from '../../types';
 
 interface UsersScreenProps {
   initialUsers: readonly UserRecord[];
-  /** People without a sign-in yet, offered when granting one. */
   directory: readonly DirectoryPerson[];
   currentUserId: string;
   today: string;
@@ -128,12 +127,9 @@ export function UsersScreen({
 
     run(
       async () => {
-        // Creating an account registers the person as a party in the same
-        // call; editing one only ever touches the email, because the name and
-        // contact details belong to the party and are edited in the directory.
+        // Editing only changes the email; name and contact details live on the party.
         if (!target) {
-          // Granting to somebody already in the directory sends their id and
-          // no name: the API must not be given the chance to file them twice.
+          // Existing parties send only their id, so the API can't create a duplicate.
           return createUser(
             draft.partyId !== null
               ? {
@@ -156,8 +152,7 @@ export function UsersScreen({
 
         if (!updated.ok) return updated;
 
-        // The role is its own call because changing it revokes the user's
-        // sessions, which a profile edit has no business doing.
+        // Separate call: changing the role revokes the user's sessions.
         if (draft.role !== target.role) {
           const moved = await changeUserRole(target.id, draft.role);
 
@@ -193,7 +188,6 @@ export function UsersScreen({
     <>
       <PortalPageHeader
         title="Users"
-        description="Portal accounts, the role each one holds and the devices they are signed in on."
         meta={[
           <span key="active" className="tabular">
             {totals.active} active accounts
@@ -231,17 +225,14 @@ export function UsersScreen({
         <StatCard
           label="Administrators"
           value={String(totals.admins)}
-          caption="Full portal control"
         />
         <StatCard
           label="Open Sessions"
           value={String(totals.sessions)}
-          caption="Across all devices"
         />
         <StatCard
           label="Never Signed In"
           value={String(totals.neverSignedIn)}
-          caption="Invitation not yet used"
         />
       </div>
 
@@ -311,7 +302,7 @@ export function UsersScreen({
               <EmptyState
                 icon={Users}
                 title="No users match these filters"
-                description="Adjust the search or role filter above."
+                description="Try a different search or filter."
               />
             </DataTableEmpty>
           ) : (
@@ -332,9 +323,7 @@ export function UsersScreen({
                     )}
                   </div>
 
-                  {/* The service falls back to the Tamil name when there is no
-                      romanised one, so the second line is dropped rather than
-                      repeating the first. */}
+                  {/* fullName falls back to nameTa; skip the duplicate line. */}
                   {user.fullName !== user.nameTa && (
                     <p className="mt-0.5 truncate text-xs text-text-muted">
                       {user.fullName}
@@ -487,7 +476,7 @@ export function UsersScreen({
         confirmLabel="Deactivate"
         description={
           deactivating
-            ? `${deactivating.nameTa} will be signed out of ${deactivating.activeSessions.length} device${deactivating.activeSessions.length === 1 ? '' : 's'} and will not be able to sign in. Their entries and audit history are kept.`
+            ? `${deactivating.nameTa} will be signed out of ${deactivating.activeSessions.length} device${deactivating.activeSessions.length === 1 ? '' : 's'} and blocked from signing in. Their history is kept.`
             : ''
         }
         onConfirm={() => {
@@ -503,7 +492,7 @@ export function UsersScreen({
         confirmLabel="Sign Out"
         description={
           signingOut
-            ? `${signingOut.nameTa} will be signed out of ${signingOut.activeSessions.length} device${signingOut.activeSessions.length === 1 ? '' : 's'} and will have to sign in again. The account stays active.`
+            ? `${signingOut.nameTa} will be signed out of ${signingOut.activeSessions.length} device${signingOut.activeSessions.length === 1 ? '' : 's'}. The account stays active.`
             : ''
         }
         onConfirm={() => {

@@ -13,7 +13,6 @@ import {
   readPublicEvents,
 } from '@/features/events/lib/public-event-service';
 
-/** How many occurrences the cards above the calendar show. */
 const UPCOMING_COUNT = 6;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,17 +24,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/**
- * The public events page.
- *
- * Two reads of the same calendar: the next six occurrences as cards, then the
- * whole window as a calendar the visitor can page through. Both are fetched
- * here rather than in the browser so the page arrives complete and indexable.
- *
- * The API going down takes the section's contents with it, never the page —
- * the hero, the navigation and the rest of the site still render, and the
- * section says so in the visitor's language.
- */
 export default async function EventsPage() {
   const t = await getTranslations('Events');
   const today = getToday();

@@ -1,10 +1,4 @@
-/**
- * Server-side base URL for the API.
- *
- * Distinct from the public one because server components talk to the API
- * directly — inside a container network that is a service name, not the address
- * a browser could reach.
- */
+// Server-side URL; in Docker it's a service name the browser can't reach.
 const apiUrl = process.env.API_URL ?? 'http://localhost:4000/api/v1';
 
 export const env = {

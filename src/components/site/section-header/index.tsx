@@ -46,7 +46,6 @@ export function SectionHeader({
           {description}
         </p>
       )}
-      {/* Decorative underline */}
       <div
         className={cn(
           "mt-6 flex items-center gap-2",

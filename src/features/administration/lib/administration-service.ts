@@ -19,12 +19,7 @@ import type {
 
 import { DEFAULT_SETTINGS } from './administration-data';
 
-/* -------------------------------------------------------------------------
-   Staff accounts
-
-   A sign-in, not a person. The name comes from the party the account belongs
-   to and is edited in the directory, never here.
-   ------------------------------------------------------------------------- */
+// Accounts are credentials granted to a party; names are edited in the directory.
 
 interface ApiAccount {
   readonly id: string;
@@ -61,11 +56,7 @@ function toUserRecord(account: ApiAccount, sessions: readonly UserSession[]): Us
 export async function getUserRecords(): Promise<readonly UserRecord[]> {
   const users = await getAll<ApiAccount>('/user-accounts');
 
-  /*
-   * Sessions are the signed-in user's own; the API deliberately exposes no
-   * route that lists everybody's, because a session list is a map of who is
-   * at which counter right now.
-   */
+  // Own sessions only: the API deliberately has no route listing everyone's sessions.
   const sessions = await api
     .get<readonly UserSession[]>('/auth/sessions')
     .catch(() => [] as readonly UserSession[]);
@@ -73,12 +64,7 @@ export async function getUserRecords(): Promise<readonly UserRecord[]> {
   return users.map((user) => toUserRecord(user, sessions));
 }
 
-/**
- * Your own record.
- *
- * Distinct from the account list: reading `/user-accounts` needs `user:manage`,
- * and a member looking at their own profile holds nothing of the sort.
- */
+// Separate from the account list, which needs `user:manage`.
 export async function getMyProfile(): Promise<UserRecord> {
   const [me, sessions] = await Promise.all([
     api.get<Partial<ApiAccount> & { id: string; nameTa: string; role: UserRole }>('/auth/me'),
@@ -103,12 +89,7 @@ export async function getMyProfile(): Promise<UserRecord> {
   );
 }
 
-/**
- * Everyone in the directory, for the sign-in form.
- *
- * Reading it here rather than typing a name is what keeps a portal login from
- * filing an existing sponsor a second time.
- */
+// Lets a sign-in be granted to an existing party instead of creating a duplicate.
 export async function getDirectory(): Promise<readonly DirectoryPerson[]> {
   const parties = await api
     .get<readonly { id: number; name: string; nameEn: string; accountId: string | null; type: string }[]>(
@@ -135,10 +116,6 @@ export async function countUsersByRole(): Promise<Record<UserRole, number>> {
     {} as Record<UserRole, number>,
   );
 }
-
-/* -------------------------------------------------------------------------
-   Roles and the permission catalogue
-   ------------------------------------------------------------------------- */
 
 interface ApiRole {
   readonly code: UserRole;
@@ -169,7 +146,6 @@ export async function getRoleRecords(): Promise<readonly RoleRecord[]> {
   }));
 }
 
-/** The catalogue the role editor offers, grouped as the API groups it. */
 export async function getPermissionGroups(): Promise<readonly PermissionGroup[]> {
   const groups = await api.get<readonly ApiPermissionGroup[]>('/roles/permissions');
 
@@ -180,10 +156,6 @@ export async function getPermissionGroups(): Promise<readonly PermissionGroup[]>
     permissions: group.permissions.map((permission) => permission.code) as readonly Permission[],
   }));
 }
-
-/* -------------------------------------------------------------------------
-   Audit trail
-   ------------------------------------------------------------------------- */
 
 interface ApiAuditEntry {
   readonly id: string;
@@ -235,10 +207,6 @@ export function groupAuditByDay(entries: readonly AuditEntry[]): readonly AuditD
     }));
 }
 
-/* -------------------------------------------------------------------------
-   Financial years
-   ------------------------------------------------------------------------- */
-
 interface ApiFinancialYear {
   readonly id: number;
   readonly label: string;
@@ -281,21 +249,12 @@ export async function getFinancialYearRecords(): Promise<readonly FinancialYearR
   });
 }
 
-/* -------------------------------------------------------------------------
-   Settings
-   ------------------------------------------------------------------------- */
-
 interface ApiSetting {
   readonly key: string;
   readonly value: Record<string, unknown>;
 }
 
-/**
- * Portal settings, merged over the shipped defaults.
- *
- * The API stores only what an administrator has actually changed, so a key
- * nobody has touched falls back rather than arriving empty.
- */
+// The API stores only changed keys, so merge over the defaults.
 export async function getPortalSettings(): Promise<PortalSettings> {
   const rows = await api.get<readonly ApiSetting[]>('/settings').catch(() => []);
   const stored = new Map(rows.map((row) => [row.key, row.value]));

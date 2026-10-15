@@ -13,6 +13,5 @@ import type { FinancialYearStatus } from '@/lib/financial-year-display';
 
 export interface FinancialYear {
   readonly label: string;
-  /** The API's own vocabulary, so nothing has to translate it on the way in. */
   readonly status: FinancialYearStatus;
 }

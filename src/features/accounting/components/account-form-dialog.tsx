@@ -41,10 +41,7 @@ export interface AccountDraft {
   type: AccountType;
   parentId: number | null;
   openingBalance: number;
-  /**
-   * Offered when this head is chosen. Only for a head that deals with exactly
-   * one party — electricity, water, rates. Never on a shared head.
-   */
+  /** Only for heads paid to a single party (e.g. electricity), never shared heads. */
   defaultPartyId: number | null;
   isActive: boolean;
 }
@@ -83,7 +80,6 @@ interface AccountFormDialogProps {
   account: AccountRecord | null;
     parents: readonly Account[];
   existing: readonly Account[];
-  /** Offered as the head's usual party; empty is the ordinary case. */
   parties: readonly PartyRef[];
   onSubmit: (draft: AccountDraft) => void;
 }
@@ -141,11 +137,7 @@ export function AccountFormDialog({
     (parent) => parent.type === draft.type && parent.id !== account?.id,
   );
 
-  /*
-   * An opening balance is the position the books were handed over at, so the
-   * API settles it the moment the first entry posts against the head. Showing
-   * that here means the figure is greyed out rather than rejected on save.
-   */
+  // The API locks the opening balance once an entry posts, so disable it rather than fail on save.
   const openingIsSettled = (account?.entryCount ?? 0) > 0;
 
   return (
@@ -156,8 +148,7 @@ export function AccountFormDialog({
             {account ? `Edit ${account.code}` : 'New Ledger Account'}
           </DialogTitle>
           <DialogDescription>
-            Accounts are the heads every receipt and payment posts against.
-            Changing one changes how every report groups its figures.
+            Changes affect how reports group figures.
           </DialogDescription>
         </DialogHeader>
 
@@ -175,11 +166,8 @@ export function AccountFormDialog({
                   setDraft((current) => ({
                     ...current,
                     type: value as AccountType,
-                    // A parent belongs to one class; keeping it across a
-                    // class change would put the account under the wrong head.
+                    // Parent and opening balance don't carry across a class change.
                     parentId: null,
-                    // Likewise a figure typed for a real class means nothing
-                    // on a head that is required to open at nil.
                     openingBalance: opensAtZero(value as AccountType)
                       ? 0
                       : current.openingBalance,
@@ -228,7 +216,6 @@ export function AccountFormDialog({
             id="account-name-ta"
             label="Name (Tamil)"
             required
-            hint="Shown on Tamil statements and the printed ledger."
           >
             <Input
               id="account-name-ta"
@@ -246,7 +233,7 @@ export function AccountFormDialog({
             hint={
               eligibleParents.length === 0
                 ? 'No group heads exist for this class yet.'
-                : 'The head this account is reported under.'
+                : undefined
             }
           >
             <Select
@@ -279,8 +266,8 @@ export function AccountFormDialog({
               label="Opening Balance"
               hint={
                 openingIsSettled
-                  ? `Settled — ${account?.entryCount} entries are already posted against this head.`
-                  : `What this head stood at when the books opened, as a ${ACCOUNT_NATURAL_SIDE[draft.type]} figure.`
+                  ? `Locked: ${account?.entryCount} entries posted.`
+                  : `Enter as a ${ACCOUNT_NATURAL_SIDE[draft.type]} figure.`
               }
             >
               <Input
@@ -301,16 +288,10 @@ export function AccountFormDialog({
             </FormField>
           )}
 
-          {/*
-            * Only worth setting where the head genuinely deals with one party
-            * every time — the electricity board, the water board. A shared
-            * head like salaries serves every kurukkal, and naming one of them
-            * here would put the wrong name on the rest by default.
-            */}
           <FormField
             id="account-default-party"
             label="Usual party"
-            hint="Filled in when this head is chosen. Leave empty for a head that deals with several people."
+            hint="Leave empty for heads paid to several parties."
           >
             <EntityCombobox
               id="account-default-party"

@@ -132,7 +132,6 @@ export function ReportsScreen({
     <>
       <PortalPageHeader
         title="Reports"
-        description="Statements and registers for the temple’s committee, auditors and donors."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -174,7 +173,6 @@ export function ReportsScreen({
         <StatCard
           label="Surplus"
           value={formatCurrency(statement.surplus)}
-          caption="Carried to reserves"
         />
         <StatCard
           label="Trial Balance"
@@ -374,7 +372,6 @@ function TrialBalanceTable({
     <Card>
       <CardHeader
         title="Trial Balance"
-        description="Debit and credit totals per posting account"
         action={
           <span
             className={cn(
@@ -459,7 +456,6 @@ function FundSummaryTable({ funds }: { funds: readonly FundPosition[] }) {
     <Card>
       <CardHeader
         title="Fund-wise Summary"
-        description="How each earmarked fund moved this year"
       />
 
       <DataTable columns={columns} minWidth={760}>

@@ -145,7 +145,6 @@ export function PartiesScreen({
     <>
       <PortalPageHeader
         title="Parties"
-        description="Who entries are with. Sponsors, priests, vendors and devotees sit beneath the chart of accounts rather than in it."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -172,19 +171,17 @@ export function PartiesScreen({
       <ActionError message={actionError} />
 
       {!access.canManageParties && (
-        <ReadOnlyNotice message="You can see the parties. Adding or changing one is restricted to administrators and accountants." />
+        <ReadOnlyNotice message="Only administrators and accountants can make changes." />
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <StatCard
           label="Contributed"
           value={formatCurrency(totals.contributed)}
-          caption="Sponsorships and donations received"
         />
         <StatCard
           label="Paid Out"
           value={formatCurrency(totals.paid)}
-          caption="Honoraria, wages and invoices"
         />
         <StatCard
           label="With Entries"
@@ -246,7 +243,7 @@ export function PartiesScreen({
               <EmptyState
                 icon={Users}
                 title="Nobody on file yet"
-                description="A party is whoever an entry is with — a sponsor, the kurukkal, a vendor. Add one and receipts and payments can name them."
+                description="Add one to name them on receipts and payments."
               />
             </DataTableEmpty>
           ) : filtered.length === 0 ? (
@@ -342,7 +339,7 @@ export function PartiesScreen({
         title="Retire this party?"
         description={
           retiring
-            ? `${retiring.name} will no longer be offered on new entries. The ${retiring.entryCount} entries already naming them are unchanged.`
+            ? `${retiring.name} won't be offered on new entries. Their ${retiring.entryCount} existing entries are unchanged.`
             : ''
         }
         confirmLabel="Retire"

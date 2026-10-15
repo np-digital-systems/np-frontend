@@ -16,8 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-// Straight from the actions module, not the events barrel: that barrel pulls
-// the server-only data layer into this client bundle.
+// Not from the events barrel: it pulls server-only code into this client bundle.
 import { loadExpectedAmounts } from '@/features/events/lib/costing-actions';
 import {
   Select,
@@ -55,26 +54,24 @@ import type {
   VoucherRecord,
 } from '../types';
 
-/** One head on the voucher, as the form holds it while being filled in. */
 export interface VoucherDraftLine {
   accountId: number;
   amount: number;
   fundId: number;
   projectId: number | null;
   activityId: number | null;
-  /** The occurrence this head is for, where a pooja is named. */
+  /** Set when a pooja occurrence is chosen. */
   eventId: number | null;
 }
 
 export interface VoucherDraft {
   date: string;
   description: string;
-  /** At least one. The total is their sum, never typed directly. */
+  /** At least one; the total is their sum. */
   lines: VoucherDraftLine[];
   mode: PaymentMode;
   bankAccountId: number | null;
   chequeNo: string;
-  /** Who it was with — one payer per document, however it splits. */
   partyId: number | null;
   party: string;
   manualVoucherNo: string;
@@ -84,12 +81,6 @@ export interface VoucherDraft {
 const NO_PROJECT = '__none__';
 const NO_DIMENSION = '__none__';
 
-/**
- * A quiet heading between groups of fields.
- *
- * The form is filled top to bottom in the order the entry is thought about:
- * what the money is for, which fund carries it, then how much moved and how.
- */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="mt-1 text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
@@ -105,22 +96,12 @@ interface LineEditorProps {
   projects: readonly ProjectRef[];
   activities: readonly ActivityRef[];
   poojas: readonly PoojaRef[];
-  /** Decides which side an activity's default head has to be on to apply. */
   kind: VoucherKind;
   onChange: (lines: VoucherDraftLine[]) => void;
-  /** Told when a pooja is picked, so the document can name its sponsor. */
   onPoojaChosen: (pooja: PoojaRef, activityName: string, lineIndex: number) => void;
-  /** The head's usual party, offered to the document when the first is chosen. */
   onSuggestParty: (partyId: number) => void;
 }
 
-/**
- * The heads a voucher is coded to.
- *
- * One head is the ordinary case and reads as an ordinary form. A second is one
- * click away, for the receipt where a devotee earmarks part of what they give —
- * one document, one reference, one piece of paper, as it was handed over.
- */
 function LineEditor({
   lines,
   accounts,
@@ -133,8 +114,7 @@ function LineEditor({
   onSuggestParty,
   onPoojaChosen,
 }: LineEditorProps) {
-  // Every line of a receipt credits income and every line of a payment debits
-  // expenditure, so this is the only side a default head can usefully be on.
+  // Receipts credit income and payments debit expenditure, so a default head must be on this side.
   const codingSide = kind === 'receipt' ? 'income' : 'expense';
 
   const accountById = useMemo(
@@ -142,19 +122,11 @@ function LineEditor({
     [accounts],
   );
 
-  /** The activities coded to a head — strictly its own. */
   function linkedTo(accountId: number): readonly ActivityRef[] {
     return activities.filter((entry) => entry.defaultAccountId === accountId);
   }
 
-  /**
-   * What the activity dropdown offers for a head.
-   *
-   * Its own activities where it has any, so a receipt against pooja income is
-   * never offered the salaries work. Where a head has none coded to it yet the
-   * whole list is offered instead: an empty dropdown would stop a clerk at the
-   * counter over a setting nobody has got round to.
-   */
+  // Falls back to every activity when none is linked to the head, so the dropdown is never empty.
   function activitiesFor(accountId: number): readonly ActivityRef[] {
     if (!accountId) return activities;
 
@@ -163,12 +135,6 @@ function LineEditor({
     return linked.length > 0 ? linked : activities;
   }
 
-  /**
-   * The coding an activity carries — its fund, project and usual party.
-   *
-   * Shared by choosing an activity and by having one chosen for you, so a head
-   * with a single activity fills the line exactly as picking it by hand would.
-   */
   function codingFor(
     activity: ActivityRef | undefined,
     line: VoucherDraftLine,
@@ -177,7 +143,6 @@ function LineEditor({
       activityId: activity?.id ?? null,
       fundId: activity?.defaultFundId ?? line.fundId,
       projectId: activity ? activity.defaultProjectId : line.projectId,
-      // A different activity is a different occurrence.
       eventId: null,
     };
   }
@@ -194,10 +159,6 @@ function LineEditor({
     return [...groups.entries()];
   }, [accounts]);
 
-  /*
-   * Which lines have their fund and project unfolded. Kept per line and not
-   * per form: unfolding one head's coding says nothing about the next.
-   */
   const [coding, setCoding] = useState<ReadonlySet<number>>(new Set());
 
   function edit(index: number, patch: Partial<VoucherDraftLine>) {
@@ -209,8 +170,7 @@ function LineEditor({
 
     onChange([
       ...lines,
-      // The new head inherits where the last one was carried, since a split is
-      // usually two purposes out of one fund rather than two unrelated entries.
+      // Inherit the previous head's account and fund; splits usually share a fund.
       {
         accountId: last?.accountId ?? 0,
         amount: 0,
@@ -230,7 +190,6 @@ function LineEditor({
         );
         const activity = activities.find((entry) => entry.id === line.activityId);
         const lineActivities = activitiesFor(line.accountId);
-        const lineLinked = linkedTo(line.accountId);
         const activityPoojas = poojas.filter(
           (pooja) => pooja.activityId === line.activityId,
         );
@@ -267,11 +226,6 @@ function LineEditor({
               id={`voucher-account-${index}`}
               label="Ledger Account"
               required
-              hint={
-                index === 0
-                  ? 'The head this posts against. Choosing one narrows the activities below.'
-                  : undefined
-              }
             >
               <Select
                 value={String(line.accountId)}
@@ -281,15 +235,7 @@ function LineEditor({
                   const offered = activitiesFor(accountId);
                   const linked = linkedTo(accountId);
 
-                  /*
-                   * A head with exactly one activity coded to it has already
-                   * answered the question, so it answers it — and carries that
-                   * activity's fund, project and party in with it.
-                   *
-                   * Read from what is linked, not from what is offered: a head
-                   * with nothing linked falls back to the whole list, and
-                   * picking for the clerk out of that would be a guess.
-                   */
+                  // Auto-select only when exactly one activity is linked (not from the fallback list).
                   const only = linked.length === 1 ? linked[0] : undefined;
                   const stillOffered = offered.some(
                     (entry) => entry.id === line.activityId,
@@ -304,11 +250,7 @@ function LineEditor({
                         : { activityId: null, eventId: null }),
                   });
 
-                  /*
-                   * The activity's party wins where it has one: it is the more
-                   * specific answer. Otherwise a head that deals with a single
-                   * party — electricity, water, rates — names them.
-                   */
+                  // The activity's party takes precedence over the head's default party.
                   const partyId = only?.defaultPartyId ?? chosen?.defaultPartyId;
 
                   if (partyId != null) onSuggestParty(partyId);
@@ -334,22 +276,10 @@ function LineEditor({
               </Select>
             </FormField>
 
-            {/*
-              * Activity leads, because it is the one real choice on the line —
-              * the fund and project follow from it. Amount comes last, as it
-              * does on the paper voucher.
-              */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 id={`voucher-activity-${index}`}
                 label="Activity"
-                hint={
-                  lineLinked.length === 1
-                    ? 'The only activity for this head, filled in for you.'
-                    : lineLinked.length === 0
-                      ? 'No activity is coded to this head yet, so all are listed. Set the head on an activity to narrow this.'
-                      : undefined
-                }
               >
                 <Select
                   value={
@@ -359,18 +289,7 @@ function LineEditor({
                     const activityId = value === NO_DIMENSION ? null : Number(value);
                     const chosen = activities.find((entry) => entry.id === activityId);
 
-                    /*
-                     * The activity carries its whole coding — the fund it is
-                     * held in, the project it belongs to, and who it is usually
-                     * with — so this one choice settles all three. Each stays
-                     * editable below: a default is what is usually true, never
-                     * a rule.
-                     */
-                    /*
-                     * The default head applies only where it sits on the side
-                     * this voucher posts to: an activity's expense head has no
-                     * business filling itself into a receipt.
-                     */
+                    // Only apply the activity's default head if it's on this voucher's side.
                     const defaultAccount =
                       chosen?.defaultAccountId != null
                         ? accountById.get(chosen.defaultAccountId)
@@ -405,12 +324,6 @@ function LineEditor({
                 </Select>
               </FormField>
 
-              {/*
-                * Only where the activity is a pooja, and on the line that names
-                * it: a split receipt's second head is the earmarked remainder
-                * and is not for this occurrence at all. It appears on payments
-                * too — the melam for one Friday, not for the month.
-                */}
               {activity?.kind === 'pooja' && (
                 <FormField
                   id={`voucher-pooja-${index}`}
@@ -466,12 +379,6 @@ function LineEditor({
               />
             </FormField>
 
-            {/*
-              * Where it will post, stated rather than asked. The fund is a
-              * legal boundary and has to be visible, but the activity settles
-              * it correctly almost every time — so the controls stay folded
-              * away until somebody actually needs to overrule them.
-              */}
             {!coding.has(index) ? (
               <div className="flex items-center gap-2 text-xs text-text-muted">
                 <span className="truncate">
@@ -517,7 +424,6 @@ function LineEditor({
                   </Select>
                 </FormField>
 
-                {/* Only where the fund actually runs projects. */}
                 {fundProjects.length > 0 && (
                   <FormField id={`voucher-project-${index}`} label="Project">
                     <Select
@@ -554,7 +460,7 @@ function LineEditor({
 
       <Button type="button" variant="outline" size="sm" className="self-start" onClick={addLine}>
         <Plus />
-        Add another head
+        Add head
       </Button>
     </div>
   );
@@ -589,15 +495,11 @@ function draftFrom(
     };
   }
 
-  // A receipt posts to income, a payment to expenditure — defaulting to the
-  // right side saves the most common mis-selection there is.
   const naturalSide = kind === 'receipt' ? 'income' : 'expense';
 
   return {
     date: today,
     description: '',
-    // One line to start with: the ordinary voucher has exactly one head, and
-    // the split is the exception a clerk reaches for.
     lines: [
       {
         accountId:
@@ -621,14 +523,7 @@ function draftFrom(
   };
 }
 
-/**
- * Is this draft just the empty form?
- *
- * A draft is written on every keystroke, so a dialog merely opened and closed
- * leaves one behind. Offering to restore *that* would put a banner in front of
- * somebody who typed nothing, every time. Comparing against a freshly seeded
- * form answers it without having to track whether anything was touched.
- */
+// Drafts are saved on every keystroke, so ignore one that matches the untouched form.
 function isBlank(
   draft: VoucherDraft,
   kind: VoucherKind,
@@ -676,14 +571,12 @@ export function VoucherFormDialog({
 }: VoucherFormDialogProps) {
   const today = new Date().toISOString().slice(0, 10);
 
-
   const [draft, setDraft] = useState<VoucherDraft>(() =>
     draftFrom(voucher, kind, accounts, funds, today),
   );
   const [error, setError] = useState<string | null>(null);
 
-  // Re-seed when opened for a different record. Adjusting state during
-  // render rather than in an effect keeps it to a single pass.
+  // Reset the draft when opened for a different record.
   const seed = `${open}|${voucher?.id ?? 'new'}|${kind}`;
   const [lastSeed, setLastSeed] = useState(seed);
 
@@ -693,18 +586,7 @@ export function VoucherFormDialog({
     setError(null);
   }
 
-  /**
-   * Fill a line's amount from what the pooja is expected to cost.
-   *
-   * Only into an empty box. A figure the clerk has already typed is a figure
-   * somebody decided on — the shop bill was higher, the family rounded up — and
-   * a helpful default that overwrites it is worse than no default at all.
-   *
-   * A receipt takes the sponsor's quote; a payment takes the costing line that
-   * shares its head, so choosing the melam pooja on the melam head fills the
-   * melam figure and nothing else. Where the pooja has no costing behind it,
-   * nothing happens and the clerk types as before.
-   */
+  // Fills an empty amount only: receipts use the sponsor quote, payments the costing line with the same head.
   async function fillFromCosting(eventId: number, lineIndex: number) {
     const expected = await loadExpectedAmounts(eventId).catch(() => null);
 
@@ -731,12 +613,6 @@ export function VoucherFormDialog({
     });
   }
 
-  /*
-   * A voucher is a dozen fields and three lookups. Losing it to a stray click
-   * outside the dialog is the difference between a shrug and doing the whole
-   * thing again, so what is typed is kept and offered back on the next open.
-   * Keyed by the record so a new receipt and an edit never mix.
-   */
   const { restored, discard } = useFormDraft(
     `voucher:${voucher?.id ?? 'new'}:${kind}`,
     draft,
@@ -746,26 +622,13 @@ export function VoucherFormDialog({
   const hasRestorableDraft =
     restored !== null && !isBlank(restored, kind, voucher, accounts, funds, today);
 
-
-  // The document total: summed from the heads, never typed.
   const total = draft.lines.reduce((sum, line) => sum + line.amount, 0);
 
   const needsBank = isBankMode(draft.mode);
 
-  // Pooja sponsorship is the one account whose entries have to name a pooja.
-
-
-  /*
-   * A pooja receipt takes its activity from the pooja type, so the picker is
-   * hidden there — answering it twice could only produce a disagreement.
-   * Everything else names its activity directly.
-   */
-
   function update<K extends keyof VoucherDraft>(key: K, value: VoucherDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
-
-
 
   function changeMode(mode: PaymentMode) {
     setDraft((current) => ({
@@ -779,13 +642,11 @@ export function VoucherFormDialog({
   }
 
   function check(): boolean {
-
     const result = validate(voucherSchema, draft);
 
     setError(result.ok ? null : result.message);
     return result.ok;
   }
-
 
   function handleSave(formEvent: React.FormEvent) {
     formEvent.preventDefault();
@@ -813,9 +674,7 @@ export function VoucherFormDialog({
             {voucher ? `Edit ${voucher.ref}` : `New ${kind === 'receipt' ? 'Receipt' : 'Payment'} Voucher`}
           </DialogTitle>
           <DialogDescription>
-            {kind === 'receipt'
-              ? 'Record money received by the temple. Nothing reaches the ledger until it is approved and posted.'
-              : 'Record money paid out by the temple. Nothing reaches the ledger until it is approved and posted.'}
+            Not posted to the ledger until approved.
           </DialogDescription>
         </DialogHeader>
 
@@ -865,7 +724,7 @@ export function VoucherFormDialog({
               id="voucher-manual-no"
               label="Manual Voucher No"
               required
-              hint="The number on the temple's physical voucher book."
+              hint="From the physical voucher book."
             >
               <Input
                 id="voucher-manual-no"
@@ -893,11 +752,7 @@ export function VoucherFormDialog({
             onPoojaChosen={(pooja, activityName, lineIndex) => {
               setDraft((current) => ({
                 ...current,
-                /*
-                 * A receipt is collected from whoever sponsors the pooja, so
-                 * choosing one names the payer. Not on a payment: there the
-                 * money goes to the melam or the kurukkal, not the sponsor.
-                 */
+                // Receipts are paid by the pooja's sponsor; payments go to someone else.
                 party:
                   kind === 'receipt' && pooja.sponsorName
                     ? pooja.sponsorName
@@ -906,7 +761,6 @@ export function VoucherFormDialog({
                   kind === 'receipt' && pooja.sponsorPartyId
                     ? pooja.sponsorPartyId
                     : current.partyId,
-                // The pooja is the description; anything typed is left alone.
                 description: current.description.trim()
                   ? current.description
                   : `${activityName} — ${pooja.label}`,
@@ -914,15 +768,7 @@ export function VoucherFormDialog({
 
               void fillFromCosting(pooja.id, lineIndex);
             }}
-            /*
-             * Chosen deliberately, so it wins over whatever was there.
-             *
-             * Filling only an empty field meant picking the right activity
-             * second still left the wrong name on the document. An activity
-             * only carries a default where the party really is always the same
-             * — the kurukkal on his honorarium — so overwriting is what the
-             * clerk means by choosing it. The field stays editable underneath.
-             */
+            // Overwrites the current party: the user chose this head or activity deliberately.
             onSuggestParty={(partyId) =>
               setDraft((current) => {
                 const party = parties.find((entry) => entry.id === partyId);
@@ -934,23 +780,10 @@ export function VoucherFormDialog({
             }
           />
 
-
-
-          {/*
-            * Below the pooja picker, not above it: choosing a pooja fills this
-            * in from the sponsor, and only where nothing has been typed. Asked
-            * for first, it would be answered twice.
-            *
-            * One control, not two: a name and the record it belongs to are one
-            * answer. Choosing someone links the entry so the books can group by
-            * them; a name that matches nobody is kept as written, which is what
-            * a walk-in hundial donor needs.
-            */}
           <FormField
             id="voucher-party"
             label={partyLabel(kind)}
             required
-            hint="Choose someone on record, or type a name for a one-off."
           >
             <PartyPicker
               id="voucher-party"
@@ -972,7 +805,6 @@ export function VoucherFormDialog({
             <Input
               id="voucher-description"
               value={draft.description}
-              placeholder="What this entry is for"
               onChange={(changeEvent) =>
                 update('description', changeEvent.target.value)
               }
@@ -982,18 +814,13 @@ export function VoucherFormDialog({
           <SectionLabel>How the money moved</SectionLabel>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/*
-              * Read-only: the total is the sum of the heads above. A typed
-              * total that disagreed with them would be a third opinion about
-              * the same money.
-              */}
             <FormField
               id="voucher-total"
               label="Total"
               hint={
                 draft.lines.length > 1
                   ? `${draft.lines.length} heads`
-                  : 'Summed from the head above.'
+                  : undefined
               }
             >
               <output
@@ -1025,11 +852,6 @@ export function VoucherFormDialog({
 
           </div>
 
-          {/*
-            * The bank details sit on their own row rather than trailing the
-            * pair above, so a cash entry ends at the mode and a cheque shows
-            * the account and its number side by side.
-            */}
           {needsBank && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField id="voucher-bank" label="Bank Account" required>
@@ -1085,16 +907,6 @@ export function VoucherFormDialog({
               }
             />
           </FormField>
-
-          {total > 0 && (
-            <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-text-secondary">
-              {kind === 'receipt' ? 'Receipt of ' : 'Payment of '}
-              <span className="font-semibold text-text-primary tabular">
-                {formatCurrency(total)}
-              </span>{' '}
-              — this does not affect the ledger until it is approved and posted.
-            </p>
-          )}
 
           {error && (
             <p

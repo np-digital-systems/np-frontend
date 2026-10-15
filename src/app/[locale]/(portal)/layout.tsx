@@ -10,18 +10,14 @@ interface PortalLayoutProps {
 }
 
 export default async function PortalLayout({ children }: PortalLayoutProps) {
-  // Identity is resolved once, here, and the navigation is filtered from the
-  // same role the dashboard renders for — so the sidebar can never offer a
-  // destination the page itself would refuse.
+  // Nav is filtered by the same permissions the pages check.
   const { user, permissions } = await requireSession();
 
   const navigation = getPortalNavigation(permissions, user.role);
 
-  // The header's badge counts the same inbox the notifications page shows.
   const notifications = await getNotifications().catch(() => []);
 
-  // Resolved here rather than in the header so every page under this layout
-  // reads the same year the header is showing.
+  // Resolved here so every page uses the year shown in the header.
   const { years, active } = await getFinancialYearContext();
 
   return (

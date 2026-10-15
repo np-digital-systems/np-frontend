@@ -10,17 +10,10 @@ import { SiteEventCard } from './site-event-card';
 
 interface UpcomingEventsProps {
   events: readonly PublicEvent[];
-  /** True when the calendar could not be reached, as opposed to being empty. */
+  /** The calendar could not be reached (distinct from empty). */
   unavailable?: boolean;
 }
 
-/**
- * The next handful of occurrences, straight off the temple calendar.
- *
- * An empty calendar and an unreachable API are told apart deliberately: the
- * first is a fact about the temple, the second is a fault, and a visitor
- * deserves the right sentence for each.
- */
 export function UpcomingEvents({ events, unavailable }: UpcomingEventsProps) {
   const t = useTranslations('Events.upcoming');
 

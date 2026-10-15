@@ -14,7 +14,7 @@ export async function FundsFeature() {
   if (!access.canViewFunds) {
     return (
       <PageShell>
-        <AccessDenied description="Fund management is limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

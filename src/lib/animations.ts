@@ -1,5 +1,3 @@
-// Animation variants for consistent motion design
-
 export const fadeInUp = {
   initial: { opacity: 0, transform: "translateY(24px)" },
   animate: { opacity: 1, transform: "translateY(0)" },
@@ -21,7 +19,6 @@ export const scaleIn = {
 export const staggerDelay = (index: number, base = 0.1) =>
   `${index * base}s`;
 
-// CSS animation class names (defined in animations.css)
 export const ANIMATION_CLASSES = {
   fadeInUp: "animate-fade-in-up",
   fadeIn: "animate-fade-in",

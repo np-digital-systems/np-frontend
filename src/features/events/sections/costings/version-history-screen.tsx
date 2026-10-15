@@ -31,17 +31,6 @@ interface VersionHistoryScreenProps {
   canManage: boolean;
 }
 
-
-/**
- * Every version this plan has had, read one at a time and in full.
- *
- * A page rather than a dialog, because a festival costing runs to dozens of
- * itemised lines and a panel that scrolls to show one of them is no use for
- * answering the question people actually bring here — what did this cost
- * before, and what changed. The version being read is chosen on the left and
- * shown whole on the right; nothing here can be edited, which is what lets the
- * lines be laid out for reading rather than for typing into.
- */
 export function VersionHistoryScreen({
   costing,
   versions,
@@ -60,20 +49,19 @@ export function VersionHistoryScreen({
       <Button variant="ghost" size="sm" className="self-start" asChild>
         <Link href={costingRoute(costing.id)}>
           <ArrowLeft />
-          Back to the costing
+          Back to costing
         </Link>
       </Button>
 
       <PortalPageHeader
         title={describeScope(costing)}
-        description="Every version this plan has had. The days quoted at an older rate still read it."
         meta={[describeScopeReach(costing), `${versions.length} version${versions.length === 1 ? '' : 's'}`]}
         actions={
           canManage ? (
             <Button variant="outline" asChild>
               <Link href={costingRoute(costing.id)}>
                 <Pencil />
-                Edit the current one
+                Edit
               </Link>
             </Button>
           ) : undefined
@@ -81,11 +69,6 @@ export function VersionHistoryScreen({
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:items-start">
-        {/*
-          * The versions themselves, newest first. Kept as a column rather than
-          * a row of chips so a plan revised a dozen times over ten years still
-          * reads as a list somebody can run an eye down.
-          */}
         <Card>
           <CardHeader title="Versions" />
 
@@ -123,23 +106,13 @@ export function VersionHistoryScreen({
         </Card>
 
         <div className="flex flex-col gap-4">
-          {/*
-            * A statement, not a grid.
-            *
-            * The reader's question is what this cost and what made it up, which
-            * is the shape a balance sheet already has: heads down the left,
-            * money down the right, the detail indented beneath the line it
-            * belongs to. A column saying who bore each line spent a quarter of
-            * the width repeating "Sponsor" — the temple bearing one is the
-            * exception, so only the exception is marked.
-            */}
           <Card>
             <CardHeader
               title={versionLabel(shown)}
               description={
                 shown.usedByEvents > 0
-                  ? `${shown.usedByEvents} day${shown.usedByEvents === 1 ? '' : 's'} were quoted at this version · ${describePeriod(shown)}`
-                  : `No day was quoted at this version · ${describePeriod(shown)}`
+                  ? `${shown.usedByEvents} day${shown.usedByEvents === 1 ? '' : 's'} quoted · ${describePeriod(shown)}`
+                  : `Not quoted · ${describePeriod(shown)}`
               }
             />
 
@@ -155,18 +128,12 @@ export function VersionHistoryScreen({
                       <span className="text-sm text-text-primary">
                         {lineTitle(line)}
 
-                        {/* Only the exception is worth saying out loud. */}
                         {!line.chargedToSponsor && (
                           <span className="ml-2 text-xs text-text-muted">
                             the temple bore this
                           </span>
                         )}
 
-                        {/*
-                          * The code and its romanisation, for the books. Left
-                          * off where the head carries a label of its own, since
-                          * then the name above is not the account's name.
-                          */}
                         <span className="block text-xs text-text-muted">
                           {line.account.code} · {line.account.name}
                         </span>
@@ -177,7 +144,6 @@ export function VersionHistoryScreen({
                       </span>
                     </div>
 
-                    {/* Ten coconuts at 120: indented under the head it makes up. */}
                     {line.items.map((item) => (
                       <div
                         key={item.id}
@@ -194,10 +160,6 @@ export function VersionHistoryScreen({
                 ))
               )}
 
-              {/*
-                * Shown only where the temple bears something, which is what
-                * makes the two figures differ and the line worth reading.
-                */}
               {borne > 0 && (
                 <div className="flex items-baseline justify-between gap-4 pt-3">
                   <span className="text-sm text-text-secondary">
@@ -223,7 +185,6 @@ export function VersionHistoryScreen({
                   {formatCurrency(shown.sponsorAmount)}
                 </span>
               </div>
-
             </CardBody>
           </Card>
 

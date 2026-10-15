@@ -20,4 +20,4 @@ export function getContributionAccess(granted: readonly Permission[]): Contribut
 }
 
 export const REGISTER_READ_ONLY_MESSAGE =
-  'You can see the register and record subscription payments. Adding or amending a member is restricted to administrators and accountants.';
+  'Only administrators and accountants can change members.';

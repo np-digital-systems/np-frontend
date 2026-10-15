@@ -39,11 +39,6 @@ interface RolesScreenProps {
   groups: readonly PermissionGroup[];
 }
 
-/**
- * TODO: persisting a change needs the roles API. Until then edits are held
- * locally and the reset button puts the grid back to what the portal
- * enforces.
- */
 export function RolesScreen({ roles, groups }: RolesScreenProps) {
   const baseline = useMemo(
     () =>
@@ -99,13 +94,7 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
 
   const { run, error: actionError, pending } = useServerAction();
 
-  /**
-   * Write only the roles that actually changed.
-   *
-   * The API replaces a role's whole set in one call and refuses to leave the
-   * administrator role unable to administer, so a mistake here cannot lock
-   * everybody out of the portal.
-   */
+  // Only changed roles are sent; the API won't strip the admin role's core permissions.
   function handleSave() {
     run(async () => {
       for (const role of roles) {
@@ -153,7 +142,6 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
     <>
       <PortalPageHeader
         title="Roles & Permissions"
-        description="What each role is allowed to do. Every check in the portal is answered from this matrix."
         meta={[
           <span key="roles" className="tabular">
             {roles.length} roles
@@ -327,10 +315,7 @@ export function RolesScreen({ roles, groups }: RolesScreenProps) {
 function RoleSummary({ roles }: { roles: readonly RoleRecord[] }) {
   return (
     <Card>
-      <CardHeader
-        title="What each role is for"
-        description="The intent behind the matrix above"
-      />
+      <CardHeader title="What each role is for" />
 
       <ul className="divide-y divide-border">
         {roles.map((role) => (

@@ -30,7 +30,7 @@ export async function PendingApprovals() {
         <EmptyState
           icon={Inbox}
           title="Nothing awaiting approval"
-          description="Submitted vouchers will queue up here for review."
+          description="Submitted vouchers appear here."
         />
       ) : (
         <ul className="flex-1 divide-y divide-border">

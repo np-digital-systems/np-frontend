@@ -16,16 +16,8 @@ import type {
   ProjectRecord,
 } from '../types';
 
-/**
- * Funds, projects, deposits and assets, read from the API.
- *
- * Interest, depreciation and every fund position are worked out server-side
- * from the ledger and the deposit terms, so nothing here recomputes them.
- *
- * Movement figures follow the year chosen in the header. Deposits and assets
- * do not: a deposit runs to its maturity date and an asset depreciates on its
- * own schedule, neither of which a reporting year has any say over.
- */
+// Interest, depreciation and fund positions come from the API. Movements follow the header's
+// year; deposits and assets don't (they run on their own maturity and depreciation schedules).
 
 export async function getFundRecords(): Promise<readonly FundRecord[]> {
   return api.get<readonly FundRecord[]>('/funds', {

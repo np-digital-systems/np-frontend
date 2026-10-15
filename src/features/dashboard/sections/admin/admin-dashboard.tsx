@@ -52,7 +52,6 @@ export async function AdminDashboard({
     getSeries(),
   ]);
 
-  // The two largest funds, whichever the temple currently runs.
   const [firstFund, secondFund] = [...funds].sort((a, b) => b.balance - a.balance);
 
   return (

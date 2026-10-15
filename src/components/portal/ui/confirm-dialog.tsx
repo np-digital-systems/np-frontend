@@ -19,12 +19,7 @@ interface ConfirmDialogProps {
   title: string;
   description: ReactNode;
   confirmLabel?: string;
-  /*
-   * Destructive by default, because most confirmations here are. An act that
-   * goes forward rather than takes something away — applying a costing — must
-   * say so: a red button labelled for deletion asks the reader to approve one
-   * thing while doing another.
-   */
+  /** Defaults to destructive. Use 'default' for non-destructive actions. */
   tone?: 'destructive' | 'default';
   onConfirm: () => void;
 }

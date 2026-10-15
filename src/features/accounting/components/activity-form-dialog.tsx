@@ -44,11 +44,9 @@ export interface ActivityDraft {
   nameTa: string;
   nameEn: string;
   kind: ActivityKind;
-  /** The coding every voucher line takes when this activity is chosen. */
   defaultFundId: number | null;
   defaultProjectId: number | null;
   defaultPartyId: number | null;
-  /** The head this activity normally lands on. */
   defaultAccountId: number | null;
   isActive: boolean;
 }
@@ -86,12 +84,9 @@ interface ActivityFormDialogProps {
   funds: readonly FundRef[];
   projects: readonly ProjectRef[];
   parties: readonly PartyRef[];
-  /** Postable income and expense heads — the only ones a default may name. */
+  /** Postable income and expense heads only. */
   accounts: readonly AccountRef[];
-  /**
-   * Registers a party typed into the picker and answers with its id, so a
-   * kurukkal nobody has entered yet can be added without abandoning the form.
-   */
+  /** Creates a party from the picker and returns its id. */
   onCreateParty?: (name: string) => Promise<number | null>;
   onSubmit: (draft: ActivityDraft) => void;
 }
@@ -110,15 +105,10 @@ export function ActivityFormDialog({
   const [draft, setDraft] = useState<ActivityDraft>(() => draftFrom(activity));
   const [error, setError] = useState<string | null>(null);
 
-  /*
-   * A party created from this form is held here until the server component
-   * re-renders with it. Without that the picker would sit blank on the id it
-   * had just chosen, and look like the creation had failed.
-   */
+  // Parties created here, shown until the server re-renders with them.
   const [added, setAdded] = useState<{ id: number; name: string }[]>([]);
   const [busy, setBusy] = useState(false);
 
-  // A project belongs to one fund, so only that fund's projects can be offered.
   const fundProjects = projects.filter(
     (project) => project.fundId === draft.defaultFundId && project.isActive,
   );
@@ -176,9 +166,7 @@ export function ActivityFormDialog({
             {activity ? `Edit ${activity.name}` : 'New Activity'}
           </DialogTitle>
           <DialogDescription>
-            What entries are reported under. Both income and expenditure carry
-            one, which is what lets a pooja be read whole — what it brought in
-            against what it cost to run.
+            Groups income and expenditure for reporting.
           </DialogDescription>
         </DialogHeader>
 
@@ -187,7 +175,6 @@ export function ActivityFormDialog({
             id="activity-name-ta"
             label="Name (Tamil)"
             required
-            hint="Shown on Tamil statements and in the voucher form."
           >
             <Input
               id="activity-name-ta"
@@ -226,16 +213,9 @@ export function ActivityFormDialog({
               </Select>
             </FormField>
 
-            {/*
-              * One head, not one per side. `account.type` already says whether
-              * it suits a receipt or a payment, so the voucher form offers it
-              * only on the side it belongs to — an expense head never fills
-              * itself into a receipt.
-              */}
             <FormField
               id="activity-account"
               label="Ledger head"
-              hint="Filled in when this activity is chosen, and narrows the activity list when the head is chosen first."
             >
               <EntityCombobox
                 id="activity-account"
@@ -257,14 +237,9 @@ export function ActivityFormDialog({
               />
             </FormField>
 
-            {/*
-              * Answered here so a clerk raising a receipt does not answer it
-              * again on every entry. Still editable on the voucher itself.
-              */}
             <FormField
               id="activity-fund"
               label="Fund"
-              hint="Offered whenever this activity is chosen."
             >
               <EntityCombobox
                 id="activity-fund"
@@ -284,8 +259,7 @@ export function ActivityFormDialog({
                   setDraft((current) => ({
                     ...current,
                     defaultFundId: value === null ? null : Number(value),
-                    // A project sits in one fund; carrying it across a fund
-                    // change would point the pair at different pots.
+                    // Projects belong to one fund, so reset on fund change.
                     defaultProjectId: null,
                   }))
                 }
@@ -293,16 +267,10 @@ export function ActivityFormDialog({
             </FormField>
           </div>
 
-          {/*
-            * Only where the chosen fund actually runs projects. General Fund
-            * carries the poojas and has none, so the field never appears for
-            * them — which is most of the list.
-            */}
           {fundProjects.length > 0 && (
             <FormField
               id="activity-project"
               label="Project"
-              hint="The piece of work this activity belongs to, where there is one."
             >
               <EntityCombobox
                 id="activity-project"
@@ -328,15 +296,9 @@ export function ActivityFormDialog({
             </FormField>
           )}
 
-          {/*
-            * A head is too coarse to name a person — 5200 Salaries serves the
-            * kurukkal, the melam group and the chef alike. An activity is only
-            * ever one of them, so it is the thing that can remember.
-            */}
           <FormField
             id="activity-party"
             label="Usually with"
-            hint="Offered as the payer or payee. Left blank for anything with no regular counterparty."
           >
             <EntityCombobox
               id="activity-party"
@@ -354,7 +316,6 @@ export function ActivityFormDialog({
                     .map((role) => PARTY_KIND_LABELS[role])
                     .join(' · '),
                 })),
-                // Created from this form and not yet in the server's copy.
                 ...added
                   .filter(
                     (entry) => !parties.some((party) => party.id === entry.id),
@@ -391,8 +352,7 @@ export function ActivityFormDialog({
                 Active
               </Label>
               <p className="mt-0.5 text-[11px] text-text-muted">
-                A retired activity leaves the pickers; every entry that names it
-                keeps doing so.
+                Inactive activities are hidden from pickers.
               </p>
             </div>
 

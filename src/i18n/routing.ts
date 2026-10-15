@@ -7,6 +7,5 @@ export const routing = defineRouting({
   localeDetection: false // Prevents automatic browser language overrides
 });
 
-// Professional utility exports for type-safe navigation later
 export type Locale = (typeof routing.locales)[number];
 export const { Link, redirect, usePathname, useRouter } = createNavigation(routing);

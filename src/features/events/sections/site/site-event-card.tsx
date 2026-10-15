@@ -21,13 +21,6 @@ interface SiteEventCardProps {
   className?: string;
 }
 
-/**
- * One occurrence, as a card on the public site.
- *
- * Shaped after the existing home-page card so the two read as one design, but
- * driven by the calendar rather than a hand-written constant: the date, the
- * name and the slot all come from the API, in whichever language is on screen.
- */
 export function SiteEventCard({ event, className }: SiteEventCardProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations('Events.card');
@@ -59,7 +52,6 @@ export function SiteEventCard({ event, className }: SiteEventCardProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-        {/* Date medallion — the one thing a visitor scans for. */}
         <div className="absolute top-4 left-4 flex h-16 w-16 flex-col items-center justify-center rounded-xl bg-white/95 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-sm">
           <span className="font-heading text-2xl leading-none font-bold text-[#8B0000]">
             {day}

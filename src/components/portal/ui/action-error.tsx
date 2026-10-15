@@ -3,17 +3,11 @@
 import { AlertTriangle } from 'lucide-react';
 
 interface ActionErrorProps {
-  /** Whatever the server said. Null when the last write succeeded. */
+  /** Null when the last write succeeded. */
   message: string | null;
 }
 
-/**
- * What the server said when it refused a write.
- *
- * Shown verbatim: a business rule the API rejected — an unbalanced voucher, a
- * year already closed, a member already paid — is written for the person who
- * tried it, and paraphrasing it here would only lose the reason.
- */
+// Shows the API's message verbatim; it is written for the user.
 export function ActionError({ message }: ActionErrorProps) {
   if (!message) return null;
 

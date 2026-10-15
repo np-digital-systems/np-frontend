@@ -20,7 +20,7 @@ export async function EventBudgetFeature({ eventId }: EventBudgetFeatureProps) {
   if (!access.canViewCostings) {
     return (
       <PageShell>
-        <AccessDenied description="What a pooja was quoted at, and what it cost, is visible to the accountant and the cashier." />
+        <AccessDenied description="Only the accountant and cashier can view costings." />
       </PageShell>
     );
   }
@@ -31,11 +31,6 @@ export async function EventBudgetFeature({ eventId }: EventBudgetFeatureProps) {
     throw error;
   });
 
-  /*
-   * No bank accounts and no voucher form. This page reads what the day was
-   * quoted at against what the ledger says it cost; the vouchers themselves are
-   * written on the Receipt and Payment Voucher pages.
-   */
   const budget = await getEventBudget(eventId);
 
   return (

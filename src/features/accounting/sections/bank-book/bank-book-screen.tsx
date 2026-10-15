@@ -65,7 +65,6 @@ export function BankBookScreen({
     <>
       <PortalPageHeader
         title="Bank Book"
-        description="Movements through each of the temple’s bank accounts, with the running balance."
         meta={[
           <span key="period" className="tabular">
             {periodLabel}
@@ -82,8 +81,7 @@ export function BankBookScreen({
               value={String(bankId)}
               onValueChange={(value) => {
                 setBankId(Number(value));
-                // Months differ per account; carrying the old selection
-                // would land on a month this account has no rows in.
+                // Reset the month: each account has different months.
                 setMonth('all');
               }}
             >
@@ -159,7 +157,7 @@ export function BankBookScreen({
         outflowLabel="Withdrawals"
         showCheque
         emptyTitle="No movements in this period"
-        emptyDescription="Bank deposits and withdrawals appear here once their vouchers are posted."
+        emptyDescription="Entries appear once vouchers are posted."
       />
     </>
   );

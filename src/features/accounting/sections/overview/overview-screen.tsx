@@ -64,7 +64,6 @@ export function OverviewScreen({
     <>
       <PortalPageHeader
         title="Account Overview"
-        description="Income, expenditure and fund position for the financial year, from posted entries only."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -101,7 +100,6 @@ export function OverviewScreen({
         <StatCard
           label="Net Surplus"
           value={formatCurrency(summary.surplus)}
-          caption="Income less expenditure"
           trend={{
             value: `${Math.round((summary.surplus / Math.max(summary.income, 1)) * 100)}%`,
             direction: summary.surplus >= 0 ? 'up' : 'down',
@@ -238,10 +236,7 @@ function PendingPanel({
 function FundPanel({ funds }: { funds: readonly FundPosition[] }) {
   return (
     <Card>
-      <CardHeader
-        title="Fund Position"
-        description="Opening balance, movement and what remains"
-      />
+      <CardHeader title="Fund Position" />
 
       <ul className="divide-y divide-border">
         {funds.map((fund) => (
@@ -374,10 +369,7 @@ function BankPanel({
 function StatementPanel({ statement }: { statement: IncomeStatement }) {
   return (
     <Card>
-      <CardHeader
-        title="Where the Money Comes From"
-        description="Income by head, this financial year"
-      />
+      <CardHeader title="Where the Money Comes From" />
 
       <CardBody>
         <ul className="space-y-3">

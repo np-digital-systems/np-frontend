@@ -1,19 +1,8 @@
 import type { BadgeStatus } from '@/components/portal/ui';
 
-/**
- * Sanththa — the temple's yearly membership subscription.
- *
- * One flat rate per member per year. A member pays it once, whatever else
- * they do at the temple: sponsoring two poojas does not make it two
- * subscriptions.
- */
+// Sanththa: the yearly membership subscription, one flat rate per member per year.
 
-/**
- * A sponsor on the register.
- *
- * Keyed by the party id: a sponsor is a party with a sponsor profile, so the
- * name and contact details here are the party's.
- */
+// Keyed by party id; name and contact details belong to the party.
 export interface SanththaMember {
   readonly id: string;
   readonly memberNo: string;
@@ -22,12 +11,7 @@ export interface SanththaMember {
   readonly phone: string;
   readonly address: string;
   readonly joinedOn: string;
-  /**
-   * Whether the yearly sanththa is due from them.
-   *
-   * Not the same as being active: an exempt sponsor is still on the calendar
-   * and still sponsors poojas — the temple simply asks no subscription of them.
-   */
+  /** Whether sanththa is due. Exempt sponsors can still be active. */
   readonly subscribes: boolean;
   readonly notes: string | null;
 }
@@ -41,33 +25,24 @@ export interface SanththaPayment {
   readonly year: number;
   readonly amount: number;
   readonly paidOn: string;
-  /** The receipt voucher this subscription was collected on. */
   readonly receiptRef: string | null;
-  /**
-   * Where that receipt has got to — null when none is linked. The values are
-   * the voucher statuses, so `StatusBadge` renders them without translation.
-   */
+  /** Voucher status, so StatusBadge renders it directly. Null when no receipt is linked. */
   readonly receiptStatus: BadgeStatus | null;
-  /** The number off the paper receipt book, where one was written. */
+  /** Number from the paper receipt book. */
   readonly manualVoucherNo: string | null;
-  /**
-   * Whether it may still be corrected in place. The server decides this from
-   * the receipt's status; once approved or posted a mistake is fixed by a
-   * further entry, not a rewrite.
-   */
+  /** Set by the server; false once the receipt is approved or posted. */
   readonly editable: boolean;
   readonly mode: PaymentMode;
   readonly collectedBy: string;
 }
 
-/** A member with this year's subscription resolved. */
 export interface MemberRecord extends SanththaMember {
   readonly hasPaid: boolean;
   readonly payment: SanththaPayment | null;
 }
 
 export interface SanththaSummary {
-  /** The fixed amount set for the year, or null if nobody has set one yet. */
+  /** Null until a rate is set for the year. */
   readonly rate: number | null;
   readonly members: number;
   readonly subscribing: number;
@@ -77,13 +52,7 @@ export interface SanththaSummary {
   readonly outstanding: number;
 }
 
-/**
- * A sponsor on the register.
- *
- * Keyed by the party id, because a sponsor is a party with a profile: the name
- * and contact details here belong to the party, and editing them here edits
- * the directory entry too.
- */
+// Keyed by party id; editing name or contact details here edits the party too.
 export interface SponsorRecord {
   readonly partyId: number;
   readonly sponsorNo: string;
@@ -93,18 +62,15 @@ export interface SponsorRecord {
   readonly email: string;
   readonly address: string;
   readonly sponsorSince: string;
-  /** Whether the annual sanththa is due from them. */
   readonly subscribes: boolean;
   readonly isActive: boolean;
   readonly notes: string | null;
-  /** Standing sponsorships across every observance. */
   readonly sponsorships: number;
   readonly paidYears: readonly number[];
   readonly totalPaid: number;
   readonly paidThisYear: boolean;
 }
 
-/** Why someone is offered on a collection sheet. Presentation only. */
 export type ContributorReason = 'gave-before' | 'sponsor' | 'vendor' | 'devotee';
 
 export interface Contributor {
@@ -113,7 +79,6 @@ export interface Contributor {
   readonly nameEn: string;
   readonly phone: string;
   readonly reason: ContributorReason;
-  /** What they gave the last time this observance came round. */
   readonly lastAmount: number | null;
   readonly lastYear: number | null;
   readonly paidThisTime: boolean;
@@ -126,17 +91,10 @@ export interface CollectionEvent {
   readonly instanceLabel: string;
   readonly eventTypeName: string;
   readonly isGeneral: boolean;
-  /** The activity receipts for this observance are coded to; it carries the head. */
   readonly activityId: number | null;
 }
 
-/**
- * Where a sanththa subscription lands in the books.
- *
- * `configured` is the only thing a screen should gate on: a head can be set
- * and still not be usable, because the fund comes from the activity that head
- * belongs to. `problem` says which of those is missing.
- */
+// Gate on `configured`: a head can be set but unusable if its activity has no fund. `problem` says why.
 export interface SanththaPosting {
   readonly configured: boolean;
   readonly accountCode: string | null;

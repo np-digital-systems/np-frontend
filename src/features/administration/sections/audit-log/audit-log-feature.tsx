@@ -14,7 +14,7 @@ export async function AuditLogFeature() {
   if (!access.canViewAudit) {
     return (
       <PageShell>
-        <AccessDenied description="The audit log is limited to administrators." />
+        <AccessDenied description="Only administrators have access." />
       </PageShell>
     );
   }

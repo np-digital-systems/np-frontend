@@ -13,19 +13,13 @@ import type { PublicEvent } from '@/features/events/types';
 import type { Locale } from '@/i18n/routing';
 import { isApiError } from '@/lib/api';
 
-/** How many other occurrences the foot of the page offers. */
 const ALSO_UPCOMING_COUNT = 3;
 
 interface EventPageProps {
   params: Promise<{ id: string }>;
 }
 
-/**
- * One occurrence's own page.
- *
- * A bad id and a missing occurrence both land on the site's not-found page
- * rather than an error: `/events/banana` is a wrong address, not a fault.
- */
+// Invalid and missing ids both render not-found rather than an error.
 export default async function EventPage({ params }: EventPageProps) {
   const event = await readEvent(params);
 
@@ -33,7 +27,7 @@ export default async function EventPage({ params }: EventPageProps) {
 
   const today = getToday();
 
-  // A companion list is a nicety; losing it must not lose the page with it.
+  // A failed related-events read must not fail the page.
   const alsoUpcoming = await getUpcomingPublicEvents(
     ALSO_UPCOMING_COUNT + 1,
   ).catch(() => [] as readonly PublicEvent[]);
@@ -69,12 +63,7 @@ export async function generateMetadata({
   };
 }
 
-/**
- * The occurrence behind the URL, or null when there is none.
- *
- * Called once by the page and once by `generateMetadata`; Next dedupes the two
- * fetches, so this costs one request rather than two.
- */
+// Called by both the page and generateMetadata; Next dedupes the fetch.
 async function readEvent(
   params: EventPageProps['params'],
 ): Promise<PublicEvent | null> {

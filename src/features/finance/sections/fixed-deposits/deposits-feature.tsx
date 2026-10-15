@@ -14,7 +14,7 @@ export async function FixedDepositsFeature() {
   if (!access.canViewDeposits) {
     return (
       <PageShell>
-        <AccessDenied description="Fixed deposits are limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

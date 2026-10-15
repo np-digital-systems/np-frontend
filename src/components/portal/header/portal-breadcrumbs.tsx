@@ -58,11 +58,7 @@ export function PortalBreadcrumbs() {
     .split('/')
     .filter(Boolean)
 
-  // Remove locale.
-  // Example:
-  // /en/dashboard
-  //       ↓
-  // dashboard
+  // Drop the locale segment.
   const routeSegments = segments.slice(1)
 
   const breadcrumbs = routeSegments.map((segment, index) => ({

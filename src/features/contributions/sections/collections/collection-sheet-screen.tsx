@@ -46,14 +46,6 @@ interface CollectionSheetScreenProps {
   today: string;
 }
 
-/**
- * The collection sheet.
- *
- * Opens with everyone who gave the last time this observance came round, and
- * what they gave, because that list is what the collector actually walks with.
- * Each filled row becomes its own numbered receipt — the person is handed one
- * at the counter, so the number has to mean their gift and not the sheet's.
- */
 export function CollectionSheetScreen({
   event,
   contributors,
@@ -101,7 +93,6 @@ export function CollectionSheetScreen({
     setAmounts((current) => ({ ...current, [partyId]: value }));
   }
 
-  /** Offer last year's figure, so the usual case is one tap. */
   function prefillLastYear() {
     const next: Record<number, string> = {};
 
@@ -164,7 +155,7 @@ export function CollectionSheetScreen({
     <>
       <PortalPageHeader
         title="Collection sheet"
-        description={`${event.eventTypeName} — ${event.instanceLabel}, ${formatShortDate(event.scheduledDate)}. Each amount entered becomes its own numbered receipt.`}
+        description={`${event.eventTypeName} — ${event.instanceLabel}, ${formatShortDate(event.scheduledDate)}`}
         meta={[
           <span key="count" className="tabular">
             {contributors.length} on the sheet
@@ -249,7 +240,7 @@ export function CollectionSheetScreen({
                 description={
                   query
                     ? 'No contributor matches that search.'
-                    : 'Nobody has given to this observance before, and there are no sponsors or vendors on record yet.'
+                    : 'No past contributors, sponsors or vendors yet.'
                 }
               />
             </DataTableEmpty>

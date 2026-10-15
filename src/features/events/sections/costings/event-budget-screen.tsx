@@ -42,9 +42,6 @@ export function EventBudgetScreen({
   event,
   budget,
 }: EventBudgetScreenProps) {
-
-  // Nothing is costed onto a day any more: the version in force on the day's
-  // own date is what priced it, resolved fresh each time this is opened.
   const costed = budget.lines.length > 0;
   const quoted = budget.sponsorAmount ?? 0;
   const received = budget.sponsorReceived ?? 0;
@@ -82,20 +79,12 @@ export function EventBudgetScreen({
             title="No costing covers this day"
             description={
               budget.problem ??
-              'Write a costing for this pooja and it applies to this day at once.'
+              'Add a costing for this pooja.'
             }
           />
         </Card>
       ) : (
         <>
-          {/*
-            * Three figures, not four.
-            *
-            * What the sponsor is quoted and what the day is budgeted at are the
-            * same number unless the temple bears a line itself, which it rarely
-            * does — so the budget is carried as the caption on what was really
-            * spent, where it is read against it rather than beside it.
-            */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <StatCard
               label="Sponsor was quoted"
@@ -113,19 +102,10 @@ export function EventBudgetScreen({
               caption={`${formatCurrency(budget.budgetedTotal)} budgeted`}
             />
 
-            {/*
-              * Positive is an overspend, which is why it is the unwelcome
-              * colour: the committee's question is always which head went over.
-              */}
             <StatCard
               label="Difference"
               value={formatSigned(budget.variance)}
               caption={
-                /*
-                 * Nothing spent is not the same as spending less than planned,
-                 * and calling it "within the budget" reads as a result when it
-                 * only means no voucher has been coded to the day yet.
-                 */
                 budget.actualTotal === 0
                   ? 'Nothing spent yet'
                   : budget.variance > 0
@@ -136,10 +116,7 @@ export function EventBudgetScreen({
           </div>
 
           <Card>
-            <CardHeader
-              title="Budget against actual"
-              description="What each head was planned to cost, against what has been spent. A line settles when its voucher is posted."
-            />
+            <CardHeader title="Budget against actual" />
 
             <DataTable columns={COLUMNS} minWidth={920}>
               {budget.lines.length === 0 ? (
@@ -147,7 +124,7 @@ export function EventBudgetScreen({
                   <EmptyState
                     icon={Scale}
                     title="No budget lines"
-                    description="The costing this was taken from had no lines."
+                    description="The costing has no lines."
                   />
                 </DataTableEmpty>
               ) : (

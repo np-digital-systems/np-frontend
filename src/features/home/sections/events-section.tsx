@@ -9,17 +9,10 @@ import { Link } from "@/i18n/routing";
 
 interface EventsSectionProps {
   events: readonly PublicEvent[];
-  /** True when the calendar could not be reached, as opposed to being empty. */
+  /** The calendar could not be reached (distinct from empty). */
   unavailable?: boolean;
 }
 
-/**
- * The home page's glimpse of the temple calendar.
- *
- * The same cards the events page uses, so the two stay in step, and the same
- * live data — the section used to render a hand-written constant, which drifted
- * from the calendar the moment anybody scheduled something.
- */
 export function EventsSection({ events, unavailable }: EventsSectionProps) {
   const tEvents = useTranslations("Home.Events");
   const tUpcoming = useTranslations("Events.upcoming");

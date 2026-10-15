@@ -12,8 +12,7 @@ import {
 
 import { SettingsScreen } from './settings-screen';
 
-// Open to every portal role: everyone manages their own profile and sessions
-// here. Only `settings:manage` adds the portal-wide tabs.
+// Open to every role for profile and sessions; `settings:manage` adds the portal-wide tabs.
 export async function SettingsFeature() {
   const { user, permissions } = await requireSession();
   const access = getAdministrationAccess(permissions);
@@ -21,11 +20,7 @@ export async function SettingsFeature() {
 
   const record = (await getUserRecords()).find((entry) => entry.id === user.id);
 
-  /*
-   * Only the asset heads, and only for someone who can change settings. Cash
-   * lives on the asset side of the chart, so offering the rest would only
-   * invite a choice the API is going to reject.
-   */
+  // Asset heads only; the API rejects any other type for the cash account.
   const chart = access.canManageSettings
     ? await getAccounts().catch(() => [])
     : [];
@@ -34,10 +29,7 @@ export async function SettingsFeature() {
     (account) => account.type === 'asset' && account.isActive,
   );
 
-  /*
-   * The income heads a subscription can be receipted to. Same reasoning as
-   * above, on the other side of the chart — and the API rejects anything else.
-   */
+  // Income heads only; the API rejects any other type for sanththa.
   const incomeAccounts = chart.filter(
     (account) => account.type === 'income' && account.isActive,
   );
@@ -47,7 +39,7 @@ export async function SettingsFeature() {
       <PageShell>
         <AccessDenied
           title="Account not found"
-          description="Your account could not be loaded. Sign out and back in, or contact an administrator."
+          description="Try signing out and back in."
         />
       </PageShell>
     );

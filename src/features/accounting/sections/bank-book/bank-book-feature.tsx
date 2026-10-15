@@ -17,15 +17,14 @@ export async function BankBookFeature() {
   if (!access.canViewBankBook) {
     return (
       <PageShell>
-        <AccessDenied description="The bank book is limited to administrators and accountants. The cash book covers cash held at the temple." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }
 
   const banks = await getBankAccountRecords();
 
-  // Every account's book is fetched here rather than on selection, so
-  // switching accounts is instant and no client code needs the ledger.
+  // All accounts' books are fetched up front so switching is instant.
   const books: BankBookEntry[] = await Promise.all(
     banks
       .filter((bank) => bank.isActive)

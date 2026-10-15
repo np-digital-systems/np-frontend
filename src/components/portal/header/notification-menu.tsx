@@ -29,7 +29,6 @@ const TONE_DOT = {
 } as const
 
 interface NotificationMenuProps {
-  /** The signed-in user's inbox, resolved by the layout. */
   notifications: readonly Notification[]
 }
 
@@ -40,7 +39,7 @@ export function NotificationMenu({ notifications }: NotificationMenuProps) {
 
   const preview = notifications.slice(0, 5)
 
-  // The action revalidates the layout, so the badge follows without local state.
+  // The action revalidates the layout, which updates the badge.
   function markAllRead() {
     startTransition(() => void markAllNotificationsRead())
   }

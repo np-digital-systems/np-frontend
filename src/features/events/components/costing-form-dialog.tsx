@@ -39,16 +39,6 @@ interface CostingFormDialogProps {
   onSubmit: (draft: CostingHeaderDraft) => void;
 }
 
-/**
- * Opening a costing: whose it is, and which instances it covers.
- *
- * Two questions, because two is all there is to ask. The income head and the
- * fund come from the pooja type's activity, the date is today, the quote is the
- * lines added up, and the lines are written on the editor this opens into. An
- * earlier version of this dialog asked for all of that — including one expense
- * line whose five siblings were written somewhere else, which is no way to fill
- * in a form.
- */
 export function CostingFormDialog({
   open,
   onOpenChange,
@@ -98,8 +88,7 @@ export function CostingFormDialog({
         <DialogHeader>
           <DialogTitle>New Costing</DialogTitle>
           <DialogDescription>
-            Write one for a whole pooja type, or for a single instance where the
-            money is genuinely different. The lines come next.
+            Add lines after creating it.
           </DialogDescription>
         </DialogHeader>
 
@@ -130,7 +119,7 @@ export function CostingFormDialog({
             hint={
               draft.slotId === null
                 ? 'Every instance that has no costing of its own.'
-                : 'Only this instance. It beats the type-wide costing on its own dates.'
+                : 'Only this instance. Overrides the pooja-wide costing.'
             }
           >
             <Select

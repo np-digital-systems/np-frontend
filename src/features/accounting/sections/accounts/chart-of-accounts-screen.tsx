@@ -52,7 +52,6 @@ import type { AccountRecord, AccountType, PartyRef } from '../../types';
 
 interface ChartOfAccountsScreenProps {
   initialAccounts: readonly AccountRecord[];
-  /** Offered as a head's usual party, for the few heads that have one. */
   parties: readonly PartyRef[];
   access: AccountingAccess;
   year: number;
@@ -131,9 +130,7 @@ export function ChartOfAccountsScreen({
               parentId: draft.parentId,
               defaultPartyId: draft.defaultPartyId,
               isActive: draft.isActive,
-              // The API settles an opening balance once entries post against
-              // the head, so an unchanged figure is left out of the request
-              // rather than resent and refused.
+              // Omit an unchanged opening balance: the API rejects it once entries have posted.
               openingBalance:
                 draft.openingBalance === target.openingBalance
                   ? undefined
@@ -173,7 +170,6 @@ export function ChartOfAccountsScreen({
     <>
       <PortalPageHeader
         title="Chart of Accounts"
-        description="The ledger heads every receipt and payment posts against, grouped as they are reported."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -205,7 +201,7 @@ export function ChartOfAccountsScreen({
       <ActionError message={actionError} />
 
       {!access.canManageAccounts && (
-        <ReadOnlyNotice message="You can see the chart of accounts. Adding or changing a ledger head is restricted to administrators and accountants." />
+        <ReadOnlyNotice message="Only administrators and accountants can make changes." />
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -217,17 +213,14 @@ export function ChartOfAccountsScreen({
         <StatCard
           label="Income Heads"
           value={String(counts.income)}
-          caption="Money can be received into"
         />
         <StatCard
           label="Expenditure Heads"
           value={String(counts.expense)}
-          caption="Money can be paid from"
         />
         <StatCard
           label="Inactive"
           value={String(counts.inactive)}
-          caption="Kept for history only"
         />
       </div>
 
@@ -287,7 +280,7 @@ export function ChartOfAccountsScreen({
               <EmptyState
                 icon={ListTree}
                 title="No accounts match these filters"
-                description="Adjust the search or class filter above."
+                description="Try a different search or filter."
               />
             </DataTableEmpty>
           ) : (
@@ -338,8 +331,7 @@ export function ChartOfAccountsScreen({
         onConfirm={() => {
           if (!deleting) return;
 
-          // History is never destroyed: the API deactivates a head rather than
-          // removing it, which is what the confirmation above told the user.
+          // The API deactivates rather than deletes, preserving history.
           run(() => deactivateAccount(deleting.id));
 
           setDeleting(null);

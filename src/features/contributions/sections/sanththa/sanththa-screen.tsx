@@ -52,19 +52,12 @@ interface SanththaScreenProps {
   initialMembers: readonly MemberRecord[];
   years: readonly number[];
   year: number;
-  /** The fixed amount set for this year, or null if none has been set. */
+  /** Null until a rate is set. */
   rate: number | null;
-  /** Where a subscription will be receipted, as the server resolves it. */
   posting: SanththaPosting;
   access: ContributionAccess;
 }
 
-/**
- * The sanththa register.
- *
- * One flat subscription per sponsor per year, at the rate set for that year,
- * so the only question this screen answers is who has paid and who has not.
- */
 export function SanththaScreen({
   initialMembers,
   years,
@@ -78,12 +71,7 @@ export function SanththaScreen({
   const [members, setMembers] =
     useState<readonly MemberRecord[]>(initialMembers);
 
-  /*
-   * Recording a subscription happens on the server, so the register comes back
-   * as a new `initialMembers`. Adopting it during render keeps the table in
-   * step with the ledger; the price is that unsaved local member edits — which
-   * are placeholders anyway — are dropped when that happens.
-   */
+  // Adopt new server data during render; unsaved local member edits are dropped.
   const [lastServerMembers, setLastServerMembers] = useState(initialMembers);
 
   if (lastServerMembers !== initialMembers) {
@@ -115,11 +103,6 @@ export function SanththaScreen({
     });
   }, [members, query, status]);
 
-  /**
-   * The payment and its receipt voucher are already written by the time this
-   * runs, so there is nothing to patch in — the refresh pulls the register back
-   * from the same source the accounts read.
-   */
   function handleRecorded() {
     setPaying(null);
     setEditingPayment(null);
@@ -147,7 +130,7 @@ export function SanththaScreen({
         description={
           rate === null
             ? `No sanththa has been set for ${year} yet.`
-            : `Yearly temple membership — ${formatCurrency(rate)} per sponsor, paid once a year.`
+            : `${formatCurrency(rate)} per sponsor.`
         }
         meta={[
           <span key="year" className="tabular">
@@ -169,12 +152,6 @@ export function SanththaScreen({
                 {rate === null ? `Set ${year} sanththa` : `Sanththa ${formatCurrency(rate)}`}
               </Button>
 
-              {/*
-                * Enrolling lives on the register, not here. This screen asks
-                * one question — who has paid this year — and having a second
-                * way to create a sponsor only invited the same person to be
-                * entered twice.
-                */}
               <Button asChild variant="secondary">
                 <Link href={CONTRIBUTION_ROUTES.sponsors}>
                   <Plus />
@@ -194,7 +171,6 @@ export function SanththaScreen({
         <StatCard
           label="Members"
           value={String(summary.members)}
-          caption="On the register"
         />
         <StatCard
           label="Paid"
@@ -209,7 +185,6 @@ export function SanththaScreen({
         <StatCard
           label="Collected"
           value={formatCurrency(summary.collected)}
-          caption={`Subscription year ${year}`}
         />
       </div>
 
@@ -290,8 +265,8 @@ export function SanththaScreen({
                 }
                 description={
                   members.length === 0
-                    ? 'Add the families and trusts that subscribe to the temple.'
-                    : 'Adjust the search or filters above.'
+                    ? undefined
+                    : 'Try a different search or filter.'
                 }
               />
             </DataTableEmpty>
@@ -350,12 +325,6 @@ export function SanththaScreen({
                   {member.payment ? formatShortDate(member.payment.paidOn) : '—'}
                 </DataCell>
 
-                {/*
-                  * The receipt and where it has got to. The status is what
-                  * explains the missing Edit button on the next column over:
-                  * once it is approved or posted, the entry is no longer this
-                  * screen's to change.
-                  */}
                 <DataCell nowrap className="text-xs">
                   {member.payment ? (
                     <div className="flex flex-col items-start gap-1">
@@ -390,13 +359,7 @@ export function SanththaScreen({
                       </Button>
                     )}
 
-                    {/*
-                      * Corrects the subscription, not the sponsor. Who they are
-                      * is the sponsor register's business; this page is about
-                      * what they paid. It disappears once the receipt has been
-                      * approved or posted, because from there a mistake is
-                      * fixed by a further entry rather than a rewrite.
-                      */}
+                    {/* Hidden once the receipt is approved or posted. */}
                     {access.canRecord && member.payment?.editable && (
                       <Button
                         variant="ghost"

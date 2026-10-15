@@ -52,15 +52,8 @@ async function authorisation(anonymous: boolean): Promise<Record<string, string>
   return token ? { authorization: `Bearer ${token}` } : {};
 }
 
-/**
- * One request to the API.
- *
- * Refreshing is deliberately not done here: a server component cannot write
- * cookies during a render, so a token rotated here could never be stored. The
- * proxy refreshes before the render begins, which is the only place a new
- * token can actually be kept. A 401 that reaches this far means the session is
- * genuinely gone, and callers turn it into a redirect.
- */
+// No token refresh here: server components can't write cookies during render, so the proxy
+// refreshes before rendering. A 401 here means the session is gone.
 export async function apiRequest<T>(
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   path: string,
@@ -75,14 +68,7 @@ export async function apiRequest<T>(
     ...(await authorisation(anonymous)),
   };
 
-  /*
-   * Only reads are retried.
-   *
-   * A write that fails without a response may still have been applied — the
-   * request can reach the API and the reply be lost on the way back. Repeating
-   * it would post a second voucher against the same money, so a write is
-   * attempted once and its failure surfaces to the caller.
-   */
+  // Only reads are retried: a failed write may still have been applied, and retrying could duplicate it.
   const attempts = method === 'GET' ? RETRY_DELAYS_MS.length + 1 : 1;
 
   let response: Response | undefined;
@@ -127,28 +113,16 @@ export async function apiRequest<T>(
   return payload as T;
 }
 
-/**
- * How long to wait, and how hard to try again.
- *
- * A free-tier host stops the API when nobody has called it for a while, and
- * waking it takes the better part of a minute. A scheduled ping keeps it up
- * (see .github/workflows/keep-alive.yml), but schedules drift, so the first
- * request after a quiet spell can still meet an instance on its way up.
- *
- * The budget here is deliberately about ten seconds rather than the fifty a
- * cold start can take. The render is already blocking a visitor, and the
- * platform running it caps how long a request may take, so waiting out a full
- * wake would hit that ceiling and fail anyway. This covers a brief gap or a
- * fast wake; keeping the instance up is the ping's job, not this one's.
- */
+// The free-tier host sleeps when idle (kept awake by .github/workflows/keep-alive.yml). Retries
+// cover ~10s of a cold start, not the full wake, since the hosting platform caps request time.
 const WAKE_TIMEOUT_MS = 30_000;
 const RETRY_DELAYS_MS = [1_000, 3_000, 6_000];
 
-/** A gateway error is the host saying the instance is not up yet. */
+// Gateway errors mean the instance is still starting.
 const WAKING_STATUSES = new Set([502, 503, 504]);
 
 function isWaking(error: unknown): boolean {
-  // fetch rejects rather than resolving when the connection is refused.
+  // fetch rejects with a TypeError when the connection is refused.
   return error instanceof TypeError;
 }
 
@@ -176,23 +150,7 @@ export const api = {
     apiRequest<T>('DELETE', path, options),
 };
 
-/**
- * Read a collection where the caller wants the rows and nothing else.
- *
- * The API paginates the large ones; a screen that renders a whole list asks for
- * the maximum page rather than pretending pagination does not exist.
- */
-/**
- * Every row of a listing, not the first page of it.
- *
- * The API caps `limit` at 100, so a single request quietly returns the first
- * hundred and drops the rest — which for a register of 136 sponsors means 36
- * people missing from a screen that gives no sign anything is absent. Reading
- * to the end is the only honest answer for a list a human is counting.
- *
- * The page cap is a guard against an endpoint that never stops saying there is
- * more; it is not expected to be reached.
- */
+// Reads every page: the API caps `limit` at 100. MAX_PAGES guards against an endless hasNextPage.
 export async function getAll<T>(
   path: string,
   query?: Query,
@@ -205,7 +163,7 @@ export async function getAll<T>(
       query: { limit: 100, ...query, page },
     });
 
-    // Some endpoints answer with a bare array; there is nothing to page.
+    // Some endpoints return a bare array.
     if (Array.isArray(result)) return result;
 
     rows.push(...result.data);

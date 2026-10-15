@@ -11,12 +11,10 @@ import {
   readPublicEvents,
 } from "@/features/events/lib/public-event-service";
 
-/** How many occurrences the home page previews before "view all". */
 const PREVIEW_COUNT = 3;
 
 export default async function HomePage() {
-  // The calendar is one section of the page; it must not be able to take the
-  // other five down with it when the API is unreachable.
+  // An unreachable API must not fail the rest of the page.
   const preview = await readPublicEvents(
     () => getUpcomingPublicEvents(PREVIEW_COUNT),
     "the home page preview",

@@ -28,16 +28,6 @@ interface SignInScreenProps {
   templeName: string;
 }
 
-/**
- * The portal's front door.
- *
- * Two halves and nothing else: the deity on the left, the two fields that
- * actually sign somebody in on the right. It used to ask which role you held
- * before letting you type — a choice the form collected and then threw away,
- * since `signIn` sends only the address and the password and the real role
- * comes off the account. Picking "Administrator" and arriving as a cashier is
- * worse than not being asked, so the question is gone.
- */
 export function SignInScreen({ templeName }: SignInScreenProps) {
   const locale = useLocale();
   const fieldId = useId();
@@ -51,7 +41,7 @@ export function SignInScreen({ templeName }: SignInScreenProps) {
 
       <main className="flex items-center justify-center px-5 py-12 sm:px-8 lg:px-12">
         <div className="w-full max-w-[380px]">
-          {/* The panel is hidden on small screens, so the mark comes here. */}
+          {/* Shown here because the side panel is hidden on small screens. */}
           <div className="mb-9 flex items-center gap-3 lg:hidden">
             <TempleMark />
             <span className="min-w-0">
@@ -186,8 +176,6 @@ export function SignInScreen({ templeName }: SignInScreenProps) {
               Temple website
             </Link>
 
-            {/* There is no self-service reset, so this points at the person
-                who can actually do it rather than a button that cannot. */}
             <span className="text-[11px] text-text-disabled">
               Locked out? Ask an administrator.
             </span>
@@ -197,8 +185,6 @@ export function SignInScreen({ templeName }: SignInScreenProps) {
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------- */
 
 function TempleMark() {
   return (
@@ -214,13 +200,6 @@ function TempleMark() {
   );
 }
 
-/**
- * The deity, and the temple's name over it.
- *
- * The one decorative surface in the portal — a front door rather than a working
- * screen. It carries no copy beyond the name: anything more is read once and
- * then in the way, every day after.
- */
 function DevotionalPanel({ templeName }: { templeName: string }) {
   return (
     <aside className="relative hidden overflow-hidden bg-[#0a0a0c] lg:block">
@@ -233,7 +212,6 @@ function DevotionalPanel({ templeName }: { templeName: string }) {
         className="object-cover object-center"
       />
 
-      {/* Dark at the foot so the name reads, clear at the top so the deity does. */}
       <div
         aria-hidden
         className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/40"

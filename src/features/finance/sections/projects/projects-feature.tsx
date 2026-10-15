@@ -14,7 +14,7 @@ export async function ProjectsFeature() {
   if (!access.canViewProjects) {
     return (
       <PageShell>
-        <AccessDenied description="Project tracking is limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

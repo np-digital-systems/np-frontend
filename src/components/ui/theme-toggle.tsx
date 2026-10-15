@@ -12,11 +12,7 @@ export function ThemeToggle() {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
   }
 
-  // Which icon shows is decided in CSS off the `dark` class on <html>, not
-  // from `resolvedTheme`. On the server that value is undefined, so branching
-  // on it in render makes the server emit one glyph and the client another —
-  // a hydration mismatch. Rendering both and letting the cascade pick keeps
-  // the markup identical on both sides.
+  // Both icons render and CSS picks one: resolvedTheme is undefined on the server (hydration mismatch).
   return (
     <Button
       type="button"

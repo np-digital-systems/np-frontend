@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/** How long an abandoned draft is worth keeping. */
 const TTL_MS = 60 * 60 * 1000;
 
 const KEY_PREFIX = 'np:draft:';
@@ -28,42 +27,25 @@ function read<T>(key: string): T | null {
 
     return stored.value;
   } catch {
-    // A private window, a full quota, or something else's key in our namespace.
-    // A missing draft is the normal case anyway, so there is nothing to report.
+    // Storage unavailable or invalid data: treat as no draft.
     return null;
   }
 }
 
-/**
- * Keep what somebody typed, so closing a dialog by accident does not cost it.
- *
- * A voucher is a dozen fields and two or three lookups; losing it to a stray
- * click is the difference between a shrug and starting again. The draft is
- * written as it is edited and offered back the next time the same form opens.
- *
- * `sessionStorage`, deliberately: a half-finished receipt should survive a
- * misclick and a reload, not follow somebody to work tomorrow. It is scoped to
- * the tab, cleared when the tab closes, and expires after an hour regardless.
- * Nothing here is a substitute for saving — the API remains the only place a
- * voucher actually exists.
- *
- * `key` must identify the record being edited (`voucher:new:receipt`), so two
- * dialogs never read each other's work.
- */
+// Keeps unsaved form input in sessionStorage (per tab, expires after an hour) so an accidental
+// close doesn't lose it. `key` must identify the record, e.g. `voucher:new:receipt`.
 export function useFormDraft<T>(
   key: string,
   current: T,
   options: { enabled?: boolean } = {},
 ): {
-  /** A kept draft found when the form opened, or null. */
   restored: T | null;
-  /** Forget it — call after a successful save, or when the user declines it. */
+  /** Call after saving or when the user declines the draft. */
   discard: () => void;
 } {
   const { enabled = true } = options;
 
-  // Read once per opening. Reading on every render would hand back the draft
-  // being written a moment ago and make the offer impossible to dismiss.
+  // Read once per opening, or the offer would pick up the draft being written.
   const [restored, setRestored] = useState<T | null>(null);
   const opened = useRef(false);
 
@@ -80,16 +62,7 @@ export function useFormDraft<T>(
     setRestored(read<T>(key));
   }, [enabled, key]);
 
-  /*
-   * Written on every edit rather than on close: a dialog can go away without
-   * warning — a misclick, a reload, a crashed tab — and an unsaved keystroke is
-   * exactly the one worth having kept.
-   *
-   * Nothing is written while an unanswered draft is on offer. Reopening a form
-   * reseeds it to blank, and that blank would otherwise overwrite the very
-   * draft being offered — leaving the restore button working once and the
-   * stored copy gone if they closed the dialog again instead of using it.
-   */
+  // Saved on every edit, but not while a draft is on offer: the reseeded blank form would overwrite it.
   useEffect(() => {
     if (!enabled || !opened.current || restored !== null) return;
 
@@ -99,8 +72,7 @@ export function useFormDraft<T>(
         JSON.stringify({ savedAt: Date.now(), value: current } satisfies Stored<T>),
       );
     } catch {
-      // Out of quota or storage denied. The form still works; it just will not
-      // survive a mishap, which is no worse than before this existed.
+      // Storage unavailable; the form still works without drafts.
     }
   }, [enabled, key, current, restored]);
 
@@ -110,7 +82,7 @@ export function useFormDraft<T>(
     try {
       sessionStorage.removeItem(KEY_PREFIX + key);
     } catch {
-      // Nothing to do — the entry expires on its own.
+      // Ignore; the entry expires on its own.
     }
   }, [key]);
 

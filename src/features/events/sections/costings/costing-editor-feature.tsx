@@ -22,7 +22,7 @@ export async function CostingEditorFeature({ costingId }: CostingEditorFeaturePr
   if (!access.canViewCostings) {
     return (
       <PageShell>
-        <AccessDenied description="Pooja costings are visible to the accountant and the cashier." />
+        <AccessDenied description="Only the accountant and cashier can view costings." />
       </PageShell>
     );
   }
@@ -39,12 +39,7 @@ export async function CostingEditorFeature({ costingId }: CostingEditorFeaturePr
     getCostingHistory(costingId),
   ]);
 
-  /*
-   * Only postable expense heads. A grouping head totals its children and can
-   * never carry an entry, so offering one here would move the refusal from the
-   * form to the save — and the itemisation under a line is where the detail
-   * belongs anyway, not in a deeper chart of accounts.
-   */
+  // Only postable heads: grouping heads can't carry entries.
   const expenseAccounts = accounts
     .filter(
       (account) =>

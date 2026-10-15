@@ -14,9 +14,7 @@ const tTemple = useTranslations('TempleInfo');
   return (
     <PageContainer id="about-section" className="bg-[#FAF9F6]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        {/* Left: Image Composition */}
         <div className="relative reveal-left">
-          {/* Main Image */}
           <div className="relative rounded-3xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.08)] aspect-[4/5]">
             <Image
               src="/images/temple-lamps.png"
@@ -27,7 +25,6 @@ const tTemple = useTranslations('TempleInfo');
             />
           </div>
 
-          {/* Floating accent image */}
           <div className="absolute -bottom-6 -right-4 md:-right-8 w-36 md:w-44 h-36 md:h-44 rounded-2xl overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.12)] border-4 border-white">
             <Image
               src="/images/deity-shrine.png"
@@ -38,11 +35,9 @@ const tTemple = useTranslations('TempleInfo');
             />
           </div>
 
-          {/* Decorative gold border accent */}
           <div className="absolute -top-4 -left-4 w-24 h-24 border-t-2 border-l-2 border-[#D4AF37]/40 rounded-tl-3xl" />
         </div>
 
-        {/* Right: Content */}
         <div className="reveal-right">
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#D4AF37] mb-4 font-sans">
             {t('aboutOurTemple')}
@@ -56,7 +51,6 @@ const tTemple = useTranslations('TempleInfo');
             {tTemple('aboutDescription')}
           </p>
 
-          {/* Sacred Quote */}
           <blockquote className="border-l-3 border-[#D4AF37] pl-5 my-8">
             <p className="font-heading text-lg md:text-xl text-[#4D4635] italic leading-relaxed">
               &ldquo;{tTemple('aboutQuote')}&rdquo;
@@ -75,7 +69,6 @@ const tTemple = useTranslations('TempleInfo');
         </div>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-20 reveal">
         {TEMPLE_STATS.map((stat, index) => (
           <TempleStat
@@ -88,7 +81,6 @@ const tTemple = useTranslations('TempleInfo');
         ))}
       </div>
 
-      {/* Bottom Gallery Strip */}
       <div className="grid grid-cols-3 gap-4 mt-16 reveal">
         {["/images/temple-rangoli.png", "/images/ceremony-puja.png", "/images/festival-navaratri.png"].map(
           (src, index) => (

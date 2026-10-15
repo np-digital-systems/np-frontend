@@ -12,10 +12,7 @@ import { AUTH_ROUTES } from './auth-routes';
 import { signInSchema } from './auth-schemas';
 import { createSession, destroySession, type AuthTokens } from './session';
 
-/**
- * The form carries the locale so the redirect lands on the prefixed path the
- * visitor was already browsing — a server action has no pathname of its own.
- */
+// The form passes the locale because a server action has no pathname to redirect from.
 function readLocale(value: FormDataEntryValue | null): Locale {
   return (routing.locales as readonly string[]).includes(String(value))
     ? (value as Locale)
@@ -56,11 +53,7 @@ export async function signIn(
     await createSession(tokens, remember);
   } catch (error) {
     if (error instanceof ApiError) {
-      /*
-       * The API answers a wrong password and an unknown address identically,
-       * and so does this: telling a visitor which half was wrong tells an
-       * attacker which addresses are worth guessing at.
-       */
+      // Same message for wrong password and unknown email, to avoid revealing which accounts exist.
       return {
         status: 'error',
         message: error.isUnauthenticated
@@ -75,8 +68,7 @@ export async function signIn(
     };
   }
 
-  // `redirect` throws to unwind, so nothing below it runs. The return keeps the
-  // action's declared state type honest for `useActionState`.
+  // Unreachable (redirect throws); satisfies the useActionState return type.
   redirect({ href: AUTH_ROUTES.portalHome, locale });
 
   return SIGN_IN_IDLE;
@@ -85,12 +77,11 @@ export async function signIn(
 export async function signOut(formData: FormData): Promise<void> {
   const locale = readLocale(formData.get('locale'));
 
-  // Revoke the session server-side first; a cookie cleared locally would
-  // otherwise leave a refresh token that still works.
+  // Revoke server-side first, or the refresh token would still work.
   try {
     await api.post('/auth/logout');
   } catch {
-    // A session the API has already forgotten is still a successful sign-out.
+    // Already revoked counts as signed out.
   }
 
   await destroySession();

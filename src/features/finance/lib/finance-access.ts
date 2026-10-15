@@ -38,7 +38,7 @@ export function getFinanceAccess(granted: readonly Permission[]): FinanceAccess 
 }
 
 export const DEPOSIT_READ_ONLY_MESSAGE =
-  'You can see the temple’s deposits, their maturities and the interest they earn. Placing, renewing or closing a deposit is restricted to administrators.';
+  'Only administrators can change deposits.';
 
 export const ASSET_DISPOSE_MESSAGE =
-  'You can add and amend asset records. Writing an asset off or recording its disposal is restricted to administrators.';
+  'Only administrators can dispose of assets.';

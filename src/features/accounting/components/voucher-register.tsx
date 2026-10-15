@@ -117,7 +117,7 @@ export function VoucherRegister({
 
   const params = useSearchParams();
 
-  // Dashboard shortcuts and approval links land here with intent in the URL.
+  // Dashboard and approval links pass their intent in the URL.
   const [formOpen, setFormOpen] = useState(() => params.get('new') === '1');
   const [editing, setEditing] = useState<VoucherRecord | null>(null);
   const [viewing, setViewing] = useState<VoucherRecord | null>(() => {
@@ -157,13 +157,6 @@ export function VoucherRegister({
   const [, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
 
-  /**
-   * Every mutation goes to the API and the page is then refetched.
-   *
-   * Nothing is patched into local state on the way past: a voucher's reference
-   * and its whole lifecycle are the server's to decide, and a screen that
-   * guessed either would eventually disagree with the books.
-   */
   function run(write: () => Promise<{ ok: boolean; message?: string }>) {
     startTransition(async () => {
       const result = await write();
@@ -320,8 +313,8 @@ export function VoucherRegister({
                 }
                 description={
                   vouchers.length === 0
-                    ? 'Entries appear here as soon as they are drafted.'
-                    : 'Adjust the search or filters above to see more.'
+                    ? undefined
+                    : 'Try a different search or clear the filters.'
                 }
               />
             </DataTableEmpty>
@@ -364,11 +357,6 @@ export function VoucherRegister({
                     </p>
                   </DataCell>
 
-                  {/*
-                    * A register is a list, so it shows the first head and says
-                    * how many more there are rather than growing rows of
-                    * uneven height. The detail dialog has all of them.
-                    */}
                   <DataCell nowrap className="text-xs">
                     <span className="ref text-text-muted">
                       {voucher.lines[0]?.account.code}
@@ -513,9 +501,9 @@ export function VoucherRegister({
           deleting
             ? `${deleting.ref} — ${formatCurrency(deleting.amount)} to ${deleting.party}. ${
                 deleting.status === 'Pending Approval'
-                  ? 'It is withdrawn from the approver and cancelled.'
-                  : 'It is cancelled rather than erased.'
-              } The reference stays in the register for the audit trail and counts towards no total.`
+                  ? 'It will be withdrawn and cancelled.'
+                  : 'It will be cancelled.'
+              } The reference is kept but excluded from totals.`
             : ''
         }
         onConfirm={() => {

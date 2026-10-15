@@ -13,7 +13,7 @@ import {
 import { SanththaScreen } from './sanththa-screen';
 
 interface SanththaFeatureProps {
-  /** Which subscription year to show; defaults to the current one. */
+  /** Defaults to the current year. */
   year?: string;
 }
 
@@ -24,7 +24,7 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
   if (!access.canView) {
     return (
       <PageShell>
-        <AccessDenied description="The Sanththa register is available to temple staff. Contact an administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }

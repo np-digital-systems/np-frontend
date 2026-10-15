@@ -14,7 +14,7 @@ export async function PartiesFeature() {
   if (!access.canViewParties) {
     return (
       <PageShell>
-        <AccessDenied description="Parties are limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

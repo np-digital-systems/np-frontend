@@ -1,4 +1,3 @@
-/** The error envelope every failing route on the API returns. */
 export interface ApiErrorBody {
   readonly statusCode: number;
   readonly error: string;
@@ -42,10 +41,7 @@ export class ApiError extends Error {
     return this.status === 404;
   }
 
-  /**
-   * A rule the user can do something about: validation, a conflict, or a
-   * business rule the database refused. Worth showing verbatim.
-   */
+  /** Validation, conflict or business-rule errors; safe to show verbatim. */
   get isActionable(): boolean {
     return this.status >= 400 && this.status < 500 && !this.isUnauthenticated;
   }

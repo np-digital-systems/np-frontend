@@ -15,7 +15,7 @@ export async function CostingsFeature() {
   if (!access.canViewCostings) {
     return (
       <PageShell>
-        <AccessDenied description="Pooja costings are visible to the accountant and the cashier. Ask an administrator if you need to see what each pooja is expected to cost." />
+        <AccessDenied description="Only the accountant and cashier can view costings." />
       </PageShell>
     );
   }

@@ -53,9 +53,6 @@ const STATUS_TONE: Record<FinancialYearStatus, string> = {
   upcoming: 'bg-info-subtle text-info',
 };
 
-/**
- * TODO: replace the local mutations with calls to the financial-years API.
- */
 export function FinancialYearsScreen({
   initialYears,
   access,
@@ -106,7 +103,7 @@ export function FinancialYearsScreen({
     <>
       <PortalPageHeader
         title="Financial Years"
-        description="The period the books are kept in. Only the open year accepts new entries."
+        description="Only the open year accepts new entries."
         meta={[
           current ? (
             <span key="current" className="tabular">
@@ -170,20 +167,15 @@ export function FinancialYearsScreen({
         <StatCard
           label="Lifetime Income"
           value={formatCurrency(totals.lifetimeIncome)}
-          caption="Across every year"
         />
         <StatCard
           label="Lifetime Expenditure"
           value={formatCurrency(totals.lifetimeExpenses)}
-          caption="Across every year"
         />
       </div>
 
       <Card>
-        <CardHeader
-          title="All financial years"
-          description="Oldest at the bottom"
-        />
+        <CardHeader title="All financial years" />
 
         <DataTable columns={columns} minWidth={1180}>
           {years.map((year) => (
@@ -305,7 +297,7 @@ export function FinancialYearsScreen({
         confirmLabel="Close Year"
         description={
           closing
-            ? `All ${closing.voucherCount} vouchers in ${closing.label} will be locked against further change, and its closing balance of ${formatCurrency(closing.closingBalance)} carries forward as the next year's opening. This cannot be undone.`
+            ? `All ${closing.voucherCount} vouchers in ${closing.label} will be locked, and its closing balance of ${formatCurrency(closing.closingBalance)} carries forward. This cannot be undone.`
             : ''
         }
         onConfirm={() => {
@@ -323,7 +315,7 @@ export function FinancialYearsScreen({
         confirmLabel="Open Year"
         description={
           opening
-            ? `${opening.label} becomes the year new vouchers post into. Any year still open will need closing separately — the books can only carry one current year.`
+            ? `${opening.label} becomes the current year for new vouchers. Close any other open year separately.`
             : ''
         }
         onConfirm={() => {

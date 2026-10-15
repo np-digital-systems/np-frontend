@@ -57,7 +57,7 @@ export async function TransactionsTable() {
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-text-secondary">
                   {txn.project}
                 </td>
-                {/* Debit green, credit red — as on the ledger. */}
+                {/* Ledger convention: debit green, credit red. */}
                 <td
                   className={`whitespace-nowrap px-4 py-3 text-right text-[13px] tabular ${
                     txn.debit ? 'text-success' : 'text-text-disabled'

@@ -87,7 +87,6 @@ export function NotificationsScreen({
     <>
       <PortalPageHeader
         title="Notifications"
-        description="What the portal needs you to know about, newest first."
         meta={[
           <span key="total" className="tabular">
             {notifications.length} total
@@ -137,22 +136,18 @@ export function NotificationsScreen({
         <StatCard
           label="Unread"
           value={String(notifications.filter((entry) => !entry.read).length)}
-          caption="Not yet opened"
         />
         <StatCard
           label="Needs Attention"
           value={String(needsAction.length)}
-          caption="Critical or warning"
         />
         <StatCard
           label="Categories"
           value={String(categories.length)}
-          caption="Across the portal"
         />
         <StatCard
           label="Total"
           value={String(notifications.length)}
-          caption="In your inbox"
         />
       </div>
 
@@ -166,7 +161,7 @@ export function NotificationsScreen({
           <NotificationList
             notifications={unread}
             emptyTitle="Nothing unread"
-            emptyDescription="You are up to date with everything the portal has flagged."
+            emptyDescription="You're all caught up."
             onMarkRead={markRead}
             onDismiss={dismiss}
           />

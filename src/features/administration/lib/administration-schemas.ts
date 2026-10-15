@@ -10,15 +10,9 @@ import {
 } from '@/lib/validation';
 
 export const userSchema = z.object({
-  /** Null when registering a new person rather than granting to an existing one. */
+  /** Null when registering a new person. */
   partyId: z.number().int().positive().nullable(),
-  /*
-   * The Tamil name is the record; the English one is a convenience.
-   *
-   * Optional here rather than required, because a sign-in granted to somebody
-   * already in the directory carries no name at all — theirs is on the party.
-   * The refinement below demands it only when registering a new person.
-   */
+  // Optional: an existing party already has a name. Required below only for new people.
   nameTa: optionalText(160),
   fullName: optionalText(),
   email: optionalEmail,
@@ -29,7 +23,6 @@ export const userSchema = z.object({
   password: optionalText(128),
   passwordConfirmation: optionalText(128),
 }).superRefine((value, ctx) => {
-  // A new person needs a name; an existing one already has one on their party.
   if (value.partyId === null && !value.nameTa?.trim()) {
     ctx.addIssue({
       code: 'custom',
@@ -38,13 +31,7 @@ export const userSchema = z.object({
     });
   }
 
-  /*
-   * Staff sign in; devotees do not.
-   *
-   * The API requires an email for every role except `user`, because that is
-   * the credential someone signs in with. A devotee on the register has no
-   * account to sign in to, and often no email either.
-   */
+  // The API requires an email for every role except `user` (devotees don't sign in).
   if (value.role !== 'member' && !value.email) {
     ctx.addIssue({
       code: 'custom',
@@ -53,17 +40,8 @@ export const userSchema = z.object({
     });
   }
 
-  /*
-   * Whether a password is *needed* depends on context the schema cannot see —
-   * only a new staff account requires one, and the API refuses to change a
-   * password through an edit at all. So the rules here are about the password
-   * itself, and the dialog adds the one about when it must be present.
-   *
-   * The confirmation exists because an administrator types this password for
-   * somebody else and then has to tell them what it is. A typo would not
-   * surface as a validation error but as a colleague who cannot sign in, with
-   * nothing to point at.
-   */
+  // Only new staff accounts need a password; the dialog enforces when. Confirmation catches
+  // typos, since an admin sets it on someone else's behalf.
   if (value.password) {
     if (value.password.length < PASSWORD_MIN_LENGTH) {
       ctx.addIssue({

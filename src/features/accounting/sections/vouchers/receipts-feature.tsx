@@ -22,7 +22,7 @@ export async function ReceiptVouchersFeature() {
   if (!access.canViewReceipts) {
     return (
       <PageShell>
-        <AccessDenied description="Receipt vouchers are available to temple accounting staff. Contact an administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }
@@ -52,7 +52,7 @@ export async function ReceiptVouchersFeature() {
       <VoucherRegister
         kind="receipt"
         title="Receipt Vouchers"
-        description="Every rupee received by the temple — hundial, sponsorships, donations and rent."
+        description="Money received by the temple."
         initialVouchers={initialVouchers}
         accounts={accounts}
         funds={funds}

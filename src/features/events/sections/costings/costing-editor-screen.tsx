@@ -57,7 +57,6 @@ const NONE = '__none__';
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
-/** A heading with items is their sum; one without carries its own figure. */
 function lineTotal(line: CostingLineDraft): number {
   if (line.items.length === 0) return line.amount;
 
@@ -79,7 +78,7 @@ interface CostingEditorScreenProps {
   costing: CostingRecord;
   expenseAccounts: readonly AccountOption[];
   parties: readonly NamedOption[];
-  /** Every version this pooja and instance has had, newest first. */
+  /** Newest first. */
   history: readonly CostingRecord[];
   canManage: boolean;
 }
@@ -98,33 +97,19 @@ export function CostingEditorScreen({
   const router = useRouter();
   const [applying, setApplying] = useState(false);
 
-  /*
-   * Every version but this one. Listing the page you are already on invites a
-   * click that goes nowhere, and the header above already says which it is.
-   */
   const earlier = history.filter((version) => version.id !== costing.id);
 
   const readOnly = isReadOnly(costing);
   const editable = canManage && !readOnly;
   const notice = revisionNotice(costing);
 
-  /*
-   * What was loaded, kept to compare against. Save asks the committee to commit
-   * to a change, so it has no business being available when there is none —
-   * pressing it would write a draft identical to the version in force and put
-   * an Apply in front of them that would change nothing.
-   */
+  // Save stays disabled until something changes, so an unchanged draft is never written.
   const [saved, setSaved] = useState(() => JSON.stringify(draftFrom(costing)));
   const dirty = JSON.stringify(lines) !== saved;
 
-  // An empty costing prices nothing, and the API refuses to apply one. Better
-  // to say so on a disabled button than to let the press fail.
+  // The API refuses to apply an empty costing.
   const applicable = costing.isDraft && lines.length > 0 && !dirty;
 
-  /*
-   * Everything below is added up here, live, from the same lines the server
-   * will add up when it saves. Nothing about the money is typed twice.
-   */
   const expenseTotal = round2(lines.reduce((total, line) => total + lineTotal(line), 0));
   const quoted = round2(
     lines
@@ -139,12 +124,7 @@ export function CostingEditorScreen({
     );
   }
 
-  /*
-   * Saving the version in force writes to that scope's draft, which is a row
-   * this page is not on. Following it is the whole difference between "my edit
-   * vanished" and "my edit is waiting to be applied" — the figures here really
-   * are unchanged, because not changing them is the point.
-   */
+  // Saving the in-force version writes to a separate draft, so navigate to it.
   function handleSave() {
     const result = validate(costingLinesSchema, lines);
 
@@ -204,12 +184,6 @@ export function CostingEditorScreen({
                 Add line
               </Button>
 
-              {/*
-                * Disabled until something has actually changed. Saving an
-                * unchanged costing would write a draft identical to the version
-                * in force and then offer to apply it, which is a version that
-                * records a decision nobody made.
-                */}
               <Button
                 variant="outline"
                 onClick={handleSave}
@@ -219,11 +193,6 @@ export function CostingEditorScreen({
                 Save
               </Button>
 
-              {/*
-                * Only on the draft. Applying is the act that changes what a
-                * family is asked for, so it belongs on the row that is waiting
-                * to become the rate, never on the one already being quoted.
-                */}
               {costing.isDraft && (
                 <Button
                   onClick={() => setApplying(true)}
@@ -252,7 +221,7 @@ export function CostingEditorScreen({
         title="Apply this costing?"
         confirmLabel="Apply costing"
         tone="default"
-        description={`${describeScope(costing)} will be quoted at ${formatCurrency(costing.sponsorAmount)} from today. The version it replaces is kept as the record of what the rate was until now.`}
+        description={`${describeScope(costing)} will be quoted at ${formatCurrency(costing.sponsorAmount)} from today. The current version will be superseded.`}
         onConfirm={() => {
           run(() => applyCosting(costing.id), () => {
             setApplying(false);
@@ -262,21 +231,15 @@ export function CostingEditorScreen({
       />
 
       {readOnly && (
-        <ReadOnlyNotice message="This version was replaced by a later one. It is kept as it stands, because it is the answer to what this pooja cost that year." />
+        <ReadOnlyNotice message="This version has been superseded and can't be edited." />
       )}
 
-      {/*
-        * The coding is not asked for anywhere on this screen — it belongs to the
-        * pooja type's activity. Where the temple has not set it yet, saying so
-        * here is more use than letting the receipt fail later.
-        */}
       {costing.codingProblem && <ReadOnlyNotice message={costing.codingProblem} />}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard
           label="Sponsor is quoted"
           value={formatCurrency(quoted)}
-          caption="The lines charged to them, added up"
         />
 
         <StatCard
@@ -288,7 +251,6 @@ export function CostingEditorScreen({
         <StatCard
           label="Temple bears"
           value={formatCurrency(templeShare)}
-          caption="The lines not charged to the sponsor"
         />
       </div>
 
@@ -297,8 +259,8 @@ export function CostingEditorScreen({
           title="Expense lines"
           description={
             costing.incomeAccountName
-              ? `The sponsor’s receipt lands on ${costing.incomeAccountName}, from this pooja’s activity.`
-              : 'A line with items under it is a heading: the items decide its figure.'
+              ? `Sponsor receipts post to ${costing.incomeAccountName}.`
+              : undefined
           }
         />
 
@@ -319,25 +281,15 @@ export function CostingEditorScreen({
 
           {lines.length === 0 && (
             <p className="py-6 text-center text-sm text-text-muted">
-              No lines yet. Press <strong>Add line</strong> to write the first one.
+              No lines yet.
             </p>
           )}
         </CardBody>
       </Card>
 
-      {/*
-        * What this pooja cost before now.
-        *
-        * Only shown once there is a second version, because a costing written
-        * this week has no history to read and an empty card saying so is noise.
-        * The current version is not listed: it is the page you are on.
-        */}
       {earlier.length > 0 && (
         <Card>
-          <CardHeader
-            title="Earlier versions"
-            description="Each revision is kept. The days quoted at an older rate still read it."
-          />
+          <CardHeader title="Earlier versions" />
 
           <CardBody className="flex flex-col gap-1.5">
             {earlier.map((version) => (
@@ -371,7 +323,7 @@ export function CostingEditorScreen({
             <Button variant="outline" size="sm" asChild>
               <Link href={costingHistoryRoute(costing.id)}>
                 <History />
-                Open version history
+                Version history
               </Link>
             </Button>
           </CardFooter>
@@ -403,8 +355,7 @@ function addLine(
   setLines((current) => [
     ...current,
     {
-      // Nothing is pre-picked. The first head in the list is a grouping head
-      // as often as not, and a default nobody chose is the one that gets saved.
+      // No default head unless there's only one, so an unchosen default never gets saved.
       accountId: expenseAccounts.length === 1 ? expenseAccounts[0].id : 0,
       partyId: null,
       label: null,
@@ -424,13 +375,6 @@ interface LineEditorProps {
   onRemove: () => void;
 }
 
-/**
- * One line: a head, a figure, and who is usually paid.
- *
- * Three questions, not six. The fund and the activity used to sit here and were
- * the same answer on every line of every costing the temple will ever write —
- * they come from the pooja type now, and nobody is asked again.
- */
 function LineEditor({
   line,
   editable,
@@ -491,10 +435,6 @@ function LineEditor({
           </SelectContent>
         </Select>
 
-        {/*
-          * Read-only once there are items, because then the items are the
-          * figure. Two ways to set one number is how the two stop agreeing.
-          */}
         {itemised ? (
           <p
             className="text-right text-sm font-medium tabular text-text-primary"
@@ -579,11 +519,6 @@ function LineEditor({
                 }
               />
 
-              {/*
-                * The figure itself. The temple agrees what a part of a head
-                * comes to; it does not price by the coconut, so there is no
-                * quantity to multiply and no third number to disagree.
-                */}
               <Input
                 type="number"
                 min={0}

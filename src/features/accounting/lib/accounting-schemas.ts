@@ -47,15 +47,8 @@ export const voucherSchema = z
     bankAccountId: z.number().int().positive().nullable(),
     chequeNo: optionalText(32),
     party: requiredText('This field'),
-    // Required, so every entry can be matched against the paper it was written
-    // on. The book is the record the temple has kept longest.
+    // Required so every entry can be matched to the paper voucher book.
     manualVoucherNo: requiredText('A manual voucher number', 60),
-    /*
-     * No pooja here. A split receipt names one on the head it was given for
-     * and not on the earmarked remainder beside it, so the occurrence belongs
-     * to the line — see `eventId` on voucherLineSchema. Asking for it twice
-     * could only produce a disagreement.
-     */
     notes: optionalText(1000),
   })
   .refine(
@@ -122,8 +115,7 @@ export const partySchema = z.object({
   type: z.enum(['person', 'organisation']),
   nameTa: requiredText('A Tamil name'),
   nameEn: optionalText(),
-  // May be empty. The electricity board is a party the temple pays and nothing
-  // more; demanding a role would only invite a meaningless one.
+  // May be empty: some parties (e.g. utilities) have no role.
   roles: z
     .array(z.enum(PARTY_KINDS))
     .refine((values) => new Set(values).size === values.length, 'Roles must be distinct'),
@@ -139,8 +131,7 @@ export const bankAccountSchema = z.object({
   label: requiredText('A label'),
   bankName: requiredText('The bank name'),
   branch: optionalText(),
-  // The whole number: the API stores it and masks it on the way back out, so
-  // the browser never receives more than the last four digits.
+  // Sent in full; the API masks it so the browser only ever receives the last four digits.
   accountNumber: z
     .string()
     .trim()

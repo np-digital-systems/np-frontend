@@ -180,7 +180,6 @@ export function TransactionsScreen({
     <>
       <PortalPageHeader
         title="Transactions"
-        description="The posted ledger, in double entry. Every voucher appears twice — once against its head, once against the cash or bank it moved through."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -203,17 +202,14 @@ export function TransactionsScreen({
         <StatCard
           label="Total Income"
           value={formatCurrency(yearTotals.income)}
-          caption="Credits to income heads"
         />
         <StatCard
           label="Total Expenditure"
           value={formatCurrency(yearTotals.expenses)}
-          caption="Debits to expenditure heads"
         />
         <StatCard
           label="Net Surplus"
           value={formatCurrency(yearTotals.income - yearTotals.expenses)}
-          caption="Income less expenditure"
         />
         <StatCard
           label="Ledger Integrity"
@@ -262,8 +258,7 @@ export function TransactionsScreen({
             setFilters((current) => ({
               ...current,
               fundId: value === 'all' ? 'all' : Number(value),
-              // A project belongs to one fund; keeping it would contradict
-              // the fund that was just chosen.
+              // Projects belong to one fund, so reset on fund change.
               projectId: 'all',
             }))
           }
@@ -345,7 +340,7 @@ export function TransactionsScreen({
               <EmptyState
                 icon={Search}
                 title="No transactions match these filters"
-                description="Adjust the search or filters above to see more of the ledger."
+                description="Try a different search or clear the filters."
               />
             </DataTableEmpty>
           ) : (
@@ -386,13 +381,7 @@ export function TransactionsScreen({
                     )}
                   </DataCell>
 
-                  {/*
-                    * Debit green, credit red — the ledger convention, and not
-                    * the money-in/money-out one the tones are named for. A
-                    * debit is the left side of an entry, not a gain: on this
-                    * table the cash a receipt brings in is a debit, and the
-                    * income head that explains it is the credit.
-                    */}
+                  {/* Ledger convention: debit green, credit red (not money in/out). */}
                   <DataCell align="right" nowrap>
                     <Amount value={entry.debit} tone="in" />
                   </DataCell>

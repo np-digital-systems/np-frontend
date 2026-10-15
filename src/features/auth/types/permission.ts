@@ -13,14 +13,7 @@ export const PERMISSIONS = [
   'transaction:create',
   'transaction:export',
 
-  /*
-   * Vouchers.
-   *
-   * Receipts and payments are split because the temple treats them
-   * differently — money coming in is counted at the hundial by whoever is on
-   * duty, money going out commits the temple to a payee. The workflow verbs
-   * (submit, approve, post) are shared: they act on a voucher of either kind.
-   */
+  // Vouchers: receipts and payments are separate permissions; submit/approve/post apply to both.
   'receipt-voucher:view',
   'receipt-voucher:create',
 
@@ -40,15 +33,7 @@ export const PERMISSIONS = [
   'bank-account:view',
   'bank-account:manage',
 
-  /*
-   * Financial management.
-   *
-   * The line drawn here is the same one the accounting module draws: keeping
-   * the books is the accountant's, committing the temple's money or its
-   * property is the administrator's. So an accountant defines funds and
-   * projects and capitalises an asset, while placing a fixed deposit or
-   * writing an asset off stays with the admin.
-   */
+  // Finance: accountants keep the books; committing money or property (deposits, write-offs) is admin-only.
   'fund:view',
   'fund:manage',
 
@@ -64,12 +49,7 @@ export const PERMISSIONS = [
 
   'report:generate',
 
-  // Events
-  //
-  // Split rather than one `event:manage` umbrella: an accountant needs the
-  // calendar and a schedule export without any ability to change what the
-  // temple has committed to, and a cashier needs to see who is sponsoring a
-  // pooja without reaching the sponsor directory's contact details.
+  // Events: split so roles can view or export without editing, or see sponsors without contact details.
   'event:view',
   'event:create',
   'event:update',
@@ -79,24 +59,16 @@ export const PERMISSIONS = [
 
   'event-type:manage',
 
-  // The yearly planning view is temple-staff work; a devotee stops at the
-  // calendar itself.
+  // Staff only; devotees see the calendar alone.
   'event-schedule:view',
 
   'event-sponsor:view',
   'event-sponsor:manage',
 
-  // What a pooja is expected to cost, and what its sponsor is asked for.
   'event-costing:view',
   'event-costing:manage',
 
-  /*
-   * Temple contributions.
-   *
-   * Sanththa is the members' subscription register. A cashier takes the
-   * money at the counter, so recording a payment is theirs; who is on the
-   * register at all is the temple's own record-keeping.
-   */
+  // Contributions: cashiers record payments; managing the member register is separate.
   'sponsor:view',
   'sponsor:manage',
   'contribution:view',

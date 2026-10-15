@@ -38,7 +38,7 @@ function toNotification(row: ApiNotification): Notification {
   };
 }
 
-/** Your inbox. Every signed-in user has one; no permission gates it. */
+// No permission needed: every signed-in user has an inbox.
 export async function getNotifications(): Promise<Notification[]> {
   const page = await api.get<Page<ApiNotification>>('/notifications', {
     query: { limit: 100 },

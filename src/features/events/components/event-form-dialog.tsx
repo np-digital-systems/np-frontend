@@ -87,7 +87,6 @@ interface EventFormDialogProps {
     mode?: 'create' | 'edit';
   eventTypes: readonly EventType[];
   sponsors: readonly SponsorParty[];
-  /** Standing registrations, used to put this slot's sponsors on top. */
   assignments: readonly SponsorAssignment[];
   canComplete: boolean;
   onSubmit: (draft: EventDraft) => void;
@@ -132,21 +131,14 @@ export function EventFormDialog({
 
   const tInstance = useTranslations('Events.instance');
 
-  /*
-   * The slots of the chosen type, loaded when it changes.
-   *
-   * Read rather than counted off the type, because the picker has to show the
-   * temple's own name for a slot where it has one — twelve monthly slots read
-   * as twelve Tamil months, not twelve identical "மாதாந்திரம்" rows.
-   */
+  // Loaded rather than derived from the type so custom slot names can be shown.
   const [slots, setSlots] = useState<readonly EventSlot[]>([]);
 
   useEffect(() => {
     const eventTypeId = draft.eventTypeId;
     let current = true;
 
-    // Resolved through a promise either way, so the only write happens once
-    // the load settles and a type cleared mid-flight cannot land stale slots.
+    // Always async so a type changed mid-load can't set stale slots.
     Promise.resolve(eventTypeId ? loadEventSlots(eventTypeId) : []).then((loaded) => {
       if (current) setSlots(loaded);
     });
@@ -195,8 +187,7 @@ export function EventFormDialog({
       },
     );
 
-    // Somebody who has since left the directory — deactivated, say — would
-    // otherwise vanish from the list and be dropped on the next save.
+    // Keep a sponsor who has left the directory, or the next save would drop them.
     const current = event?.sponsor;
 
     const listed =
@@ -228,13 +219,7 @@ export function EventFormDialog({
     draft.instanceIdentifier,
   ]);
 
-  /**
-   * The sponsor a slot falls to when it has exactly one registered.
-   *
-   * Anything less certain is left for the user to pick: with several sponsors
-   * on a slot, choosing one for them would be a guess, and the list already
-   * puts all of them at the top.
-   */
+  // Only auto-fill when exactly one sponsor is registered; otherwise it's a guess.
   function soleSponsorOf(eventTypeId: number, instance: number): number | null {
     const registered = assignments.filter(
       (assignment) =>
@@ -245,7 +230,6 @@ export function EventFormDialog({
     return registered.length === 1 ? registered[0].partyId : null;
   }
 
-  /** Retargeting the draft, filling the sponsor in only while it is empty. */
   function retarget(eventTypeId: number, instance: number) {
     setDraft((current) => ({
       ...current,
@@ -291,8 +275,8 @@ export function EventFormDialog({
           <DialogTitle>{isEdit ? 'Edit Event' : 'New Event'}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? 'Update the scheduled occurrence, its timing or its sponsor.'
-              : 'Add a dated occurrence of an event type to this year’s calendar.'}
+              ? 'Update the date, time or sponsor.'
+              : 'Add a dated event to this year’s calendar.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -381,7 +365,6 @@ export function EventFormDialog({
           <FormField
             id="sponsor"
             label="Sponsor"
-            hint="The sponsors registered for this instance come first, then the rest of this event type's."
           >
             <Combobox
               id="sponsor"
@@ -423,9 +406,6 @@ export function EventFormDialog({
                 >
                   Mark as completed
                 </Label>
-                <p className="mt-0.5 text-[11px] text-text-muted">
-                  Completed events stay on the calendar as a record.
-                </p>
               </div>
 
               <Switch

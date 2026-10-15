@@ -1,13 +1,5 @@
-/**
- * The month grid the public calendar paints.
- *
- * Deliberately not the portal's `calendar-grid`: that one builds its days with
- * date-fns in local time, which is fine behind a login but not here. This grid
- * renders on the server and rehydrates in the visitor's browser, and the two
- * run in different timezones often enough that local-time arithmetic would
- * silently shift a day across the boundary and blow up hydration. Everything
- * below is UTC-only integer arithmetic, so both sides agree.
- */
+// Separate from the portal's calendar-grid, which uses local time. This one is UTC-only
+// so server and browser renders agree across timezones (avoids hydration mismatch).
 
 const DAY_MS = 86_400_000;
 
@@ -21,12 +13,7 @@ function toIso(time: number): string {
   return new Date(time).toISOString().slice(0, 10);
 }
 
-/**
- * Six weeks starting on the Sunday on or before the first of the month.
- *
- * Always six, never five: a grid that changes height as you page through the
- * year makes the whole section jump under the reader's cursor.
- */
+// Always six weeks so the grid height doesn't change between months.
 export function buildMonthGrid(
   year: number,
   month: number,

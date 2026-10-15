@@ -38,7 +38,6 @@ export default function AboutPage() {
 
   return (
     <>
-      {/* Hero Banner */}
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <Image
           src="/images/temple-lamps.png"
@@ -85,38 +84,12 @@ export default function AboutPage() {
           ))}
         </div>
 
-
-        {/* <div className="max-w-3xl mx-auto">
-          <h2 className="font-heading text-3xl md:text-4xl font-semibold text-[#1A1C1C] mb-6 text-center">
-            {tTempleInfo("aboutTitle")}
-          </h2>
-
-          <p className="text-base md:text-lg text-[#4D4635] leading-relaxed mb-8 font-sans text-center">
-            {tTempleInfo("aboutDescription")}
-          </p>
-
-          <SpiritualDivider variant="om" />
-
-          <blockquote className="border-l-3 border-[#D4AF37] pl-6 my-8">
-            <p className="font-heading text-xl text-[#4D4635] italic leading-relaxed">
-              &ldquo;{tTempleInfo("aboutQuote")}&rdquo;
-            </p>
-          </blockquote>
-
-          <p className="text-base text-[#4D4635] leading-relaxed font-sans">
-            {tTempleInfo("history")}
-          </p>
-        </div>
-
-       */}
         <div className="mt-24">
 
-          {/* History heading */}
           <div className="max-w-3xl mx-auto  mb-16">
             <h2 className="font-heading text-3xl text-center md:text-4xl font-semibold text-[#1A1C1C]">
               {tHistory("title")}
             </h2>
-
 
             <blockquote className="border-l-3 border-[#D4AF37] pl-6 my-8">
               <p className="font-heading text-xl align-left text-[#4D4635] italic leading-relaxed">
@@ -127,7 +100,6 @@ export default function AboutPage() {
 
           <SpiritualDivider variant="om" />
 
-          {/* Timeline */}
           <div className="max-w-4xl mx-auto">
             {historySections.map((sectionKey, index) => (
               <section
@@ -136,7 +108,6 @@ export default function AboutPage() {
               >
                 <div className="flex gap-6">
 
-                  {/* Number */}
                   <div className="relative shrink-0">
                     <div className="w-10 h-10 rounded-full border-2 border-[#D4AF37] bg-[#FAF9F6] flex items-center justify-center">
                       <span className="font-heading text-sm font-semibold text-[#8B0000]">
@@ -144,13 +115,11 @@ export default function AboutPage() {
                       </span>
                     </div>
 
-                    {/* Timeline line */}
                     {index !== historySections.length - 1 && (
                       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full bg-[#D4AF37]/40" />
                     )}
                   </div>
 
-                  {/* Section content */}
                   <div className="flex-1 pb-16">
 
                     <h3 className="font-heading text-2xl md:text-3xl font-semibold text-[#1A1C1C] mb-6">
@@ -179,9 +148,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* =========================
-            STATISTICS
-        ========================= */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-20">
           {TEMPLE_STATS.map((stat) => (
             <TempleStat
@@ -192,9 +158,6 @@ export default function AboutPage() {
             />
           ))}
         </div>
-
-
-
 
       </PageContainer>
     </>

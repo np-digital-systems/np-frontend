@@ -107,8 +107,7 @@ export function FundFormDialog({
         <DialogHeader>
           <DialogTitle>{fund ? `Edit ${fund.name}` : 'New Fund'}</DialogTitle>
           <DialogDescription>
-            A fund is an earmarked pool of the temple’s money. Every receipt
-            and payment is charged to exactly one.
+            Every receipt and payment is charged to one fund.
           </DialogDescription>
         </DialogHeader>
 
@@ -128,7 +127,6 @@ export function FundFormDialog({
             id="fund-name-ta"
             label="Name (Tamil)"
             required
-            hint="Shown on Tamil statements and the printed fund summary."
           >
             <Input
               id="fund-name-ta"
@@ -143,7 +141,7 @@ export function FundFormDialog({
           <FormField
             id="fund-opening"
             label="Opening Balance"
-            hint="What the fund carried in from the previous year."
+            hint="Carried in from the previous year."
           >
             <Input
               id="fund-opening"

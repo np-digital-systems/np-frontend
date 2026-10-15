@@ -10,21 +10,13 @@ export interface ServerActionResult {
 }
 
 export interface ServerActionRunner {
-  /** Runs the write, then refetches the page. Errors surface in `error`. */
   run: (write: () => Promise<ServerActionResult>, onSuccess?: () => void) => void;
   error: string | null;
   clearError: () => void;
   pending: boolean;
 }
 
-/**
- * Run a server action and let the server decide what the screen now shows.
- *
- * Nothing is patched into local state on the way past: ids, references and
- * derived balances all belong to the API, and a screen that guessed any of them
- * would eventually disagree with the records it is displaying. The refresh
- * re-renders the server component with what was actually written.
- */
+// Refreshes from the server after a write instead of patching local state.
 export function useServerAction(): ServerActionRunner {
   const router = useRouter();
   const [pending, startTransition] = useTransition();

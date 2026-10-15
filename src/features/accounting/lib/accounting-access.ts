@@ -99,20 +99,12 @@ export function canCreateKind(
     : access.canCreatePayments;
 }
 
-/*
- * Anything short of approval can still be corrected. Editing an entry that is
- * waiting on an approver returns it to Draft, so the correction is resubmitted
- * rather than slipping past the person reviewing it.
- */
+// Editing a pending entry returns it to Draft so the change is re-reviewed.
 const EDITABLE_STATUSES = new Set(['Draft', 'Pending Approval', 'Rejected']);
 
-/** A pending entry is already with an approver; it is withdrawn, not resent. */
 const SUBMITTABLE_STATUSES = new Set(['Draft', 'Rejected']);
 
-/*
- * A rejected entry is left alone: it is already out of the approver's hands and
- * its trail is the record of why. Correct and resubmit it, or leave it.
- */
+// Rejected entries keep their trail; correct and resubmit instead of cancelling.
 const CANCELLABLE_STATUSES = new Set(['Draft', 'Pending Approval']);
 
 export function isOwnVoucher(voucher: Voucher, userId: string): boolean {
@@ -135,8 +127,7 @@ export function canDeleteVoucher(
   access: AccountingAccess,
   user: PortalUser,
 ): boolean {
-  // Nothing is ever erased. A draft or a pending entry is cancelled, which
-  // leaves the reference in place and out of every total.
+  // Nothing is erased: cancelling keeps the reference but excludes it from totals.
   if (!CANCELLABLE_STATUSES.has(voucher.status)) return false;
 
   return canEditVoucher(voucher, access, user);
@@ -172,7 +163,7 @@ export function canPostVoucher(
 }
 
 export const READ_ONLY_MESSAGE =
-  'You have view access to these records. Creating and approving entries is restricted to roles with the matching accounting permissions.';
+  'You have view-only access.';
 
 export const SELF_APPROVAL_MESSAGE =
   'You cannot approve an entry you created yourself — another approver has to act on it.';

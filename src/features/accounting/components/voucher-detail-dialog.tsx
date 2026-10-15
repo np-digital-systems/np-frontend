@@ -54,12 +54,7 @@ export function VoucherDetailDialog({
         {voucher && (
           <>
             <DialogHeader>
-              {/*
-                * The close button is absolutely positioned at top-2 right-2, so
-                * the badge needs room to its left or the two sit on top of each
-                * other. `min-w-0` lets a long ref truncate rather than shove
-                * the badge under it.
-                */}
+              {/* pr-7 clears the absolutely positioned close button. */}
               <div className="flex items-center justify-between gap-3 pr-7">
                 <DialogTitle className="ref min-w-0 truncate">
                   {voucher.ref}
@@ -72,11 +67,6 @@ export function VoucherDetailDialog({
               </DialogDescription>
             </DialogHeader>
 
-            {/*
-              * The figure is what the reader came for, so it leads — and it is
-              * the one place the kind is spelled out in words, which is what
-              * tells a receipt from a payment at a glance.
-              */}
             <div className="rounded-lg border border-border bg-surface-2 px-4 py-3.5">
               <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
                 {voucher.kind === 'receipt' ? 'Amount received' : 'Amount paid'}
@@ -89,11 +79,6 @@ export function VoucherDetailDialog({
             <Section title="Details">
               <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 <Detail label="Date" value={formatLongDate(voucher.date)} />
-                {/*
-                  * Always shown, dash and all. It is the number on the paper the
-                  * payer is holding, so "there isn't one" is itself worth seeing
-                  * — a row that simply vanished read as though nobody had looked.
-                  */}
                 <Detail
                   label="Manual Voucher No"
                   value={voucher.manualVoucherNo || '—'}
@@ -120,15 +105,6 @@ export function VoucherDetailDialog({
               </dl>
             </Section>
 
-            {/*
-              * The coding, given its own block and its own lines.
-              *
-              * Account, fund and project used to be crammed into one truncating
-              * cell, so the fund a receipt posts against — a legal boundary —
-              * was the first thing cut off. Every head is listed: a split
-              * voucher showing one would describe a different entry from the
-              * one that posted.
-              */}
             <Section
               title={voucher.lines.length > 1 ? 'Ledger coding' : 'Ledger account'}
             >
@@ -214,14 +190,6 @@ export function VoucherDetailDialog({
   );
 }
 
-/**
- * Deciding on the entry you are looking at.
- *
- * An approver reads the detail to make up their mind, so this is where the
- * decision belongs — sending them back to hunt for the right row afterwards is
- * how the wrong voucher gets approved. Where they may not act, the reason is
- * stated rather than left as a dead disabled row in a menu.
- */
 function VoucherDecision({
   voucher,
   access,
@@ -263,14 +231,6 @@ function VoucherDecision({
   return null;
 }
 
-/**
- * One labelled block of the sheet.
- *
- * The dialog carries three scales and they were being used interchangeably:
- * a section heading, a field label and a value. Pinning the heading here is
- * what keeps Description sitting at the same level as Ledger account rather
- * than looking like a stray field between them.
- */
 function Section({
   title,
   children,

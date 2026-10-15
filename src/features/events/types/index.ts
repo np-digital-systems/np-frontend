@@ -14,27 +14,16 @@ export interface EventType {
     readonly name: string;
     readonly nameEn: string;
   readonly frequencyType: FrequencyType;
-  /**
-   * How the observance is paid for. `general` means a village collection with
-   * no named sponsor, which is what separates "nobody assigned yet" from
-   * "never has one".
-   */
+  /** `general` is funded by collection and never has a named sponsor. */
   readonly funding: EventFunding;
     readonly noOfInstances: number;
-  /** The activity a receipt for this pooja is coded to; it carries the fund. */
+  /** Receipts are coded to this activity, which carries the fund. */
   readonly activityId: number | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
 
-/**
- * A sponsor, as the calendar knows one.
- *
- * A party, not an account. Sponsorship is a dealing the temple has with
- * somebody; whether they can also sign in is a separate question, and for most
- * of them the answer is no. Email and address come from the linked sign-in
- * where there is one, and are empty otherwise.
- */
+// A party, not a user account. Email and address are empty unless linked to a sign-in.
 export interface SponsorParty {
   readonly id: number;
   readonly name: string;
@@ -45,13 +34,10 @@ export interface SponsorParty {
   readonly userId: string | null;
 }
 
-/**
- * A sponsor registered against an event type. A null `instanceIdentifier`
- * means they stand for every instance of the type rather than one slot.
- */
 export interface EventTypeSponsor {
   readonly id: number;
   readonly eventTypeId: number;
+  /** Null covers every instance of the type. */
   readonly instanceIdentifier: number | null;
   readonly customInstanceName: string | null;
   readonly partyId: number;
@@ -81,16 +67,14 @@ export interface EventRecord extends TempleEvent {
 }
 
 export interface ScheduleSlot {
-  /** The slot row sponsors and occurrences point at. */
   readonly slotId: number;
   readonly instanceIdentifier: number;
   readonly instanceLabel: string;
   readonly customInstanceName: string | null;
     readonly defaultSponsor: SponsorParty | null;
-  /** Everyone who takes this slot — the shortlist a year is scheduled from. */
   readonly sponsors: readonly SponsorParty[];
   readonly sponsorCount: number;
-  /** Dates scheduled against this slot this year; a monthly slot carries several. */
+  /** Dates scheduled this year; monthly slots can have several. */
   readonly eventCount: number;
   readonly event: EventRecord | null;
 }
@@ -123,12 +107,6 @@ export interface EventsSummary {
 
 export type { PublicEvent } from './public';
 
-/**
- * One slot of an event type — the fixed structure of the temple year.
- *
- * Named once and left alone: a sponsor attaches to it and a date is set
- * against it every year, but the slot itself does not change.
- */
 export interface EventSlot {
   readonly id: number;
   readonly instanceIdentifier: number;

@@ -1,13 +1,5 @@
 import type { BadgeStatus, PeriodPoint } from '@/components/portal/ui';
 
-/**
- * The shapes each dashboard card renders, and the one constant among them.
- *
- * Every figure now comes from the API through `lib/dashboard-service`; the
- * workflow steps stay here because they describe how a voucher moves, which is
- * a fact about the portal rather than data about the temple.
- */
-
 export type { PeriodPoint };
 
 export interface ApprovalItem {

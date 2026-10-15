@@ -1,42 +1,13 @@
-/* ==========================================================================
-   PORTAL DESIGN SYSTEM
-   --------------------------------------------------------------------------
-   Design tokens for the management portal only. Scoped to `.portal-theme`.
+/* Portal design tokens, scoped to .portal-theme. Loaded in the `theme-portal` layer (after
+   `theme-site`), so these win regardless of specificity. Never add site tokens here.
 
-   This file is imported into the `theme-portal` cascade layer, declared AFTER
-   `theme-site`, so these tokens always win inside `.portal-theme` regardless
-   of selector specificity or import order. Never add site tokens here.
-
-   Visual language — restrained, system-native, information-dense:
-
-   - Achromatic grays. Colour is reserved for meaning, never decoration.
-   - One decisive accent (system blue) for interactive affordances.
-   - Hairline borders; elevation comes from surface value, not shadow.
-   - Tight optical tracking on large text, neutral tracking on body.
-   - Tabular numerals everywhere a figure can be compared vertically.
-
-   WHY THE `body:has()` SELECTOR
-   -----------------------------
-   Radix renders Popover / Dialog / DropdownMenu / Tooltip content through a
-   React portal attached to `document.body` — which is OUTSIDE the
-   `.portal-theme` wrapper. Those subtrees therefore resolved the SITE tokens
-   and came out in the website's gold palette while the page behind them was
-   neutral.
-
-   Matching `body:has(.portal-theme)` puts the portal tokens on `<body>`
-   itself whenever a portal screen is mounted, so anything portalled to the
-   body inherits them. On public-site routes no `.portal-theme` element
-   exists, the selector does not match, and the site keeps its own tokens.
-
-   This is why portalled shadcn components need no per-component patching.
-   ========================================================================== */
+   body:has(.portal-theme) also applies them to <body>, because Radix portals (dialogs,
+   popovers, menus, tooltips) render outside the .portal-theme wrapper. */
 
 .portal-theme,
 body:has(.portal-theme) {
 
-  /* ------------------------------------------------------------------------
-     Layout
-     ------------------------------------------------------------------------ */
+  /* Layout */
 
   --sidebar-width: 248px;
   --sidebar-collapsed-width: 72px;
@@ -46,12 +17,7 @@ body:has(.portal-theme) {
   --content-max-width: 1440px;
 
 
-  /* ------------------------------------------------------------------------
-     Shape
-
-     Slightly softer than stock shadcn. Apple's HIG leans on continuous
-     corners; a 10px radius on cards reads closest at this density.
-     ------------------------------------------------------------------------ */
+  /* Shape */
 
   --radius: 0.625rem;
 
@@ -63,12 +29,7 @@ body:has(.portal-theme) {
   --radius-2xl: 1rem;
 
 
-  /* ------------------------------------------------------------------------
-     Core surfaces — light
-
-     #f5f5f7 is the canvas; cards sit above it in pure white. The value gap
-     is what separates them, so cards need almost no shadow.
-     ------------------------------------------------------------------------ */
+  /* Core surfaces — light */
 
   --background: #f5f5f7;
   --foreground: #1d1d1f;
@@ -80,9 +41,7 @@ body:has(.portal-theme) {
   --popover-foreground: #1d1d1f;
 
 
-  /* ------------------------------------------------------------------------
-     Brand / action
-     ------------------------------------------------------------------------ */
+  /* Brand / action */
 
   --primary: #0071e3;
   --primary-foreground: #ffffff;
@@ -93,31 +52,24 @@ body:has(.portal-theme) {
   --secondary: #f5f5f7;
   --secondary-foreground: #1d1d1f;
 
-  /* shadcn semantics: `accent` is a subtle hover SURFACE, not a brand colour.
-     Use `--primary` for anything that should read as the accent hue. */
+  /* `accent` is a hover surface (shadcn), not the brand colour; use --primary for that. */
   --accent: #f0f0f2;
   --accent-foreground: #1d1d1f;
 
 
-  /* ------------------------------------------------------------------------
-     Muted content
-     ------------------------------------------------------------------------ */
+  /* Muted content */
 
   --muted: #f0f0f2;
   --muted-foreground: #6e6e73;
 
 
-  /* ------------------------------------------------------------------------
-     Destructive
-     ------------------------------------------------------------------------ */
+  /* Destructive */
 
   --destructive: #d70015;
   --destructive-foreground: #ffffff;
 
 
-  /* ------------------------------------------------------------------------
-     Borders / inputs / focus
-     ------------------------------------------------------------------------ */
+  /* Borders / inputs / focus */
 
   --border: #e3e3e6;
   --border-strong: #d2d2d7;
@@ -126,20 +78,14 @@ body:has(.portal-theme) {
   --ring: #0071e3;
 
 
-  /* ------------------------------------------------------------------------
-     Semantic surfaces
-     ------------------------------------------------------------------------ */
+  /* Semantic surfaces */
 
   --surface: #ffffff;
   --surface-2: #f5f5f7;
   --surface-3: #fafafa;
 
 
-  /* ------------------------------------------------------------------------
-     Semantic text
-
-     Four steps only. More than four and hierarchy stops reading.
-     ------------------------------------------------------------------------ */
+  /* Semantic text */
 
   --text-primary: #1d1d1f;
   --text-secondary: #424245;
@@ -147,9 +93,7 @@ body:has(.portal-theme) {
   --text-disabled: #a1a1a6;
 
 
-  /* ------------------------------------------------------------------------
-     Interactive states
-     ------------------------------------------------------------------------ */
+  /* Interactive states */
 
   --interactive-hover: #f0f0f2;
   --interactive-active: #e8e8ed;
@@ -158,13 +102,8 @@ body:has(.portal-theme) {
   --accent-muted: rgba(0, 113, 227, 0.14);
 
 
-  /* ------------------------------------------------------------------------
-     Sidebar
-     ------------------------------------------------------------------------ */
+  /* Sidebar */
 
-  /* Nav labels take the PRIMARY label colour, the way Finder and Mail set
-     their sidebars. The previous secondary grey, then dimmed again with
-     opacity at the call site, is what made the rail read as disabled. */
   --sidebar: #ffffff;
   --sidebar-foreground: #1d1d1f;
 
@@ -177,19 +116,12 @@ body:has(.portal-theme) {
   --sidebar-border: #e3e3e6;
   --sidebar-ring: #0071e3;
 
-  /* Group headings and icons — Apple's secondary label. */
   --sidebar-muted: #86868b;
 
-  /* Selected row: tinted fill, not a grey block. */
   --sidebar-selected: rgba(0, 113, 227, 0.1);
 
 
-  /* ------------------------------------------------------------------------
-     Status
-
-     Deliberately desaturated against stock Tailwind. Financial UI shows a
-     lot of status at once; saturated chips turn a dense table into noise.
-     ------------------------------------------------------------------------ */
+  /* Status */
 
   --success: #1d8348;
   --success-foreground: #ffffff;
@@ -210,11 +142,7 @@ body:has(.portal-theme) {
   --neutral-subtle: rgba(0, 0, 0, 0.05);
 
 
-  /* ------------------------------------------------------------------------
-     Charts
-
-     Ordered by how often a series appears, not by hue wheel position.
-     ------------------------------------------------------------------------ */
+  /* Charts */
 
   --chart-1: #0071e3;
   --chart-2: #1d8348;
@@ -225,11 +153,7 @@ body:has(.portal-theme) {
   --chart-grid: rgba(0, 0, 0, 0.07);
 
 
-  /* ------------------------------------------------------------------------
-     Elevation
-
-     Barely-there. On a light canvas the border does most of the separating.
-     ------------------------------------------------------------------------ */
+  /* Elevation */
 
   --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.03);
 
@@ -247,26 +171,13 @@ body:has(.portal-theme) {
 }
 
 
-/* ==========================================================================
-   PORTAL — DARK
-
-   Matches either shape:
-
-     <div class="portal-theme dark">
-     <html class="dark"> … <div class="portal-theme">
-   ========================================================================== */
+/* Portal dark: matches `.portal-theme.dark` or `.dark .portal-theme`. */
 
 .portal-theme.dark,
 .dark .portal-theme,
 .dark body:has(.portal-theme) {
 
-  /* ------------------------------------------------------------------------
-     Core surfaces
-
-     True black canvas with raised graphite cards — the same figure/ground
-     split Apple and X use in dark mode. Cards read as objects on a void
-     rather than as lighter patches of the same sheet.
-     ------------------------------------------------------------------------ */
+  /* Core surfaces */
 
   --background: #000000;
   --foreground: #f5f5f7;
@@ -278,9 +189,7 @@ body:has(.portal-theme) {
   --popover-foreground: #f5f5f7;
 
 
-  /* ------------------------------------------------------------------------
-     Brand / action
-     ------------------------------------------------------------------------ */
+  /* Brand / action */
 
   --primary: #0a84ff;
   --primary-foreground: #ffffff;
@@ -295,28 +204,19 @@ body:has(.portal-theme) {
   --accent-foreground: #f5f5f7;
 
 
-  /* ------------------------------------------------------------------------
-     Muted content
-     ------------------------------------------------------------------------ */
+  /* Muted content */
 
   --muted: #2c2c2e;
   --muted-foreground: #98989d;
 
 
-  /* ------------------------------------------------------------------------
-     Destructive
-     ------------------------------------------------------------------------ */
+  /* Destructive */
 
   --destructive: #ff453a;
   --destructive-foreground: #ffffff;
 
 
-  /* ------------------------------------------------------------------------
-     Borders / inputs / focus
-
-     Translucent white so borders sit correctly on every surface value
-     instead of banding against one specific background.
-     ------------------------------------------------------------------------ */
+  /* Borders / inputs / focus */
 
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.16);
@@ -325,18 +225,14 @@ body:has(.portal-theme) {
   --ring: #0a84ff;
 
 
-  /* ------------------------------------------------------------------------
-     Semantic surfaces
-     ------------------------------------------------------------------------ */
+  /* Semantic surfaces */
 
   --surface: #1c1c1e;
   --surface-2: #2c2c2e;
   --surface-3: #141416;
 
 
-  /* ------------------------------------------------------------------------
-     Semantic text
-     ------------------------------------------------------------------------ */
+  /* Semantic text */
 
   --text-primary: #f5f5f7;
   --text-secondary: #c7c7cc;
@@ -344,9 +240,7 @@ body:has(.portal-theme) {
   --text-disabled: #636366;
 
 
-  /* ------------------------------------------------------------------------
-     Interactive states
-     ------------------------------------------------------------------------ */
+  /* Interactive states */
 
   --interactive-hover: rgba(255, 255, 255, 0.06);
   --interactive-active: rgba(255, 255, 255, 0.1);
@@ -355,9 +249,7 @@ body:has(.portal-theme) {
   --accent-muted: rgba(10, 132, 255, 0.22);
 
 
-  /* ------------------------------------------------------------------------
-     Sidebar
-     ------------------------------------------------------------------------ */
+  /* Sidebar */
 
   --sidebar: #000000;
   --sidebar-foreground: #f5f5f7;
@@ -376,9 +268,7 @@ body:has(.portal-theme) {
   --sidebar-selected: rgba(10, 132, 255, 0.18);
 
 
-  /* ------------------------------------------------------------------------
-     Status
-     ------------------------------------------------------------------------ */
+  /* Status */
 
   --success: #30d158;
   --success-foreground: #00250f;
@@ -399,9 +289,7 @@ body:has(.portal-theme) {
   --neutral-subtle: rgba(255, 255, 255, 0.08);
 
 
-  /* ------------------------------------------------------------------------
-     Charts
-     ------------------------------------------------------------------------ */
+  /* Charts */
 
   --chart-1: #0a84ff;
   --chart-2: #30d158;
@@ -412,12 +300,7 @@ body:has(.portal-theme) {
   --chart-grid: rgba(255, 255, 255, 0.08);
 
 
-  /* ------------------------------------------------------------------------
-     Elevation
-
-     Dark UI reads depth from surface value, not shadow. Keep these low or
-     cards acquire a muddy halo.
-     ------------------------------------------------------------------------ */
+  /* Elevation */
 
   --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.4);
 
@@ -435,16 +318,12 @@ body:has(.portal-theme) {
 }
 
 
-/* ==========================================================================
-   PORTAL BASE
-   ========================================================================== */
+/* Portal base */
 
-/* The typeface applies to portalled content too, so a dropdown or dialog
-   rendered on <body> is set in the UI face rather than the site's stack. */
+/* Also on body:has() so portalled content gets the UI font. */
 .portal-theme,
 body:has(.portal-theme) {
-  /* Inter is loaded by next/font in the root layout and exposed as
-     --font-inter. Do not @import Google Fonts from CSS. */
+  /* Inter comes from next/font (--font-inter); don't @import Google Fonts here. */
   font-family:
     var(--font-inter),
     Inter,
@@ -455,8 +334,7 @@ body:has(.portal-theme) {
     "Segoe UI",
     sans-serif;
 
-  /* cv11 gives Inter a single-storey `a`/`g`, ss01 the alternate `i`/`l`.
-     Together they land close to SF's skeleton. */
+  /* cv11 + ss01: Inter alternates that read closer to SF. */
   font-feature-settings:
     "cv11",
     "ss01";
@@ -477,9 +355,7 @@ body:has(.portal-theme) {
 }
 
 
-/* The public site sets a serif display face on all headings in @layer base.
-   The portal is a system-UI surface — headings stay in the UI face. Portalled
-   dialogs carry headings too, hence the second selector. */
+/* Reset the site's serif headings; the second selector covers portalled dialogs. */
 .portal-theme :is(h1, h2, h3, h4, h5, h6),
 body:has(.portal-theme) [data-slot$="-content"] :is(h1, h2, h3, h4, h5, h6) {
   font-family: inherit;
@@ -487,8 +363,7 @@ body:has(.portal-theme) [data-slot$="-content"] :is(h1, h2, h3, h4, h5, h6) {
 }
 
 
-/* Tamil copy inside the portal keeps the UI face for Latin glyphs and falls
-   back to Noto Sans Tamil for Tamil ones. */
+/* Latin glyphs in Inter, Tamil glyphs in Noto Sans Tamil. */
 html[lang="ta"] .portal-theme,
 html[lang="ta"] .portal-theme :is(h1, h2, h3, h4, h5, h6) {
   font-family:
@@ -501,13 +376,7 @@ html[lang="ta"] .portal-theme :is(h1, h2, h3, h4, h5, h6) {
 }
 
 
-/* ==========================================================================
-   PORTAL TYPOGRAPHY
-
-   Optical tracking: large text needs negative tracking to stop looking
-   loose, small text needs positive tracking to stay legible. Applied via
-   utilities rather than a global rule so it stays opt-in.
-   ========================================================================== */
+/* Portal typography: opt-in optical tracking utilities */
 
 .portal-theme .text-display {
   font-size: 1.75rem;
@@ -540,13 +409,11 @@ html[lang="ta"] .portal-theme :is(h1, h2, h3, h4, h5, h6) {
   text-transform: uppercase;
 }
 
-/* Figures that are compared down a column must not shift width per digit. */
 .portal-theme .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* Reference codes (PV-2026-0025) read as identifiers, not prose. */
 .portal-theme .ref {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
@@ -554,15 +421,9 @@ html[lang="ta"] .portal-theme :is(h1, h2, h3, h4, h5, h6) {
 }
 
 
-/* ==========================================================================
-   PORTAL SCROLLBARS
-   ========================================================================== */
+/* Portal scrollbars */
 
-/* Dropdowns, popovers and dialogs are portalled to <body>, outside the
-   `.portal-theme` wrapper — so these match the token rules above and key off
-   the body as well. Without it a portalled list falls back to the platform
-   scrollbar, which on macOS is invisible until it is already being scrolled,
-   and a capped list reads as a list that simply ends. */
+/* Also on body:has() so portalled lists get visible scrollbars (macOS hides them by default). */
 .portal-theme,
 .portal-theme *,
 body:has(.portal-theme),
@@ -597,11 +458,7 @@ body:has(.portal-theme) ::-webkit-scrollbar-thumb:hover {
 }
 
 
-/* ==========================================================================
-   PORTAL MOTION
-
-   Short, eased, and dropped entirely for users who ask for less motion.
-   ========================================================================== */
+/* Portal motion (disabled for prefers-reduced-motion) */
 
 .portal-theme {
   --ease-out: cubic-bezier(0.32, 0.72, 0, 1);

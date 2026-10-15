@@ -7,17 +7,10 @@ import { requireSession } from '@/features/auth/lib/session';
 
 import { FINANCIAL_YEAR_COOKIE, getFinancialYearOptions } from './financial-year';
 
-/** A year outlives a session; the choice should outlive the browser being closed. */
 const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60;
 
-/**
- * Point the portal at a different financial year.
- *
- * The id is checked against the years the API actually returns before it is
- * stored — a cookie is client-supplied, and this one goes on to filter ledger
- * reads. Every portal route is revalidated afterwards because the choice
- * changes figures on all of them, not just the page it was made from.
- */
+// Validates the id against the API's years before storing (the cookie filters ledger reads),
+// then revalidates every portal route.
 export async function selectFinancialYear(id: number): Promise<void> {
   await requireSession();
 

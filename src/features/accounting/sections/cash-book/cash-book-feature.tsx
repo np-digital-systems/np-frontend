@@ -17,18 +17,12 @@ export async function CashBookFeature() {
   if (!access.canViewCashBook) {
     return (
       <PageShell>
-        <AccessDenied description="The cash book is available to temple accounting staff. Contact an administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }
 
-  /*
-   * A cash book without a cash account is a configuration gap, not a fault.
-   *
-   * The API says exactly what is missing; letting that reach the error
-   * boundary would turn a one-line fix into "Something went wrong", which
-   * tells whoever is looking at it nothing they can act on.
-   */
+  // A missing cash account is a setup gap: show the API's message instead of the generic error page.
   const book = await getCashBook().catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 400) return null;
 
@@ -41,7 +35,7 @@ export async function CashBookFeature() {
         <EmptyState
           icon={Settings2}
           title="No cash account has been chosen yet"
-          description="The cash book follows one asset head in the chart of accounts. Pick which one under Accounting settings, and this fills in."
+          description="Set the cash account under Accounting settings."
         />
 
         <div className="flex justify-center">

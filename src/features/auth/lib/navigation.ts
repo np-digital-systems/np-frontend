@@ -25,12 +25,7 @@ export function canAccessNavItem(
   return item.allowedRoles.includes(role);
 }
 
-/**
- * The navigation this session can reach.
- *
- * Built from the permissions the server granted, so a role an administrator
- * re-scopes changes the menu on the next sign-in without a redeploy.
- */
+// Built from session permissions, so role changes update the menu without a redeploy.
 export function getPortalNavigation(
   granted: readonly Permission[],
   role: UserRole,

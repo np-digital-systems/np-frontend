@@ -173,8 +173,7 @@ export function DepositFormDialog({
             {deposit ? `Edit ${deposit.certificateNo}` : 'Place Fixed Deposit'}
           </DialogTitle>
           <DialogDescription>
-            A fixed deposit commits temple money for a term. Record it against
-            the fund the money came from.
+            Record it against the fund the money came from.
           </DialogDescription>
         </DialogHeader>
 
@@ -269,7 +268,7 @@ export function DepositFormDialog({
               id="deposit-tenure"
               label="Tenure (months)"
               required
-              hint="The maturity date follows from this."
+              hint="Sets the maturity date."
             >
               <Input
                 id="deposit-tenure"

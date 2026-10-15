@@ -29,14 +29,6 @@ import type {
   Transaction,
 } from '../constants/dashboard-shapes';
 
-/**
- * Everything the role dashboards show, read from the API.
- *
- * Each dashboard is a server component, so the pieces are fetched where they
- * are rendered rather than threaded down as props — and every figure is the
- * same one the screen it links to would show.
- */
-
 const currency = (value: number) => value;
 
 export async function getCashPosition(): Promise<{
@@ -55,7 +47,7 @@ export async function getCashPosition(): Promise<{
       closing: book.summary.closing,
     };
   } catch {
-    // No cash head configured yet — the books have not been opened.
+    // No cash head configured yet.
     return { opening: 0, receipts: 0, payments: 0, closing: 0 };
   }
 }
@@ -158,7 +150,6 @@ function relativeTime(at: string): string {
   return `${Math.round(minutes / 1440)}d ago`;
 }
 
-/** The audit trail, phrased for a dashboard rather than an auditor. */
 export async function getRecentActivity(limit = 5): Promise<readonly ActivityItem[]> {
   try {
     const entries = await getAuditEntries(limit);
@@ -171,7 +162,7 @@ export async function getRecentActivity(limit = 5): Promise<readonly ActivityIte
       time: relativeTime(entry.at),
     }));
   } catch {
-    // Reading the trail needs audit:view; a cashier's dashboard does without.
+    // Needs audit:view; cashiers don't have it.
     return [];
   }
 }
@@ -191,7 +182,7 @@ export async function getRecentTransactions(limit = 5): Promise<readonly Transac
   }));
 }
 
-/** The signed-in cashier's own vouchers — the API scopes this to them. */
+/** The API scopes this to the signed-in cashier. */
 export async function getMySubmissions(limit = 4): Promise<readonly Submission[]> {
   const vouchers = await getVouchers();
 
@@ -204,7 +195,6 @@ export async function getMySubmissions(limit = 4): Promise<readonly Submission[]
   }));
 }
 
-/** Split of what is waiting, for the accountant's queue card. */
 export async function getQueueSplit(): Promise<{ receipts: number; payments: number }> {
   const pending = await getPendingVouchers();
 
@@ -214,12 +204,7 @@ export async function getQueueSplit(): Promise<{ receipts: number; payments: num
   };
 }
 
-/**
- * What has happened to the signed-in cashier's own entries.
- *
- * Read from their vouchers rather than the audit trail, which a cashier
- * cannot see.
- */
+// Read from the cashier's vouchers because they can't see the audit trail.
 export async function getMyActivity(limit = 4): Promise<readonly CashierActivityItem[]> {
   const vouchers = await getVouchers();
   const kind = (voucher: { kind: string }) =>
@@ -248,7 +233,6 @@ export async function getMyActivity(limit = 4): Promise<readonly CashierActivity
     });
 }
 
-/** The signed-in cashier's own register, counted by where each entry sits. */
 export async function getMyVoucherCounts(): Promise<{
   receipts: number;
   payments: number;

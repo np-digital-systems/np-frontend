@@ -22,8 +22,7 @@ interface SidebarGroupProps {
 export function SidebarGroup({ group, collapsed }: SidebarGroupProps) {
   const [open, setOpen] = useState(group.defaultOpen ?? true);
 
-  // Collapsed to the icon rail there is no room for a heading, and nothing
-  // to collapse — the group becomes a plain run of icons.
+  // Collapsed rail: no heading, just icons.
   if (collapsed) {
     return (
       <div className="space-y-1">

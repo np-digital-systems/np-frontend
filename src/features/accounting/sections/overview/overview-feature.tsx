@@ -23,7 +23,7 @@ export async function AccountOverviewFeature() {
   if (!access.canViewOverview) {
     return (
       <PageShell>
-        <AccessDenied description="The financial overview is limited to administrators and accountants. The cash book and voucher registers cover day-to-day work." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

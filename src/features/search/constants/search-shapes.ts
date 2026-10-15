@@ -1,12 +1,3 @@
-/**
- * The search vocabulary the palette renders.
- *
- * Results come from the API through `lib/search-service`, scoped there by the
- * permission guarding each source. What stays here is the shape of a result,
- * the type filters, and the quick actions the palette offers when nothing has
- * been typed yet.
- */
-
 export type SearchType =
   | 'User' | 'Event' | 'Receipt' | 'Payment' | 'Transaction'
   | 'Fund' | 'Project' | 'Fixed Deposit' | 'Asset' | 'Sanththa'
@@ -40,10 +31,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Open Reports',      page: 'Reports', icon: 'report' },
 ]
 
-/**
- * Nothing remembers a visitor's searches yet, so the palette opens with the
- * quick actions alone rather than somebody else's history.
- */
+// No search history is stored yet, so the palette opens with quick actions only.
 export const RECENT_SEARCHES: string[] = []
 
 export const RECENTLY_VIEWED: { label: string; type: SearchType; page: string }[] = []
@@ -76,7 +64,6 @@ export interface SearchGroup {
   readonly items: readonly SearchResult[]
 }
 
-/** Group results by kind, in the order the palette lists its filters. */
 export function groupResults(
   results: readonly SearchResult[],
 ): readonly SearchGroup[] {

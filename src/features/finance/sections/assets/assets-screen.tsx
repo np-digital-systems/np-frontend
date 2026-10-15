@@ -168,11 +168,7 @@ export function AssetsScreen({
     );
   }
 
-  /**
-   * Dating the disposal is what stops depreciation, so this is its own call
-   * rather than a status change — and the book value at that date comes back
-   * from the API rather than being recomputed here.
-   */
+  // A separate call because the disposal date stops depreciation; the API returns the book value.
   function handleDispose(draft: DisposalDraft) {
     if (!disposing) return;
 
@@ -214,7 +210,6 @@ export function AssetsScreen({
     <>
       <PortalPageHeader
         title="Assets"
-        description="The register of what the temple owns — what it cost, what it is worth today and what condition it is in."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -246,7 +241,7 @@ export function AssetsScreen({
       <ActionError message={actionError} />
 
       {!access.canManageAssets ? (
-        <ReadOnlyNotice message="You can see the temple’s asset register and its book values. Adding or amending an asset record is restricted to administrators and accountants." />
+        <ReadOnlyNotice message="Only administrators and accountants can make changes." />
       ) : (
         !access.canDisposeAssets && (
           <ReadOnlyNotice message={ASSET_DISPOSE_MESSAGE} />
@@ -262,26 +257,20 @@ export function AssetsScreen({
         <StatCard
           label="Gross Cost"
           value={formatCurrency(totals.cost)}
-          caption="What it all cost"
         />
         <StatCard
           label="Accumulated Depreciation"
           value={formatCurrency(totals.depreciation)}
-          caption="Written down to date"
         />
         <StatCard
           label="Net Book Value"
           value={formatCurrency(totals.netBookValue)}
-          caption="Carried on the accounts"
         />
       </div>
 
       {categoryTotals.length > 0 && (
         <Card>
-          <CardHeader
-            title="By category"
-            description="Where the register's value sits"
-          />
+          <CardHeader title="By category" />
 
           <CardBody className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
             {categoryTotals.map((entry) => (
@@ -408,8 +397,8 @@ export function AssetsScreen({
                 }
                 description={
                   assets.length === 0
-                    ? 'Register what the temple owns so its value and condition are tracked.'
-                    : 'Adjust the search or filters above.'
+                    ? undefined
+                    : 'Try a different search or filter.'
                 }
               />
             </DataTableEmpty>

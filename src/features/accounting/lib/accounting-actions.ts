@@ -14,14 +14,7 @@ export type ActionResult<T = void> =
   | ({ ok: true } & (T extends void ? object : { data: T }))
   | { ok: false; message: string };
 
-/**
- * One place every write in this module funnels through.
- *
- * The capability is checked here rather than trusted from the screen, because
- * a server action is the boundary a typed request cannot get around; and an
- * ApiError is turned into the message the API itself chose, which for a
- * business rule is the database's own words.
- */
+// Checks the capability server-side (never trusted from the screen) and surfaces the API's error message.
 async function guarded<T>(
   capability: (access: ReturnType<typeof getAccountingAccess>) => boolean,
   refused: string,
@@ -50,10 +43,6 @@ async function guarded<T>(
   }
 }
 
-/* -------------------------------------------------------------------------
-   Vouchers
-   ------------------------------------------------------------------------- */
-
 export interface VoucherLineInput {
   accountId: number;
   amount: number;
@@ -67,7 +56,7 @@ export interface VoucherInput {
   kind: VoucherKind;
   date: string;
   description: string;
-  /** The heads this voucher is coded to; the total is their sum. */
+  /** The total is their sum. */
   lines: readonly VoucherLineInput[];
   mode: PaymentMode;
   bankAccountId: number | null;
@@ -175,10 +164,6 @@ export async function cancelVoucher(id: number): Promise<ActionResult> {
   );
 }
 
-/* -------------------------------------------------------------------------
-   Chart of accounts
-   ------------------------------------------------------------------------- */
-
 export interface AccountInput {
   code: string;
   nameTa: string;
@@ -224,19 +209,13 @@ export async function deactivateAccount(id: number): Promise<ActionResult> {
   );
 }
 
-/* -------------------------------------------------------------------------
-   Activities — what an entry was for
-   ------------------------------------------------------------------------- */
-
 export interface ActivityInput {
   nameTa: string;
   nameEn?: string;
   kind?: 'pooja' | 'service' | 'facility' | 'general';
-  /** The coding a voucher line takes when this activity is chosen. */
   defaultFundId?: number | null;
   defaultProjectId?: number | null;
   defaultPartyId?: number | null;
-  /** The head this activity normally lands on. */
   defaultAccountId?: number | null;
 }
 
@@ -285,15 +264,11 @@ export async function deactivateActivity(id: number): Promise<ActionResult> {
   );
 }
 
-/* -------------------------------------------------------------------------
-   Parties — who an entry was with
-   ------------------------------------------------------------------------- */
-
 export interface PartyInput {
   type?: 'person' | 'organisation';
   nameTa: string;
   nameEn?: string;
-  /** May be empty — the electricity board is a party with no role. */
+  /** May be empty. */
   roles?: readonly ('devotee' | 'vendor' | 'staff')[];
   phone?: string | null;
   email?: string | null;
@@ -303,7 +278,7 @@ export interface PartyInput {
   notes?: string | null;
 }
 
-/** Returns the new party, so a picker that created one can select it at once. */
+/** Returns the new party so a picker can select it immediately. */
 export async function createParty(
   input: PartyInput,
 ): Promise<ActionResult<{ id: number }>> {
@@ -355,10 +330,6 @@ export async function deactivateParty(id: number): Promise<ActionResult> {
     () => api.delete(`/parties/${id}`),
   );
 }
-
-/* -------------------------------------------------------------------------
-   Bank accounts
-   ------------------------------------------------------------------------- */
 
 export interface BankAccountInput {
   label: string;

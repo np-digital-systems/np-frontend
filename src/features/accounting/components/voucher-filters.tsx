@@ -67,8 +67,7 @@ export function applyVoucherFilters(
       return false;
     }
 
-    // A split voucher sits in more than one fund, so it matches if any of its
-    // heads does — the alternative is hiding half of what the filter names.
+    // A split voucher matches if any of its heads is in the fund.
     if (
       filters.fundId !== 'all' &&
       !voucher.lines.some((line) => line.fundId === filters.fundId)

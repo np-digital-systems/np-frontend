@@ -73,7 +73,6 @@ export function CostingsScreen({
 
   const groups = useMemo(() => groupCostings(costings), [costings]);
 
-
   function handleCreate(draft: CostingHeaderDraft) {
     run(
       () => createCosting({ eventTypeId: draft.eventTypeId, slotId: draft.slotId }),
@@ -85,7 +84,6 @@ export function CostingsScreen({
     <>
       <PortalPageHeader
         title="Pooja Costings"
-        description="What each pooja is expected to cost, and what its sponsor is asked for."
         actions={
           canManage ? (
             <Button onClick={() => setFormOpen(true)}>
@@ -103,16 +101,13 @@ export function CostingsScreen({
           <EmptyState
             icon={Coins}
             title="No costings yet"
-            description="Write one costing for a pooja type and every instance of it is covered. Add a costing for a single instance only where the money is actually different."
+            description="A pooja-wide costing covers every instance."
           />
         </Card>
       ) : (
         groups.map((group) => (
           <Card key={group.eventTypeId}>
-            <CardHeader
-              title={group.eventTypeName}
-              description={`${group.plans.length} plan${group.plans.length === 1 ? '' : 's'} — the one written for an instance beats the one written for the whole pooja`}
-            />
+            <CardHeader title={group.eventTypeName} />
 
             <CardBody className="flex flex-col gap-1.5">
               {group.plans.map((plan) => (
@@ -161,8 +156,8 @@ export function CostingsScreen({
         description={
           pendingDelete
             ? pendingDelete.isDraft
-              ? `The draft for ${describeScope(pendingDelete)} will be thrown away. Nothing has been quoted from it, and the version in force is untouched.`
-              : `The empty costing for ${describeScope(pendingDelete)} will be removed. It has no expense lines, so nothing was ever priced by it.`
+              ? `The draft for ${describeScope(pendingDelete)} will be discarded. The version in force is not affected.`
+              : `The empty costing for ${describeScope(pendingDelete)} will be deleted.`
             : ''
         }
         onConfirm={() => {
@@ -174,12 +169,6 @@ export function CostingsScreen({
         }}
       />
 
-      {/*
-        * Applying is confirmed and deleting a draft is not, which is the right
-        * way round: throwing away figures nobody has been quoted is undoable by
-        * typing them again, while applying them closes the version before it
-        * and changes what the temple asks a family for.
-        */}
       <ConfirmDialog
         open={pendingApply !== null}
         onOpenChange={(next) => !next && setPendingApply(null)}
@@ -189,7 +178,7 @@ export function CostingsScreen({
         description={
           pendingApply
             ? `${describeScope(pendingApply)} will be quoted at ${formatCurrency(pendingApply.sponsorAmount)} from today. ` +
-              'The version it replaces is kept as the record of what the rate was until now.'
+              'The current version will be superseded.'
             : ''
         }
         onConfirm={() => {
@@ -207,7 +196,6 @@ export function CostingsScreen({
 interface PlanRowProps {
   plan: CostingPlan;
   isOpen: boolean;
-  /** Which version the reader clicked, if any. */
   canManage: boolean;
   pending: boolean;
   onToggle: () => void;
@@ -216,13 +204,6 @@ interface PlanRowProps {
   onApply: (costing: CostingRecord) => void;
 }
 
-/**
- * One plan, with its versions and their lines folded underneath.
- *
- * Opening it is reading, never editing. Finding what the kurukkal was paid in
- * 2026 should not feel like the same gesture as changing it, so the figures
- * open in place and Edit stays a page of its own.
- */
 function PlanRow({
   plan,
   isOpen,
@@ -235,17 +216,10 @@ function PlanRow({
 }: PlanRowProps) {
   const draft = draftOf(plan);
   const applied = appliedVersions(plan);
-  // By status, not by an open end date: a draft has one of those too, and
-  // calling it the version in force would put figures nobody has agreed to
-  // where the screen says what the temple is quoting.
+  // By status, not open end date: drafts have an open end date too.
   const current = applied.find((version) => version.isInForce) ?? null;
   const removable = draft ?? (current && canDelete(current) ? current : null);
 
-  /*
-   * What is in force, else the draft, else the newest thing there is. A plan
-   * whose only costing is an unapplied draft still has to show the figures
-   * somebody typed rather than an empty row.
-   */
   const shown = current ?? draft ?? plan.versions[0];
 
   return (
@@ -284,15 +258,6 @@ function PlanRow({
 
           {canManage && (draft || current) && (
             <div className="flex items-center gap-1.5">
-              {/*
-                * One button carries the act, the rest go behind the menu.
-                *
-                * Four buttons in a row made every plan look equally urgent and
-                * the row unreadable at a glance. Applying is the only one that
-                * changes what a family is quoted, so it is the only one that
-                * earns a place on the surface — and only while there is a draft
-                * worth applying.
-                */}
               {draft && (
                 <Button
                   size="sm"
@@ -320,25 +285,13 @@ function PlanRow({
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="w-52">
-                  {/*
-                    * Edit goes to the draft once there is one. That is where a
-                    * save would land anyway, and sending the committee to the
-                    * version in force would let them type over figures they had
-                    * already revised without ever seeing the revision.
-                    */}
+                  {/* Edit opens the draft when there is one, since saves land there anyway. */}
                   <DropdownMenuItem asChild>
                     <Link href={costingRoute((draft ?? current)!.id)}>
                       {draft ? 'Edit draft' : 'Edit costing'}
                     </Link>
                   </DropdownMenuItem>
 
-                  {/*
-                    * Reachable without going through the editor. Reading what a
-                    * pooja used to cost is a question the committee asks far
-                    * more often than they change a figure, and routing it
-                    * through Edit put a page that can be typed into between
-                    * them and an answer.
-                    */}
                   {applied.length > 0 && (
                     <DropdownMenuItem asChild>
                       <Link href={costingHistoryRoute((current ?? applied[0]).id)}>
@@ -353,12 +306,6 @@ function PlanRow({
                     </DropdownMenuItem>
                   )}
 
-                  {/*
-                    * Only what never priced anything — a draft, or a costing
-                    * with no expense lines. Once figures have been applied the
-                    * row is the record of what the pooja cost while it was in
-                    * force, and the way past it is a new version.
-                    */}
                   {removable && (
                     <>
                       <DropdownMenuSeparator />
@@ -380,15 +327,6 @@ function PlanRow({
 
       {isOpen && (
         <div className="flex flex-col gap-2.5 border-t border-border px-3 py-3">
-          {/*
-            * What is in force on the chosen date, and nothing else.
-            *
-            * The version chips that used to sit here asked this list to be a
-            * history browser as well as a list of plans, and clicking one
-            * changed the figures underneath without changing the row's own
-            * heading. A plan reads as one rate; the versions behind it belong
-            * on the plan's own page, where there is room to say which is which.
-            */}
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-text-secondary">
               <span className="font-medium text-text-primary">{versionLabel(shown)}</span>
