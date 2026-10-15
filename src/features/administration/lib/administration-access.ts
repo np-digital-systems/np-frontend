@@ -28,4 +28,4 @@ export function getAdministrationAccess(
 }
 
 export const FINANCIAL_YEAR_READ_ONLY_MESSAGE =
-  'You can see the temple’s financial years and their totals. Opening a new year or closing the current one is restricted to administrators.';
+  'Only administrators can open or close financial years.';

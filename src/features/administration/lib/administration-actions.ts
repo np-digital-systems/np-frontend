@@ -37,15 +37,10 @@ async function guarded(
   }
 }
 
-/* -------------------------------------------------------------------------
-   Staff accounts
-
-   An account is credentials granted to a party. Names and contact details are
-   the party's and are edited in the directory, not here.
-   ------------------------------------------------------------------------- */
+// Accounts are credentials granted to a party; names are edited in the directory.
 
 export interface UserInput {
-  /** An existing party to grant the sign-in to. Omit to register a new person. */
+  /** Omit to register a new person. */
   partyId?: number;
   nameTa?: string;
   nameEn?: string;
@@ -73,7 +68,7 @@ export async function updateUser(id: string, input: { email: string }): Promise<
   );
 }
 
-/** Changing a role revokes the user's sessions, so it takes effect at once. */
+// Changing a role revokes the user's sessions so it takes effect immediately.
 export async function changeUserRole(id: string, role: UserRole): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot change roles.', () =>
     api.patch(`/user-accounts/${id}/role`, { role }),
@@ -86,7 +81,6 @@ export async function resetUserPassword(id: string, password: string): Promise<A
   );
 }
 
-/** Revoke every session a user holds, without disabling the account. */
 export async function signOutUser(id: string): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot sign other people out.', () =>
     api.post(`/user-accounts/${id}/sign-out`),
@@ -99,16 +93,7 @@ export async function setUserActive(id: string, isActive: boolean): Promise<Acti
   );
 }
 
-/* -------------------------------------------------------------------------
-   Roles
-   ------------------------------------------------------------------------- */
-
-/**
- * Replace what a role may do.
- *
- * The API refuses to leave the administrator role without the permissions that
- * administer the portal, so this cannot lock everybody out.
- */
+// The API keeps the admin role's core permissions, so this can't lock everyone out.
 export async function setRolePermissions(
   role: UserRole,
   permissions: readonly Permission[],
@@ -117,10 +102,6 @@ export async function setRolePermissions(
     api.put(`/roles/${role}/permissions`, { permissions }),
   );
 }
-
-/* -------------------------------------------------------------------------
-   Financial years
-   ------------------------------------------------------------------------- */
 
 export interface FinancialYearInput {
   label: string;
@@ -141,16 +122,12 @@ export async function openFinancialYear(id: number): Promise<ActionResult> {
   );
 }
 
-/** Closing freezes the year's totals into the row and refuses later postings. */
+// Closing freezes the year's totals and blocks further postings.
 export async function closeFinancialYear(id: number): Promise<ActionResult> {
   return guarded((a) => a.canManageFinancialYears, 'You cannot close a financial year.', () =>
     api.post(`/financial-years/${id}/close`),
   );
 }
-
-/* -------------------------------------------------------------------------
-   Settings and sessions
-   ------------------------------------------------------------------------- */
 
 export async function updateTempleSettings(
   input: Record<string, unknown>,
@@ -168,7 +145,7 @@ export async function updateAccountingSettings(
   );
 }
 
-/** Your own sessions — no capability gates signing yourself out elsewhere. */
+// No capability needed to end your own sessions.
 export async function revokeSession(id: string): Promise<ActionResult> {
   await requireSession();
 

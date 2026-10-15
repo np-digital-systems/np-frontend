@@ -20,12 +20,7 @@ export {
   timeAgo,
 } from '@/lib/format';
 
-/*
- * Roles belong to the auth feature: administration renders the vocabulary, it
- * does not own it. Re-exported here so the screens below keep their local
- * import — and so the user register, the role matrix and the login page can
- * never describe the same role in two different ways.
- */
+// Roles are owned by the auth feature; re-exported so every screen describes them the same way.
 export { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/features/auth/lib/auth-data';
 
 export const SYSTEM_ROLES: readonly UserRole[] = ['admin'];
@@ -171,12 +166,7 @@ export const YEAR_STATUS_LABELS: Record<FinancialYearStatus, string> = {
 };
 
 
-/**
- * What the portal falls back to for a settings key nobody has changed yet.
- *
- * The API stores only the keys an administrator has actually edited, so a key
- * the temple has never touched reads from here rather than arriving empty.
- */
+// Defaults for keys never changed; the API stores only edited keys.
 export const DEFAULT_SETTINGS: PortalSettings = {
   temple: {
     name: 'Neeliyampathi Pillaiyar Kovil',
