@@ -93,8 +93,7 @@ export function DisposeAssetDialog({
             <DialogHeader>
               <DialogTitle>Dispose of {asset.tag}</DialogTitle>
               <DialogDescription>
-                {asset.name} leaves the temple’s register. The record is kept
-                for the audit trail and stops depreciating on this date.
+                {asset.name} stops depreciating on this date. The record is kept.
               </DialogDescription>
             </DialogHeader>
 

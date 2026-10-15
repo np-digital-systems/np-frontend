@@ -146,9 +146,7 @@ export function ProjectFormDialog({
             {project ? `Edit ${project.name}` : 'New Project'}
           </DialogTitle>
           <DialogDescription>
-            A project tracks a piece of work — a thiruppani or a festival —
-            against a budget, so spend can be read back against what was
-            agreed.
+            Tracks spend against an agreed budget.
           </DialogDescription>
         </DialogHeader>
 
@@ -198,7 +196,7 @@ export function ProjectFormDialog({
             <FormField
               id="project-budget"
               label="Budget"
-              hint="Leave empty for open-ended work with no agreed ceiling."
+              hint="Leave empty for no budget limit."
             >
               <Input
                 id="project-budget"
@@ -266,8 +264,7 @@ export function ProjectFormDialog({
                 setDraft((current) => ({
                   ...current,
                   status: value as ProjectStatus,
-                  // Only active work takes new entries; anything else stops
-                  // accepting them without losing what it already has.
+                  // Only active projects accept new entries; existing entries are kept.
                   isActive: value === 'active',
                 }))
               }

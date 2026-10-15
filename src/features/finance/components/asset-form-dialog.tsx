@@ -211,8 +211,7 @@ export function AssetFormDialog({
             {asset ? `Edit ${asset.tag}` : 'Add Asset'}
           </DialogTitle>
           <DialogDescription>
-            The asset register records what the temple owns, what it cost and
-            what it is worth on the books today.
+            Records what the temple owns and its book value.
           </DialogDescription>
         </DialogHeader>
 

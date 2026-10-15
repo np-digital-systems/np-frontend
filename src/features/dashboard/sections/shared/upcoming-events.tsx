@@ -21,7 +21,7 @@ export async function UpcomingEvents() {
         <EmptyState
           icon={Calendar}
           title="No scheduled events"
-          description="Events added to the yearly schedule will appear here."
+          description="Scheduled events appear here."
         />
       ) : (
         <ul className="divide-y divide-border">
