@@ -1,11 +1,3 @@
-/**
- * The notification vocabulary the screens render.
- *
- * The notifications themselves come from the API through
- * `lib/notification-service`; what stays here is the shape of one, the tone
- * each priority is shown in, and the tabs the inbox offers.
- */
-
 export type NotificationCategory =
   | 'Approval' | 'Accounting' | 'Event' | 'Sanththa'
   | 'Banking' | 'Fixed Deposit' | 'Financial Year' | 'User Administration' | 'Security' | 'System'
@@ -25,7 +17,6 @@ export interface Notification {
   timestamp: string   // ISO-like "2026-08-12T11:30"
   read: boolean
   dismissible: boolean
-  // optional extras displayed in detail
   meta?: { label: string; value: string }[]
 }
 

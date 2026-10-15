@@ -18,7 +18,7 @@ export async function markAllNotificationsRead(): Promise<void> {
   revalidatePath(NOTIFICATIONS_PATH);
 }
 
-/** Dismissing is refused for the ones the temple marked undismissible. */
+// The API refuses to dismiss notifications marked undismissible.
 export async function dismissNotification(id: string): Promise<void> {
   await api.delete(`/notifications/${id}`).catch(() => undefined);
 

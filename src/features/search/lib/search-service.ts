@@ -15,12 +15,7 @@ interface ApiSearchResult {
   readonly page: string;
 }
 
-/**
- * Search the portal.
- *
- * Scoped server-side by the permission guarding each source's own screen, so
- * results can never be a side door onto records the caller cannot open.
- */
+// Each source is scoped by its screen's permission, so search can't expose records the caller can't open.
 export async function search(query: string): Promise<SearchResult[]> {
   const term = query.trim();
 
