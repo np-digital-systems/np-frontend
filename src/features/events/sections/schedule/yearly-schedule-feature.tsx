@@ -26,7 +26,7 @@ export async function YearlyScheduleFeature() {
   if (!access.canViewSchedule) {
     return (
       <PageShell>
-        <AccessDenied description="The yearly schedule is available to temple staff. Contact an administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }
@@ -34,8 +34,7 @@ export async function YearlyScheduleFeature() {
   const today = getToday();
   const year = getActiveYear(today);
 
-  // The sponsor reads need their own permission; without it the schedule
-  // still lists every slot, just with no sponsor to offer.
+  // Sponsor reads need a separate permission; without it slots show no sponsors.
   const [groups, events, eventTypes, sponsors, assignments] = await Promise.all([
     getScheduleGroups(year),
     getEvents(year),

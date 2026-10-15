@@ -18,17 +18,13 @@ export async function EventTypesFeature() {
   if (!access.canManageTypes) {
     return (
       <PageShell>
-        <AccessDenied description="Managing event types is limited to temple administrators. Ask an administrator to add or change a recurring pooja or festival." />
+        <AccessDenied description="Only administrators can manage event types." />
       </PageShell>
     );
   }
 
   const year = getActiveYear(getToday());
 
-  // The sponsor and occurrence counts come back with the row; counting them
-  // here would be a second, slower answer to a question the API has answered.
-  // The activities a pooja's receipts can be coded to, so the mapping
-  // is set here once instead of being re-answered on every receipt raised.
   const [types, activities] = await Promise.all([
     getEventTypeRecords(year),
     getActivityOptions(),

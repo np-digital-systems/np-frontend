@@ -51,12 +51,6 @@ import type { EventSlot, EventTypeRecord, FrequencyType } from '../../types';
 
 import type { ActivityRef } from '@/features/accounting/types';
 
-/*
- * The year rides on the column it qualifies. It used to be said once in the
- * card's heading — "scheduling shown for 2026" — and taking that heading away
- * to match the other registries would have left a count of dated events with
- * nothing saying which year they were dated in.
- */
 const columnsFor = (year: number): DataColumn[] => [
   { key: 'name', label: 'Event Type' },
   { key: 'frequency', label: 'Frequency' },
@@ -150,7 +144,6 @@ export function EventTypesScreen({
     <>
       <PortalPageHeader
         title="Event Types"
-        description="Every recurring pooja and festival the temple keeps."
         actions={
           <Button onClick={openCreate}>
             <Plus />
@@ -161,12 +154,6 @@ export function EventTypesScreen({
 
       <ActionError message={actionError} />
 
-      {/*
-        * The same toolbar the calendar and the sponsorships list carry: search
-        * on the left, the filters beside it, the table in a plain card below.
-        * It sat inside the card's own heading here, which made this the one
-        * registry in the portal that looked like a different application.
-        */}
       <div className="flex flex-wrap items-center gap-2">
         <InputGroup className="w-full sm:w-64">
           <InputGroupAddon>
@@ -229,8 +216,8 @@ export function EventTypesScreen({
                 }
                 description={
                   types.length === 0
-                    ? 'Create the temple’s recurring poojas and festivals to start building the calendar.'
-                    : 'Try a different name or clear the search.'
+                    ? 'Add a pooja or festival to start the calendar.'
+                    : 'Try a different search.'
                 }
               />
             </DataTableEmpty>
@@ -267,12 +254,6 @@ export function EventTypesScreen({
 
                 <DataCell align="right" nowrap>
                   <div className="flex items-center justify-end gap-1.5">
-                    {/*
-                      * Named from the type itself: this is the one place an
-                      * instance can be named before any date or sponsor for it
-                      * exists. "Names" rather than "Slots" because naming is
-                      * the only thing the dialog does.
-                      */}
                     <Button
                       variant="outline"
                       size="sm"
@@ -324,12 +305,7 @@ export function EventTypesScreen({
         canManage
         pending={pending}
         onSave={(changes) => {
-          /*
-           * One write per changed name, stopping at the first refusal. A batch
-           * endpoint would be tidier, but the committee names a year in one
-           * sitting and then leaves it alone: this runs two or three times on
-           * the day a festival is set up and never again.
-           */
+          // One request per changed name, stopping at the first failure (no batch endpoint).
           run(
             async () => {
               for (const change of changes) {
