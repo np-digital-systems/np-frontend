@@ -25,7 +25,6 @@ export function PortalSearch() {
 
   return (
     <>
-      {/* Desktop: a field-shaped affordance, because that is what it opens. */}
       <Button
         type="button"
         variant="outline"
@@ -41,7 +40,6 @@ export function PortalSearch() {
         </kbd>
       </Button>
 
-      {/* Mobile */}
       <Button
         type="button"
         variant="ghost"

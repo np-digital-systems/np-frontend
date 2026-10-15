@@ -32,8 +32,7 @@ export function PortalShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    // Tooltips are used by the collapsed sidebar rail, so the provider has to
-    // sit above both the sidebar and the content.
+    // Above both sidebar and content: the collapsed rail uses tooltips.
     <TooltipProvider delayDuration={300}>
       <div className="flex min-h-screen">
         <PortalSidebar

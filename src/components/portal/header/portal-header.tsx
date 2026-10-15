@@ -42,9 +42,7 @@ export function PortalHeader({
       )}
     >
       <div className="flex h-full items-center justify-between px-4 lg:px-6">
-        {/* Left */}
         <div className="flex min-w-0 items-center gap-3">
-          {/* Mobile menu */}
           <button
             type="button"
             aria-label="Open navigation"
@@ -64,27 +62,22 @@ export function PortalHeader({
           <PortalBreadcrumbs />
         </div>
 
-        {/* Right */}
         <div className="flex shrink-0 items-center gap-1">
-          {/* Search */}
           <PortalSearch />
 
           <div className="mx-1.5 hidden h-5 w-px bg-border sm:block" />
 
-          {/* Financial year */}
           <FinancialYearSelector
             years={financialYears}
             active={activeFinancialYear}
           />
 
-          {/* Notifications */}
           <NotificationMenu notifications={notifications} />
 
           <ThemeToggle/>
 
           <div className="mx-1.5 hidden h-5 w-px bg-border sm:block" />
 
-          {/* User */}
           <UserMenu user={user} />
         </div>
       </div>

@@ -26,17 +26,7 @@ interface FinancialYearSelectorProps {
   active: FinancialYearOption | null
 }
 
-/**
- * Which financial year the whole portal is reading.
- *
- * A radio group, not a list of buttons — exactly one year is active at a time,
- * and the menu should say so to assistive tech as well as visually.
- *
- * The choice is written to a cookie by a server action rather than held in
- * local state, because it decides what every other screen fetches. Until that
- * landed this menu kept its own `useState` over three hardcoded years, so it
- * moved and nothing else did.
- */
+// Saved to a cookie by a server action, since it decides what every screen fetches.
 export function FinancialYearSelector({
   years,
   active,
@@ -44,8 +34,7 @@ export function FinancialYearSelector({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
-  // No years yet — a fresh database, or an API that could not be reached.
-  // A menu offering nothing is worse than no menu.
+  // Hide the menu when there are no years.
   if (!active) return null
 
   const choose = (value: string) => {
