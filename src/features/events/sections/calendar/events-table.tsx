@@ -13,8 +13,7 @@ import {
   type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
-// Straight from the routes module, not the feature barrel: this is a client
-// component, and the barrel pulls the server-only data layer into the bundle.
+// Not from the feature barrel: it pulls server-only code into this client bundle.
 import { collectionSheetHref } from '@/features/contributions/lib/routes';
 import { Link } from '@/i18n/routing';
 import {
@@ -82,7 +81,7 @@ export function EventsTable({
           <EmptyState
             icon={CalendarX}
             title="No events match these filters"
-            description="Adjust the search or filters above to see more of the calendar."
+            description="Try a different search or clear the filters."
           />
         </DataTableEmpty>
       ) : (
@@ -256,10 +255,7 @@ function RowActions({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-48">
-          {/*
-            * Only for a general observance: a sponsored one is paid for by the
-            * person whose name is already on it, so there is no sheet to walk.
-            */}
+          {/* Collection sheets only apply to collection-funded (general) observances. */}
           {event.eventType.funding === 'general' && (
             <>
               <DropdownMenuItem asChild>
@@ -269,11 +265,6 @@ function RowActions({
             </>
           )}
 
-          {/*
-            * The way in to what this day was quoted at, and to the receipt and
-            * payments raised from it. The page keyed by the occurrence, not by
-            * the costing: the costing is a rate, this is the day it priced.
-            */}
           {access.canViewCostings && (
             <>
               <DropdownMenuItem asChild>

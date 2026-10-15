@@ -58,10 +58,6 @@ interface EventsCalendarProps {
   year: number;
 }
 
-/**
- * TODO: replace the local mutations with calls to the events API. The
- * handlers below are already the shape those calls will take.
- */
 export function EventsCalendar({
   initialEvents,
   eventTypes,
@@ -149,8 +145,6 @@ export function EventsCalendar({
     <>
       <PortalPageHeader
         title="Event Calendar"
-        description="Every pooja, festival day and recurring observance scheduled for the temple year."
-    
         actions={
           <>
             {access.canExport && (
