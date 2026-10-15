@@ -1,12 +1,6 @@
 import type { FrequencyType } from './index';
 
-/**
- * An occurrence as the public website receives it.
- *
- * Both names travel because the visitor picks the language, and the raw
- * frequency and instance number travel instead of a rendered label so the site
- * can phrase "Week 24" in Tamil as readily as in English.
- */
+// Raw frequency and instance number (not a rendered label) so the site can localise it.
 export interface PublicEvent {
   readonly id: number;
   readonly eventTypeId: number;
@@ -18,7 +12,7 @@ export interface PublicEvent {
   readonly scheduledDate: string;
   readonly startTime: string;
   readonly endTime: string | null;
-  /** Whoever is sponsoring this occurrence — their name only, never contact details. */
+  /** Name only; contact details are never exposed publicly. */
   readonly sponsorNameTa: string | null;
   readonly sponsorNameEn: string | null;
   readonly notes: string | null;

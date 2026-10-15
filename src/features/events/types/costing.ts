@@ -1,27 +1,18 @@
 import type { AccountRef } from '@/features/accounting/types';
 
-/**
- * The head a line posts to, as the costing endpoints actually send it.
- *
- * Narrower than `AccountRef` on purpose: that type carries `defaultPartyId`,
- * which the API's account ref does not include. Widening it here would be a
- * promise about a field that arrives undefined.
- */
+// Narrower than AccountRef: the costing endpoints don't send defaultPartyId.
 export type CostingAccount = Pick<
   AccountRef,
   'id' | 'code' | 'name' | 'nameTa' | 'type'
 >;
 
-/** One item under a heading — what the quote shows a family. */
 export interface CostingItem {
   readonly id: number;
   readonly lineNo: number;
   readonly label: string;
-  /** What this part of the head comes to. The heading is these added up. */
   readonly amount: number;
 }
 
-/** One heading — the level that reaches the ledger. */
 export interface CostingLine {
   readonly id: number;
   readonly lineNo: number;
@@ -32,6 +23,7 @@ export interface CostingLine {
   readonly activityId: number | null;
   readonly partyId: number | null;
   readonly partyName: string | null;
+  /** Sum of `items` when there are any. */
   readonly amount: number;
   readonly chargedToSponsor: boolean;
   readonly items: readonly CostingItem[];
@@ -44,21 +36,15 @@ export interface CostingRecord {
   /** Null covers every instance of the type. */
   readonly slotId: number | null;
   readonly slotLabel: string | null;
-  /**
-   * The instant it took over, as an ISO timestamp. Null means it has always
-   * applied: the first version this scope ever had.
-   */
+  /** ISO timestamp. Null on the first version, which has always applied. */
   readonly effectiveFrom: string | null;
-  /** The instant its successor took over. Null means still in force. */
+  /** Null while still in force. */
   readonly effectiveTo: string | null;
-  /** 1, 2, 3 within the scope. Null while it is still a draft. */
+  /** Null while a draft. */
   readonly versionNo: number | null;
-  /** A draft prices nothing until the committee applies it. */
   readonly status: CostingStatus;
   readonly isDraft: boolean;
-  /** The version being quoted from today. A draft is not one, open end or not. */
   readonly isInForce: boolean;
-  /** The lines charged to the sponsor, added up. */
   readonly sponsorAmount: number;
   readonly incomeAccountId: number | null;
   readonly incomeAccountName: string | null;
@@ -69,15 +55,14 @@ export interface CostingRecord {
   readonly lines: readonly CostingLine[];
   readonly expenseTotal: number;
   readonly chargedTotal: number;
-  /** Quote less what the sponsor carries. Negative means a shortfall. */
+  /** Quote less the sponsor's share. Negative means a shortfall. */
   readonly templeShare: number;
-  /** Above zero and the version is history: it can no longer be revised. */
+  /** Above zero means the version can no longer be revised. */
   readonly usedByEvents: number;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
 
-/** The one-line answer before a day is costed. */
 export interface CostingSummary {
   readonly costingId: number | null;
   readonly sponsorAmount: number | null;
@@ -114,17 +99,12 @@ export interface EventBudget {
   readonly budgetedTotal: number;
   readonly actualTotal: number;
   readonly variance: number;
-  /** The day has been kept; the budget is what it was quoted at. */
+  /** The day has been held; the budget is fixed at what was quoted. */
   readonly isFrozen: boolean;
   readonly problem: string | null;
 }
 
-/**
- * What is written, as opposed to what is read back.
- *
- * No fund and no activity: both come from the pooja type's own activity, which
- * already answers them for every receipt the temple raises.
- */
+// Fund and activity are omitted: both come from the pooja type's activity.
 export interface CostingItemDraft {
   label: string;
   amount: number;
@@ -134,37 +114,24 @@ export interface CostingLineDraft {
   accountId: number;
   partyId: number | null;
   label: string | null;
-  /** Ignored where there are items: the items decide the figure. */
+  /** Ignored when there are items. */
   amount: number;
   chargedToSponsor: boolean;
   items: CostingItemDraft[];
 }
 
-/**
- * Where a costing stands.
- *
- * Spelled as the API sends it, camel case and all, so that no mapping step sits
- * between the two and quietly falls out of date.
- */
+// Matches the API's casing so no mapping layer is needed.
 export type CostingStatus = 'draft' | 'inForce' | 'superseded';
 
-/** One head an occurrence is expected to spend on. */
 export interface ExpectedLine {
   readonly accountId: number;
   readonly label: string;
   readonly amount: number;
 }
 
-/**
- * What an occurrence is expected to cost, for a voucher form to fill from.
- *
- * `costed` says where the figures came from: the day's frozen budget, or the
- * costing in force on its date. A form shows the difference to nobody, but it
- * is the difference between what a family was quoted and what today's rate is.
- */
 export interface ExpectedAmounts {
+  /** True when figures come from the day's frozen budget rather than the current costing. */
   readonly costed: boolean;
   readonly sponsorAmount: number | null;
   readonly lines: readonly ExpectedLine[];
 }
-
