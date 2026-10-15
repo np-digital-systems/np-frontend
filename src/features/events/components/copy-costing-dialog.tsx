@@ -35,14 +35,6 @@ interface CopyCostingDialogProps {
   onSubmit: (input: { slotId: number | null; effectiveFrom: string }) => void;
 }
 
-/**
- * Day two of a festival is day one with three figures changed.
- *
- * The copy lands as a draft carrying every line and its itemisation, so the
- * work left is correcting what differs rather than retyping what does not.
- * The same button starts next year's revision: copy the version in force,
- * change the figures, and put the copy into force from the new date.
- */
 export function CopyCostingDialog({
   open,
   onOpenChange,
@@ -79,7 +71,7 @@ export function CopyCostingDialog({
           <DialogTitle>Copy this costing</DialogTitle>
           <DialogDescription>
             {costing
-              ? `Every line of ${describeScope(costing)}, and the items under each, copied into a new draft.`
+              ? `Copies ${describeScope(costing)} into a new draft.`
               : ''}
           </DialogDescription>
         </DialogHeader>
@@ -121,7 +113,7 @@ export function CopyCostingDialog({
             id="copy-from"
             label="In force from"
             required
-            hint="Replacing the version in force means starting after the date it started."
+            hint="Must be after the current version's start date."
           >
             <Input
               id="copy-from"
