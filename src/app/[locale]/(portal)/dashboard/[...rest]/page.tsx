@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 
-// Keeps unmatched portal paths inside the portal shell so they render the
-// portal-themed 404 with the sidebar, rather than the public site's.
+// Renders unmatched paths as the portal 404 (with sidebar), not the site's.
 export default function PortalCatchAll() {
   notFound();
 }
