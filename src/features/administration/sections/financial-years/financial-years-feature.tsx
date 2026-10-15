@@ -14,7 +14,7 @@ export async function FinancialYearsFeature() {
   if (!access.canViewFinancialYears) {
     return (
       <PageShell>
-        <AccessDenied description="Financial years are limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

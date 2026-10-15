@@ -138,7 +138,7 @@ export function AuditLogScreen({ entries, today }: AuditLogScreenProps) {
     <>
       <PortalPageHeader
         title="Audit Log"
-        description="Who did what, and when. Append-only — entries are never edited or removed."
+        description="Entries are never edited or removed."
         meta={[
           <span key="total" className="tabular">
             {entries.length} entries
@@ -169,17 +169,14 @@ export function AuditLogScreen({ entries, today }: AuditLogScreenProps) {
         <StatCard
           label="Active Actors"
           value={String(totals.actors)}
-          caption="People in this trail"
         />
         <StatCard
           label="Permission Changes"
           value={String(totals.permissionChanges)}
-          caption="Role grants and revocations"
         />
         <StatCard
           label="Deletions"
           value={String(totals.deletions)}
-          caption="Records removed or cancelled"
         />
       </div>
 
@@ -274,7 +271,7 @@ export function AuditLogScreen({ entries, today }: AuditLogScreenProps) {
           <EmptyState
             icon={ClipboardList}
             title="No entries match these filters"
-            description="Adjust the search or filters above to see more of the trail."
+            description="Try a different search or clear the filters."
           />
         </Card>
       ) : (

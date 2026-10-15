@@ -12,7 +12,7 @@ export async function ProfileFeature() {
       <PageShell>
         <AccessDenied
           title="Account not found"
-          description="Your account could not be loaded. Sign out and back in, or contact an administrator."
+          description="Try signing out and back in."
         />
       </PageShell>
     );

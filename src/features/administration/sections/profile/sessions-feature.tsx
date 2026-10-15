@@ -17,7 +17,7 @@ export async function SessionsFeature() {
       <PageShell>
         <AccessDenied
           title="Account not found"
-          description="Your sessions could not be loaded. Sign out and back in, or contact an administrator."
+          description="Try signing out and back in."
         />
       </PageShell>
     );

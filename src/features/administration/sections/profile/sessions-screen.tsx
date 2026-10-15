@@ -49,7 +49,6 @@ export function SessionsScreen({
       {!embedded && (
         <PortalPageHeader
           title="My Sessions"
-          description="Every device signed in to your account. Revoke anything you do not recognise."
           meta={[
             <span key="count" className="tabular">
               {sessions.length} active
@@ -77,30 +76,23 @@ export function SessionsScreen({
         <StatCard
           label="Active Devices"
           value={String(sessions.length)}
-          caption="Signed in right now"
         />
         <StatCard
           label="Other Devices"
           value={String(others.length)}
-          caption="Besides this one"
         />
         <StatCard
           label="This Device"
           value="1"
-          caption="The session you are using"
         />
         <StatCard
           label="Session Length"
           value="30 days"
-          caption="Before a fresh sign-in is needed"
         />
       </div>
 
       <Card>
-        <CardHeader
-          title="Signed-in devices"
-          description="Newest first"
-        />
+        <CardHeader title="Signed-in devices" />
 
         {sessions.length === 0 ? (
           <EmptyState
@@ -195,7 +187,7 @@ export function SessionsScreen({
         confirmLabel="Revoke"
         description={
           revoking
-            ? `${revoking.deviceName} (${revoking.ipAddress}) will be signed out immediately and will need to sign in again.`
+            ? `${revoking.deviceName} (${revoking.ipAddress}) will be signed out immediately.`
             : ''
         }
         onConfirm={() => {
@@ -211,8 +203,7 @@ export function SessionsScreen({
         confirmLabel="Sign Out"
         description={`${others.length} other ${others.length === 1 ? 'device' : 'devices'} will be signed out immediately. This device stays signed in.`}
         onConfirm={() => {
-          // One call each: the API revokes a named session, and revoking every
-          // one of them would take this device with it.
+          // Revoke each other session individually so this device stays signed in.
           run(async () => {
             for (const session of others) {
               const result = await revokeSession(session.id);

@@ -64,7 +64,6 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
       {!embedded && (
         <PortalPageHeader
           title="My Profile"
-          description="Your account details and what your role lets you do."
           meta={[
             <span key="role">{ROLE_LABELS[user.role]}</span>,
             <span key="email">{user.email}</span>,
@@ -118,7 +117,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
           <Card>
             <CardHeader
               title="Your details"
-              description="Your role and email address are set by an administrator"
+              description="Role and email are set by an administrator."
             />
 
             <form onSubmit={handleSubmit}>
@@ -155,7 +154,6 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
                   <FormField
                     id="profile-email"
                     label="Email"
-                    hint="Changing this changes how you sign in — ask an administrator."
                   >
                     <Input id="profile-email" value={user.email} disabled />
                   </FormField>
