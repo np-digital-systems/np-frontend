@@ -10,7 +10,6 @@ const ACCESS_TOKEN_COOKIE = 'np_access';
 const REFRESH_TOKEN_COOKIE = 'np_refresh';
 const REFRESH_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
-/** Everything under these segments needs a session. */
 const PROTECTED_SEGMENTS = [
   'dashboard',
   'accounting',
@@ -60,12 +59,7 @@ interface RefreshedTokens {
   refreshToken: string;
 }
 
-/**
- * Rotate the token pair before the render begins.
- *
- * This is the only place it can happen: a server component cannot write
- * cookies during a render, so a token refreshed there could never be kept.
- */
+// Refresh tokens here: server components can't write cookies during render.
 async function refresh(refreshToken: string): Promise<RefreshedTokens | null> {
   try {
     const response = await fetch(`${env.apiUrl}/auth/refresh`, {
@@ -120,7 +114,6 @@ export default async function middleware(request: NextRequest) {
 
   const signedIn = Boolean(token) && !isExpired(token!);
 
-  // Somebody already signed in has no business on the sign-in screen.
   if (isSignIn && signedIn) {
     return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
   }
@@ -128,7 +121,6 @@ export default async function middleware(request: NextRequest) {
   if (isProtected && !signedIn) {
     const target = new URL(`/${locale}/${SIGN_IN_PATH}`, request.url);
 
-    // Where they were headed, so the sign-in can put them back.
     target.searchParams.set('next', `${pathname}${search}`);
 
     const response = NextResponse.redirect(target);
@@ -144,8 +136,7 @@ export default async function middleware(request: NextRequest) {
   if (rotated) {
     const persistent = Boolean(request.cookies.get(REFRESH_TOKEN_COOKIE));
 
-    // The render that follows reads the request cookies, so the rotated token
-    // has to be visible to it as well as sent back to the browser.
+    // Set on the request too, so this render sees the rotated token.
     request.cookies.set(ACCESS_TOKEN_COOKIE, rotated.accessToken);
     request.cookies.set(REFRESH_TOKEN_COOKIE, rotated.refreshToken);
 
