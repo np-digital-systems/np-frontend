@@ -53,21 +53,15 @@ import { SessionsScreen } from '../profile/sessions-screen';
 
 interface SettingsScreenProps {
   user: UserRecord;
-  /** Asset heads the cash account may be chosen from. */
   cashAccounts: readonly Account[];
   incomeAccounts: readonly Account[];
   sessions: readonly UserSession[];
   currentSessionId: string;
   today: string;
-  /** Portal-wide settings, present only for roles that may change them. */
+  /** Null for roles that can't change portal settings. */
   initialSettings: PortalSettings | null;
 }
 
-/**
- * TODO: replace the local state with calls to the settings API. Nothing
- * here persists yet, which is why the save button tracks a dirty count
- * rather than pretending to have written.
- */
 export function SettingsScreen({
   user,
   cashAccounts,
@@ -90,15 +84,8 @@ export function SettingsScreen({
 
   const { run, error: actionError, pending } = useServerAction();
 
-  /**
-   * Only the fields the API has somewhere to put.
-   *
-   * The settings endpoints reject an unrecognised property outright, so
-   * sending this form wholesale fails on the first one it does not know and
-   * nothing is saved. Much of what this screen collects — a registration
-   * number, an address, the voucher prefixes — has no home in the API yet, and
-   * is kept here as a portal-side draft until it does.
-   */
+  // Send only fields the API accepts; it rejects unknown properties. Others (registration
+  // number, address, voucher prefixes) aren't persisted yet.
   function handleSave() {
     if (!settings) return;
 
@@ -113,7 +100,7 @@ export function SettingsScreen({
 
       const { cashAccountId, sanththaAccountId } = settings.accounting;
 
-      // An id, or the key left out altogether — never an explicit null.
+      // Omit the key rather than sending null.
       return updateAccountingSettings({
         ...(cashAccountId === null ? {} : { cashAccountId }),
         ...(sanththaAccountId === null ? {} : { sanththaAccountId }),
@@ -134,11 +121,6 @@ export function SettingsScreen({
     <>
       <PortalPageHeader
         title="Settings"
-        description={
-          canManagePortal
-            ? 'Your account, your sessions, and the defaults every other screen in the portal follows.'
-            : 'Your account details and the devices signed in to it.'
-        }
         meta={[
           <span key="role">{ROLE_LABELS[user.role]}</span>,
           isDirty ? (
@@ -246,10 +228,7 @@ function TempleSection({
 }) {
   return (
     <Card>
-      <CardHeader
-        title="Temple profile"
-        description="Printed on every receipt, voucher and statement the portal produces"
-      />
+      <CardHeader title="Temple profile" />
 
       <CardBody className="flex flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -273,7 +252,6 @@ function TempleSection({
         <FormField
           id="temple-reg"
           label="Registration Number"
-          hint="As registered with the provincial authority."
         >
           <Input
             id="temple-reg"
@@ -340,16 +318,12 @@ function LocaleSection({
 }) {
   return (
     <Card>
-      <CardHeader
-        title="Locale and formatting"
-        description="How dates, figures and language are rendered across the portal"
-      />
+      <CardHeader title="Locale and formatting" />
 
       <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           id="locale-language"
           label="Default Language"
-          hint="What a new visitor sees before choosing."
         >
           <Select
             value={locale.defaultLanguage}
@@ -425,10 +399,7 @@ function AccountingSection({
 }) {
   return (
     <Card>
-      <CardHeader
-        title="Accounting defaults"
-        description="Rules the voucher and approval screens enforce"
-      />
+      <CardHeader title="Accounting defaults" />
 
       <CardBody className="flex flex-col gap-4">
         <FormField
@@ -437,8 +408,8 @@ function AccountingSection({
           required
           hint={
             cashAccounts.length
-              ? 'The asset head every cash movement posts through. The cash book is drawn from it.'
-              : 'No asset accounts exist yet. Create one under Chart of Accounts first.'
+              ? undefined
+              : 'No asset accounts yet. Create one under Chart of Accounts.'
           }
         >
           <Select
@@ -460,18 +431,14 @@ function AccountingSection({
           </Select>
         </FormField>
 
-        {/*
-          * Where the annual sanththa is receipted. Only the head is chosen:
-          * the fund and activity follow from the activity that names this head
-          * as its default, so the two cannot drift apart.
-          */}
+        {/* Only the head is set; fund and activity come from the activity that defaults to it. */}
         <FormField
           id="acc-sanththa-account"
           label="Sanththa income head"
           hint={
             incomeAccounts.length
-              ? 'The income head a subscription receipt posts to. Its fund and activity come from the activity that head belongs to.'
-              : 'No income accounts exist yet. Create one under Chart of Accounts first.'
+              ? undefined
+              : 'No income accounts yet. Create one under Chart of Accounts.'
           }
         >
           <Select
@@ -531,7 +498,6 @@ function AccountingSection({
           <FormField
             id="acc-year-start"
             label="Year Starts"
-            hint="Month the financial year opens."
           >
             <Select
               value={String(accounting.yearStartMonth)}
@@ -652,10 +618,7 @@ function NotificationsSection({
 }) {
   return (
     <Card>
-      <CardHeader
-        title="Notifications"
-        description="What the portal tells people about, and when"
-      />
+      <CardHeader title="Notifications" />
 
       <ul className="divide-y divide-border">
         {NOTIFICATION_ROWS.map((row) => (

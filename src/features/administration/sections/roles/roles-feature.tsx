@@ -14,7 +14,7 @@ export async function RolesFeature() {
   if (!access.canManageRoles) {
     return (
       <PageShell>
-        <AccessDenied description="Roles and permissions are limited to administrators." />
+        <AccessDenied description="Only administrators have access." />
       </PageShell>
     );
   }

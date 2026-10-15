@@ -3,12 +3,12 @@ import type { UserRole } from '@/features/auth/types/user-role';
 
 export interface AdminUser {
   readonly id: string;
-  /** The party this sign-in belongs to; names are edited there. */
+  /** Names are edited on the party. */
   readonly partyId: number;
   readonly fullName: string;
   readonly nameTa: string;
   readonly email: string;
-  /** From the party, shown read-only; edited in the directory. */
+  /** Read-only here; edited in the directory. */
   readonly phone: string;
   readonly address: string;
   readonly role: UserRole;
@@ -17,7 +17,6 @@ export interface AdminUser {
   readonly createdAt: string;
 }
 
-/** A person in the directory, as the sign-in form needs to offer them. */
 export interface DirectoryPerson {
   readonly partyId: number;
   readonly name: string;
@@ -125,14 +124,8 @@ export interface LocaleSettings {
 }
 
 export interface AccountingSettings {
-  /**
-   * The asset head cash movements post through.
-   *
-   * The cash book cannot be drawn without it, so until an administrator picks
-   * one the API refuses that report rather than inventing a total.
-   */
+  /** Required for the cash book; the API refuses the report until it is set. */
   readonly cashAccountId: number | null;
-  /** The income head an annual sanththa subscription is receipted to. */
   readonly sanththaAccountId: number | null;
   readonly receiptPrefix: string;
   readonly paymentPrefix: string;

@@ -14,7 +14,7 @@ export async function UsersFeature() {
   if (!access.canManageUsers) {
     return (
       <PageShell>
-        <AccessDenied description="Managing portal accounts is limited to administrators." />
+        <AccessDenied description="Only administrators have access." />
       </PageShell>
     );
   }
