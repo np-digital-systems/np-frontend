@@ -94,7 +94,6 @@ export function FundsScreen({
     <>
       <PortalPageHeader
         title="Funds"
-        description="The temple’s earmarked pools of money — what each took in, what it paid out and what remains."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -126,7 +125,7 @@ export function FundsScreen({
       <ActionError message={actionError} />
 
       {!access.canManageFunds && (
-        <ReadOnlyNotice message="You can see every fund’s position and what has been charged to it. Creating or amending a fund is restricted to administrators and accountants." />
+        <ReadOnlyNotice message="Only administrators and accountants can make changes." />
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -148,7 +147,6 @@ export function FundsScreen({
         <StatCard
           label="Committed to Projects"
           value={formatCurrency(totals.committed)}
-          caption="Budgeted, spent or not"
         />
       </div>
 
@@ -157,7 +155,7 @@ export function FundsScreen({
           <EmptyState
             icon={Wallet}
             title="No funds yet"
-            description="Create the temple’s funds so receipts and payments can be charged to them."
+            description="Add a fund to charge receipts and payments to it."
           />
         </Card>
       ) : (

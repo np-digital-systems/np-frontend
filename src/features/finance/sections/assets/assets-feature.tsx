@@ -18,7 +18,7 @@ export async function AssetsFeature() {
   if (!access.canViewAssets) {
     return (
       <PageShell>
-        <AccessDenied description="The asset register is limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

@@ -145,7 +145,6 @@ export function ProjectsScreen({
     <>
       <PortalPageHeader
         title="Projects"
-        description="Thiruppani and festival work tracked against the budget agreed for it."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -177,7 +176,7 @@ export function ProjectsScreen({
       <ActionError message={actionError} />
 
       {!access.canManageProjects && (
-        <ReadOnlyNotice message="You can see every project and how its spend stands against its budget. Creating or amending a project is restricted to administrators and accountants." />
+        <ReadOnlyNotice message="Only administrators and accountants can make changes." />
       )}
 
       {totals.overBudget > 0 && (
@@ -210,12 +209,10 @@ export function ProjectsScreen({
         <StatCard
           label="Remaining"
           value={formatCurrency(totals.budget - totals.spent)}
-          caption="Against agreed budgets"
         />
         <StatCard
           label="Over Budget"
           value={String(totals.overBudget)}
-          caption="Need a decision"
         />
       </div>
 
@@ -303,8 +300,8 @@ export function ProjectsScreen({
                 }
                 description={
                   projects.length === 0
-                    ? 'Create a project so thiruppani and festival spend can be tracked against a budget.'
-                    : 'Adjust the search or filters above.'
+                    ? undefined
+                    : 'Try a different search or filter.'
                 }
               />
             </DataTableEmpty>

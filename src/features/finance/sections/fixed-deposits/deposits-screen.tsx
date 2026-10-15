@@ -144,7 +144,6 @@ export function DepositsScreen({
     run(
       () => {
         if (renewing) {
-          // The renewal inherits the fund of the certificate it replaces.
           const { fundId, ...renewal } = input;
           void fundId;
 
@@ -161,10 +160,7 @@ export function DepositsScreen({
     );
   }
 
-  /**
-   * Renewing opens the form pre-filled; the API marks the old certificate
-   * renewed and links the new one to it when that form is submitted.
-   */
+  // On submit, the API marks the old certificate renewed and links the new one.
   function handleRenew(deposit: DepositRecord) {
     setRenewing(deposit);
     setEditing(deposit);
@@ -189,7 +185,6 @@ export function DepositsScreen({
     <>
       <PortalPageHeader
         title="Fixed Deposits"
-        description="Temple money placed with banks for a fixed term, with what each returns and when."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -256,12 +251,10 @@ export function DepositsScreen({
         <StatCard
           label="Interest Accrued"
           value={formatCurrency(totals.accrued)}
-          caption="Earned to date"
         />
         <StatCard
           label="Value at Maturity"
           value={formatCurrency(totals.maturityValue)}
-          caption="Principal plus full-term interest"
         />
         <StatCard
           label="Maturing Soon"
@@ -341,8 +334,8 @@ export function DepositsScreen({
                 }
                 description={
                   deposits.length === 0
-                    ? 'Record the temple’s deposits so their maturities and interest are tracked.'
-                    : 'Choose a different status to see more.'
+                    ? undefined
+                    : 'Try a different status.'
                 }
               />
             </DataTableEmpty>
@@ -490,7 +483,7 @@ export function DepositsScreen({
         confirmLabel="Close Deposit"
         description={
           closing
-            ? `${closing.certificateNo} — ${formatCurrency(closing.principal)} placed with ${closing.bankName}. Closing before ${formatLongDate(closing.maturesOn)} usually forfeits part of the interest. The record is kept for the audit trail.`
+            ? `${closing.certificateNo} — ${formatCurrency(closing.principal)} placed with ${closing.bankName}. Closing before ${formatLongDate(closing.maturesOn)} usually forfeits part of the interest.`
             : ''
         }
         onConfirm={() => {

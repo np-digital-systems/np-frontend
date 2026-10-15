@@ -121,7 +121,6 @@ export async function updateDeposit(
   );
 }
 
-/** Roll a matured certificate into a new one; the old row is marked renewed. */
 export async function renewDeposit(
   id: number,
   input: Omit<DepositInput, 'fundId'>,
@@ -173,12 +172,7 @@ export async function updateAsset(
   );
 }
 
-/**
- * Part the temple from something it owns.
- *
- * Behind its own capability, and a distinct call rather than a status change,
- * because dating the disposal is what stops depreciation.
- */
+// Separate call and capability because the disposal date stops depreciation.
 export async function disposeAsset(
   id: number,
   input: { disposedOn: string; disposalValue?: number; notes?: string },

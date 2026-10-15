@@ -13,7 +13,6 @@ interface DonationCardProps {
 
 export function DonationCard({
   title,
-  // amount,
   description,
   features,
   isFeatured,
@@ -32,12 +31,6 @@ export function DonationCard({
         className
       )}
     >
-      {/* {isFeatured && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-xs font-bold text-white uppercase tracking-wider shadow-lg">
-          Most Popular
-        </span>
-      )} */}
-
       <h3
         className={cn(
           "font-heading text-xl font-semibold mb-2",
