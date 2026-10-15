@@ -21,16 +21,14 @@ import { cn } from '@/lib/utils';
 
 export interface ComboboxOption {
   value: string;
-  /** Shown in the trigger and matched against what is typed. */
   label: string;
-  /** Second line in the list; also searchable. */
+  /** Also searchable. */
   description?: string;
-  /** Extra words to match on that are not worth showing. */
+  /** Hidden search terms. */
   keywords?: string;
 }
 
 export interface ComboboxGroup {
-  /** Omit for an unlabelled group. */
   heading?: string;
   options: readonly ComboboxOption[];
 }
@@ -47,13 +45,6 @@ interface ComboboxProps {
   onChange: (value: string) => void;
 }
 
-/**
- * A select you can type into.
- *
- * The lists it fronts — devotees, event types — outgrow a plain dropdown, so
- * the options are filtered as you type. Groups keep their given order, which
- * is how a caller puts the likely choices at the top.
- */
 export function Combobox({
   id,
   value,
@@ -76,11 +67,7 @@ export function Combobox({
   );
 
   return (
-    // `modal` is what makes the list scrollable inside a dialog. The dialog's
-    // scroll lock only exempts its own content, and this popover is portalled
-    // out to <body>, so every wheel event over it would otherwise be cancelled.
-    // Opening as a modal puts this popover on top of the lock stack instead,
-    // and it exempts itself.
+    // `modal` keeps the list scrollable inside a dialog, whose scroll lock would block this portalled popover.
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger
         id={id}
@@ -127,9 +114,6 @@ export function Combobox({
         >
           <CommandInput placeholder={searchPlaceholder} />
 
-          {/* The cap is what the popover can actually use, so a long list
-              grows to fill a tall screen instead of stopping at a fixed
-              nine-or-so rows. */}
           <CommandList className="overscroll-contain max-h-[clamp(12rem,var(--radix-popover-content-available-height,24rem),24rem)]">
             <CommandEmpty>{emptyMessage}</CommandEmpty>
 

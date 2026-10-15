@@ -59,12 +59,10 @@ export function Footer() {
       id="site-footer"
       className="bg-[#1A1C1C] text-white/80 relative overflow-hidden"
     >
-      {/* Decorative top border */}
       <div className="h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
 
       <div className="mx-auto max-w-[1280px] px-4 md:px-16 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Temple Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-6">
               <div className="flex items-center justify-center rounded-full">
@@ -102,7 +100,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
               {tFooter("quickLinks")}
@@ -121,7 +118,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Services */}
           <div>
             <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
               {tFooter("services")}
@@ -140,7 +136,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact Info */}
           <div>
             <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
               {tFooter("contactInfo")}
@@ -180,7 +175,6 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-white/40">
             © {currentYear} {siteConfig.name}. All rights reserved.

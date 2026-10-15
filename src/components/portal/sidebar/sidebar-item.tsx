@@ -35,16 +35,12 @@ export function SidebarItem({ item, collapsed }: SidebarItemProps) {
         'text-[13px] transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50',
         collapsed ? 'justify-center px-0' : 'gap-3 px-3',
-        // Selected rows take a tinted fill and the accent hue, the way a
-        // macOS sidebar marks selection — not a grey block with grey text.
         isActive
           ? 'bg-sidebar-selected font-semibold text-sidebar-primary'
           : 'font-medium text-sidebar-foreground hover:bg-sidebar-accent',
       )}
     >
-      {/* createElement rather than <Icon />: the icon is looked up from a
-          static map, but the lint rule that guards against components being
-          constructed during render cannot tell the two apart. */}
+      {/* createElement because the lint rule can't tell a static icon map from a component created in render. */}
       {createElement(getPortalIcon(item.icon), {
         className: cn(
           'size-4 shrink-0 transition-colors',
@@ -59,7 +55,7 @@ export function SidebarItem({ item, collapsed }: SidebarItemProps) {
     </Link>
   );
 
-  // Collapsed to icons only, the label has to come from somewhere.
+  // Collapsed: show the label as a tooltip.
   if (!collapsed) return link;
 
   return (

@@ -29,9 +29,7 @@ interface PeriodChartProps<T extends string> {
     height?: number;
 }
 
-/* Series render at their final size immediately. A grow-in animation on a
-   financial chart delays the only thing the reader came for, and replays on
-   every period switch. */
+// Chart animations are disabled: they delay the figures and replay on every period switch.
 const AXIS_TICK = {
   fontSize: 11,
   fill: 'var(--text-muted)',

@@ -20,11 +20,7 @@ import { ROLE_LABELS } from '@/features/auth/lib/auth-data'
 import type { PortalUser } from '@/features/auth/types/user'
 import type { UserRole } from '@/features/auth/types/user-role'
 
-/**
- * Role chips stay muted on purpose. A saturated pill next to the avatar
- * competes with the header's only real accent — the unread badge. The wording
- * comes from the auth feature so the chip and the login screen agree.
- */
+// Muted so it doesn't compete with the unread badge.
 const ROLE_CHIP: Record<UserRole, string> = {
   admin: 'bg-primary-subtle text-primary',
   accountant: 'bg-info-subtle text-info',
@@ -32,7 +28,6 @@ const ROLE_CHIP: Record<UserRole, string> = {
   member: 'bg-neutral-subtle text-text-muted',
 }
 
-/** Fixed rather than `useId`: the header renders exactly one user menu. */
 const SIGN_OUT_FORM_ID = 'portal-sign-out'
 
 interface UserMenuProps {
@@ -125,12 +120,7 @@ export function UserMenu({ user }: UserMenuProps) {
           variant="destructive"
           className="h-8 px-2 text-[13px]"
         >
-          {/*
-            The form lives outside the menu because Radix unmounts the content
-            the moment an item is chosen — a submit button inside it would go
-            with it. Submitting by `form` id keeps the action attached to a
-            node that survives the close.
-          */}
+          {/* Submits by form id: Radix unmounts menu content on select, taking any inner form with it. */}
           <button type="submit" form={SIGN_OUT_FORM_ID}>
             <LogOut />
             Sign out

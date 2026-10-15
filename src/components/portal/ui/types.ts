@@ -11,10 +11,10 @@ export type BadgeStatus =
   | 'Completed'
   | 'Unassigned'
   | 'Today'
-  // A pooja costing: the version being quoted from, and the ones it replaced.
+  // Costing versions
   | 'In force'
   | 'Superseded'
-  // A budget line, measured against the vouchers raised for it.
+  // Budget lines
   | 'Not raised'
   | 'In progress';
 
