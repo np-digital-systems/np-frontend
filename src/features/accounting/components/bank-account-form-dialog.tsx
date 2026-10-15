@@ -132,8 +132,7 @@ export function BankAccountFormDialog({
             {bank ? `Edit ${bank.label}` : 'New Bank Account'}
           </DialogTitle>
           <DialogDescription>
-            Bank accounts are where the temple’s money actually sits. Each one
-            gets its own book and its own opening balance.
+            Each account has its own book and opening balance.
           </DialogDescription>
         </DialogHeader>
 
@@ -142,7 +141,6 @@ export function BankAccountFormDialog({
             id="bank-label"
             label="Label"
             required
-            hint="How staff refer to it — shown in every account picker."
           >
             <Input
               id="bank-label"
@@ -183,7 +181,7 @@ export function BankAccountFormDialog({
               id="bank-number"
               label="Account Number"
               required
-              hint="Stored masked — only the last four digits are kept."
+              hint="Only the last four digits are stored."
             >
               <Input
                 id="bank-number"
@@ -221,7 +219,6 @@ export function BankAccountFormDialog({
             <FormField
               id="bank-opening"
               label="Opening Balance"
-              hint="The balance this account's book starts from."
             >
               <Input
                 id="bank-opening"

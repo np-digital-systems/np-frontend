@@ -148,8 +148,7 @@ export function AccountFormDialog({
             {account ? `Edit ${account.code}` : 'New Ledger Account'}
           </DialogTitle>
           <DialogDescription>
-            Accounts are the heads every receipt and payment posts against.
-            Changing one changes how every report groups its figures.
+            Changes affect how reports group figures.
           </DialogDescription>
         </DialogHeader>
 
@@ -217,7 +216,6 @@ export function AccountFormDialog({
             id="account-name-ta"
             label="Name (Tamil)"
             required
-            hint="Shown on Tamil statements and the printed ledger."
           >
             <Input
               id="account-name-ta"
@@ -235,7 +233,7 @@ export function AccountFormDialog({
             hint={
               eligibleParents.length === 0
                 ? 'No group heads exist for this class yet.'
-                : 'The head this account is reported under.'
+                : undefined
             }
           >
             <Select
@@ -268,8 +266,8 @@ export function AccountFormDialog({
               label="Opening Balance"
               hint={
                 openingIsSettled
-                  ? `Settled — ${account?.entryCount} entries are already posted against this head.`
-                  : `What this head stood at when the books opened, as a ${ACCOUNT_NATURAL_SIDE[draft.type]} figure.`
+                  ? `Locked: ${account?.entryCount} entries posted.`
+                  : `Enter as a ${ACCOUNT_NATURAL_SIDE[draft.type]} figure.`
               }
             >
               <Input
@@ -293,7 +291,7 @@ export function AccountFormDialog({
           <FormField
             id="account-default-party"
             label="Usual party"
-            hint="Filled in when this head is chosen. Leave empty for a head that deals with several people."
+            hint="Leave empty for heads paid to several parties."
           >
             <EntityCombobox
               id="account-default-party"

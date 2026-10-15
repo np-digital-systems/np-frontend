@@ -62,8 +62,7 @@ export function RejectDialog({
         <DialogHeader>
           <DialogTitle>Reject {reference}</DialogTitle>
           <DialogDescription>
-            The entry goes back to whoever drafted it, with your reason
-            attached. They can correct it and resubmit.
+            The drafter can correct and resubmit it.
           </DialogDescription>
         </DialogHeader>
 
