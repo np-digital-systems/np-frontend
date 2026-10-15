@@ -20,7 +20,7 @@ export async function SponsorsFeature() {
   if (!access.canViewSponsors) {
     return (
       <PageShell>
-        <AccessDenied description="The sponsor directory is available to temple staff. Contact an administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }

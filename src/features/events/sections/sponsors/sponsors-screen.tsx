@@ -74,11 +74,7 @@ export function SponsorsScreen({
 }: SponsorsScreenProps) {
   const assignments = initialSponsors;
 
-  /*
-   * A general observance is funded by collection and takes no named sponsor,
-   * so it is kept out of the picker entirely. The database refuses the
-   * assignment either way; this is what stops anyone reaching that refusal.
-   */
+  // General observances are funded by collection and can't take a named sponsor.
   const sponsorableTypes = useMemo(
     () => eventTypes.filter((type) => type.funding !== 'general'),
     [eventTypes],
@@ -86,10 +82,7 @@ export function SponsorsScreen({
 
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<number | 'all'>('all');
-  /*
-   * Shut bands rather than open ones, so a pooja added later arrives open.
-   * Tracking the open ones would hide every new type until somebody found it.
-   */
+  // Tracks collapsed bands so newly added poojas start expanded.
   const [shut, setShut] = useState<ReadonlySet<number>>(() => new Set());
   const [frequency, setFrequency] = useState<FrequencyType | 'all'>('all');
   const [formOpen, setFormOpen] = useState(false);
@@ -116,14 +109,6 @@ export function SponsorsScreen({
     });
   }, [assignments, query, typeFilter, frequency]);
 
-  /*
-   * The sponsorships of one pooja, kept together.
-   *
-   * A flat list repeated the pooja's name on every row and left the reader to
-   * spot where one ended and the next began — நாலாம் வாரம் under வெள்ளி
-   * அபிஷேகம் reads as an instance; on its own it reads as nothing. The type is
-   * said once, in the band, and the rows beneath it carry only what differs.
-   */
   const groups = useMemo(() => {
     const byType = new Map<number, SponsorAssignment[]>();
 
@@ -178,8 +163,6 @@ export function SponsorsScreen({
           });
         }
 
-        // A new party is created and placed in one go; one already on record
-        // only needs the placement.
         return draft.newParty
           ? registerSponsor({ ...placement, ...draft.newParty })
           : addSponsor({ ...placement, partyId: draft.partyId! });
@@ -199,11 +182,6 @@ export function SponsorsScreen({
     run(() => removeSponsor(target.id), () => setPendingRemove(null));
   }
 
-  /*
-   * No event type column and no frequency column: both are the same on every
-   * row of a band, and a column that never changes within what the reader is
-   * looking at is a column carrying no information.
-   */
   const columns: DataColumn[] = [
     { key: 'instance', label: 'Instance' },
     { key: 'sponsor', label: 'Sponsor' },
@@ -218,14 +196,8 @@ export function SponsorsScreen({
 
   return (
     <>
-      {/*
-        * No meta line. The cards below already carry these counts, and a
-        * heading that repeats them makes the reader check whether the two
-        * agree instead of reading either.
-        */}
       <PortalPageHeader
         title="Pooja Sponsorships"
-        description="Which sponsor has taken which pooja."
         actions={
           access.canManageSponsors && (
             <Button
@@ -235,7 +207,7 @@ export function SponsorsScreen({
               }}
             >
               <UserRoundPlus />
-              Register a sponsorship
+              Add sponsorship
             </Button>
           )
         }
@@ -244,19 +216,17 @@ export function SponsorsScreen({
       <ActionError message={actionError} />
 
       {!access.canManageSponsors && (
-        <ReadOnlyNotice message="You can see who sponsors each event type. Registering and changing sponsors is restricted to administrators." />
+        <ReadOnlyNotice message="Only administrators can change sponsorships." />
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           label="Sponsorships"
           value={String(assignments.length)}
-          caption="Sponsors placed against a pooja"
         />
         <StatCard
           label="Active Sponsors"
           value={String(distinctSponsors)}
-          caption="Devotees and trusts"
         />
         <StatCard
           label="Unsponsored Events"
@@ -339,8 +309,8 @@ export function SponsorsScreen({
                     }
                     description={
                       assignments.length === 0
-                        ? 'Register devotees against the poojas they sponsor.'
-                        : 'Try a different name, or clear the filters.'
+                        ? undefined
+                        : 'Try a different search or clear the filters.'
                     }
                   />
                 </DataTableEmpty>
@@ -444,7 +414,7 @@ export function SponsorsScreen({
         confirmLabel="Remove"
         description={
           pendingRemove
-            ? `${pendingRemove.sponsor.name} will no longer be offered as a sponsor for ${pendingRemove.eventType.name} — ${pendingRemove.instanceLabel}. Events already scheduled keep their sponsor.`
+            ? `${pendingRemove.sponsor.name} will be removed from ${pendingRemove.eventType.name} — ${pendingRemove.instanceLabel}. Scheduled events keep their sponsor.`
             : ''
         }
         onConfirm={handleRemove}
@@ -461,18 +431,6 @@ interface TypeBandProps {
   children: React.ReactNode;
 }
 
-/**
- * One pooja's sponsorships, under a heading naming it.
- *
- * The same band the event calendar puts a month in, for the same reason: a
- * long table is read in sections, and the thing every row of a section shares
- * belongs at the top of it rather than repeated down the side.
- *
- * It shuts, because வெள்ளி அபிஷேகம் alone is fifty-two rows. Somebody looking
- * for who has தைப்பொங்கல் should be able to put the weekly pooja away rather
- * than scroll past it, and the count stays on the heading so a shut band still
- * answers "how many" without being opened.
- */
 function TypeBand({ colSpan, assignments, isOpen, onToggle, children }: TypeBandProps) {
   const [first] = assignments;
 

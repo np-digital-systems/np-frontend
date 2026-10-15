@@ -82,8 +82,7 @@ export function YearlyScheduleScreen({
             (slot) => slot.instanceIdentifier === instanceIdentifier,
           );
 
-          // A slot can carry several dates in a year, so the earliest stands
-          // for it and the rest are counted rather than dropped.
+          // A slot can have several dates a year; show the earliest and count the rest.
           const occurrences = typeEvents
             .filter(
               (candidate) =>
@@ -94,8 +93,7 @@ export function YearlyScheduleScreen({
           const event = occurrences[0] ?? null;
 
           return {
-            // A dense type can show a number the server never sent a slot for;
-            // it has no slot row and nothing may be scheduled against it.
+            // 0 when the server sent no slot row for this number; nothing can be scheduled on it.
             slotId: base?.slotId ?? 0,
             instanceIdentifier,
             customInstanceName:
@@ -120,11 +118,7 @@ export function YearlyScheduleScreen({
   const totals = useMemo(() => {
     const slots = resolved.flatMap((group) => group.slots);
 
-    /*
-     * A general observance is funded by collection, so its occurrences carry no
-     * sponsor by design. Counting them as unsponsored would report a gap that
-     * nobody is ever meant to fill.
-     */
+    // Collection-funded (general) events never have sponsors, so exclude them from the unsponsored count.
     const generalTypes = new Set(
       resolved
         .filter((group) => group.eventType.funding === 'general')
@@ -210,8 +204,6 @@ export function YearlyScheduleScreen({
     <>
       <PortalPageHeader
         title="Yearly Schedule"
-        description="Every instance each event type declares, and whether it has been given a date and a sponsor."
-        
         actions={
           access.canExport && (
             <Button variant="outline">
@@ -226,7 +218,7 @@ export function YearlyScheduleScreen({
 
       {!access.canWrite && (
         <ReadOnlyNotice
-          message={`${READ_ONLY_MESSAGE} The schedule below is the temple's plan for ${year}.`}
+          message={`${READ_ONLY_MESSAGE} Showing the ${year} plan.`}
         />
       )}
 
