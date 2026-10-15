@@ -13,7 +13,6 @@ export function DonationSection() {
   const currentTiers = DONATION_TIERS[locale] || DONATION_TIERS.ta;
   return (
     <PageContainer id="donation-section" className="bg-white relative overflow-hidden">
-      {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-[0.02]">
         <div
           className="absolute inset-0"
@@ -32,7 +31,6 @@ export function DonationSection() {
           description={tDonation("description")}
         />
 
-        {/* Central temple image */}
         <div className="flex justify-center mb-16 reveal">
           <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-3xl overflow-hidden shadow-[0_16px_48px_rgba(212,175,55,0.15)] border-2 border-[#D4AF37]/10">
             <Image
@@ -42,7 +40,6 @@ export function DonationSection() {
               className="object-cover"
               sizes="320px"
             />
-            {/* Glass overlay card */}
             <div className="absolute inset-x-4 bottom-4 p-4 rounded-xl bg-white/90 backdrop-blur-md shadow-lg">
               <p className="text-center text-sm font-heading font-semibold text-[#735C00]">
                 {tDonation("tag")}
@@ -51,7 +48,6 @@ export function DonationSection() {
           </div>
         </div>
 
-        {/* Donation Tiers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start reveal">
           {currentTiers.map((tier, index) => (
             <DonationCard

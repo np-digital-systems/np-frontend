@@ -18,9 +18,7 @@ export function ContactSection() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-        {/* Contact Information */}
         <div className="space-y-8 reveal-left">
-          {/* Address */}
           <div className="flex items-start gap-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#F4C430]/10 shrink-0">
               <MapPin className="w-5 h-5 text-[#D4AF37]" />
@@ -35,7 +33,6 @@ export function ContactSection() {
             </div>
           </div>
 
-          {/* Phone */}
           <div className="flex items-start gap-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#F4C430]/10 shrink-0">
               <Phone className="w-5 h-5 text-[#D4AF37]" />
@@ -53,7 +50,6 @@ export function ContactSection() {
             </div>
           </div>
 
-          {/* Email */}
           <div className="flex items-start gap-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#F4C430]/10 shrink-0">
               <Mail className="w-5 h-5 text-[#D4AF37]" />
@@ -71,7 +67,6 @@ export function ContactSection() {
             </div>
           </div>
 
-          {/* Temple Hours */}
           <div className="flex items-start gap-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#F4C430]/10 shrink-0">
               <Clock className="w-5 h-5 text-[#D4AF37]" />
@@ -97,7 +92,6 @@ export function ContactSection() {
             </div>
           </div>
 
-          {/* Get Directions Button */}
           <a
             href={siteConfig.contact.mapUrl}
             target="_blank"
@@ -110,7 +104,6 @@ export function ContactSection() {
           </a>
         </div>
 
-        {/* Map Area */}
         <div className="reveal-right">
           <div className="relative h-full min-h-[400px] rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-[#D0C5AF]/20">
             <iframe
@@ -124,7 +117,6 @@ export function ContactSection() {
               className="rounded-3xl"
             />
 
-            {/* Map overlay card */}
             <div className="absolute top-4 right-4 p-4 rounded-xl bg-white/95 backdrop-blur-md shadow-lg max-w-[200px]">
               <p className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">
                 {templeInfo("shortName")}

@@ -16,9 +16,7 @@ export function GallerySection() {
         description={tGallery("description")}
       />
 
-      {/* Masonry-style Gallery Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5 reveal">
-        {/* Large featured image */}
         <div className="col-span-2 row-span-2">
           <GalleryCard
             image={GALLERY_IMAGES[0]}
@@ -27,7 +25,6 @@ export function GallerySection() {
           />
         </div>
 
-        {/* Regular images */}
         {GALLERY_IMAGES.slice(1, 5).map((image, index) => (
           <GalleryCard
             key={image.id}

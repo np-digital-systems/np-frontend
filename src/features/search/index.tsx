@@ -69,8 +69,6 @@ const TYPE_ICONS: Partial<Record<SearchType, LucideIcon>> = {
   'Financial Year': CalendarRange,
   Fund: Wallet,
 
-  // Add more only when you actually want a
-  // specific icon for that search type.
 }
 
 function SearchResultIcon({
@@ -128,11 +126,7 @@ export default function GlobalSearch({
 
   const [results, setResults] = useState<readonly SearchResult[]>([])
 
-  /*
-   * Searching happens on the server, where the session's permissions decide
-   * what each source may return — a cashier looking up a member gets the
-   * register row and not the user record.
-   */
+  // Runs on the server so session permissions scope each source's results.
   const term = query.trim()
   const isSearching = term.length >= 2
 
@@ -141,8 +135,7 @@ export default function GlobalSearch({
 
     let live = true
 
-    // Debounced: a search is a round trip, and one per keystroke would be
-    // several in flight for a word nobody has finished typing.
+    // Debounced to avoid one request per keystroke.
     const timer = setTimeout(() => {
       void searchPortal(term).then((found) => {
         if (live) setResults(found)
@@ -156,7 +149,6 @@ export default function GlobalSearch({
   }, [term, isSearching])
 
   const groups = useMemo(() => {
-    // Below two characters there is nothing to show, whatever arrived last.
     if (!isSearching) return []
 
     return groupResults(
@@ -175,9 +167,7 @@ export default function GlobalSearch({
     setQuery(value)
   }
 
-  // Reset where the close happens rather than in an effect watching `open`:
-  // a setState inside an effect body triggers a second render pass for no
-  // reason, and the state is only ever stale at this one moment.
+  // Reset on close here rather than in an effect, avoiding an extra render.
   const handleOpenChange = (value: boolean) => {
     if (value) return
 
@@ -191,9 +181,7 @@ export default function GlobalSearch({
       open={open}
       onOpenChange={handleOpenChange}
     >
-      {/* The palette floats above the page, so it takes the elevated popover
-          surface. On `bg-background` it was pure black on a dimmed black
-          page and the panel edge disappeared. */}
+      {/* bg-popover, not bg-background: the panel edge vanishes on the dimmed overlay in dark mode. */}
       <DialogContent
         className={cn(
           'top-[12%] translate-y-0 gap-0 overflow-hidden p-0',
@@ -206,7 +194,6 @@ export default function GlobalSearch({
         </DialogTitle>
 
         <Command shouldFilter={false} className="rounded-xl bg-transparent">
-          {/* Search input */}
           <div className="relative border-b border-border">
             <CommandInput
               value={query}
@@ -241,7 +228,6 @@ export default function GlobalSearch({
             )}
           </div>
 
-          {/* Filters */}
           {query && (
             <div className="flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2">
               {TYPE_FILTERS.map((type) => {
@@ -275,7 +261,6 @@ export default function GlobalSearch({
           )}
 
           <CommandList className="max-h-[520px] px-2 py-2">
-            {/* Search results */}
             {query && (
               <>
                 <CommandEmpty className="py-12">
@@ -311,7 +296,6 @@ export default function GlobalSearch({
               </>
             )}
 
-            {/* Default state */}
             {!query && (
               <>
                 <CommandGroup heading="Recent searches">
@@ -388,7 +372,6 @@ export default function GlobalSearch({
             )}
           </CommandList>
 
-          {/* Footer */}
           <div
             className="
               flex
