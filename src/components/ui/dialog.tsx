@@ -47,15 +47,7 @@ function DialogOverlay({
   )
 }
 
-/*
- * Every kind of layer that can float above a dialog.
- *
- * A popover or a dropdown menu is positioned by Radix's popper and lands in
- * `[data-radix-popper-content-wrapper]`. A select does not: it defaults to
- * `position="item-aligned"`, which skips the popper entirely and portals a bare
- * `role="listbox"` to the end of the body. Matching only the wrapper — as this
- * did — therefore missed every select in the portal, which is most of them.
- */
+// Popovers and menus use the popper wrapper; selects (item-aligned) portal a bare listbox instead.
 const LAYERS = [
   "[data-radix-popper-content-wrapper]",
   '[role="listbox"]',
@@ -63,17 +55,8 @@ const LAYERS = [
   '[data-slot="select-content"]',
 ].join(",")
 
-/*
- * A select, dropdown or popover opened inside a dialog is portalled to the end
- * of the body, so it sits outside the dialog in the DOM even though it is
- * plainly inside it on screen. Radix would read a click on one as a click
- * outside the dialog and close the whole thing, losing the form. Anything
- * within a popper is therefore treated as inside.
- *
- * The click has to be read from `detail.originalEvent`: these events are
- * dispatched on the dialog, so their own `target` is the dialog every time and
- * would never match.
- */
+// Portalled layers sit outside the dialog in the DOM, so Radix would treat clicks on them as
+// outside clicks and close the dialog. Read `detail.originalEvent`: the event's own target is the dialog.
 function isInsidePopper(event: {
   target: EventTarget | null
   detail?: { originalEvent?: Event }
@@ -83,20 +66,8 @@ function isInsidePopper(event: {
   return target instanceof Element && target.closest(LAYERS) !== null
 }
 
-/**
- * Was a dropdown open when the pointer went down?
- *
- * The guard above catches a click *on* an open list. It does not catch the
- * commoner gesture: a list is open, and you click somewhere else to get rid of
- * it. That click dismisses the list and then reaches the dialog, which reads it
- * as a click outside itself and closes — taking a half-typed voucher with it.
- *
- * By the time the dialog's handler runs the list has already gone from the DOM,
- * so the question cannot be asked then. This records the answer during the
- * capture phase, which runs before any of Radix's dismissal handling, and the
- * handlers below read what it recorded. One click closes the list; the dialog
- * stays, and the next click outside closes the dialog as usual.
- */
+// Records in the capture phase whether a dropdown was open, so a click that only dismisses
+// the dropdown doesn't also close the dialog (the list is gone by the time Radix's handler runs).
 function usePopperWasOpen() {
   const wasOpen = React.useRef(false)
 

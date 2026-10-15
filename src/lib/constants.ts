@@ -1,4 +1,3 @@
-// Sacred color palette from DESIGN.md
 export const COLORS = {
   gold: "#D4AF37",
   saffron: "#F4C430",
@@ -10,7 +9,6 @@ export const COLORS = {
   outline: "#7F7663",
 } as const;
 
-// Gradient definitions
 export const GRADIENTS = {
   goldToSaffron: "linear-gradient(45deg, #D4AF37, #F4C430)",
   heroOverlay:
@@ -18,7 +16,6 @@ export const GRADIENTS = {
   sacredGlow: "0 10px 30px rgba(212, 175, 55, 0.15)",
 } as const;
 
-// Spacing system based on 8px grid
 export const SPACING = {
   unit: 8,
   containerMax: 1280,
@@ -28,7 +25,6 @@ export const SPACING = {
   sectionGap: 120,
 } as const;
 
-// Breakpoints
 export const BREAKPOINTS = {
   sm: 640,
   md: 768,

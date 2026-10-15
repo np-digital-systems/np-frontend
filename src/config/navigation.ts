@@ -10,7 +10,6 @@ import type { Permission } from '@/features/auth/types/permission'
 import type { UserRole } from '@/features/auth/types/user-role'
 
 
-// Site Navigation
 export interface NavItem {
   readonly id: string
   readonly label: string
@@ -71,8 +70,7 @@ export const footerNavItems = {
     },
   ],
 
-  // Only destinations that exist. Puja booking and a public notices page
-  // have not been built; adding them back means adding the routes too.
+  // Puja booking and public notices aren't built yet; add their routes before linking them.
   services: [
     {
       id: 'calendar',
@@ -98,7 +96,6 @@ export const footerNavItems = {
 } as const
 
 
-// Portal Navigation
 export type PortalIcon =
   | 'dashboard'
   | 'calendar'
@@ -133,14 +130,7 @@ export interface PortalNavItem {
   icon: PortalIcon;
   description?: string;
 
-  /**
-   * Preferred gate: the capability the destination itself checks.
-   *
-   * Naming the permission instead of listing roles means the sidebar and the
-   * page can never disagree — re-mapping a role in ROLE_PERMISSIONS moves
-   * both at once. `allowedRoles` remains for destinations that have not been
-   * given a capability yet.
-   */
+  /** Preferred over `allowedRoles`: matches the check the page itself makes. */
   requiredPermission?: Permission;
   allowedRoles?: readonly UserRole[];
 }
@@ -152,16 +142,7 @@ export interface PortalNavGroup {
   defaultOpen?: boolean;
 }
 
-/*
- * The portal's navigation, grouped by what somebody is doing rather than by
- * what kind of record it touches.
- *
- * A clerk raising receipts all morning, an accountant reading the books, and a
- * trustee setting the year up are three different jobs, and the old single
- * twelve-item "Accounting" group made each of them wade through the other two.
- * Daily work first, because it is opened a hundred times a day; the things
- * configured once a year sit at the bottom under Setup.
- */
+// Grouped by task: daily work first, yearly setup last.
 export const portalNavigation: readonly PortalNavGroup[] = [
   {
     id: 'dashboard',
@@ -315,11 +296,6 @@ export const portalNavigation: readonly PortalNavGroup[] = [
   },
 
   {
-    /*
-     * What the temple owns and what it has put away — deliberately apart from
-     * the books. "Assets" alone read as the accounting sense of the word, which
-     * takes in cash and bank too; this group is the register of property.
-     */
     id: 'property',
     label: 'Property & Investments',
     items: [
@@ -343,10 +319,6 @@ export const portalNavigation: readonly PortalNavGroup[] = [
   },
 
   {
-    /*
-     * The master records every voucher is coded against. Set up once and rarely
-     * touched again, so they sit below the daily work rather than among it.
-     */
     id: 'setup',
     label: 'Setup',
     items: [

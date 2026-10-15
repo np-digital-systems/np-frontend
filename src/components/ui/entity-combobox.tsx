@@ -21,18 +21,15 @@ import { cn } from '@/lib/utils';
 
 export interface EntityOption {
   value: string;
-  /** Shown in the trigger and matched against what is typed. */
   label: string;
-  /** Second line in the list; also searchable. */
+  /** Also searchable. */
   description?: string;
-  /** A short tag on the right — a party's roles, an account's code. */
   badge?: string;
-  /** Extra words to match on that are not worth showing. */
+  /** Hidden search terms. */
   keywords?: string;
 }
 
 export interface EntityGroup {
-  /** Omit for an unlabelled group. */
   heading?: string;
   options: readonly EntityOption[];
 }
@@ -40,22 +37,16 @@ export interface EntityGroup {
 interface EntityComboboxProps {
   id?: string;
   value: string | null;
-  /** One flat list. Use `groups` instead where the order carries meaning. */
   options?: readonly EntityOption[];
-  /** Groups keep their given order, which is how a caller puts the likely
-      choices at the top. Ignored when `options` is given. */
+  /** Order is preserved. Ignored when `options` is given. */
   groups?: readonly EntityGroup[];
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
   disabled?: boolean;
   className?: string;
-  /** An explicit "leave it unanswered" row, for a field that may stay empty. */
   noneLabel?: string;
-  /**
-   * What the create row reads as. Given both, a name matching nothing in the
-   * list offers to become a new record instead of a dead end.
-   */
+  /** With `onCreate`, offers to create a record from an unmatched name. */
   createLabel?: (typed: string) => string;
   onCreate?: (typed: string) => void;
   onChange: (value: string | null) => void;
@@ -64,15 +55,6 @@ interface EntityComboboxProps {
 const NONE = '__none__';
 const CREATE = '__create__';
 
-/**
- * A select you can type into, and add to.
- *
- * The lists it fronts grow with the temple — parties, activities, funds — so
- * the options filter as you type. The part that matters is what happens when
- * nothing matches: rather than a dead end, the typed name is offered as a new
- * record. A clerk halfway through a receipt for a donor nobody has registered
- * finishes the receipt; they do not abandon it to go and register somebody.
- */
 export function EntityCombobox({
   id,
   value,
@@ -105,8 +87,7 @@ export function EntityCombobox({
 
   const selected = flat.find((option) => option.value === value) ?? null;
 
-  // Groups that filter down to nothing drop out entirely, so a heading never
-  // sits alone over an empty stretch of list.
+  // Drop empty groups so headings never show alone.
   const matches = React.useMemo(() => {
     if (typed.length === 0) return allGroups;
 
@@ -129,10 +110,7 @@ export function EntityCombobox({
     0,
   );
 
-  /*
-   * Offering to create a name that already names a record would be two ways to
-   * say the same thing, and the existing one is always the better answer.
-   */
+  // Don't offer to create a name that already exists.
   const canCreate =
     typed.length > 0 &&
     Boolean(createLabel && onCreate) &&
@@ -155,9 +133,7 @@ export function EntityCombobox({
   }
 
   return (
-    // `modal` is what makes the list scrollable inside a dialog. The dialog's
-    // scroll lock only exempts its own content, and this popover is portalled
-    // out to <body>, so every wheel event over it would otherwise be cancelled.
+    // `modal` keeps the list scrollable inside a dialog, whose scroll lock would block this portalled popover.
     <Popover
       open={open}
       onOpenChange={(next) => (next ? setOpen(true) : close())}
@@ -192,9 +168,7 @@ export function EntityCombobox({
         align="start"
         className="w-(--radix-popover-trigger-width) p-0"
       >
-        {/* Filtered above so a name matching nobody still leaves the create
-            row to click, which cmdk's own filter would hide along with
-            everything else. */}
+        {/* Filtered manually; cmdk's filter would also hide the create row. */}
         <Command shouldFilter={false}>
           <CommandInput
             placeholder={searchPlaceholder}
@@ -202,8 +176,6 @@ export function EntityCombobox({
             onValueChange={setSearch}
           />
 
-          {/* The cap is what the popover can actually use, so a long list
-              grows to fill a tall screen instead of stopping at nine rows. */}
           <CommandList className="max-h-[clamp(12rem,var(--radix-popover-content-available-height,24rem),24rem)] overscroll-contain">
             {matchCount === 0 && !canCreate && (
               <CommandEmpty>{emptyMessage}</CommandEmpty>
