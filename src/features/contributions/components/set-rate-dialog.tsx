@@ -22,12 +22,10 @@ interface SetRateDialogProps {
   onOpenChange: (open: boolean) => void;
   year: number;
   current: number | null;
-  /** How many sponsors owe it, so the year's expected total is visible. */
   subscribing: number;
   onSaved: () => void;
 }
 
-/** Sets the one amount every sponsor owes for a year. */
 export function SetRateDialog({
   open,
   onOpenChange,
@@ -80,8 +78,7 @@ export function SetRateDialog({
         <DialogHeader>
           <DialogTitle>Sanththa for {year}</DialogTitle>
           <DialogDescription>
-            One amount for every sponsor. Payments already taken keep the amount they were
-            taken at, so this only changes what the form offers from now on.
+            Payments already taken are not affected.
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +90,7 @@ export function SetRateDialog({
             hint={
               valid
                 ? `${subscribing} subscribing sponsor(s) — ${formatCurrency(parsed * subscribing)} for the year.`
-                : 'The figure the payment form will open on.'
+                : undefined
             }
           >
             <Input

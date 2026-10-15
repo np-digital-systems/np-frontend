@@ -10,13 +10,7 @@ import { CONTRIBUTION_ROUTES } from './routes';
 
 export type SetRateResult = { ok: true } | { ok: false; message: string };
 
-/**
- * Set the year's sanththa.
- *
- * One amount for everyone, held per year. Payments already taken keep the
- * amount they were taken at, so raising the rate never restates what an
- * earlier year charged — this only changes what the form offers next.
- */
+// Changing the rate doesn't affect payments already taken; it only changes the default for new ones.
 export async function setSanththaRate(year: number, amount: number): Promise<SetRateResult> {
   const { permissions } = await requireSession();
 

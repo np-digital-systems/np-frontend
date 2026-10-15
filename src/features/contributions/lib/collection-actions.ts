@@ -27,9 +27,7 @@ export interface CollectionInput {
 
 export interface CollectionResult {
   ok: boolean;
-  /** One reference per contributor collected from. */
   receipts: readonly { name: string; ref: string }[];
-  /** Names whose receipt could not be raised, with the reason. */
   failures: readonly { name: string; message: string }[];
   message?: string;
 }
@@ -39,18 +37,8 @@ interface VoucherResponse {
   readonly ref: string;
 }
 
-/**
- * Raise one receipt per contributor.
- *
- * Separate documents, not one voucher with many lines: each person is handed a
- * numbered receipt at the counter, and that number has to mean their gift
- * rather than the whole sheet's.
- *
- * Each is taken all the way to posted — a counter receipt for a collection has
- * nothing to approve — and a failure part-way leaves the ones already raised
- * standing. They are real receipts; rolling them back would void paper that is
- * already in somebody's hand.
- */
+// One receipt per contributor, each posted directly (no approval for counter collections).
+// A failure part-way keeps earlier receipts: they're already handed out on paper.
 export async function recordCollection(input: CollectionInput): Promise<CollectionResult> {
   const { permissions } = await requireSession();
 

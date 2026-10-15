@@ -13,7 +13,6 @@ import type {
 } from '../types';
 
 
-/** A row of `GET /sanththa/register` — every active sponsor. */
 interface ApiRegisterRow {
   readonly partyId: number;
   readonly sponsorNo: string;
@@ -107,22 +106,15 @@ export async function getSanththaSummary(
     paid: summary.paid,
     unpaid: summary.outstanding,
     collected: summary.collected,
-    // At the rate set for the year, not a figure compiled into the bundle.
     outstanding: summary.outstanding * (summary.rate ?? 0),
   };
 }
 
-/**
- * Where a subscription will be receipted, as the server resolves it.
- *
- * Read rather than assumed, so the counter is told the truth before money
- * changes hands — including when the answer is "nothing is configured yet".
- */
 export async function getSanththaPosting(): Promise<SanththaPosting> {
   return api.get<SanththaPosting>('/sanththa/posting');
 }
 
-/** Years that have any payment, newest first, always including this one. */
+/** Newest first; always includes the current year. */
 export async function getYears(): Promise<readonly number[]> {
   const current = getActiveYear(getToday());
   const register = await getAll<ApiRegisterRow>('/sanththa/register');

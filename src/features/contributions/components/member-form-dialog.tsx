@@ -61,7 +61,6 @@ interface MemberFormDialogProps {
   member: MemberRecord | null;
   nextMemberNo: string;
   onSubmit: (draft: MemberDraft) => void;
-  /** A message from the server when the write was refused. */
   submitError?: string | null;
 }
 
@@ -114,18 +113,14 @@ export function MemberFormDialog({
           </DialogTitle>
           <DialogDescription>
             {member
-              ? 'Names and contact details belong to this person’s directory entry, so a change here reaches every screen they appear on.'
-              : 'Enrolling registers the person in the directory and allocates their sponsor number. It does not create a sign-in.'}
+              ? 'Changes apply everywhere this person appears.'
+              : 'Adds them to the directory with a sponsor number.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/*
-              * The number is allocated by the database when the joining date is
-              * set, and is permanent once issued because it is printed on
-              * receipts — so it is shown, never typed.
-              */}
+            {/* Allocated by the database and printed on receipts, so read-only. */}
             <FormField id="member-no" label="Sponsor No">
               <Input
                 id="member-no"

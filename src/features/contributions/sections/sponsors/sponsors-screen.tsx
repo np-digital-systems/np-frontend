@@ -40,11 +40,7 @@ import { formatCurrency, formatShortDate } from '../../lib/contributions-data';
 import { enrolSponsor, retireSponsor, updateSponsor } from '../../lib/sponsors-actions';
 import type { SponsorRecord } from '../../types';
 
-/**
- * The shared StatusBadge only knows voucher and event statuses, so the three
- * states this register cares about get their own pill rather than a new entry
- * in a vocabulary they do not belong to.
- */
+// Own pill because the shared StatusBadge only covers voucher and event statuses.
 function Pill({
   tone,
   children,
@@ -86,13 +82,6 @@ interface SponsorsScreenProps {
   access: ContributionAccess;
 }
 
-/**
- * The sponsor register.
- *
- * Distinct from the sanththa screen, which asks only who has paid this year.
- * This one is about the sponsor themselves: their details, how many
- * observances they stand over, and whether they still owe the subscription.
- */
 export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -169,7 +158,6 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
     <>
       <PortalPageHeader
         title="Sponsors"
-        description="Everyone who sponsors an observance. A sponsor is a person in the directory, so editing them here renames them everywhere."
         meta={[
           <span key="count" className="tabular">
             {summary.total} active
@@ -250,7 +238,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
                 description={
                   query || filter !== 'all'
                     ? 'Try a different search or filter.'
-                    : 'Enrol the first sponsor to start the register.'
+                    : undefined
                 }
               />
             </DataTableEmpty>
@@ -325,7 +313,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
         title="Retire this sponsor?"
         description={
           retiring
-            ? `${retiring.name} (${retiring.sponsorNo}) will no longer be offered when assigning observances or taking the sanththa. Their ${retiring.sponsorships} standing sponsorship(s) and every receipt already naming them are unchanged, and they can be reactivated from Edit.`
+            ? `${retiring.name} (${retiring.sponsorNo}) won't be offered for new sponsorships or sanththa. Existing records are unchanged; reactivate from Edit.`
             : ''
         }
         confirmLabel="Retire"

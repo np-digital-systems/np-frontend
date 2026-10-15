@@ -4,7 +4,6 @@ import { getAll } from '@/lib/api';
 
 import type { SponsorRecord } from '../types';
 
-/** A row of `GET /sponsors` — the register, not the event assignments. */
 interface ApiSponsor {
   readonly partyId: number;
   readonly sponsorNo: string;

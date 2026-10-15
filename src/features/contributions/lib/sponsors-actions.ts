@@ -53,14 +53,7 @@ async function guarded(
   }
 }
 
-/**
- * Enrol a sponsor.
- *
- * The number is not supplied: the database allocates the next `S-00n` in the
- * same statement, so two people enrolling at once cannot be handed the same
- * one. Enrolling also registers the party, so a new sponsor appears in the
- * directory from the moment they are added.
- */
+// The database allocates the sponsor number atomically and creates the party in the same step.
 export async function enrolSponsor(input: SponsorInput): Promise<SponsorResult> {
   return guarded(() =>
     api.post<SponsorResponse>('/sponsors', {
@@ -75,7 +68,7 @@ export async function enrolSponsor(input: SponsorInput): Promise<SponsorResult> 
   );
 }
 
-/** Names and contact details are written to the party behind the sponsor. */
+// Name and contact details are written to the party behind the sponsor.
 export async function updateSponsor(
   partyId: number,
   input: Partial<SponsorInput> & { isActive?: boolean },

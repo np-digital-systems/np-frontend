@@ -52,25 +52,14 @@ interface RecordPaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   member: MemberRecord | null;
   year: number;
-  /** The rate set for the year — the amount the form opens on. */
   rate: number | null;
-  /**
-   * Where the receipt will land, read from the server rather than assumed.
-   * Null while it is still loading.
-   */
+  /** Null while loading. */
   posting: SanththaPosting | null;
-  /**
-   * Correcting a subscription already taken, rather than taking a new one.
-   *
-   * The member and the year are not editable here: those identify the row, and
-   * changing them would be a different subscription, not a correction.
-   */
+  /** Set to correct an existing payment; member and year stay fixed. */
   editing: SanththaPayment | null;
-  /** Receives the reference of the receipt voucher the server raised. */
   onRecorded: (receiptRef: string | null) => void;
 }
 
-/** Records the one subscription a sponsor owes for the year. */
 export function RecordPaymentDialog({
   open,
   onOpenChange,
@@ -81,8 +70,6 @@ export function RecordPaymentDialog({
   editing,
   onRecorded,
 }: RecordPaymentDialogProps) {
-  // A correction opens on what was taken; a new subscription on the year's
-  // rate and today.
   const seedDraft = (): PaymentDraft =>
     editing
       ? {
@@ -227,16 +214,11 @@ export function RecordPaymentDialog({
               </Select>
             </FormField>
 
-            {/*
-              * The number off the paper receipt book — the one the member walks
-              * away holding. Required, so every subscription in the system can
-              * be matched against the paper it was written on.
-              */}
             <FormField
               id="payment-manual-no"
               label="Receipt book number"
               required
-              hint="From the printed receipt book"
+              hint="From the paper receipt book"
             >
               <Input
                 id="payment-manual-no"
@@ -253,11 +235,7 @@ export function RecordPaymentDialog({
             </FormField>
           </div>
 
-          {/*
-            * What the server will actually do, not what this file believes it
-            * will do. An unconfigured head says so here, before the money is
-            * taken, rather than failing on save.
-            */}
+          {/* Shows the server-resolved posting so an unconfigured head is caught before saving. */}
           {posting === null ? (
             <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text-secondary">
               Checking where this will be receipted…
