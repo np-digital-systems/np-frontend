@@ -8,14 +8,7 @@ export const isoTime = z
   .string()
   .regex(/^\d{2}:\d{2}$/, 'Enter a valid time.');
 
-/**
- * How short a password may be, everywhere on this side.
- *
- * Mirrors PASSWORD_MIN_LENGTH on the API. It lives here rather than in a
- * feature so the sign-in form and the two password dialogs cannot drift apart
- * from each other — which they had: sign-in accepted six, the API refused
- * anything under eight, and the change-password dialog demanded twelve.
- */
+// Mirrors PASSWORD_MIN_LENGTH on the API; shared so all password forms agree.
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
 
@@ -49,12 +42,7 @@ export const email = z
   .toLowerCase()
   .email('Enter a valid email address.');
 
-/**
- * An address that may be left blank.
- *
- * Most people on the register have no email at all, so the field is optional —
- * but anything actually typed still has to be an address.
- */
+// Optional, but must be a valid address when entered.
 export const optionalEmail = z.union([email, z.literal('')]).default('');
 
 export const percentage = (label = 'The rate') =>

@@ -3,7 +3,6 @@ import 'server-only';
 export const ACCESS_TOKEN_COOKIE = 'np_access';
 export const REFRESH_TOKEN_COOKIE = 'np_refresh';
 
-/** Long enough to outlive the refresh token, which is what actually expires. */
 export const REFRESH_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
 export interface CookieOptions {
@@ -32,13 +31,7 @@ interface AccessTokenClaims {
   readonly exp: number;
 }
 
-/**
- * Read the claims without verifying the signature.
- *
- * Only ever used to decide whether a token is worth sending or should be
- * refreshed first. The API verifies every token it is given; nothing here is
- * a security decision.
- */
+// Unverified decode, only to decide whether to refresh. The API verifies every token.
 export function readClaims(token: string): AccessTokenClaims | null {
   const payload = token.split('.')[1];
 
@@ -57,7 +50,7 @@ export function readClaims(token: string): AccessTokenClaims | null {
   }
 }
 
-/** True with 30 seconds to spare, so a token cannot expire mid-flight. */
+/** Includes a 30-second margin so a token can't expire mid-request. */
 export function isExpired(token: string, skewSeconds = 30): boolean {
   const claims = readClaims(token);
 
