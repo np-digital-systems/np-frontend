@@ -45,8 +45,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    // Checked here so an obvious mistake costs nothing, and again on the server
-    // because a form is not where a rule like this can be enforced.
+    // Client check for quick feedback; the server enforces it.
     if (newPassword.length < PASSWORD_MIN_LENGTH) {
       setError(`The new password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
       return;
@@ -83,7 +82,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
         <DialogHeader>
           <DialogTitle>Change password</DialogTitle>
           <DialogDescription>
-            Every other device signed in as you is signed out. This one stays.
+            Other devices will be signed out.
           </DialogDescription>
         </DialogHeader>
 

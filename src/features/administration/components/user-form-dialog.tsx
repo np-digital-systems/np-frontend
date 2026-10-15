@@ -31,10 +31,7 @@ import { userSchema } from '../lib/administration-schemas';
 import type { DirectoryPerson, UserRecord } from '../types';
 
 export interface UserDraft {
-  /**
-   * An existing person in the directory to grant the sign-in to. Null means
-   * register a new one — which is why the name fields appear only then.
-   */
+  /** Null registers a new person (and shows the name fields). */
   partyId: number | null;
   fullName: string;
   nameTa: string;
@@ -43,7 +40,7 @@ export interface UserDraft {
   address: string;
   role: UserRole;
   isActive: boolean;
-  /** Only ever set when creating a staff account; the API takes none on edit. */
+  /** Only for new staff accounts; the API ignores it on edit. */
   password: string;
   passwordConfirmation: string;
 }
@@ -79,7 +76,6 @@ function draftFrom(user: UserRecord | null): UserDraft {
 }
 
 interface UserFormDialogProps {
-  /** Everyone already in the directory, so a sign-in never duplicates a person. */
   directory: readonly DirectoryPerson[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -112,11 +108,7 @@ export function UserFormDialog({
     setError(null);
   }
 
-  /*
-   * A password is collected only where the API will accept one: on a new staff
-   * account. Devotees never sign in, and an edit cannot carry a password at all
-   * — UpdateUserDto omits it, and a change goes through reset-password instead.
-   */
+  // Only new staff accounts take a password; edits use reset-password instead.
   const needsPassword = !user && draft.role !== 'member';
 
   const isSelf = user?.id === currentUserId;
@@ -138,13 +130,7 @@ export function UserFormDialog({
       return;
     }
 
-    /*
-     * Only a real address can clash.
-     *
-     * Most devotees have no email, so comparing blanks made every one of them
-     * collide with every other — and the message came out with nothing in
-     * front of it, because the duplicate was the empty string.
-     */
+    // Skip blank emails, or every devotee without one would clash.
     const clash =
       result.data.email !== '' &&
       existing.some(
@@ -194,23 +180,15 @@ export function UserFormDialog({
           <DialogDescription>
             {user
               ? 'Change what this account can reach, or deactivate it.'
-              : 'A devotee goes on the register without an account. Staff sign in, so they need an email and a password.'}
+              : 'Staff need an email and password to sign in.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/*
-            * A sign-in is granted to somebody already in the directory. Typing
-            * a name that is already there would file the same person twice —
-            * the split this whole register exists to prevent — so the picker
-            * comes first and the name fields only appear for a genuinely new
-            * person.
-            */}
           {!user && (
             <FormField
               id="user-party"
               label="Grant the sign-in to"
-              hint="Search the directory. Choose “Register someone new” only if they are not there."
             >
               <EntityCombobox
                 id="user-party"
@@ -265,8 +243,8 @@ export function UserFormDialog({
               required={draft.role !== 'member'}
               hint={
                 draft.role === 'member'
-                  ? 'Optional. Most devotees on the register have none.'
-                  : 'Staff sign in with this.'
+                  ? 'Optional.'
+                  : undefined
               }
             >
               <Input
@@ -350,7 +328,6 @@ export function UserFormDialog({
                 id="user-password-confirm"
                 label="Confirm password"
                 required
-                hint="Typed twice, because you have to pass it on."
               >
                 <Input
                   id="user-password-confirm"
