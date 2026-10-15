@@ -47,20 +47,8 @@ export type RegisterSponsorResult =
   | { ok: true; id: number }
   | { ok: false; message: string };
 
-/**
- * Register a sponsor against an event type, creating the party first.
- *
- * A sponsor is a party — somebody the temple has dealings with — and not an
- * account. Most of them will never sign in, and the ones who eventually do get
- * a sign-in attached to the party they already are. Creating a login here, as
- * this once did, put every walk-in sponsor in the user directory and left the
- * electricity board with nowhere to sit at all.
- *
- * The two writes are separate calls, so a rejected registration can leave the
- * party on record. The message says so rather than pretending nothing
- * happened, since the fix is to register them from the table, not to retype
- * their details.
- */
+// Creates a party (not a user account), then the sponsorship. These are two calls,
+// so a failed second call leaves the party on record and the message says so.
 export async function registerSponsor(
   input: RegisterSponsorInput,
 ): Promise<RegisterSponsorResult> {
@@ -117,7 +105,6 @@ export interface SponsorPlacementInput {
   partyId: number;
 }
 
-/** Register somebody already in the directory. */
 export async function addSponsor(input: SponsorPlacementInput): Promise<SponsorResult> {
   return guarded('You cannot register sponsors.', () =>
     api.post('/event-sponsors', {
@@ -134,14 +121,10 @@ export async function updateSponsor(
   return guarded('You cannot change sponsor registrations.', () =>
     api.patch(`/event-sponsors/${id}`, {
       eventTypeId: input.eventTypeId,
-      // Null is meaningful here — it takes the sponsor back off their slot and
-      // returns them to the pool — so it is sent rather than stripped like a
-      // blank string.
+      // Null is sent (not stripped): it unassigns the sponsor from their slot.
       instanceIdentifier:
         input.instanceIdentifier === undefined ? undefined : input.instanceIdentifier,
       partyId: input.partyId || undefined,
-      // A blank name is sent as-is so a custom label can be cleared, which
-      // `|| undefined` would silently turn into "leave it alone".
     }),
   );
 }
