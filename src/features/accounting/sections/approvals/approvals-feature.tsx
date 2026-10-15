@@ -14,13 +14,12 @@ export async function ApprovalsFeature() {
   if (!access.canApprove) {
     return (
       <PageShell>
-        <AccessDenied description="Approving vouchers is limited to administrators and accountants. Your submitted entries appear in the receipt and payment registers." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }
 
-  // Cancelled entries never needed a decision and never will — they would
-  // only pad the settled tab.
+  // Cancelled entries never need a decision, so they're excluded.
   const vouchers = (await getVouchers()).filter(
     (voucher) => voucher.status !== 'Cancelled' && voucher.status !== 'Draft',
   );

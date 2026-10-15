@@ -41,7 +41,7 @@ import type { BankAccountRecord } from '../../types';
 interface BankAccountsScreenProps {
   initialBanks: readonly BankAccountRecord[];
   access: AccountingAccess;
-  /** Postable asset heads a new account can post through. */
+  /** Postable asset heads only. */
   ledgerAccounts: readonly { id: number; code: string; name: string }[];
   year: number;
 }
@@ -108,7 +108,6 @@ export function BankAccountsScreen({
     <>
       <PortalPageHeader
         title="Bank Accounts"
-        description="Where the temple’s money sits — current, savings and fixed deposit accounts."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -140,7 +139,7 @@ export function BankAccountsScreen({
       <ActionError message={actionError} />
 
       {!access.canManageBankAccounts && (
-        <ReadOnlyNotice message="You can see the temple’s bank accounts and their balances. Opening, amending or closing an account is restricted to administrators." />
+        <ReadOnlyNotice message="Only administrators can change bank accounts." />
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -152,12 +151,10 @@ export function BankAccountsScreen({
         <StatCard
           label="Fixed Deposits"
           value={formatCurrency(totals.deposits)}
-          caption="Not available for daily use"
         />
         <StatCard
           label="Operating Balance"
           value={formatCurrency(totals.balance - totals.deposits)}
-          caption="Current and savings"
         />
         <StatCard
           label="Accounts"
@@ -171,7 +168,7 @@ export function BankAccountsScreen({
           <EmptyState
             icon={Landmark}
             title="No bank accounts yet"
-            description="Add the temple’s accounts so receipts and payments can be routed through them."
+            description="Add an account to use it on receipts and payments."
           />
         </Card>
       ) : (

@@ -20,7 +20,7 @@ export async function ActivitiesFeature() {
   if (!access.canViewActivities) {
     return (
       <PageShell>
-        <AccessDenied description="Activities are limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

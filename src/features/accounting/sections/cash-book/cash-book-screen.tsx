@@ -50,8 +50,7 @@ export function CashBookScreen({
   const months = useMemo(() => bookMonths(rows), [rows]);
   const days = useMemo(() => bookDays(rows), [rows]);
 
-  // The selected period follows the grain, falling back to the most recent
-  // month or day so switching grain never lands on an empty selection.
+  // Fall back to the latest month or day so switching grain never selects an empty period.
   const period =
     grain === 'Year'
       ? 'all'
@@ -75,7 +74,6 @@ export function CashBookScreen({
     <>
       <PortalPageHeader
         title="Cash Book"
-        description="Physical cash held by the temple — hundial collections, counter receipts and cash payments."
         meta={[
           <span key="period" className="tabular">
             {periodLabel}
@@ -136,7 +134,7 @@ export function CashBookScreen({
       />
 
       {!access.canCreateVouchers && (
-        <ReadOnlyNotice message="The cash book is a record of what has posted. Entries are made through receipt and payment vouchers." />
+        <ReadOnlyNotice message="Entries are made through receipt and payment vouchers." />
       )}
 
       <BookSummaryCards
@@ -152,7 +150,7 @@ export function CashBookScreen({
         inflowLabel="Receipts"
         outflowLabel="Payments"
         emptyTitle="No cash movements in this period"
-        emptyDescription="Cash receipts and payments appear here once their vouchers are posted."
+        emptyDescription="Entries appear once vouchers are posted."
       />
     </>
   );

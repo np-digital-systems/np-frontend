@@ -18,7 +18,7 @@ export async function ReportsFeature() {
   if (!access.canGenerateReports) {
     return (
       <PageShell>
-        <AccessDenied description="Generating statements and registers is limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

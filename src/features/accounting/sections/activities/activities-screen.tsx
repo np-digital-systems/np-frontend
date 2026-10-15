@@ -101,8 +101,7 @@ export function ActivitiesScreen({
     () => ({
       income: activities.reduce((sum, activity) => sum + activity.income, 0),
       expenses: activities.reduce((sum, activity) => sum + activity.expenses, 0),
-      // The ones worth looking at first: an activity spending more than it
-      // brings in is the finding this screen exists to surface.
+      // Activities spending more than they bring in sort first.
       inDeficit: activities.filter(
         (activity) => activity.net < 0 && activity.entryCount > 0,
       ).length,
@@ -112,11 +111,7 @@ export function ActivitiesScreen({
 
   const { run, error: actionError } = useServerAction();
 
-  /*
-   * Registered as a devotee, which is the role that assumes least. Whoever
-   * they turn out to be to the temple is settled on the parties screen; what
-   * matters here is that the form is not abandoned to go and add them.
-   */
+  // Created as a devotee, the least specific role; it can be changed on the parties screen.
   async function handleCreateParty(name: string): Promise<number | null> {
     const result = await createParty({ nameTa: name, roles: ['devotee'] });
 
@@ -173,7 +168,6 @@ export function ActivitiesScreen({
     <>
       <PortalPageHeader
         title="Activities"
-        description="What entries are reported under. Income and expenditure both carry one, so a pooja can be read whole."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -200,7 +194,7 @@ export function ActivitiesScreen({
       <ActionError message={actionError} />
 
       {!access.canManageActivities && (
-        <ReadOnlyNotice message="You can see the activities. Adding or changing one is restricted to administrators and accountants." />
+        <ReadOnlyNotice message="Only administrators and accountants can make changes." />
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
@@ -270,7 +264,7 @@ export function ActivitiesScreen({
               <EmptyState
                 icon={Layers}
                 title="No activities yet"
-                description="An activity is what a receipt or payment is reported under — a pooja, annadhanam, hall upkeep. Add one and the voucher form will offer it."
+                description="Add one to use it on vouchers."
               />
             </DataTableEmpty>
           ) : filtered.length === 0 ? (
@@ -378,7 +372,7 @@ export function ActivitiesScreen({
         title="Retire this activity?"
         description={
           retiring
-            ? `${retiring.name} will no longer be offered on new entries. The ${retiring.entryCount} entries already coded to it keep naming it, and every report that mentions it is unchanged.`
+            ? `${retiring.name} won't be offered on new entries. Its ${retiring.entryCount} existing entries are unchanged.`
             : ''
         }
         confirmLabel="Retire"

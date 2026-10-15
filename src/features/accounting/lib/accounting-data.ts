@@ -24,7 +24,6 @@ export {
   getActiveYear,
 } from '@/lib/format';
 
-/** Pooja sponsorship drives the pooja picker in the voucher form. */
 export const POOJA_SPONSORSHIP_CODE = '4001';
 
 export const ACCOUNT_TYPES: readonly AccountType[] = [
@@ -43,18 +42,12 @@ export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   expense: 'Expenditure',
 };
 
-/**
- * Income and expenditure heads measure a year's flow rather than a position,
- * so they always start at nil — the API refuses an opening balance on them.
- */
+// Income and expense heads measure flow, not position, so they always open at nil (the API enforces this).
 export function opensAtZero(type: AccountType): boolean {
   return type === 'income' || type === 'expense';
 }
 
-/**
- * The side a head's balance naturally sits on. An opening balance is entered
- * as a positive figure on this side, which is how the API stores and reads it.
- */
+// Opening balances are entered as positive figures on this side, matching how the API stores them.
 export const ACCOUNT_NATURAL_SIDE: Record<AccountType, 'debit' | 'credit'> = {
   asset: 'debit',
   liability: 'credit',
@@ -77,7 +70,7 @@ export const ACTIVITY_KIND_LABELS: Record<ActivityKind, string> = {
   general: 'General',
 };
 
-/** Sponsorship is absent by design: a sponsor profile is the sponsor role. */
+// Sponsorship is a profile, not a role, so it isn't listed.
 export const PARTY_KINDS: readonly PartyKind[] = ['devotee', 'vendor', 'staff'];
 
 export const PARTY_KIND_LABELS: Record<PartyKind, string> = {
@@ -155,12 +148,7 @@ export function nextReference(
   return `${prefix}${String(highest + 1).padStart(4, '0')}`;
 }
 
-/**
- * How a voucher's coding reads in one line.
- *
- * A split voucher names its first head and counts the rest, so a list stays a
- * list. Everything is on the voucher itself for anyone who opens it.
- */
+// Split vouchers show the first head plus a count of the rest.
 export function codingSummary(voucher: {
   lines: readonly { account: { name: string }; fund: { name: string } }[];
 }): { account: string; fund: string } {

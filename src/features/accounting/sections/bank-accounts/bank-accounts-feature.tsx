@@ -14,7 +14,7 @@ export async function BankAccountsFeature() {
   if (!access.canViewBankAccounts) {
     return (
       <PageShell>
-        <AccessDenied description="Bank accounts are limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

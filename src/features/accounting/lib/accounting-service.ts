@@ -44,22 +44,8 @@ import type { PeriodPoint } from '@/components/portal/ui';
 
 import { getToday } from './accounting-data';
 
-/**
- * The accounting domain, read from the API.
- *
- * Every balance here is derived server-side from the posted ledger, so nothing
- * in this file recomputes a figure — it would only be a second opinion about
- * money, and two opinions is one too many.
- *
- * Every read that carries a balance is scoped to the year chosen in the
- * header. The picker lists of active funds, projects and heads are not: they
- * feed form dropdowns, where what matters is whether a thing may still be
- * posted to, not what it was worth in some year.
- */
-
-/* -------------------------------------------------------------------------
-   Chart of accounts
-   ------------------------------------------------------------------------- */
+// Balances come from the API; nothing here recomputes a figure. Reads with balances are
+// scoped to the header's financial year; dropdown lists (funds, projects, heads) are not.
 
 export async function getAccountRecords(): Promise<readonly AccountRecord[]> {
   return api.get<readonly AccountRecord[]>('/accounts', {
@@ -85,10 +71,6 @@ export async function getPostableAccounts(): Promise<readonly AccountRef[]> {
     defaultPartyId,
   }));
 }
-
-/* -------------------------------------------------------------------------
-   Activities and parties — the two analytical dimensions
-   ------------------------------------------------------------------------- */
 
 export async function getActivityRecords(
   financialYearId?: number,
@@ -147,10 +129,6 @@ export async function getPartyOptions(): Promise<readonly PartyRef[]> {
   }));
 }
 
-/* -------------------------------------------------------------------------
-   Funds, projects, banks
-   ------------------------------------------------------------------------- */
-
 export async function getFundPositions(): Promise<readonly FundPosition[]> {
   return api.get<readonly FundPosition[]>('/funds', {
     query: { financialYearId: await getActiveFinancialYearId() },
@@ -197,10 +175,6 @@ export async function getBankAccountOptions(): Promise<readonly BankAccountRef[]
   return accounts.map(({ id, label, type, isActive }) => ({ id, label, type, isActive }));
 }
 
-/* -------------------------------------------------------------------------
-   Vouchers
-   ------------------------------------------------------------------------- */
-
 export async function getVouchers(): Promise<readonly VoucherRecord[]> {
   return getAll<VoucherRecord>('/vouchers', {
     financialYearId: await getActiveFinancialYearId(),
@@ -221,10 +195,6 @@ export async function getPendingVouchers(): Promise<readonly VoucherRecord[]> {
     financialYearId: await getActiveFinancialYearId(),
   });
 }
-
-/* -------------------------------------------------------------------------
-   Ledger and the books
-   ------------------------------------------------------------------------- */
 
 export async function getLedger(): Promise<readonly LedgerRecord[]> {
   const page = await api.get<Page<LedgerRecord>>('/ledger', {
@@ -251,10 +221,6 @@ export async function getBankBook(bankAccountId: number): Promise<Book> {
   });
 }
 
-/* -------------------------------------------------------------------------
-   Reports
-   ------------------------------------------------------------------------- */
-
 export async function getSummary(): Promise<AccountingSummary> {
   return api.get<AccountingSummary>('/reports/accounting-summary', {
     query: { financialYearId: await getActiveFinancialYearId() },
@@ -276,25 +242,14 @@ export async function getTrialBalance(): Promise<readonly TrialBalanceRow[]> {
   return report.rows;
 }
 
-/**
- * The label of the year these figures are for.
- *
- * Reads the year chosen in the header rather than asking the API which year is
- * current: a report captioned "2025/26" while the header says 2024/25 is worse
- * than no caption at all. Falls back to a dash when the books hold no years.
- */
+// Uses the header's selected year (not the API's current year) so captions always match it.
 export async function getActiveFinancialYear(): Promise<string> {
   const { active } = await getFinancialYearContext();
 
   return active?.label ?? '—';
 }
 
-/**
- * Income and expenditure by month, read off the posted ledger.
- *
- * Grouping happens here rather than in the API because it is a presentation
- * choice about the chart, not a figure the books have an opinion about.
- */
+// Monthly grouping is done here because it is a chart presentation choice, not a ledger figure.
 export async function getMonthlySeries(today: string = getToday()): Promise<PeriodPoint[]> {
   const ledger = await getLedger();
   const accounts = new Map((await getAccounts()).map((account) => [account.id, account.type]));
@@ -334,10 +289,6 @@ export async function getQuarterlySeries(today: string = getToday()): Promise<Pe
   return quarters;
 }
 
-/* -------------------------------------------------------------------------
-   Pooja options for the voucher form, mapped from the events calendar
-   ------------------------------------------------------------------------- */
-
 export async function getPoojaTypes(): Promise<readonly PoojaTypeRef[]> {
   const types = await getEventTypes();
 
@@ -350,17 +301,8 @@ export async function getPoojaTypes(): Promise<readonly PoojaTypeRef[]> {
 }
 
 export async function getPoojas(): Promise<readonly PoojaRef[]> {
-  /*
-   * The API renders the slot in English ("Week 1") for its own callers. The
-   * voucher form is read in Tamil, so the label is rebuilt here from the raw
-   * frequency and number — the same parts, and the same helper, the public
-   * calendar uses to say "1ஆம் வாரம்".
-   */
-  /*
-   * Scoped to the year the books are open on, not to today. A receipt raised
-   * against 2026 must offer 2026's occurrences — each carries the sponsor who
-   * took it that year, and offering another year's would name the wrong payer.
-   */
+  // Labels are rebuilt in Tamil (the API returns English). Scoped to the selected
+  // financial year, not today, so each pooja names that year's sponsor.
   const [events, translate] = await Promise.all([
     getEvents(await getActiveCalendarYear()),
     getTranslations('Events.instance'),

@@ -22,7 +22,7 @@ export async function PaymentVouchersFeature() {
   if (!access.canViewPayments) {
     return (
       <PageShell>
-        <AccessDenied description="Payment vouchers are available to temple accounting staff. Contact an administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }
@@ -52,7 +52,7 @@ export async function PaymentVouchersFeature() {
       <VoucherRegister
         kind="payment"
         title="Payment Vouchers"
-        description="Every rupee paid out — honorarium, materials, utilities, contractors and festival costs."
+        description="Money paid out by the temple."
         initialVouchers={initialVouchers}
         accounts={accounts}
         funds={funds}

@@ -14,17 +14,11 @@ export interface Account {
   readonly nameTa: string;
   readonly type: AccountType;
     readonly parentId: number | null;
-  /**
-   * Whether entries may land on this head. False for a grouping head, which
-   * exists to total its children and can never be posted to itself.
-   */
+  /** False for grouping heads, which only total their children. */
   readonly isPostable: boolean;
   readonly isActive: boolean;
     readonly openingBalance: number;
-  /**
-   * Offered when this head is chosen. Only for heads dealing with exactly one
-   * party — electricity, water, rates. Never on a shared head like salaries.
-   */
+  /** Only for heads paid to a single party (e.g. electricity), never shared heads like salaries. */
   readonly defaultPartyId: number | null;
   readonly createdAt: string;
 }
@@ -118,13 +112,7 @@ export interface VoucherActor {
   readonly name: string;
 }
 
-/**
- * One head a voucher is coded to.
- *
- * No debit or credit column: every line of a receipt credits income and every
- * line of a payment debits expenditure, which follows from the voucher's kind.
- * The contra against cash or bank is generated when the voucher is posted.
- */
+// No debit/credit column: the side follows from the voucher kind. The cash/bank contra is generated on posting.
 export interface VoucherLine {
   readonly id: number;
   readonly lineNo: number;
@@ -133,7 +121,7 @@ export interface VoucherLine {
   readonly fundId: number;
   readonly projectId: number | null;
   readonly activityId: number | null;
-  /** The occurrence this line is for — which Friday, not merely a Friday. */
+  /** The specific pooja occurrence, if any. */
   readonly eventId: number | null;
   readonly account: AccountRef;
   readonly fund: FundRef;
@@ -148,10 +136,9 @@ export interface Voucher {
   readonly description: string;
   readonly amount: number;
 
-  /** The heads this voucher is coded to. Always at least one. */
+  /** Always at least one. */
   readonly lines: readonly VoucherLine[];
 
-  /** Who the entry was with — one payer per document, however it splits. */
   readonly partyId: number | null;
 
   readonly mode: PaymentMode;
@@ -160,7 +147,7 @@ export interface Voucher {
 
     readonly party: string;
 
-    /** Number written on the temple's physical voucher book. */
+    /** Number from the temple's physical voucher book. */
     readonly manualVoucherNo: string | null;
 
 
@@ -216,23 +203,17 @@ export interface BookSummary {
   readonly closing: number;
 }
 
-/** A pooja category — an event type, as the voucher form needs it. */
 export interface PoojaTypeRef {
   readonly id: number;
   readonly name: string;
   readonly nameEn: string;
-  /** The activity a receipt for this pooja is coded to; it carries the fund. */
+  /** Receipts are coded to this activity, which carries the fund. */
   readonly activityId: number | null;
 }
 
 export type ActivityKind = 'pooja' | 'service' | 'facility' | 'general';
 
-/**
- * What an entry was for.
- *
- * The one dimension that sits on both sides of the books, so a pooja can be
- * read whole — sponsorship in against the priest time it cost.
- */
+// Used on both income and expense, so a pooja's income and costs can be reported together.
 export interface Activity {
   readonly id: number;
   readonly name: string;
@@ -241,10 +222,7 @@ export interface Activity {
   readonly defaultFundId: number | null;
   readonly defaultProjectId: number | null;
   readonly defaultPartyId: number | null;
-  /**
-   * The head this activity normally lands on. One column, not one per side:
-   * `account.type` already says whether it suits a receipt or a payment.
-   */
+  /** One default head; its account type decides whether it applies to receipts or payments. */
   readonly defaultAccountId: number | null;
   readonly isActive: boolean;
 }
@@ -270,31 +248,17 @@ export type ActivityRef = Pick<
 
 export type PartyKind = 'devotee' | 'vendor' | 'staff';
 
-/** A person, or an institution like the electricity board. */
 export type PartyType = 'person' | 'organisation';
 
-/**
- * Who an entry was with.
- *
- * The subsidiary ledger: people never become heads in the chart of accounts,
- * so one salaries head serves every kurukkal and the question "what did we pay
- * him" is answered by grouping on this instead.
- */
+// Subsidiary ledger: people are never heads in the chart of accounts; reports group by party instead.
 export interface Party {
   readonly id: number;
   readonly type: PartyType;
   readonly name: string;
   readonly nameEn: string;
-  /*
-   * Every role the party holds, not one label. The temple's florist who also
-   * sponsors the Friday abhishekam holds both, and is one record in both lists
-   * — filing them twice would split their history down the middle.
-   *
-   * A role groups a list and nothing more. What an entry means is settled by
-   * the account it is coded to.
-   */
+  /** A party can hold several roles; roles only group lists, the account decides meaning. */
   readonly roles: readonly PartyKind[];
-  /** Sponsorship is not a role: it is a profile, and this says whether one exists. */
+  /** Sponsorship is a profile, not a role. */
   readonly isSponsor: boolean;
   readonly accountId: string | null;
   readonly phone: string | null;
@@ -317,16 +281,14 @@ export type PartyRef = Pick<
   'id' | 'type' | 'name' | 'nameEn' | 'roles' | 'isSponsor'
 >;
 
-/** One dated pooja, with whoever sponsors it. */
 export interface PoojaRef {
   readonly id: number;
   readonly eventTypeId: number;
-  /** The activity this pooja's type is coded to; the picker filters on it. */
   readonly activityId: number | null;
   readonly label: string;
   readonly date: string;
   readonly sponsorName: string | null;
-  /** The sponsoring party itself — a receipt for the pooja is collected from them. */
+  /** Receipts for this pooja are collected from this party. */
   readonly sponsorPartyId: number | null;
 }
 

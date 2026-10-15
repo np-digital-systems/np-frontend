@@ -35,8 +35,7 @@ export function applyAction(
 
   switch (action) {
     case 'submit':
-      // Resubmitting a rejected voucher clears the old reason — otherwise
-      // the approver reads last round's objection against this round's entry.
+      // Clear the previous rejection reason on resubmit.
       return {
         ...base,
         submittedAt: now,

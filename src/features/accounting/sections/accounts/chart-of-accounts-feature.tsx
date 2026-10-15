@@ -14,7 +14,7 @@ export async function ChartOfAccountsFeature() {
   if (!access.canViewAccounts) {
     return (
       <PageShell>
-        <AccessDenied description="The chart of accounts is limited to administrators and accountants." />
+        <AccessDenied description="Only administrators and accountants have access." />
       </PageShell>
     );
   }

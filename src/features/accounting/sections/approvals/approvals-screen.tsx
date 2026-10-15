@@ -101,7 +101,6 @@ export function ApprovalsScreen({
     <>
       <PortalPageHeader
         title="Approval Center"
-        description="Every voucher waiting on a decision, from both registers."
         meta={[
           <span key="year" className="tabular">
             Financial year {year}
@@ -128,7 +127,6 @@ export function ApprovalsScreen({
         <StatCard
           label="Approved, Unposted"
           value={String(queues.approved.length)}
-          caption="Not yet in the ledger"
         />
         <StatCard
           label="Your Own Entries"
@@ -138,7 +136,6 @@ export function ApprovalsScreen({
         <StatCard
           label="Settled"
           value={String(queues.decided.length)}
-          caption="Posted or rejected"
         />
       </div>
 
@@ -167,7 +164,7 @@ export function ApprovalsScreen({
               <EmptyState
                 icon={Inbox}
                 title="Nothing awaiting approval"
-                description="Submitted vouchers queue up here for review."
+                description="Submitted vouchers appear here."
               />
             </Card>
           ) : (
@@ -193,7 +190,7 @@ export function ApprovalsScreen({
           <SettledTable
             vouchers={queues.approved}
             emptyTitle="Nothing approved and waiting"
-            emptyDescription="Approved vouchers sit here until they are posted to the ledger."
+            emptyDescription="Approved vouchers wait here until posted."
             onView={setViewing}
             action={
               access.canPost
@@ -216,7 +213,7 @@ export function ApprovalsScreen({
           <SettledTable
             vouchers={queues.decided}
             emptyTitle="Nothing settled yet"
-            emptyDescription="Posted and rejected entries are kept here for the audit trail."
+            emptyDescription="Posted and rejected entries appear here."
             onView={setViewing}
           />
         </TabsContent>

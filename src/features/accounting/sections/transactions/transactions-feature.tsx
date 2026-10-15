@@ -18,7 +18,7 @@ export async function TransactionsFeature() {
   if (!access.canViewTransactions) {
     return (
       <PageShell>
-        <AccessDenied description="The ledger is available to temple accounting staff. Contact an administrator if you need access." />
+        <AccessDenied description="Ask an administrator for access." />
       </PageShell>
     );
   }
