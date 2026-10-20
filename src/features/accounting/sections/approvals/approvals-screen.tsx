@@ -101,6 +101,7 @@ export function ApprovalsScreen({
     <>
       <PortalPageHeader
         title="Approval Center"
+        description='Review and approve incoming vouchers.'
       />
 
       <ActionError message={actionError} />

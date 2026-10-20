@@ -158,6 +158,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
     <>
       <PortalPageHeader
         title="Sponsors"
+        description='Manage your sponsors and their contributions.'
         actions={
           access.canManage ? (
             <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
