@@ -166,4 +166,4 @@ export const READ_ONLY_MESSAGE =
   'You have view-only access.';
 
 export const SELF_APPROVAL_MESSAGE =
-  'You cannot approve an entry you created yourself — another approver has to act on it.';
+  'You cannot approve an entry you created yourself';
