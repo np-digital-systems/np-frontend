@@ -132,24 +132,12 @@ export function SanththaScreen({
             ? `No sanththa has been set for ${year} yet.`
             : `${formatCurrency(rate)} per sponsor.`
         }
-        meta={[
-          <span key="year" className="tabular">
-            {year}
-          </span>,
-          <span key="paid" className="tabular">
-            {summary.paid} of {summary.members} paid
-          </span>,
-          summary.unpaid > 0 ? (
-            <span key="unpaid" className="text-warning tabular">
-              {summary.unpaid} outstanding
-            </span>
-          ) : null,
-        ].filter(Boolean)}
+       
         actions={
           access.canManage && (
             <div className="flex items-center gap-2">
               <Button variant="secondary" onClick={() => setRateOpen(true)}>
-                {rate === null ? `Set ${year} sanththa` : `Sanththa ${formatCurrency(rate)}`}
+                {rate === null ? `Set ${year} sanththa` : `Change ${year} sanththa`}
               </Button>
 
               <Button asChild variant="secondary">
