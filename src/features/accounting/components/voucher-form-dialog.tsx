@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Plus } from 'lucide-react';
 
-import { FormField } from '@/components/portal/ui';
+import { ActionError, FormField } from '@/components/portal/ui';
+import type { ServerActionResult } from '@/hooks/use-server-action';
 import { useFormDraft } from '@/hooks/use-form-draft';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -97,6 +99,8 @@ interface LineEditorProps {
   activities: readonly ActivityRef[];
   poojas: readonly PoojaRef[];
   kind: VoucherKind;
+  partyId: number | null;
+  parties: readonly PartyRef[];
   onChange: (lines: VoucherDraftLine[]) => void;
   onPoojaChosen: (pooja: PoojaRef, activityName: string, lineIndex: number) => void;
   onSuggestParty: (partyId: number) => void;
@@ -110,6 +114,8 @@ function LineEditor({
   activities,
   poojas,
   kind,
+  partyId,
+  parties,
   onChange,
   onSuggestParty,
   onPoojaChosen,
@@ -117,10 +123,7 @@ function LineEditor({
   // Receipts credit income and payments debit expenditure, so a default head must be on this side.
   const codingSide = kind === 'receipt' ? 'income' : 'expense';
 
-  const accountById = useMemo(
-    () => new Map(accounts.map((account) => [account.id, account])),
-    [accounts],
-  );
+  const accountById = new Map(accounts.map((account) => [account.id, account]));
 
   function linkedTo(accountId: number): readonly ActivityRef[] {
     return activities.filter((entry) => entry.defaultAccountId === accountId);
@@ -146,18 +149,16 @@ function LineEditor({
       eventId: null,
     };
   }
-  const accountsByType = useMemo(() => {
-    const groups = new Map<string, AccountRef[]>();
+  const groups = new Map<string, AccountRef[]>();
 
-    for (const account of accounts) {
-      const bucket = groups.get(account.type);
+  for (const account of accounts) {
+    const bucket = groups.get(account.type);
 
-      if (bucket) bucket.push(account);
-      else groups.set(account.type, [account]);
-    }
+    if (bucket) bucket.push(account);
+    else groups.set(account.type, [account]);
+  }
 
-    return [...groups.entries()];
-  }, [accounts]);
+  const accountsByType = [...groups.entries()];
 
   const [coding, setCoding] = useState<ReadonlySet<number>>(new Set());
 
@@ -198,6 +199,13 @@ function LineEditor({
         const projectName = projects.find(
           (project) => project.id === line.projectId,
         )?.name;
+        const usualPartyId =
+          activity?.defaultPartyId ?? accountById.get(line.accountId)?.defaultPartyId ?? null;
+        // A voucher is signed by one payee; a head usually paid to someone else needs its own voucher.
+        const otherPayee =
+          lines.length > 1 && partyId !== null && usualPartyId !== null && usualPartyId !== partyId
+            ? parties.find((entry) => entry.id === usualPartyId)
+            : undefined;
 
         return (
           <div
@@ -206,9 +214,7 @@ function LineEditor({
           >
             {lines.length > 1 && (
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-                  Head {index + 1}
-                </span>
+                <SectionLabel>Head {index + 1}</SectionLabel>
 
                 <Button
                   type="button"
@@ -379,6 +385,12 @@ function LineEditor({
               />
             </FormField>
 
+            {otherPayee && (
+              <p className="text-xs text-warning">
+                Usually paid to {otherPayee.name}. Raise a separate voucher for them.
+              </p>
+            )}
+
             {!coding.has(index) ? (
               <div className="flex items-center gap-2 text-xs text-text-muted">
                 <span className="truncate">
@@ -458,9 +470,9 @@ function LineEditor({
         );
       })}
 
-      <Button type="button" variant="outline" size="sm" className="self-start" onClick={addLine}>
+      <Button type="button" variant="ghost" size="sm" className="self-start" onClick={addLine}>
         <Plus />
-        Add head
+        {lines.length === 1 ? 'Split across heads' : 'Add head'}
       </Button>
     </div>
   );
@@ -550,8 +562,8 @@ interface VoucherFormDialogProps {
   activities: readonly ActivityRef[];
   parties: readonly PartyRef[];
   poojas: readonly PoojaRef[];
-  onSubmit: (draft: VoucherDraft) => void;
-    onSubmitForApproval?: (draft: VoucherDraft) => void;
+  onSave: (draft: VoucherDraft, thenSubmit: boolean) => Promise<ServerActionResult>;
+  canSubmit: boolean;
 }
 
 export function VoucherFormDialog({
@@ -566,8 +578,8 @@ export function VoucherFormDialog({
   activities,
   parties,
   poojas,
-  onSubmit,
-  onSubmitForApproval,
+  onSave,
+  canSubmit,
 }: VoucherFormDialogProps) {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -575,6 +587,8 @@ export function VoucherFormDialog({
     draftFrom(voucher, kind, accounts, funds, today),
   );
   const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const [addAnother, setAddAnother] = useState(false);
 
   // Reset the draft when opened for a different record.
   const seed = `${open}|${voucher?.id ?? 'new'}|${kind}`;
@@ -648,22 +662,29 @@ export function VoucherFormDialog({
     return result.ok;
   }
 
-  function handleSave(formEvent: React.FormEvent) {
-    formEvent.preventDefault();
+  function save(thenSubmit: boolean) {
+    if (pending || !check()) return;
 
-    if (!check()) return;
+    const sent = cleaned(draft);
 
-    onSubmit(cleaned(draft));
-    discard();
-    onOpenChange(false);
+    startTransition(async () => {
+      const result = await onSave(sent, thenSubmit);
+
+      if (!result.ok) {
+        setError(result.message ?? 'That voucher could not be saved.');
+        return;
+      }
+
+      discard();
+
+      if (addAnother && !voucher) setDraft(nextAfter(sent));
+      else onOpenChange(false);
+    });
   }
 
-  function handleSubmitForApproval() {
-    if (!check() || !onSubmitForApproval) return;
-
-    onSubmitForApproval(cleaned(draft));
-    discard();
-    onOpenChange(false);
+  function handleSave(formEvent: React.FormEvent) {
+    formEvent.preventDefault();
+    save(false);
   }
 
   return (
@@ -720,12 +741,7 @@ export function VoucherFormDialog({
               />
             </FormField>
 
-            <FormField
-              id="voucher-manual-no"
-              label="Manual Voucher No"
-              required
-              hint="From the physical voucher book."
-            >
+            <FormField id="voucher-manual-no" label="Manual Voucher No" required>
               <Input
                 id="voucher-manual-no"
                 value={draft.manualVoucherNo}
@@ -748,6 +764,8 @@ export function VoucherFormDialog({
             activities={activities}
             poojas={poojas}
             kind={kind}
+            partyId={draft.partyId}
+            parties={parties}
             onChange={(next) => setDraft((current) => ({ ...current, lines: next }))}
             onPoojaChosen={(pooja, activityName, lineIndex) => {
               setDraft((current) => ({
@@ -768,12 +786,13 @@ export function VoucherFormDialog({
 
               void fillFromCosting(pooja.id, lineIndex);
             }}
-            // Overwrites the current party: the user chose this head or activity deliberately.
+            // With several heads the payee is already settled; a differing head is flagged, not applied.
             onSuggestParty={(partyId) =>
               setDraft((current) => {
                 const party = parties.find((entry) => entry.id === partyId);
 
                 if (!party) return current;
+                if (current.lines.length > 1 && current.partyId !== null) return current;
 
                 return { ...current, partyId, party: party.name };
               })
@@ -908,30 +927,38 @@ export function VoucherFormDialog({
             />
           </FormField>
 
-          {error && (
-            <p
-              role="alert"
-              className="rounded-lg bg-danger-subtle px-3 py-2 text-xs text-danger"
-            >
-              {error}
-            </p>
-          )}
+          <ActionError message={error} />
 
-          <DialogFooter>
+          <DialogFooter className="sm:items-center">
+            {!voucher && (
+              <label
+                htmlFor="voucher-add-another"
+                className="flex cursor-pointer items-center gap-2 text-xs text-text-secondary sm:mr-auto"
+              >
+                <Checkbox
+                  id="voucher-add-another"
+                  checked={addAnother}
+                  onCheckedChange={(checked) => setAddAnother(checked === true)}
+                />
+                Add another after saving
+              </label>
+            )}
+
             <Button
               type="button"
               variant="outline"
+              disabled={pending}
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
 
-            <Button type="submit" variant="secondary">
+            <Button type="submit" variant="secondary" disabled={pending}>
               Save as Draft
             </Button>
 
-            {onSubmitForApproval && (
-              <Button type="button" onClick={handleSubmitForApproval}>
+            {canSubmit && (
+              <Button type="button" disabled={pending} onClick={() => save(true)}>
                 Save &amp; Submit
               </Button>
             )}
@@ -940,6 +967,19 @@ export function VoucherFormDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+// Keeps what the next voucher in a batch usually shares (date, occasion, mode); clears the payee and amounts.
+function nextAfter(saved: VoucherDraft): VoucherDraft {
+  return {
+    ...saved,
+    lines: saved.lines.slice(0, 1).map((line) => ({ ...line, amount: 0 })),
+    chequeNo: '',
+    partyId: null,
+    party: '',
+    manualVoucherNo: '',
+    notes: '',
+  };
 }
 
 function cleaned(draft: VoucherDraft): VoucherDraft {
