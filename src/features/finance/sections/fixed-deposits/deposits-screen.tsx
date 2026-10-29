@@ -5,6 +5,8 @@ import { useServerAction } from '@/hooks/use-server-action';
 import {
   closeDeposit,
   createDeposit,
+  loadDepositInterest,
+  recordDepositInterest,
   renewDeposit,
   updateDeposit,
 } from '../../lib/finance-actions';
@@ -12,9 +14,11 @@ import {
 import { useMemo, useState } from 'react';
 import { CalendarClock, PiggyBank, Plus } from 'lucide-react';
 
+import type { BankAccountRef } from '@/features/accounting/types';
 import {
   ActionError,
   Card,
+  CardHeader,
   ConfirmDialog,
   DataCell,
   DataRow,
@@ -49,6 +53,11 @@ import {
   DepositFormDialog,
   type DepositDraft,
 } from '../../components/deposit-form-dialog';
+import { DepositInterestDialog } from '../../components/deposit-interest-dialog';
+import {
+  RecordInterestDialog,
+  type InterestDraft,
+} from '../../components/record-interest-dialog';
 import {
   DEPOSIT_READ_ONLY_MESSAGE,
   type FinanceAccess,
@@ -62,11 +71,30 @@ import {
   formatLongDate,
   formatShortDate,
 } from '../../lib/finance-data';
-import type { DepositRecord, DepositStatus, FundRecord } from '../../types';
+import type {
+  DepositInterest,
+  DepositRecord,
+  DepositStatus,
+  FundRecord,
+  PoojaFunding,
+  SlotOption,
+} from '../../types';
+
+const FUNDING_COLUMNS: DataColumn[] = [
+  { key: 'pooja', label: 'Pooja' },
+  { key: 'deposits', label: 'Deposits', align: 'right' },
+  { key: 'interest', label: 'Interest Received', align: 'right' },
+  { key: 'topups', label: 'Sponsor Top-ups', align: 'right' },
+  { key: 'spent', label: 'Spent', align: 'right' },
+  { key: 'balance', label: 'Balance', align: 'right' },
+];
 
 interface DepositsScreenProps {
   initialDeposits: readonly DepositRecord[];
   funds: readonly FundRecord[];
+  slots: readonly SlotOption[];
+  bankAccounts: readonly BankAccountRef[];
+  funding: PoojaFunding | null;
   access: FinanceAccess;
   today: string;
   year: number;
@@ -75,7 +103,11 @@ interface DepositsScreenProps {
 export function DepositsScreen({
   initialDeposits,
   funds,
+  slots,
+  bankAccounts,
+  funding,
   access,
+  today,
   year,
 }: DepositsScreenProps) {
   const deposits = initialDeposits;
@@ -84,6 +116,9 @@ export function DepositsScreen({
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<DepositRecord | null>(null);
   const [closing, setClosing] = useState<DepositRecord | null>(null);
+  const [receiving, setReceiving] = useState<DepositRecord | null>(null);
+  const [viewing, setViewing] = useState<DepositRecord | null>(null);
+  const [interest, setInterest] = useState<DepositInterest | null | undefined>();
 
   const filtered = useMemo(
     () =>
@@ -138,14 +173,16 @@ export function DepositsScreen({
       tenureMonths: draft.tenureMonths,
       interestPayout: draft.interestPayout,
       fundId: draft.fundId,
+      slotId: draft.slotId,
       notes: draft.notes,
     };
 
     run(
       () => {
         if (renewing) {
-          const { fundId, ...renewal } = input;
+          const { fundId, slotId, ...renewal } = input;
           void fundId;
+          void slotId;
 
           return renewDeposit(renewing.id, renewal);
         }
@@ -160,6 +197,18 @@ export function DepositsScreen({
     );
   }
 
+  function handleInterest(draft: InterestDraft) {
+    const target = receiving;
+
+    if (target) run(() => recordDepositInterest(target.id, draft));
+  }
+
+  async function showInterest(deposit: DepositRecord) {
+    setViewing(deposit);
+    setInterest(undefined);
+    setInterest(await loadDepositInterest(deposit.id));
+  }
+
   // On submit, the API marks the old certificate renewed and links the new one.
   function handleRenew(deposit: DepositRecord) {
     setRenewing(deposit);
@@ -169,12 +218,13 @@ export function DepositsScreen({
 
   const columns: DataColumn[] = [
     { key: 'certificate', label: 'Certificate' },
-    { key: 'fund', label: 'Fund' },
+    { key: 'pooja', label: 'Pooja' },
     { key: 'principal', label: 'Principal', align: 'right' },
     { key: 'rate', label: 'Rate', align: 'right' },
     { key: 'term', label: 'Term' },
     { key: 'maturity', label: 'Matures', align: 'right' },
     { key: 'value', label: 'Maturity Value', align: 'right' },
+    { key: 'interest', label: 'Interest Received', align: 'right' },
     { key: 'status', label: 'Status' },
     ...(access.canManageDeposits
       ? [{ key: 'actions', label: 'Actions', align: 'right', srOnly: true } as const]
@@ -322,7 +372,7 @@ export function DepositsScreen({
       )}
 
       <Card>
-        <DataTable columns={columns} minWidth={1120}>
+        <DataTable columns={columns} minWidth={1240}>
           {filtered.length === 0 ? (
             <DataTableEmpty colSpan={columns.length}>
               <EmptyState
@@ -356,7 +406,12 @@ export function DepositsScreen({
                 </DataCell>
 
                 <DataCell nowrap className="text-xs text-text-secondary">
-                  {deposit.fundName}
+                  <span className="text-[13px] text-text-primary">
+                    {deposit.poojaName ?? 'Kovil'}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-text-muted">
+                    {deposit.fundName}
+                  </span>
                 </DataCell>
 
                 <DataCell
@@ -410,6 +465,17 @@ export function DepositsScreen({
                   </span>
                 </DataCell>
 
+                <DataCell align="right" nowrap>
+                  <button
+                    type="button"
+                    className="text-[13px] font-medium text-primary tabular hover:underline"
+                    aria-label={`Interest by year for ${deposit.certificateNo}`}
+                    onClick={() => void showInterest(deposit)}
+                  >
+                    {formatCurrency(deposit.interestReceived)}
+                  </button>
+                </DataCell>
+
                 <DataCell nowrap>
                   <DepositStatusBadge status={deposit.status} />
                 </DataCell>
@@ -428,6 +494,10 @@ export function DepositsScreen({
                       </DropdownMenuTrigger>
 
                       <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onSelect={() => setReceiving(deposit)}>
+                          Record interest
+                        </DropdownMenuItem>
+
                         <DropdownMenuItem
                           onSelect={() => {
                             setEditing(deposit);
@@ -465,16 +535,93 @@ export function DepositsScreen({
         </DataTable>
       </Card>
 
+      {funding && funding.rows.length > 0 && (
+        <Card>
+          <CardHeader
+            title="Pooja Funding"
+            description={`Financial year ${funding.financialYearLabel}`}
+          />
+
+          <DataTable columns={FUNDING_COLUMNS} minWidth={900}>
+            {funding.rows.map((row) => (
+              <DataRow key={row.slotId ?? 'kovil'}>
+                <DataCell>
+                  <p className="truncate text-[13px] text-text-primary">
+                    {row.poojaName ?? 'Kovil'}
+                  </p>
+                  {row.sponsorName && (
+                    <p className="mt-0.5 truncate text-[11px] text-text-muted">
+                      {row.sponsorName}
+                    </p>
+                  )}
+                </DataCell>
+
+                <DataCell align="right" nowrap className="text-xs tabular">
+                  {row.deposits}
+                  <span className="block text-[11px] text-text-muted">
+                    {formatCurrency(row.principal)}
+                  </span>
+                </DataCell>
+
+                <DataCell align="right" nowrap className="text-[13px] tabular">
+                  {formatCurrency(row.interestReceived)}
+                </DataCell>
+
+                <DataCell align="right" nowrap className="text-[13px] tabular">
+                  {formatCurrency(row.sponsorTopUps)}
+                </DataCell>
+
+                <DataCell align="right" nowrap className="text-[13px] tabular">
+                  {formatCurrency(row.spent)}
+                </DataCell>
+
+                <DataCell align="right" nowrap>
+                  <span
+                    className={cn(
+                      'text-[13px] font-medium tabular',
+                      row.balance < 0 ? 'text-danger' : 'text-text-primary',
+                    )}
+                  >
+                    {formatCurrency(Math.abs(row.balance))}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-text-muted">
+                    {row.balance < 0 ? 'Shortfall' : 'Surplus'}
+                  </span>
+                </DataCell>
+              </DataRow>
+            ))}
+          </DataTable>
+        </Card>
+      )}
+
       {access.canManageDeposits && (
         <DepositFormDialog
           open={formOpen}
           onOpenChange={setFormOpen}
           deposit={editing}
           funds={funds}
+          slots={slots}
           existing={deposits}
           onSubmit={handleSubmit}
         />
       )}
+
+      {access.canManageDeposits && (
+        <RecordInterestDialog
+          open={receiving !== null}
+          onOpenChange={(open) => !open && setReceiving(null)}
+          deposit={receiving}
+          bankAccounts={bankAccounts}
+          today={today}
+          onSubmit={handleInterest}
+        />
+      )}
+
+      <DepositInterestDialog
+        deposit={viewing}
+        interest={interest}
+        onOpenChange={(open) => !open && setViewing(null)}
+      />
 
       <ConfirmDialog
         open={closing !== null}
