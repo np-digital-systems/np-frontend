@@ -25,6 +25,7 @@ export { ACCOUNTING_ROUTES } from './lib/routes';
 export {
   getAccounts,
   getActivityOptions,
+  getBankAccountOptions,
   getBankAccounts,
   getCashBook,
   getFunds,
