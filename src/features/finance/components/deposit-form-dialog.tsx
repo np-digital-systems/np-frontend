@@ -3,6 +3,11 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import {
+  EntityCombobox,
+  type EntityGroup,
+  type EntityOption,
+} from '@/components/ui/entity-combobox';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,9 +22,7 @@ import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -42,17 +45,22 @@ import type {
   SlotOption,
 } from '../types';
 
-const KOVIL = 'kovil';
-
-function withSponsor(label: string, slot: SlotOption): string {
-  return slot.sponsorName ? `${label} · ${slot.sponsorName}` : label;
-}
-
-function byPoojaType(slots: readonly SlotOption[]): SlotOption[][] {
-  const groups = new Map<number, SlotOption[]>();
+function poojaGroups(slots: readonly SlotOption[]): EntityGroup[] {
+  const groups = new Map<number, { heading: string; options: EntityOption[] }>();
 
   for (const slot of slots) {
-    groups.set(slot.poojaTypeId, [...(groups.get(slot.poojaTypeId) ?? []), slot]);
+    const group = groups.get(slot.poojaTypeId) ?? {
+      heading: slot.poojaTypeName,
+      options: [],
+    };
+
+    group.options.push({
+      value: String(slot.id),
+      label: slot.poojaName,
+      description: slot.sponsorName ?? undefined,
+      keywords: slot.poojaTypeName,
+    });
+    groups.set(slot.poojaTypeId, group);
   }
 
   return [...groups.values()];
@@ -146,8 +154,6 @@ export function DepositFormDialog({
     setDraft(draftFrom(deposit, funds, today));
     setError(null);
   }
-
-  const selectedSlot = slots.find((slot) => slot.id === draft.slotId);
 
   const matures = draft.placedOn
     ? maturityDate(draft.placedOn, draft.tenureMonths)
@@ -356,36 +362,17 @@ export function DepositFormDialog({
           </div>
 
           <FormField id="deposit-pooja" label="Pooja">
-            <Select
-              value={draft.slotId === null ? KOVIL : String(draft.slotId)}
-              onValueChange={(value) =>
-                update('slotId', value === KOVIL ? null : Number(value))
+            <EntityCombobox
+              id="deposit-pooja"
+              value={draft.slotId === null ? null : String(draft.slotId)}
+              groups={poojaGroups(slots)}
+              noneLabel="Kovil"
+              searchPlaceholder="Search pooja or sponsor…"
+              emptyMessage="No pooja matches that search."
+              onChange={(value) =>
+                update('slotId', value === null ? null : Number(value))
               }
-            >
-              <SelectTrigger id="deposit-pooja" className="w-full">
-                <SelectValue>
-                  {selectedSlot
-                    ? withSponsor(selectedSlot.poojaName, selectedSlot)
-                    : 'Kovil'}
-                </SelectValue>
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value={KOVIL}>Kovil</SelectItem>
-
-                {byPoojaType(slots).map((group) => (
-                  <SelectGroup key={group[0].poojaTypeId}>
-                    <SelectLabel>{group[0].poojaTypeName}</SelectLabel>
-
-                    {group.map((slot) => (
-                      <SelectItem key={slot.id} value={String(slot.id)}>
-                        {withSponsor(slot.slotName ?? slot.poojaTypeName, slot)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </FormField>
 
           {matures && draft.principal > 0 && draft.interestRate > 0 && (
