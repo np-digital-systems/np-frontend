@@ -17,7 +17,9 @@ import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -33,7 +35,28 @@ import {
   yearsBetween,
 } from '../lib/finance-data';
 import { depositSchema } from '../lib/finance-schemas';
-import type { DepositRecord, FundRecord, InterestPayout } from '../types';
+import type {
+  DepositRecord,
+  FundRecord,
+  InterestPayout,
+  SlotOption,
+} from '../types';
+
+const KOVIL = 'kovil';
+
+function withSponsor(label: string, slot: SlotOption): string {
+  return slot.sponsorName ? `${label} · ${slot.sponsorName}` : label;
+}
+
+function byPoojaType(slots: readonly SlotOption[]): SlotOption[][] {
+  const groups = new Map<number, SlotOption[]>();
+
+  for (const slot of slots) {
+    groups.set(slot.poojaTypeId, [...(groups.get(slot.poojaTypeId) ?? []), slot]);
+  }
+
+  return [...groups.values()];
+}
 
 export interface DepositDraft {
   certificateNo: string;
@@ -45,6 +68,7 @@ export interface DepositDraft {
   tenureMonths: number;
   interestPayout: InterestPayout;
   fundId: number;
+  slotId: number | null;
   notes: string;
 }
 
@@ -64,6 +88,7 @@ function draftFrom(
       tenureMonths: deposit.tenureMonths,
       interestPayout: deposit.interestPayout,
       fundId: deposit.fundId,
+      slotId: deposit.slotId,
       notes: deposit.notes ?? '',
     };
   }
@@ -78,6 +103,7 @@ function draftFrom(
     tenureMonths: 12,
     interestPayout: 'on-maturity',
     fundId: funds[0]?.id ?? 0,
+    slotId: null,
     notes: '',
   };
 }
@@ -91,6 +117,7 @@ interface DepositFormDialogProps {
   onOpenChange: (open: boolean) => void;
   deposit: DepositRecord | null;
   funds: readonly FundRecord[];
+  slots: readonly SlotOption[];
   existing: readonly DepositRecord[];
   onSubmit: (draft: DepositDraft) => void;
 }
@@ -100,6 +127,7 @@ export function DepositFormDialog({
   onOpenChange,
   deposit,
   funds,
+  slots,
   existing,
   onSubmit,
 }: DepositFormDialogProps) {
@@ -118,6 +146,8 @@ export function DepositFormDialog({
     setDraft(draftFrom(deposit, funds, today));
     setError(null);
   }
+
+  const selectedSlot = slots.find((slot) => slot.id === draft.slotId);
 
   const matures = draft.placedOn
     ? maturityDate(draft.placedOn, draft.tenureMonths)
@@ -324,6 +354,39 @@ export function DepositFormDialog({
               </Select>
             </FormField>
           </div>
+
+          <FormField id="deposit-pooja" label="Pooja">
+            <Select
+              value={draft.slotId === null ? KOVIL : String(draft.slotId)}
+              onValueChange={(value) =>
+                update('slotId', value === KOVIL ? null : Number(value))
+              }
+            >
+              <SelectTrigger id="deposit-pooja" className="w-full">
+                <SelectValue>
+                  {selectedSlot
+                    ? withSponsor(selectedSlot.poojaName, selectedSlot)
+                    : 'Kovil'}
+                </SelectValue>
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value={KOVIL}>Kovil</SelectItem>
+
+                {byPoojaType(slots).map((group) => (
+                  <SelectGroup key={group[0].poojaTypeId}>
+                    <SelectLabel>{group[0].poojaTypeName}</SelectLabel>
+
+                    {group.map((slot) => (
+                      <SelectItem key={slot.id} value={String(slot.id)}>
+                        {withSponsor(slot.slotName ?? slot.poojaTypeName, slot)}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
 
           {matures && draft.principal > 0 && draft.interestRate > 0 && (
             <dl className="grid grid-cols-3 gap-x-4 rounded-lg bg-surface-2 px-3.5 py-3">
