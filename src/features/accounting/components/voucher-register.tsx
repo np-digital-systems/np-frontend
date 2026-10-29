@@ -183,6 +183,7 @@ export function VoucherRegister({
         projectId: line.projectId,
         activityId: line.activityId,
         eventId: line.eventId,
+        fixedDepositId: line.fixedDepositId,
       })),
       mode: draft.mode,
       bankAccountId: draft.bankAccountId,
