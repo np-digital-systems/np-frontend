@@ -98,12 +98,14 @@ export function SettingsScreen({
 
       if (!temple.ok) return temple;
 
-      const { cashAccountId, sanththaAccountId } = settings.accounting;
+      const { cashAccountId, sanththaAccountId, depositInterestAccountId } =
+        settings.accounting;
 
       // Omit the key rather than sending null.
       return updateAccountingSettings({
         ...(cashAccountId === null ? {} : { cashAccountId }),
         ...(sanththaAccountId === null ? {} : { sanththaAccountId }),
+        ...(depositInterestAccountId === null ? {} : { depositInterestAccountId }),
       });
     });
   }
@@ -452,6 +454,32 @@ function AccountingSection({
           >
             <SelectTrigger id="acc-sanththa-account" className="w-full">
               <SelectValue placeholder="Choose the sanththa head" />
+            </SelectTrigger>
+
+            <SelectContent>
+              {incomeAccounts.map((account) => (
+                <SelectItem key={account.id} value={String(account.id)}>
+                  {account.code} — {account.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        <FormField id="acc-deposit-interest-account" label="Deposit interest head">
+          <Select
+            value={
+              accounting.depositInterestAccountId
+                ? String(accounting.depositInterestAccountId)
+                : undefined
+            }
+            disabled={incomeAccounts.length === 0}
+            onValueChange={(value) =>
+              onChange({ depositInterestAccountId: Number(value) })
+            }
+          >
+            <SelectTrigger id="acc-deposit-interest-account" className="w-full">
+              <SelectValue placeholder="Choose the deposit interest head" />
             </SelectTrigger>
 
             <SelectContent>

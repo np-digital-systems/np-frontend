@@ -29,7 +29,7 @@ export async function SettingsFeature() {
     (account) => account.type === 'asset' && account.isActive,
   );
 
-  // Income heads only; the API rejects any other type for sanththa.
+  // Income heads only; the API rejects any other type for sanththa and deposit interest.
   const incomeAccounts = chart.filter(
     (account) => account.type === 'income' && account.isActive,
   );

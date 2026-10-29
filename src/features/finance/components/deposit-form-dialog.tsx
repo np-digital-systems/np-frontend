@@ -3,6 +3,11 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import {
+  EntityCombobox,
+  type EntityGroup,
+  type EntityOption,
+} from '@/components/ui/entity-combobox';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +38,33 @@ import {
   yearsBetween,
 } from '../lib/finance-data';
 import { depositSchema } from '../lib/finance-schemas';
-import type { DepositRecord, FundRecord, InterestPayout } from '../types';
+import type {
+  DepositRecord,
+  FundRecord,
+  InterestPayout,
+  SlotOption,
+} from '../types';
+
+function poojaGroups(slots: readonly SlotOption[]): EntityGroup[] {
+  const groups = new Map<number, { heading: string; options: EntityOption[] }>();
+
+  for (const slot of slots) {
+    const group = groups.get(slot.poojaTypeId) ?? {
+      heading: slot.poojaTypeName,
+      options: [],
+    };
+
+    group.options.push({
+      value: String(slot.id),
+      label: slot.poojaName,
+      description: slot.sponsorName ?? undefined,
+      keywords: slot.poojaTypeName,
+    });
+    groups.set(slot.poojaTypeId, group);
+  }
+
+  return [...groups.values()];
+}
 
 export interface DepositDraft {
   certificateNo: string;
@@ -45,6 +76,7 @@ export interface DepositDraft {
   tenureMonths: number;
   interestPayout: InterestPayout;
   fundId: number;
+  slotId: number | null;
   notes: string;
 }
 
@@ -64,6 +96,7 @@ function draftFrom(
       tenureMonths: deposit.tenureMonths,
       interestPayout: deposit.interestPayout,
       fundId: deposit.fundId,
+      slotId: deposit.slotId,
       notes: deposit.notes ?? '',
     };
   }
@@ -78,6 +111,7 @@ function draftFrom(
     tenureMonths: 12,
     interestPayout: 'on-maturity',
     fundId: funds[0]?.id ?? 0,
+    slotId: null,
     notes: '',
   };
 }
@@ -91,6 +125,7 @@ interface DepositFormDialogProps {
   onOpenChange: (open: boolean) => void;
   deposit: DepositRecord | null;
   funds: readonly FundRecord[];
+  slots: readonly SlotOption[];
   existing: readonly DepositRecord[];
   onSubmit: (draft: DepositDraft) => void;
 }
@@ -100,6 +135,7 @@ export function DepositFormDialog({
   onOpenChange,
   deposit,
   funds,
+  slots,
   existing,
   onSubmit,
 }: DepositFormDialogProps) {
@@ -324,6 +360,20 @@ export function DepositFormDialog({
               </Select>
             </FormField>
           </div>
+
+          <FormField id="deposit-pooja" label="Pooja">
+            <EntityCombobox
+              id="deposit-pooja"
+              value={draft.slotId === null ? null : String(draft.slotId)}
+              groups={poojaGroups(slots)}
+              noneLabel="Kovil"
+              searchPlaceholder="Search pooja or sponsor…"
+              emptyMessage="No pooja matches that search."
+              onChange={(value) =>
+                update('slotId', value === null ? null : Number(value))
+              }
+            />
+          </FormField>
 
           {matures && draft.principal > 0 && draft.interestRate > 0 && (
             <dl className="grid grid-cols-3 gap-x-4 rounded-lg bg-surface-2 px-3.5 py-3">

@@ -50,6 +50,7 @@ export interface VoucherLineInput {
   projectId: number | null;
   activityId: number | null;
   eventId: number | null;
+  fixedDepositId: number | null;
 }
 
 export interface VoucherInput {
@@ -82,6 +83,7 @@ function voucherBody(input: VoucherInput) {
       projectId: line.projectId ?? undefined,
       activityId: line.activityId ?? undefined,
       eventId: line.eventId ?? undefined,
+      fixedDepositId: line.fixedDepositId ?? undefined,
     })),
     mode: input.mode,
     bankAccountId: input.bankAccountId ?? undefined,

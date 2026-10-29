@@ -32,6 +32,7 @@ const voucherLineSchema = z.object({
   projectId: z.number().int().positive().nullable(),
   activityId: z.number().int().positive().nullable(),
   eventId: z.number().int().positive().nullable(),
+  fixedDepositId: z.number().int().positive().nullable(),
 });
 
 export const voucherSchema = z

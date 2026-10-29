@@ -9,6 +9,8 @@ import {
   requiredText,
 } from '@/lib/validation';
 
+import { PAYMENT_MODES } from '@/features/accounting/lib/accounting-data';
+
 import {
   ASSET_CATEGORIES,
   ASSET_CONDITIONS,
@@ -60,8 +62,23 @@ export const depositSchema = z.object({
     .max(120, 'The tenure cannot exceed ten years.'),
   interestPayout: z.enum(INTEREST_PAYOUTS),
   fundId: z.number().int().positive('Choose a fund.'),
+  slotId: z.number().int().positive().nullable(),
   notes: optionalText(1000),
 });
+
+export const interestSchema = z
+  .object({
+    amount: positiveAmount('The interest'),
+    receivedOn: isoDate,
+    mode: z.enum(PAYMENT_MODES),
+    bankAccountId: z.number().int().positive().nullable(),
+    chequeNo: optionalText(40),
+    manualVoucherNo: requiredText('The manual voucher number', 60),
+  })
+  .refine((draft) => draft.mode === 'cash' || draft.bankAccountId !== null, {
+    message: 'Choose the bank account it was paid into.',
+    path: ['bankAccountId'],
+  });
 
 export const assetSchema = z.object({
   tag: requiredText('An asset tag', 32).transform((value) =>
@@ -89,4 +106,5 @@ export const disposalSchema = z.object({
 export type FundInput = z.input<typeof fundSchema>;
 export type ProjectInput = z.input<typeof projectSchema>;
 export type DepositInput = z.input<typeof depositSchema>;
+export type InterestInput = z.input<typeof interestSchema>;
 export type AssetInput = z.input<typeof assetSchema>;

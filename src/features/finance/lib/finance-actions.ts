@@ -3,7 +3,10 @@
 import { revalidatePath } from 'next/cache';
 
 import { requireSession } from '@/features/auth/lib/session';
+import type { PaymentMode } from '@/features/accounting/types';
 import { api, ApiError } from '@/lib/api';
+
+import type { DepositInterest } from '../types';
 
 import { getFinanceAccess } from './finance-access';
 import { FINANCE_ROUTES } from './routes';
@@ -103,6 +106,7 @@ export interface DepositInput {
   tenureMonths: number;
   interestPayout: 'monthly' | 'quarterly' | 'on-maturity';
   fundId: number;
+  slotId: number | null;
   notes?: string;
 }
 
@@ -123,11 +127,39 @@ export async function updateDeposit(
 
 export async function renewDeposit(
   id: number,
-  input: Omit<DepositInput, 'fundId'>,
+  input: Omit<DepositInput, 'fundId' | 'slotId'>,
 ): Promise<ActionResult> {
   return guarded((a) => a.canManageDeposits, 'You cannot renew fixed deposits.', () =>
     api.post(`/fixed-deposits/${id}/renew`, { ...input, notes: input.notes || undefined }),
   );
+}
+
+export interface InterestInput {
+  amount: number;
+  receivedOn: string;
+  mode: PaymentMode;
+  bankAccountId: number | null;
+  chequeNo?: string;
+  manualVoucherNo: string;
+}
+
+export async function recordDepositInterest(
+  id: number,
+  input: InterestInput,
+): Promise<ActionResult> {
+  return guarded((a) => a.canManageDeposits, 'You cannot record deposit interest.', () =>
+    api.post(`/fixed-deposits/${id}/interest`, {
+      ...input,
+      bankAccountId: input.mode === 'cash' ? undefined : (input.bankAccountId ?? undefined),
+      chequeNo: input.chequeNo || undefined,
+    }),
+  );
+}
+
+export async function loadDepositInterest(id: number): Promise<DepositInterest | null> {
+  await requireSession();
+
+  return api.get<DepositInterest>(`/fixed-deposits/${id}/interest`).catch(() => null);
 }
 
 export async function matureDeposit(id: number): Promise<ActionResult> {
