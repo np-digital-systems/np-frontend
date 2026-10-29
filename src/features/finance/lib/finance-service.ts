@@ -13,7 +13,9 @@ import type {
   FundBreakdownLine,
   FundDetail,
   FundRecord,
+  PoojaFunding,
   ProjectRecord,
+  SlotOption,
 } from '../types';
 
 // Interest, depreciation and fund positions come from the API. Movements follow the header's
@@ -65,6 +67,18 @@ export async function getProjectRecords(): Promise<readonly ProjectRecord[]> {
 
 export async function getDepositRecords(): Promise<readonly DepositRecord[]> {
   return api.get<readonly DepositRecord[]>('/fixed-deposits');
+}
+
+export async function getSlotOptions(): Promise<readonly SlotOption[]> {
+  return api.get<readonly SlotOption[]>('/fixed-deposits/slot-options');
+}
+
+export async function getPoojaFunding(): Promise<PoojaFunding | null> {
+  const financialYearId = await getActiveFinancialYearId();
+
+  return api
+    .get<PoojaFunding>('/fixed-deposits/pooja-funding', { query: { financialYearId } })
+    .catch(() => null);
 }
 
 export async function getAssetRecords(): Promise<readonly AssetRecord[]> {
