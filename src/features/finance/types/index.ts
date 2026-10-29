@@ -55,6 +55,9 @@ export interface FixedDeposit {
   readonly tenureMonths: number;
   readonly interestPayout: InterestPayout;
     readonly fundId: number;
+  /** Null for a kovil deposit. */
+  readonly slotId: number | null;
+  readonly bankAccountId: number | null;
   readonly status: DepositStatus;
     readonly renewedFromId: number | null;
   readonly notes: string | null;
@@ -68,6 +71,48 @@ export interface DepositRecord extends FixedDeposit {
     readonly daysToMaturity: number;
     readonly isMaturingSoon: boolean;
   readonly isOverdue: boolean;
+  readonly poojaName: string | null;
+  readonly interestReceived: number;
+}
+
+export interface SlotOption {
+  readonly id: number;
+  readonly poojaName: string;
+  readonly poojaTypeId: number;
+  readonly poojaTypeName: string;
+  /** Null when the pooja type has a single slot. */
+  readonly slotName: string | null;
+  readonly sponsorName: string | null;
+}
+
+export interface DepositInterest {
+  readonly depositId: number;
+  readonly certificates: readonly string[];
+  readonly years: readonly {
+    readonly financialYearId: number;
+    readonly label: string;
+    readonly amount: number;
+  }[];
+  readonly total: number;
+}
+
+export interface PoojaFundingRow {
+  readonly slotId: number | null;
+  readonly poojaName: string | null;
+  readonly sponsorName: string | null;
+  readonly deposits: number;
+  readonly principal: number;
+  readonly interestReceived: number;
+  readonly sponsorTopUps: number;
+  readonly spent: number;
+  /** Positive is surplus, negative a shortfall. */
+  readonly balance: number;
+}
+
+export interface PoojaFunding {
+  readonly financialYearId: number;
+  readonly financialYearLabel: string;
+  readonly rows: readonly PoojaFundingRow[];
 }
 
 export type AssetCategory =
