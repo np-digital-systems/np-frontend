@@ -123,6 +123,8 @@ export interface VoucherLine {
   readonly activityId: number | null;
   /** The specific pooja occurrence, if any. */
   readonly eventId: number | null;
+  /** Set on an interest receipt raised from a fixed deposit. */
+  readonly fixedDepositId: number | null;
   readonly account: AccountRef;
   readonly fund: FundRef;
   readonly project: ProjectRef | null;
