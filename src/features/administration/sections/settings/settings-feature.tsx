@@ -34,6 +34,13 @@ export async function SettingsFeature() {
     (account) => account.type === 'income' && account.isActive,
   );
 
+  // Cash and bank heads are refused: deposits would land in the cash or bank book.
+  const depositAccounts = cashAccounts.filter((account) => account.moneyHead === null);
+
+  const equityAccounts = chart.filter(
+    (account) => account.type === 'equity' && account.isActive,
+  );
+
   if (!record) {
     return (
       <PageShell>
@@ -54,6 +61,8 @@ export async function SettingsFeature() {
         today={today}
         cashAccounts={cashAccounts}
         incomeAccounts={incomeAccounts}
+        depositAccounts={depositAccounts}
+        equityAccounts={equityAccounts}
         initialSettings={
           access.canManageSettings ? (await getPortalSettings()) : null
         }
