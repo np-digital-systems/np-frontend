@@ -16,9 +16,9 @@ import type { PortalUser } from '@/features/auth/types/user';
 import { cn } from '@/lib/utils';
 
 import {
-  PAYMENT_MODE_LABELS,
   formatCurrency,
   formatLongDate,
+  modeLabel,
   partyLabel,
 } from '../lib/accounting-data';
 import {
@@ -27,7 +27,14 @@ import {
   type AccountingAccess,
 } from '../lib/accounting-access';
 import { STATUS_MEANING } from '../lib/voucher-workflow';
-import type { VoucherRecord } from '../types';
+import type { VoucherKind, VoucherRecord } from '../types';
+
+const AMOUNT_LABELS: Record<VoucherKind, string> = {
+  receipt: 'Amount received',
+  payment: 'Amount paid',
+  contra: 'Amount moved',
+  journal: 'Amount',
+};
 
 interface VoucherDetailDialogProps {
   open: boolean;
@@ -69,7 +76,7 @@ export function VoucherDetailDialog({
 
             <div className="rounded-lg border border-border bg-surface-2 px-4 py-3.5">
               <p className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-                {voucher.kind === 'receipt' ? 'Amount received' : 'Amount paid'}
+                {AMOUNT_LABELS[voucher.kind]}
               </p>
               <p className="mt-1 text-2xl leading-none font-semibold tracking-[-0.02em] text-text-primary tabular">
                 {formatCurrency(voucher.amount)}
@@ -87,10 +94,9 @@ export function VoucherDetailDialog({
                   label={partyLabel(voucher.kind)}
                   value={voucher.party}
                 />
-                <Detail
-                  label="Mode"
-                  value={PAYMENT_MODE_LABELS[voucher.mode]}
-                />
+                {voucher.mode !== null && (
+                  <Detail label="Mode" value={modeLabel(voucher.mode)} />
+                )}
 
                 {voucher.bankAccount && (
                   <Detail
@@ -122,6 +128,11 @@ export function VoucherDetailDialog({
 
                       {voucher.lines.length > 1 && (
                         <p className="shrink-0 text-[13px] font-medium text-text-primary tabular">
+                          {line.side && (
+                            <span className="mr-1.5 text-[11px] font-normal text-text-muted">
+                              {line.side === 'debit' ? 'Dr' : 'Cr'}
+                            </span>
+                          )}
                           {formatCurrency(line.amount)}
                         </p>
                       )}

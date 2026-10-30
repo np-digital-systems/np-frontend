@@ -31,9 +31,12 @@ import {
 import type { PortalUser } from '@/features/auth/types/user';
 
 import {
-  PAYMENT_MODE_LABELS,
   formatCurrency,
   formatShortDate,
+  headsFor,
+  kindTone,
+  modeLabel,
+  partyLabel,
 } from '../lib/accounting-data';
 import {
   READ_ONLY_MESSAGE,
@@ -53,12 +56,14 @@ import {
   rejectVoucher,
   submitVoucher,
   updateVoucher,
+  type VoucherInput,
 } from '../lib/accounting-actions';
 import type {
   AccountRef,
   BankAccountRef,
   FundRef,
   ActivityRef,
+  MoneyAccount,
   PartyRef,
   PoojaRef,
   ProjectRef,
@@ -67,6 +72,8 @@ import type {
 } from '../types';
 
 import { Amount } from './amount';
+import { ContraFormDialog } from './contra-form-dialog';
+import { JournalFormDialog } from './journal-form-dialog';
 import { RejectDialog } from './reject-dialog';
 import { VoucherDetailDialog } from './voucher-detail-dialog';
 import {
@@ -76,6 +83,20 @@ import {
   type VoucherFilterState,
 } from './voucher-filters';
 import { VoucherFormDialog, type VoucherDraft } from './voucher-form-dialog';
+
+const NOUNS: Record<VoucherKind, string> = {
+  receipt: 'Receipt',
+  payment: 'Payment',
+  contra: 'Contra',
+  journal: 'Journal',
+};
+
+const TOTAL_LABELS: Record<VoucherKind, string> = {
+  receipt: 'Total Received',
+  payment: 'Total Paid',
+  contra: 'Total Moved',
+  journal: 'Total Journalled',
+};
 
 interface VoucherRegisterProps {
   kind: VoucherKind;
@@ -89,6 +110,8 @@ interface VoucherRegisterProps {
   activities: readonly ActivityRef[];
   parties: readonly PartyRef[];
   poojas: readonly PoojaRef[];
+  /** Cash and each bank account; contra only. */
+  moneyAccounts?: readonly MoneyAccount[];
   access: AccountingAccess;
   user: PortalUser;
   year: number;
@@ -106,6 +129,7 @@ export function VoucherRegister({
   activities,
   parties,
   poojas,
+  moneyAccounts = [],
   access,
   user,
   year,
@@ -171,9 +195,21 @@ export function VoucherRegister({
     });
   }
 
+  function save(input: Omit<VoucherInput, 'kind'>, thenSubmit: boolean) {
+    const target = editing;
+
+    run(() =>
+      target
+        ? updateVoucher(target.id, { ...input, kind }, thenSubmit)
+        : createVoucher({ ...input, kind }, thenSubmit),
+    );
+
+    setEditing(null);
+    setFormOpen(false);
+  }
+
   function handleSave(draft: VoucherDraft, thenSubmit: boolean) {
     const input = {
-      kind,
       date: draft.date,
       description: draft.description,
       lines: draft.lines.map((line) => ({
@@ -184,6 +220,7 @@ export function VoucherRegister({
         activityId: line.activityId,
         eventId: line.eventId,
         fixedDepositId: line.fixedDepositId,
+        side: null,
       })),
       mode: draft.mode,
       bankAccountId: draft.bankAccountId,
@@ -194,20 +231,13 @@ export function VoucherRegister({
       notes: draft.notes || null,
     };
 
-    const target = editing;
-
-    run(() =>
-      target ? updateVoucher(target.id, input, thenSubmit) : createVoucher(input, thenSubmit),
-    );
-
-    setEditing(null);
-    setFormOpen(false);
+    save(input, thenSubmit);
   }
 
   const columns: DataColumn[] = [
     { key: 'ref', label: 'Reference' },
     { key: 'date', label: 'Date' },
-    { key: 'party', label: kind === 'receipt' ? 'Received From' : 'Paid To' },
+    { key: 'party', label: partyLabel(kind) },
     { key: 'account', label: 'Account' },
     { key: 'fund', label: 'Fund / Project' },
     { key: 'mode', label: 'Mode' },
@@ -251,7 +281,7 @@ export function VoucherRegister({
                 }}
               >
                 <Plus />
-                New {kind === 'receipt' ? 'Receipt' : 'Payment'}
+                New {NOUNS[kind]}
               </Button>
             )}
           </>
@@ -271,7 +301,7 @@ export function VoucherRegister({
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label={kind === 'receipt' ? 'Total Received' : 'Total Paid'}
+          label={TOTAL_LABELS[kind]}
           value={formatCurrency(totals.settled)}
           caption="Approved and posted"
         />
@@ -309,7 +339,7 @@ export function VoucherRegister({
                 icon={Receipt}
                 title={
                   vouchers.length === 0
-                    ? `No ${kind === 'receipt' ? 'receipts' : 'payments'} yet`
+                    ? `No ${NOUNS[kind].toLowerCase()} vouchers yet`
                     : 'No entries match these filters'
                 }
                 description={
@@ -384,7 +414,7 @@ export function VoucherRegister({
                   </DataCell>
 
                   <DataCell nowrap className="text-xs text-text-secondary">
-                    {PAYMENT_MODE_LABELS[voucher.mode]}
+                    {modeLabel(voucher.mode)}
                     {voucher.chequeNo && (
                       <span className="ml-1 text-text-muted ref">
                         #{voucher.chequeNo}
@@ -398,9 +428,7 @@ export function VoucherRegister({
                       tone={
                         voucher.status === 'Cancelled'
                           ? 'muted'
-                          : kind === 'receipt'
-                            ? 'in'
-                            : 'out'
+                          : kindTone(kind)
                       }
                       className={
                         voucher.status === 'Cancelled' ? 'line-through' : undefined
@@ -450,13 +478,42 @@ export function VoucherRegister({
         </DataTable>
       </Card>
 
-      {canCreate && (
+      {canCreate && kind === 'contra' && (
+        <ContraFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          voucher={editing}
+          accounts={moneyAccounts}
+          funds={funds}
+          onSubmit={(input) => save(input, false)}
+          onSubmitForApproval={
+            access.canSubmit ? (input) => save(input, true) : undefined
+          }
+        />
+      )}
+
+      {canCreate && kind === 'journal' && (
+        <JournalFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          voucher={editing}
+          accounts={accounts.filter((account) => account.moneyHead === null)}
+          funds={funds}
+          parties={parties}
+          onSubmit={(input) => save(input, false)}
+          onSubmitForApproval={
+            access.canSubmit ? (input) => save(input, true) : undefined
+          }
+        />
+      )}
+
+      {canCreate && (kind === 'receipt' || kind === 'payment') && (
         <VoucherFormDialog
           open={formOpen}
           onOpenChange={setFormOpen}
           kind={kind}
           voucher={editing}
-          accounts={accounts}
+          accounts={headsFor(kind, accounts)}
           funds={funds}
           projects={projects}
           bankAccounts={bankAccounts}
