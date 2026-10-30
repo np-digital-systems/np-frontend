@@ -7,6 +7,9 @@ export type AccountType =
   | 'income'
   | 'expense';
 
+/** Cash and bank heads only move through a voucher's cash/bank side or a contra. */
+export type MoneyHead = 'cash' | 'bank';
+
 export interface Account {
   readonly id: number;
     readonly code: string;
@@ -21,11 +24,12 @@ export interface Account {
   /** Only for heads paid to a single party (e.g. electricity), never shared heads like salaries. */
   readonly defaultPartyId: number | null;
   readonly createdAt: string;
+  readonly moneyHead: MoneyHead | null;
 }
 
 export type AccountRef = Pick<
   Account,
-  'id' | 'code' | 'name' | 'nameTa' | 'type' | 'defaultPartyId'
+  'id' | 'code' | 'name' | 'nameTa' | 'type' | 'defaultPartyId' | 'moneyHead'
 >;
 
 export interface AccountRecord extends Account {
@@ -95,7 +99,19 @@ export type BankAccountRef = Pick<
   'id' | 'label' | 'type' | 'isActive'
 >;
 
-export type VoucherKind = 'receipt' | 'payment';
+/** A contra moves money between the temple's own cash and bank; a journal moves none. */
+export type VoucherKind = 'receipt' | 'payment' | 'contra' | 'journal';
+
+export type EntrySide = 'debit' | 'credit';
+
+/** Cash, or one bank account, with the ledger head its money sits on; what a contra moves between. */
+export interface MoneyAccount {
+  readonly key: string;
+  readonly label: string;
+  readonly accountId: number;
+  /** Null for cash. */
+  readonly bankAccountId: number | null;
+}
 
 export type VoucherStatus =
   | 'Draft'
@@ -112,7 +128,8 @@ export interface VoucherActor {
   readonly name: string;
 }
 
-// No debit/credit column: the side follows from the voucher kind. The cash/bank contra is generated on posting.
+// Only journal lines carry a side; on every other kind it follows from the kind, and the cash/bank side
+// is generated on posting. A contra's one line is the cash or bank head the money went to.
 export interface VoucherLine {
   readonly id: number;
   readonly lineNo: number;
@@ -123,8 +140,9 @@ export interface VoucherLine {
   readonly activityId: number | null;
   /** The specific pooja occurrence, if any. */
   readonly eventId: number | null;
-  /** Set on an interest receipt raised from a fixed deposit. */
+  /** Set on lines raised from a fixed deposit: its principal or its interest. */
   readonly fixedDepositId: number | null;
+  readonly side: EntrySide | null;
   readonly account: AccountRef;
   readonly fund: FundRef;
   readonly project: ProjectRef | null;
@@ -143,7 +161,8 @@ export interface Voucher {
 
   readonly partyId: number | null;
 
-  readonly mode: PaymentMode;
+  /** Null for a journal. */
+  readonly mode: PaymentMode | null;
     readonly bankAccountId: number | null;
   readonly chequeNo: string | null;
 
@@ -180,7 +199,7 @@ export interface LedgerEntry {
   readonly projectId: number | null;
   readonly debit: number | null;
   readonly credit: number | null;
-  readonly mode: PaymentMode;
+  readonly mode: PaymentMode | null;
   readonly bankAccountId: number | null;
   readonly status: VoucherStatus;
 }

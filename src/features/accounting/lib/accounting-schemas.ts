@@ -35,6 +35,61 @@ const voucherLineSchema = z.object({
   fixedDepositId: z.number().int().positive().nullable(),
 });
 
+const round = (value: number) => Math.round(value * 100) / 100;
+
+export const contraSchema = z
+  .object({
+    date: isoDate,
+    manualVoucherNo: requiredText('A manual voucher number', 60),
+    fromKey: z.string().min(1, 'Choose where the money came from.'),
+    toKey: z.string().min(1, 'Choose where the money went.'),
+    amount: positiveAmount('The amount'),
+    fundId: z.number().int().positive('Choose a fund.'),
+    mode: z.enum(PAYMENT_MODES),
+    chequeNo: optionalText(32),
+    description: requiredText('A description'),
+    notes: optionalText(1000),
+  })
+  .refine((draft) => draft.fromKey !== draft.toKey, {
+    message: 'Money has to move to a different account.',
+    path: ['toKey'],
+  })
+  .refine((draft) => draft.mode !== 'cheque' || draft.chequeNo.length > 0, {
+    message: 'A cheque number is required for a cheque withdrawal.',
+    path: ['chequeNo'],
+  });
+
+const journalLineSchema = z.object({
+  accountId: z.number().int().positive('Choose a ledger account on every line.'),
+  side: z.enum(['debit', 'credit']),
+  amount: positiveAmount('Each amount'),
+  fundId: z.number().int().positive('Choose a fund on every line.'),
+});
+
+export const journalSchema = z
+  .object({
+    date: isoDate,
+    manualVoucherNo: requiredText('A manual voucher number', 60),
+    description: requiredText('A description'),
+    partyId: z.number().int().positive().nullable(),
+    party: requiredText('Particulars'),
+    lines: z.array(journalLineSchema).min(2, 'A journal needs a debit and a credit line.').max(50),
+    notes: optionalText(1000),
+  })
+  .refine(
+    (draft) => {
+      const total = (side: 'debit' | 'credit') =>
+        round(
+          draft.lines
+            .filter((line) => line.side === side)
+            .reduce((sum, line) => sum + line.amount, 0),
+        );
+
+      return total('debit') > 0 && total('debit') === total('credit');
+    },
+    { message: 'The debits must equal the credits.', path: ['lines'] },
+  );
+
 export const voucherSchema = z
   .object({
     date: isoDate,

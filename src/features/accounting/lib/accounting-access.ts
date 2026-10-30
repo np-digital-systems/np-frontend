@@ -21,6 +21,10 @@ export interface AccountingAccess {
   readonly canCreateReceipts: boolean;
   readonly canViewPayments: boolean;
   readonly canCreatePayments: boolean;
+  readonly canViewContras: boolean;
+  readonly canCreateContras: boolean;
+  readonly canViewJournals: boolean;
+  readonly canCreateJournals: boolean;
 
   readonly canSubmit: boolean;
   readonly canApprove: boolean;
@@ -62,6 +66,10 @@ export function getAccountingAccess(granted: readonly Permission[]): AccountingA
     canCreateReceipts,
     canViewPayments: can(granted, 'payment-voucher:view'),
     canCreatePayments,
+    canViewContras: can(granted, 'transaction:view'),
+    canCreateContras: can(granted, 'voucher:create'),
+    canViewJournals: can(granted, 'transaction:view'),
+    canCreateJournals: can(granted, 'voucher:journal'),
 
     canSubmit: can(granted, 'voucher:submit'),
     canApprove: can(granted, 'voucher:approve'),
@@ -87,16 +95,32 @@ export function canViewKind(
   access: AccountingAccess,
   kind: VoucherKind,
 ): boolean {
-  return kind === 'receipt' ? access.canViewReceipts : access.canViewPayments;
+  switch (kind) {
+    case 'receipt':
+      return access.canViewReceipts;
+    case 'payment':
+      return access.canViewPayments;
+    case 'contra':
+      return access.canViewContras;
+    case 'journal':
+      return access.canViewJournals;
+  }
 }
 
 export function canCreateKind(
   access: AccountingAccess,
   kind: VoucherKind,
 ): boolean {
-  return kind === 'receipt'
-    ? access.canCreateReceipts
-    : access.canCreatePayments;
+  switch (kind) {
+    case 'receipt':
+      return access.canCreateReceipts;
+    case 'payment':
+      return access.canCreatePayments;
+    case 'contra':
+      return access.canCreateContras;
+    case 'journal':
+      return access.canCreateJournals;
+  }
 }
 
 // Editing a pending entry returns it to Draft so the change is re-reviewed.
