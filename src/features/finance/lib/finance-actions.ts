@@ -110,9 +110,30 @@ export interface DepositInput {
   notes?: string;
 }
 
-export async function createDeposit(input: DepositInput): Promise<ActionResult> {
+// How the principal reached the deposit, which decides the voucher raised for it.
+export interface PlacementInput {
+  source: 'bank' | 'endowment' | 'opening';
+  mode: PaymentMode | null;
+  fromBankAccountId: number | null;
+  chequeNo: string;
+  manualVoucherNo: string;
+}
+
+export async function createDeposit(
+  input: DepositInput & PlacementInput,
+): Promise<ActionResult> {
+  const bank = input.source === 'bank';
+
   return guarded((a) => a.canManageDeposits, 'You cannot place fixed deposits.', () =>
-    api.post('/fixed-deposits', { ...input, notes: input.notes || undefined }),
+    api.post('/fixed-deposits', {
+      ...input,
+      notes: input.notes || undefined,
+      mode: bank ? (input.mode ?? undefined) : undefined,
+      fromBankAccountId:
+        bank && input.mode !== 'cash' ? (input.fromBankAccountId ?? undefined) : undefined,
+      chequeNo: bank && input.mode === 'cheque' ? input.chequeNo : undefined,
+      manualVoucherNo: input.source === 'opening' ? undefined : input.manualVoucherNo,
+    }),
   );
 }
 
@@ -127,7 +148,7 @@ export async function updateDeposit(
 
 export async function renewDeposit(
   id: number,
-  input: Omit<DepositInput, 'fundId' | 'slotId'>,
+  input: Omit<DepositInput, 'fundId' | 'slotId'> & { manualVoucherNo: string },
 ): Promise<ActionResult> {
   return guarded((a) => a.canManageDeposits, 'You cannot renew fixed deposits.', () =>
     api.post(`/fixed-deposits/${id}/renew`, { ...input, notes: input.notes || undefined }),
@@ -168,9 +189,14 @@ export async function matureDeposit(id: number): Promise<ActionResult> {
   );
 }
 
-export async function closeDeposit(id: number): Promise<ActionResult> {
+// `amount` is everything the bank paid out; the API splits it into principal and final interest.
+export async function closeDeposit(id: number, input: InterestInput): Promise<ActionResult> {
   return guarded((a) => a.canManageDeposits, 'You cannot close fixed deposits.', () =>
-    api.post(`/fixed-deposits/${id}/close`),
+    api.post(`/fixed-deposits/${id}/close`, {
+      ...input,
+      bankAccountId: input.mode === 'cash' ? undefined : (input.bankAccountId ?? undefined),
+      chequeNo: input.chequeNo || undefined,
+    }),
   );
 }
 

@@ -19,7 +19,6 @@ import {
   ActionError,
   Card,
   CardHeader,
-  ConfirmDialog,
   DataCell,
   DataRow,
   DataTable,
@@ -184,10 +183,22 @@ export function DepositsScreen({
           void fundId;
           void slotId;
 
-          return renewDeposit(renewing.id, renewal);
+          return renewDeposit(renewing.id, {
+            ...renewal,
+            manualVoucherNo: draft.manualVoucherNo,
+          });
         }
 
-        return target ? updateDeposit(target.id, input) : createDeposit(input);
+        if (target) return updateDeposit(target.id, input);
+
+        return createDeposit({
+          ...input,
+          source: draft.source,
+          mode: draft.mode,
+          fromBankAccountId: draft.fromBankAccountId,
+          chequeNo: draft.chequeNo,
+          manualVoucherNo: draft.manualVoucherNo,
+        });
       },
       () => {
         setEditing(null);
@@ -201,6 +212,12 @@ export function DepositsScreen({
     const target = receiving;
 
     if (target) run(() => recordDepositInterest(target.id, draft));
+  }
+
+  function handleClose(draft: InterestDraft) {
+    const target = closing;
+
+    if (target) run(() => closeDeposit(target.id, draft));
   }
 
   async function showInterest(deposit: DepositRecord) {
@@ -478,6 +495,18 @@ export function DepositsScreen({
 
                 <DataCell nowrap>
                   <DepositStatusBadge status={deposit.status} />
+
+                  {deposit.placementVoucher && (
+                    <span className="mt-0.5 block text-[11px] text-text-muted ref">
+                      {deposit.placementVoucher.ref}
+                    </span>
+                  )}
+
+                  {deposit.bookDifference !== 0 && (
+                    <span className="mt-0.5 block text-[11px] text-warning tabular">
+                      Books differ by {formatCurrency(Math.abs(deposit.bookDifference))}
+                    </span>
+                  )}
                 </DataCell>
 
                 {access.canManageDeposits && (
@@ -598,8 +627,10 @@ export function DepositsScreen({
         <DepositFormDialog
           open={formOpen}
           onOpenChange={setFormOpen}
+          purpose={renewing ? 'renew' : editing ? 'edit' : 'place'}
           deposit={editing}
           funds={funds}
+          bankAccounts={bankAccounts}
           slots={slots}
           existing={deposits}
           onSubmit={handleSubmit}
@@ -623,21 +654,17 @@ export function DepositsScreen({
         onOpenChange={(open) => !open && setViewing(null)}
       />
 
-      <ConfirmDialog
-        open={closing !== null}
-        onOpenChange={(open) => !open && setClosing(null)}
-        title="Close this deposit?"
-        confirmLabel="Close Deposit"
-        description={
-          closing
-            ? `${closing.certificateNo} — ${formatCurrency(closing.principal)} placed with ${closing.bankName}. Closing before ${formatLongDate(closing.maturesOn)} usually forfeits part of the interest.`
-            : ''
-        }
-        onConfirm={() => {
-          if (closing) run(() => closeDeposit(closing.id));
-          setClosing(null);
-        }}
-      />
+      {access.canManageDeposits && (
+        <RecordInterestDialog
+          open={closing !== null}
+          onOpenChange={(open) => !open && setClosing(null)}
+          purpose="close"
+          deposit={closing}
+          bankAccounts={bankAccounts}
+          today={today}
+          onSubmit={handleClose}
+        />
+      )}
     </>
   );
 }

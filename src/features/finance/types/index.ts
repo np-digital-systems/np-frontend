@@ -43,6 +43,15 @@ export type DepositStatus = 'active' | 'matured' | 'renewed' | 'closed';
 
 export type InterestPayout = 'monthly' | 'quarterly' | 'on-maturity';
 
+/** Decides the entry that put the principal on the books; `opening` deposits needed none. */
+export type DepositSource = 'bank' | 'endowment' | 'renewal' | 'opening';
+
+export interface DepositVoucherRef {
+  readonly id: number;
+  readonly ref: string;
+  readonly status: string;
+}
+
 export interface FixedDeposit {
   readonly id: number;
   readonly certificateNo: string;
@@ -58,6 +67,7 @@ export interface FixedDeposit {
   /** Null for a kovil deposit. */
   readonly slotId: number | null;
   readonly bankAccountId: number | null;
+  readonly source: DepositSource;
   readonly status: DepositStatus;
     readonly renewedFromId: number | null;
   readonly notes: string | null;
@@ -73,6 +83,11 @@ export interface DepositRecord extends FixedDeposit {
   readonly isOverdue: boolean;
   readonly poojaName: string | null;
   readonly interestReceived: number;
+  readonly placementVoucher: DepositVoucherRef | null;
+  readonly closureVoucher: DepositVoucherRef | null;
+  /** Posted principal on the deposit head; differs from the register until vouchers post. */
+  readonly bookBalance: number;
+  readonly bookDifference: number;
 }
 
 export interface SlotOption {
