@@ -1,5 +1,5 @@
 export type SearchType =
-  | 'User' | 'Event' | 'Receipt' | 'Payment' | 'Transaction'
+  | 'User' | 'Event' | 'Receipt' | 'Payment' | 'Contra' | 'Journal' | 'Transaction'
   | 'Fund' | 'Project' | 'Fixed Deposit' | 'Asset' | 'Sanththa'
   | 'Financial Year' | 'Report'
 
@@ -37,7 +37,7 @@ export const RECENT_SEARCHES: string[] = []
 export const RECENTLY_VIEWED: { label: string; type: SearchType; page: string }[] = []
 
 export const TYPE_FILTERS: (SearchType | 'All')[] = [
-  'All', 'User', 'Event', 'Receipt', 'Payment', 'Transaction',
+  'All', 'User', 'Event', 'Receipt', 'Payment', 'Contra', 'Journal', 'Transaction',
   'Fund', 'Project', 'Fixed Deposit', 'Asset', 'Sanththa', 'Financial Year', 'Report',
 ]
 
