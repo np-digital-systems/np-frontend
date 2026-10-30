@@ -9,6 +9,8 @@ export {
   BankAccountsFeature,
   ReceiptVouchersFeature,
   PaymentVouchersFeature,
+  ContraVouchersFeature,
+  JournalVouchersFeature,
   ApprovalsFeature,
   ReportsFeature,
 } from './sections';
