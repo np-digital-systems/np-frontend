@@ -21,6 +21,7 @@ import type {
   ActivityRef,
   PartyRecord,
   PartyRef,
+  BalanceSheet,
   BankAccount,
   BankAccountRecord,
   BankAccountRef,
@@ -232,6 +233,14 @@ export async function getIncomeStatement(): Promise<IncomeStatement> {
   return api.get<IncomeStatement>('/reports/income-statement', {
     query: { financialYearId: await getActiveFinancialYearId() },
   });
+}
+
+export async function getBalanceSheet(): Promise<BalanceSheet | null> {
+  return api
+    .get<BalanceSheet>('/reports/balance-sheet', {
+      query: { financialYearId: await getActiveFinancialYearId() },
+    })
+    .catch(() => null);
 }
 
 export async function getTrialBalance(): Promise<readonly TrialBalanceRow[]> {

@@ -337,6 +337,26 @@ export interface IncomeStatement {
   readonly surplus: number;
 }
 
+export interface BalanceLine {
+  readonly account: Pick<AccountRef, 'id' | 'code' | 'name' | 'type'>;
+  readonly amount: number;
+}
+
+/** Cumulative to the end of the financial year, not one year's movement. */
+export interface BalanceSheet {
+  readonly asOf: string;
+  readonly financialYearLabel: string;
+  readonly assets: readonly BalanceLine[];
+  readonly liabilities: readonly BalanceLine[];
+  readonly equity: readonly BalanceLine[];
+  readonly accumulatedSurplus: number;
+  readonly totalAssets: number;
+  readonly totalLiabilitiesAndEquity: number;
+  /** Opening balances entered on one side only; explains any gap between the totals. */
+  readonly openingDifference: number;
+  readonly balanced: boolean;
+}
+
 export interface TrialBalanceRow {
   readonly account: AccountRef;
   readonly debit: number;

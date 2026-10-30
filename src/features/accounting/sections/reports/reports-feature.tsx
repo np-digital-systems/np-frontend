@@ -4,6 +4,7 @@ import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
 import {
+  getBalanceSheet,
   getFundPositions,
   getIncomeStatement,
   getTrialBalance,
@@ -28,10 +29,12 @@ export async function ReportsFeature() {
   const [
     statement,
     trialBalance,
+    balanceSheet,
     funds,
   ] = await Promise.all([
     getIncomeStatement(),
     getTrialBalance(),
+    getBalanceSheet(),
     getFundPositions(),
   ]);
 
@@ -40,6 +43,7 @@ export async function ReportsFeature() {
       <ReportsScreen
         statement={statement}
         trialBalance={trialBalance}
+        balanceSheet={balanceSheet}
         funds={funds}
         year={getActiveYear(today)}
         throughMonth={Number(today.slice(5, 7))}
