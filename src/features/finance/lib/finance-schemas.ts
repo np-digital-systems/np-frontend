@@ -66,6 +66,28 @@ export const depositSchema = z.object({
   notes: optionalText(1000),
 });
 
+export const placementSchema = z
+  .object({
+    source: z.enum(['bank', 'endowment', 'opening']),
+    mode: z.enum(PAYMENT_MODES),
+    fromBankAccountId: z.number().int().positive().nullable(),
+    chequeNo: optionalText(40),
+    manualVoucherNo: optionalText(60),
+  })
+  .refine((draft) => draft.source === 'opening' || draft.manualVoucherNo.length > 0, {
+    message: 'Enter the manual voucher number.',
+    path: ['manualVoucherNo'],
+  })
+  .refine(
+    (draft) =>
+      draft.source !== 'bank' || draft.mode === 'cash' || draft.fromBankAccountId !== null,
+    { message: 'Choose the bank account the principal left.', path: ['fromBankAccountId'] },
+  )
+  .refine(
+    (draft) => draft.source !== 'bank' || draft.mode !== 'cheque' || draft.chequeNo.length > 0,
+    { message: 'Enter the cheque number.', path: ['chequeNo'] },
+  );
+
 export const interestSchema = z
   .object({
     amount: positiveAmount('The interest'),

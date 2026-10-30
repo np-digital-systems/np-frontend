@@ -55,6 +55,8 @@ interface SettingsScreenProps {
   user: UserRecord;
   cashAccounts: readonly Account[];
   incomeAccounts: readonly Account[];
+  depositAccounts: readonly Account[];
+  equityAccounts: readonly Account[];
   sessions: readonly UserSession[];
   currentSessionId: string;
   today: string;
@@ -66,6 +68,8 @@ export function SettingsScreen({
   user,
   cashAccounts,
   incomeAccounts,
+  depositAccounts,
+  equityAccounts,
   sessions,
   currentSessionId,
   today,
@@ -98,14 +102,21 @@ export function SettingsScreen({
 
       if (!temple.ok) return temple;
 
-      const { cashAccountId, sanththaAccountId, depositInterestAccountId } =
-        settings.accounting;
+      const {
+        cashAccountId,
+        sanththaAccountId,
+        depositInterestAccountId,
+        depositAccountId,
+        endowmentAccountId,
+      } = settings.accounting;
 
       // Omit the key rather than sending null.
       return updateAccountingSettings({
         ...(cashAccountId === null ? {} : { cashAccountId }),
         ...(sanththaAccountId === null ? {} : { sanththaAccountId }),
         ...(depositInterestAccountId === null ? {} : { depositInterestAccountId }),
+        ...(depositAccountId === null ? {} : { depositAccountId }),
+        ...(endowmentAccountId === null ? {} : { endowmentAccountId }),
       });
     });
   }
@@ -203,6 +214,8 @@ export function SettingsScreen({
               accounting={settings.accounting}
               cashAccounts={cashAccounts}
               incomeAccounts={incomeAccounts}
+              depositAccounts={depositAccounts}
+              equityAccounts={equityAccounts}
               onChange={(value) => patch('accounting', value)}
             />
           </TabsContent>
@@ -392,11 +405,15 @@ function AccountingSection({
   accounting,
   cashAccounts,
   incomeAccounts,
+  depositAccounts,
+  equityAccounts,
   onChange,
 }: {
   accounting: AccountingSettings;
   cashAccounts: readonly Account[];
   incomeAccounts: readonly Account[];
+  depositAccounts: readonly Account[];
+  equityAccounts: readonly Account[];
   onChange: (value: Partial<AccountingSettings>) => void;
 }) {
   return (
@@ -491,6 +508,52 @@ function AccountingSection({
             </SelectContent>
           </Select>
         </FormField>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormField id="acc-deposit-account" label="Fixed deposit head">
+            <Select
+              value={
+                accounting.depositAccountId ? String(accounting.depositAccountId) : undefined
+              }
+              disabled={depositAccounts.length === 0}
+              onValueChange={(value) => onChange({ depositAccountId: Number(value) })}
+            >
+              <SelectTrigger id="acc-deposit-account" className="w-full">
+                <SelectValue placeholder="Choose the fixed deposit head" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {depositAccounts.map((account) => (
+                  <SelectItem key={account.id} value={String(account.id)}>
+                    {account.code} — {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField id="acc-endowment-account" label="Endowment head">
+            <Select
+              value={
+                accounting.endowmentAccountId ? String(accounting.endowmentAccountId) : undefined
+              }
+              disabled={equityAccounts.length === 0}
+              onValueChange={(value) => onChange({ endowmentAccountId: Number(value) })}
+            >
+              <SelectTrigger id="acc-endowment-account" className="w-full">
+                <SelectValue placeholder="Choose the endowment head" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {equityAccounts.map((account) => (
+                  <SelectItem key={account.id} value={String(account.id)}>
+                    {account.code} — {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <FormField

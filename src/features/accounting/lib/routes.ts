@@ -9,6 +9,8 @@ export const ACCOUNTING_ROUTES = {
   bankAccounts: '/accounting/bank-accounts',
   receipts: '/accounting/receipts',
   payments: '/accounting/payments',
+  contras: '/accounting/contras',
+  journals: '/accounting/journals',
   approvals: '/accounting/approvals',
   reports: '/accounting/reports',
 } as const;

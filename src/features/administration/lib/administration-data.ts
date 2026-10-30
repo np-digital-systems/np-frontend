@@ -186,6 +186,8 @@ export const DEFAULT_SETTINGS: PortalSettings = {
     cashAccountId: null,
     sanththaAccountId: null,
     depositInterestAccountId: null,
+    depositAccountId: null,
+    endowmentAccountId: null,
     receiptPrefix: 'RV',
     paymentPrefix: 'PV',
     yearStartMonth: 1,

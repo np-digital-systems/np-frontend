@@ -4,7 +4,7 @@ export type { PeriodPoint };
 
 export interface ApprovalItem {
   readonly ref: string;
-  readonly type: 'Payment Voucher' | 'Receipt Voucher';
+  readonly type: 'Payment Voucher' | 'Receipt Voucher' | 'Contra Voucher' | 'Journal Voucher';
   readonly amount: number;
   readonly payee: string;
   readonly fund: string;
@@ -14,7 +14,7 @@ export interface ApprovalItem {
 
 export interface QueueItem {
   readonly ref: string;
-  readonly type: 'Receipt' | 'Payment';
+  readonly type: 'Receipt' | 'Payment' | 'Contra' | 'Journal';
   readonly amount: number;
 }
 
@@ -59,7 +59,7 @@ export interface Transaction {
 
 export interface Submission {
   readonly ref: string;
-  readonly type: 'Receipt' | 'Payment';
+  readonly type: 'Receipt' | 'Payment' | 'Contra' | 'Journal';
   readonly amount: number;
   readonly date: string;
   readonly status: BadgeStatus;

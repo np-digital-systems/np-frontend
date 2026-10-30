@@ -488,7 +488,7 @@ function draftFrom(
         eventId: line.eventId,
         fixedDepositId: line.fixedDepositId,
       })),
-      mode: voucher.mode,
+      mode: voucher.mode ?? 'cash',
       bankAccountId: voucher.bankAccountId,
       chequeNo: voucher.chequeNo ?? '',
       partyId: voucher.partyId,

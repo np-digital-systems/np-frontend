@@ -24,6 +24,7 @@ export const PERMISSIONS = [
   'voucher:submit',
   'voucher:approve',
   'voucher:post',
+  'voucher:journal',
 
     'voucher:manage-all',
 

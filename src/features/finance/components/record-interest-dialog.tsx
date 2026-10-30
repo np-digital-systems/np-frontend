@@ -39,9 +39,14 @@ export interface InterestDraft {
   manualVoucherNo: string;
 }
 
-function draftFor(deposit: DepositRecord | null, today: string): InterestDraft {
+function draftFor(
+  deposit: DepositRecord | null,
+  purpose: 'interest' | 'close',
+  today: string,
+): InterestDraft {
   return {
-    amount: 0,
+    // On closing, the bank usually pays out the maturity value.
+    amount: purpose === 'close' ? (deposit?.maturityValue ?? 0) : 0,
     receivedOn: today,
     mode: 'bank',
     bankAccountId: deposit?.bankAccountId ?? null,
@@ -53,6 +58,8 @@ function draftFor(deposit: DepositRecord | null, today: string): InterestDraft {
 interface RecordInterestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Closing receipts the whole payout; the API splits off the principal. */
+  purpose?: 'interest' | 'close';
   deposit: DepositRecord | null;
   bankAccounts: readonly BankAccountRef[];
   today: string;
@@ -62,20 +69,22 @@ interface RecordInterestDialogProps {
 export function RecordInterestDialog({
   open,
   onOpenChange,
+  purpose = 'interest',
   deposit,
   bankAccounts,
   today,
   onSubmit,
 }: RecordInterestDialogProps) {
-  const [draft, setDraft] = useState<InterestDraft>(() => draftFor(deposit, today));
+  const closing = purpose === 'close';
+  const [draft, setDraft] = useState<InterestDraft>(() => draftFor(deposit, purpose, today));
   const [error, setError] = useState<string | null>(null);
 
-  const seed = `${open}|${deposit?.id ?? 'none'}`;
+  const seed = `${open}|${purpose}|${deposit?.id ?? 'none'}`;
   const [lastSeed, setLastSeed] = useState(seed);
 
   if (lastSeed !== seed) {
     setLastSeed(seed);
-    setDraft(draftFor(deposit, today));
+    setDraft(draftFor(deposit, purpose, today));
     setError(null);
   }
 
@@ -104,16 +113,22 @@ export function RecordInterestDialog({
         {deposit && (
           <>
             <DialogHeader>
-              <DialogTitle>Record Interest</DialogTitle>
+              <DialogTitle>{closing ? 'Close Deposit' : 'Record Interest'}</DialogTitle>
               <DialogDescription>
-                {deposit.certificateNo} · {deposit.poojaName ?? 'Kovil'}. Raised as a
-                receipt voucher for approval.
+                {deposit.certificateNo} · {deposit.poojaName ?? 'Kovil'}.{' '}
+                {closing
+                  ? 'Enter everything the bank paid out; anything above the principal is interest.'
+                  : 'Raised as a receipt voucher for approval.'}
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField id="interest-amount" label="Amount" required>
+                <FormField
+                  id="interest-amount"
+                  label={closing ? 'Amount Received' : 'Amount'}
+                  required
+                >
                   <Input
                     id="interest-amount"
                     type="number"
@@ -226,7 +241,7 @@ export function RecordInterestDialog({
                   Cancel
                 </Button>
 
-                <Button type="submit">Raise Receipt</Button>
+                <Button type="submit">{closing ? 'Close Deposit' : 'Raise Receipt'}</Button>
               </DialogFooter>
             </form>
           </>

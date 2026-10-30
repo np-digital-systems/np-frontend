@@ -27,6 +27,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  PAYMENT_MODES,
+  PAYMENT_MODE_LABELS,
+} from '@/features/accounting/lib/accounting-data';
+import type { BankAccountRef, PaymentMode } from '@/features/accounting/types';
 
 import {
   INTEREST_PAYOUTS,
@@ -37,7 +42,8 @@ import {
   simpleInterest,
   yearsBetween,
 } from '../lib/finance-data';
-import { depositSchema } from '../lib/finance-schemas';
+import { depositSchema, placementSchema } from '../lib/finance-schemas';
+import type { PlacementInput } from '../lib/finance-actions';
 import type {
   DepositRecord,
   FundRecord,
@@ -66,6 +72,14 @@ function poojaGroups(slots: readonly SlotOption[]): EntityGroup[] {
   return [...groups.values()];
 }
 
+const SOURCE_LABELS: Record<PlacementInput['source'], string> = {
+  bank: 'Kovil money',
+  endowment: 'Sponsor placed it',
+  opening: 'Held before go-live',
+};
+
+export type DepositPurpose = 'place' | 'edit' | 'renew';
+
 export interface DepositDraft {
   certificateNo: string;
   bankName: string;
@@ -78,13 +92,27 @@ export interface DepositDraft {
   fundId: number;
   slotId: number | null;
   notes: string;
+  source: PlacementInput['source'];
+  mode: PaymentMode;
+  fromBankAccountId: number | null;
+  chequeNo: string;
+  manualVoucherNo: string;
 }
 
 function draftFrom(
   deposit: DepositRecord | null,
   funds: readonly FundRecord[],
+  bankAccounts: readonly BankAccountRef[],
   today: string,
 ): DepositDraft {
+  const placement = {
+    source: 'bank' as const,
+    mode: 'bank' as const,
+    fromBankAccountId: deposit?.bankAccountId ?? bankAccounts[0]?.id ?? null,
+    chequeNo: '',
+    manualVoucherNo: '',
+  };
+
   if (deposit) {
     return {
       certificateNo: deposit.certificateNo,
@@ -98,6 +126,7 @@ function draftFrom(
       fundId: deposit.fundId,
       slotId: deposit.slotId,
       notes: deposit.notes ?? '',
+      ...placement,
     };
   }
 
@@ -113,6 +142,7 @@ function draftFrom(
     fundId: funds[0]?.id ?? 0,
     slotId: null,
     notes: '',
+    ...placement,
   };
 }
 
@@ -123,8 +153,10 @@ export function maturityDate(placedOn: string, tenureMonths: number): string {
 interface DepositFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  purpose: DepositPurpose;
   deposit: DepositRecord | null;
   funds: readonly FundRecord[];
+  bankAccounts: readonly BankAccountRef[];
   slots: readonly SlotOption[];
   existing: readonly DepositRecord[];
   onSubmit: (draft: DepositDraft) => void;
@@ -133,8 +165,10 @@ interface DepositFormDialogProps {
 export function DepositFormDialog({
   open,
   onOpenChange,
+  purpose,
   deposit,
   funds,
+  bankAccounts,
   slots,
   existing,
   onSubmit,
@@ -142,16 +176,16 @@ export function DepositFormDialog({
   const today = new Date().toISOString().slice(0, 10);
 
   const [draft, setDraft] = useState<DepositDraft>(() =>
-    draftFrom(deposit, funds, today),
+    draftFrom(deposit, funds, bankAccounts, today),
   );
   const [error, setError] = useState<string | null>(null);
 
-  const seed = `${open}|${deposit?.id ?? 'new'}`;
+  const seed = `${open}|${purpose}|${deposit?.id ?? 'new'}`;
   const [lastSeed, setLastSeed] = useState(seed);
 
   if (lastSeed !== seed) {
     setLastSeed(seed);
-    setDraft(draftFrom(deposit, funds, today));
+    setDraft(draftFrom(deposit, funds, bankAccounts, today));
     setError(null);
   }
 
@@ -196,8 +230,22 @@ export function DepositFormDialog({
       return;
     }
 
+    if (purpose === 'place') {
+      const placement = validate(placementSchema, draft);
+
+      if (!placement.ok) {
+        setError(placement.message);
+        return;
+      }
+    }
+
+    if (purpose === 'renew' && !draft.manualVoucherNo.trim()) {
+      setError('Enter the manual voucher number for the renewal.');
+      return;
+    }
+
     setError(null);
-    onSubmit(result.data);
+    onSubmit({ ...draft, ...result.data, manualVoucherNo: draft.manualVoucherNo.trim() });
     onOpenChange(false);
   }
 
@@ -206,10 +254,16 @@ export function DepositFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {deposit ? `Edit ${deposit.certificateNo}` : 'Place Fixed Deposit'}
+            {purpose === 'renew' && deposit
+              ? `Renew ${deposit.certificateNo}`
+              : deposit
+                ? `Edit ${deposit.certificateNo}`
+                : 'Place Fixed Deposit'}
           </DialogTitle>
           <DialogDescription>
-            Record it against the fund the money came from.
+            {purpose === 'renew'
+              ? 'Enter the new certificate. A journal moves the principal across.'
+              : 'Record it against the fund the money came from.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -375,6 +429,20 @@ export function DepositFormDialog({
             />
           </FormField>
 
+          {purpose === 'place' && (
+            <PlacementFields draft={draft} bankAccounts={bankAccounts} onChange={update} />
+          )}
+
+          {purpose === 'renew' && (
+            <FormField id="deposit-voucher-no" label="Manual Voucher No" required>
+              <Input
+                id="deposit-voucher-no"
+                value={draft.manualVoucherNo}
+                onChange={(changeEvent) => update('manualVoucherNo', changeEvent.target.value)}
+              />
+            </FormField>
+          )}
+
           {matures && draft.principal > 0 && draft.interestRate > 0 && (
             <dl className="grid grid-cols-3 gap-x-4 rounded-lg bg-surface-2 px-3.5 py-3">
               <Projection label="Matures on" value={formatLongDate(matures)} />
@@ -422,12 +490,117 @@ export function DepositFormDialog({
             </Button>
 
             <Button type="submit">
-              {deposit ? 'Save Changes' : 'Place Deposit'}
+              {purpose === 'renew'
+                ? 'Renew Deposit'
+                : purpose === 'edit'
+                  ? 'Save Changes'
+                  : 'Place Deposit'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function PlacementFields({
+  draft,
+  bankAccounts,
+  onChange,
+}: {
+  draft: DepositDraft;
+  bankAccounts: readonly BankAccountRef[];
+  onChange: <K extends keyof DepositDraft>(key: K, value: DepositDraft[K]) => void;
+}) {
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormField id="deposit-source" label="Money From" required>
+          <Select
+            value={draft.source}
+            onValueChange={(value) => onChange('source', value as DepositDraft['source'])}
+          >
+            <SelectTrigger id="deposit-source" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent>
+              {(Object.keys(SOURCE_LABELS) as DepositDraft['source'][]).map((source) => (
+                <SelectItem key={source} value={source}>
+                  {SOURCE_LABELS[source]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        {draft.source !== 'opening' && (
+          <FormField id="deposit-voucher-no" label="Manual Voucher No" required>
+            <Input
+              id="deposit-voucher-no"
+              value={draft.manualVoucherNo}
+              onChange={(changeEvent) => onChange('manualVoucherNo', changeEvent.target.value)}
+            />
+          </FormField>
+        )}
+      </div>
+
+      {draft.source === 'bank' && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <FormField id="deposit-mode" label="Mode" required>
+            <Select
+              value={draft.mode}
+              onValueChange={(value) => onChange('mode', value as PaymentMode)}
+            >
+              <SelectTrigger id="deposit-mode" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                {PAYMENT_MODES.map((mode) => (
+                  <SelectItem key={mode} value={mode}>
+                    {PAYMENT_MODE_LABELS[mode]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          {draft.mode !== 'cash' && (
+            <FormField id="deposit-from-bank" label="From Account" required>
+              <Select
+                value={
+                  draft.fromBankAccountId === null ? undefined : String(draft.fromBankAccountId)
+                }
+                onValueChange={(value) => onChange('fromBankAccountId', Number(value))}
+              >
+                <SelectTrigger id="deposit-from-bank" className="w-full">
+                  <SelectValue placeholder="Choose an account" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {bankAccounts.map((account) => (
+                    <SelectItem key={account.id} value={String(account.id)}>
+                      {account.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+
+          {draft.mode === 'cheque' && (
+            <FormField id="deposit-cheque" label="Cheque No" required>
+              <Input
+                id="deposit-cheque"
+                value={draft.chequeNo}
+                onChange={(changeEvent) => onChange('chequeNo', changeEvent.target.value)}
+              />
+            </FormField>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 

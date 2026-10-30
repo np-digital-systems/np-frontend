@@ -24,6 +24,7 @@ import {
   codingSummary,
   formatCurrency,
   formatShortDate,
+  kindTone,
 } from '../../lib/accounting-data';
 import { ACCOUNTING_ROUTES } from '../../lib/routes';
 import type {
@@ -206,7 +207,7 @@ function PendingPanel({
                 <div className="shrink-0 text-right">
                   <Amount
                     value={voucher.amount}
-                    tone={voucher.kind === 'receipt' ? 'in' : 'out'}
+                    tone={kindTone(voucher.kind)}
                     className="text-[13px] font-semibold"
                   />
                   <p className="mt-1 text-[11px] text-text-muted tabular">

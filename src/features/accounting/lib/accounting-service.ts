@@ -21,6 +21,7 @@ import type {
   ActivityRef,
   PartyRecord,
   PartyRef,
+  BalanceSheet,
   BankAccount,
   BankAccountRecord,
   BankAccountRef,
@@ -62,13 +63,14 @@ export async function getPostableAccounts(): Promise<readonly AccountRef[]> {
     query: { postableOnly: true, isActive: true },
   });
 
-  return accounts.map(({ id, code, name, nameTa, type, defaultPartyId }) => ({
+  return accounts.map(({ id, code, name, nameTa, type, defaultPartyId, moneyHead }) => ({
     id,
     code,
     name,
     nameTa,
     type,
     defaultPartyId,
+    moneyHead,
   }));
 }
 
@@ -231,6 +233,14 @@ export async function getIncomeStatement(): Promise<IncomeStatement> {
   return api.get<IncomeStatement>('/reports/income-statement', {
     query: { financialYearId: await getActiveFinancialYearId() },
   });
+}
+
+export async function getBalanceSheet(): Promise<BalanceSheet | null> {
+  return api
+    .get<BalanceSheet>('/reports/balance-sheet', {
+      query: { financialYearId: await getActiveFinancialYearId() },
+    })
+    .catch(() => null);
 }
 
 export async function getTrialBalance(): Promise<readonly TrialBalanceRow[]> {

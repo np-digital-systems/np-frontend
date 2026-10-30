@@ -40,11 +40,13 @@ import {
   type AccountingAccess,
 } from '../../lib/accounting-access';
 import {
-  PAYMENT_MODE_LABELS,
   VOUCHER_KIND_LABELS,
   codingSummary,
   formatCurrency,
   formatShortDate,
+  kindTone,
+  modeLabel,
+  partyLabel,
 } from '../../lib/accounting-data';
 import type { VoucherRecord } from '../../types';
 
@@ -288,12 +290,12 @@ function ApprovalCard({
         <DetailGrid
           items={[
             {
-              label: voucher.kind === 'receipt' ? 'From' : 'To',
+              label: partyLabel(voucher.kind),
               value: voucher.party,
             },
             { label: 'Account', value: codingSummary(voucher).account },
             { label: 'Fund', value: codingSummary(voucher).fund },
-            { label: 'Mode', value: PAYMENT_MODE_LABELS[voucher.mode] },
+            { label: 'Mode', value: modeLabel(voucher.mode) },
             { label: 'Raised by', value: voucher.createdBy.name },
           ]}
         />
@@ -410,7 +412,7 @@ function SettledTable({
               <DataCell align="right" nowrap>
                 <Amount
                   value={voucher.amount}
-                  tone={voucher.kind === 'receipt' ? 'in' : 'out'}
+                  tone={kindTone(voucher.kind)}
                 />
               </DataCell>
 
