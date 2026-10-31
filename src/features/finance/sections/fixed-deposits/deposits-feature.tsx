@@ -7,7 +7,6 @@ import { getFinanceAccess } from '../../lib/finance-access';
 import {
   getDepositRecords,
   getFundRecords,
-  getPoojaFunding,
   getSlotOptions,
 } from '../../lib/finance-service';
 
@@ -32,13 +31,11 @@ export async function FixedDepositsFeature() {
     funds,
     slots,
     bankAccounts,
-    funding,
   ] = await Promise.all([
     getDepositRecords(),
     getFundRecords(),
     access.canManageDeposits ? getSlotOptions() : [],
     access.canManageDeposits ? getBankAccountOptions().catch(() => []) : [],
-    getPoojaFunding(),
   ]);
 
   return (
@@ -48,7 +45,6 @@ export async function FixedDepositsFeature() {
         funds={funds}
         slots={slots}
         bankAccounts={bankAccounts}
-        funding={funding}
         access={access}
         today={today}
         year={getActiveYear(today)}

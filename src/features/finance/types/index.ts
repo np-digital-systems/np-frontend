@@ -3,6 +3,7 @@ import type {
   LedgerRecord,
   Project,
   ProjectStatus,
+  VoucherStatus,
 } from '@/features/accounting/types';
 
 export type { Fund, Project, ProjectStatus };
@@ -88,6 +89,23 @@ export interface DepositRecord extends FixedDeposit {
   /** Posted principal on the deposit head; differs from the register until vouchers post. */
   readonly bookBalance: number;
   readonly bookDifference: number;
+}
+
+export type DepositVoucherRole = 'placement' | 'interest' | 'renewal' | 'closure' | 'other';
+
+/** A voucher raised for a deposit or another certificate in its renewal chain. */
+export interface DepositVoucher {
+  readonly id: number;
+  readonly ref: string;
+  readonly kind: 'receipt' | 'payment' | 'contra' | 'journal';
+  readonly date: string;
+  readonly manualVoucherNo: string | null;
+  readonly description: string;
+  readonly party: string;
+  readonly amount: number;
+  readonly status: VoucherStatus;
+  readonly certificateNo: string;
+  readonly role: DepositVoucherRole;
 }
 
 export interface SlotOption {

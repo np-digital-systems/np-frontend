@@ -5,7 +5,6 @@ import { useServerAction } from '@/hooks/use-server-action';
 import {
   closeDeposit,
   createDeposit,
-  loadDepositInterest,
   recordDepositInterest,
   renewDeposit,
   updateDeposit,
@@ -18,16 +17,14 @@ import type { BankAccountRef } from '@/features/accounting/types';
 import {
   ActionError,
   Card,
+  CardBody,
+  CardFooter,
   CardHeader,
-  DataCell,
-  DataRow,
-  DataTable,
-  DataTableEmpty,
   EmptyState,
+  LinkButton,
   PortalPageHeader,
   ReadOnlyNotice,
   StatCard,
-  type DataColumn,
 } from '@/components/portal/ui';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,11 +45,11 @@ import {
 import { cn } from '@/lib/utils';
 
 import { DepositStatusBadge } from '../../components/finance-badges';
+import { FINANCE_ROUTES } from '../../lib/routes';
 import {
   DepositFormDialog,
   type DepositDraft,
 } from '../../components/deposit-form-dialog';
-import { DepositInterestDialog } from '../../components/deposit-interest-dialog';
 import {
   RecordInterestDialog,
   type InterestDraft,
@@ -68,32 +65,19 @@ import {
   MATURITY_ALERT_DAYS,
   formatCurrency,
   formatLongDate,
-  formatShortDate,
 } from '../../lib/finance-data';
 import type {
-  DepositInterest,
   DepositRecord,
   DepositStatus,
   FundRecord,
-  PoojaFunding,
   SlotOption,
 } from '../../types';
-
-const FUNDING_COLUMNS: DataColumn[] = [
-  { key: 'pooja', label: 'Purpose' },
-  { key: 'deposits', label: 'Deposits', align: 'right' },
-  { key: 'interest', label: 'Interest Received', align: 'right' },
-  { key: 'topups', label: 'Sponsor Top-ups', align: 'right' },
-  { key: 'spent', label: 'Spent', align: 'right' },
-  { key: 'balance', label: 'Balance', align: 'right' },
-];
 
 interface DepositsScreenProps {
   initialDeposits: readonly DepositRecord[];
   funds: readonly FundRecord[];
   slots: readonly SlotOption[];
   bankAccounts: readonly BankAccountRef[];
-  funding: PoojaFunding | null;
   access: FinanceAccess;
   today: string;
   year: number;
@@ -104,7 +88,6 @@ export function DepositsScreen({
   funds,
   slots,
   bankAccounts,
-  funding,
   access,
   today,
   year,
@@ -116,8 +99,6 @@ export function DepositsScreen({
   const [editing, setEditing] = useState<DepositRecord | null>(null);
   const [closing, setClosing] = useState<DepositRecord | null>(null);
   const [receiving, setReceiving] = useState<DepositRecord | null>(null);
-  const [viewing, setViewing] = useState<DepositRecord | null>(null);
-  const [interest, setInterest] = useState<DepositInterest | null | undefined>();
 
   const filtered = useMemo(
     () =>
@@ -220,33 +201,12 @@ export function DepositsScreen({
     if (target) run(() => closeDeposit(target.id, draft));
   }
 
-  async function showInterest(deposit: DepositRecord) {
-    setViewing(deposit);
-    setInterest(undefined);
-    setInterest(await loadDepositInterest(deposit.id));
-  }
-
   // On submit, the API marks the old certificate renewed and links the new one.
   function handleRenew(deposit: DepositRecord) {
     setRenewing(deposit);
     setEditing(deposit);
     setFormOpen(true);
   }
-
-  const columns: DataColumn[] = [
-    { key: 'certificate', label: 'Certificate' },
-    { key: 'pooja', label: 'Purpose' },
-    { key: 'principal', label: 'Principal', align: 'right' },
-    { key: 'rate', label: 'Rate', align: 'right' },
-    { key: 'term', label: 'Term' },
-    { key: 'maturity', label: 'Matures', align: 'right' },
-    { key: 'value', label: 'Maturity Value', align: 'right' },
-    { key: 'interest', label: 'Interest Received', align: 'right' },
-    { key: 'status', label: 'Status' },
-    ...(access.canManageDeposits
-      ? [{ key: 'actions', label: 'Actions', align: 'right', srOnly: true } as const]
-      : []),
-  ];
 
   return (
     <>
@@ -388,239 +348,138 @@ export function DepositsScreen({
         </Card>
       )}
 
-      <Card>
-        <DataTable columns={columns} minWidth={1240}>
-          {filtered.length === 0 ? (
-            <DataTableEmpty colSpan={columns.length}>
-              <EmptyState
-                icon={PiggyBank}
-                title={
-                  deposits.length === 0
-                    ? 'No fixed deposits recorded'
-                    : 'No deposits with this status'
-                }
-                description={
-                  deposits.length === 0
-                    ? undefined
-                    : 'Try a different status.'
+      {filtered.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={PiggyBank}
+            title={
+              deposits.length === 0 ? 'No fixed deposits recorded' : 'No deposits with this status'
+            }
+            description={deposits.length === 0 ? undefined : 'Try a different status.'}
+          />
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((deposit) => (
+            <Card
+              key={deposit.id}
+              className={cn(
+                'flex flex-col',
+                (deposit.status === 'renewed' || deposit.status === 'closed') && 'opacity-70',
+              )}
+            >
+              <CardHeader
+                title={deposit.certificateNo}
+                description={`${deposit.bankName}${deposit.branch ? `, ${deposit.branch}` : ''}`}
+                action={
+                  <div className="flex items-center gap-1.5">
+                    <DepositStatusBadge status={deposit.status} />
+
+                    {access.canManageDeposits && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Actions for ${deposit.certificateNo}`}
+                          >
+                            <MoreHorizontal />
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onSelect={() => setReceiving(deposit)}>
+                            Record interest
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              setEditing(deposit);
+                              setFormOpen(true);
+                            }}
+                          >
+                            Edit details
+                          </DropdownMenuItem>
+
+                          {deposit.status === 'active' && (
+                            <>
+                              <DropdownMenuItem onSelect={() => handleRenew(deposit)}>
+                                Renew on maturity
+                              </DropdownMenuItem>
+
+                              <DropdownMenuSeparator />
+
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onSelect={() => setClosing(deposit)}
+                              >
+                                Close deposit
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 }
               />
-            </DataTableEmpty>
-          ) : (
-            filtered.map((deposit) => (
-              <DataRow key={deposit.id}>
-                <DataCell>
-                  <p className="ref truncate text-xs font-medium text-primary">
-                    {deposit.certificateNo}
+
+              <CardBody className="flex flex-1 flex-col gap-4">
+                <div>
+                  <p className="text-[11px] text-text-muted">Principal</p>
+                  <p className="mt-0.5 text-xl font-semibold leading-none tracking-[-0.02em] text-text-primary tabular">
+                    {formatCurrency(deposit.principal)}
                   </p>
-                  <p className="mt-0.5 truncate text-[13px] text-text-primary">
-                    {deposit.bankName}
-                  </p>
-                  <p className="mt-0.5 truncate text-[11px] text-text-muted">
-                    {deposit.branch} ·{' '}
-                    {INTEREST_PAYOUT_LABELS[deposit.interestPayout]} interest
-                  </p>
-                </DataCell>
+                </div>
 
-                <DataCell nowrap className="text-xs text-text-secondary">
-                  <span className="text-[13px] text-text-primary">
-                    {deposit.poojaName ?? 'General'}
-                  </span>
-                  <span className="mt-0.5 block text-[11px] text-text-muted">
-                    {deposit.fundName}
-                  </span>
-                </DataCell>
-
-                <DataCell
-                  align="right"
-                  nowrap
-                  className="text-[13px] font-medium text-text-primary tabular"
-                >
-                  {formatCurrency(deposit.principal)}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="text-xs tabular">
-                  {deposit.interestRate.toFixed(2)}%
-                </DataCell>
-
-                <DataCell nowrap className="text-xs text-text-secondary tabular">
-                  {deposit.tenureMonths} months
-                  <span className="block text-[11px] text-text-muted">
-                    from {formatShortDate(deposit.placedOn)}
-                  </span>
-                </DataCell>
-
-                <DataCell align="right" nowrap>
-                  <span className="text-[13px] text-text-primary tabular">
-                    {formatShortDate(deposit.maturesOn)}
-                  </span>
-
-                  {deposit.status === 'active' && (
-                    <span
-                      className={cn(
-                        'mt-0.5 block text-[11px] tabular',
-                        deposit.isOverdue
-                          ? 'text-danger'
-                          : deposit.isMaturingSoon
-                            ? 'text-warning'
-                            : 'text-text-muted',
-                      )}
-                    >
-                      {deposit.isOverdue
-                        ? `${Math.abs(deposit.daysToMaturity)}d overdue`
-                        : `${deposit.daysToMaturity}d left`}
-                    </span>
-                  )}
-                </DataCell>
-
-                <DataCell align="right" nowrap>
-                  <span className="text-[13px] font-medium text-text-primary tabular">
-                    {formatCurrency(deposit.maturityValue)}
-                  </span>
-                  <span className="mt-0.5 block text-[11px] text-success tabular">
-                    +{formatCurrency(deposit.interestOnMaturity)}
-                  </span>
-                </DataCell>
-
-                <DataCell align="right" nowrap>
-                  <button
-                    type="button"
-                    className="text-[13px] font-medium text-primary tabular hover:underline"
-                    aria-label={`Interest by year for ${deposit.certificateNo}`}
-                    onClick={() => void showInterest(deposit)}
-                  >
-                    {formatCurrency(deposit.interestReceived)}
-                  </button>
-                </DataCell>
-
-                <DataCell nowrap>
-                  <DepositStatusBadge status={deposit.status} />
-
-                  {deposit.placementVoucher && (
-                    <span className="mt-0.5 block text-[11px] text-text-muted ref">
-                      {deposit.placementVoucher.ref}
-                    </span>
-                  )}
-
-                  {deposit.bookDifference !== 0 && (
-                    <span className="mt-0.5 block text-[11px] text-warning tabular">
-                      Books differ by {formatCurrency(Math.abs(deposit.bookDifference))}
-                    </span>
-                  )}
-                </DataCell>
-
-                {access.canManageDeposits && (
-                  <DataCell align="right" nowrap>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Actions for ${deposit.certificateNo}`}
-                        >
-                          <MoreHorizontal />
-                        </Button>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onSelect={() => setReceiving(deposit)}>
-                          Record interest
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            setEditing(deposit);
-                            setFormOpen(true);
-                          }}
-                        >
-                          Edit details
-                        </DropdownMenuItem>
-
-                        {deposit.status === 'active' && (
-                          <>
-                            <DropdownMenuItem
-                              onSelect={() => handleRenew(deposit)}
-                            >
-                              Renew on maturity
-                            </DropdownMenuItem>
-
-                            <DropdownMenuSeparator />
-
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onSelect={() => setClosing(deposit)}
-                            >
-                              Close deposit
-                            </DropdownMenuItem>
-                          </>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  <Field label="Purpose">{deposit.poojaName ?? 'General'}</Field>
+                  <Field label="Interest Rate">
+                    {deposit.interestRate.toFixed(2)}% ·{' '}
+                    {INTEREST_PAYOUT_LABELS[deposit.interestPayout]}
+                  </Field>
+                  <Field label="Matures">
+                    {formatLongDate(deposit.maturesOn)}
+                    {deposit.status === 'active' && (
+                      <span
+                        className={cn(
+                          'ml-1 tabular',
+                          deposit.isOverdue
+                            ? 'text-danger'
+                            : deposit.isMaturingSoon
+                              ? 'text-warning'
+                              : 'text-text-muted',
                         )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </DataCell>
-                )}
-              </DataRow>
-            ))
-          )}
-        </DataTable>
-      </Card>
-
-      {funding && funding.rows.length > 0 && (
-        <Card>
-          <CardHeader
-            title="Pooja Funding"
-            description={`Financial year ${funding.financialYearLabel}`}
-          />
-
-          <DataTable columns={FUNDING_COLUMNS} minWidth={900}>
-            {funding.rows.map((row) => (
-              <DataRow key={row.slotId ?? 'kovil'}>
-                <DataCell>
-                  <p className="truncate text-[13px] text-text-primary">
-                    {row.poojaName ?? 'General'}
-                  </p>
-                  {row.sponsorName && (
-                    <p className="mt-0.5 truncate text-[11px] text-text-muted">
-                      {row.sponsorName}
-                    </p>
-                  )}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="text-xs tabular">
-                  {row.deposits}
-                  <span className="block text-[11px] text-text-muted">
-                    {formatCurrency(row.principal)}
-                  </span>
-                </DataCell>
-
-                <DataCell align="right" nowrap className="text-[13px] tabular">
-                  {formatCurrency(row.interestReceived)}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="text-[13px] tabular">
-                  {formatCurrency(row.sponsorTopUps)}
-                </DataCell>
-
-                <DataCell align="right" nowrap className="text-[13px] tabular">
-                  {formatCurrency(row.spent)}
-                </DataCell>
-
-                <DataCell align="right" nowrap>
-                  <span
-                    className={cn(
-                      'text-[13px] font-medium tabular',
-                      row.balance < 0 ? 'text-danger' : 'text-text-primary',
+                      >
+                        {deposit.isOverdue
+                          ? `· ${Math.abs(deposit.daysToMaturity)}d overdue`
+                          : `· ${deposit.daysToMaturity}d left`}
+                      </span>
                     )}
-                  >
-                    {formatCurrency(Math.abs(row.balance))}
-                  </span>
-                  <span className="mt-0.5 block text-[11px] text-text-muted">
-                    {row.balance < 0 ? 'Shortfall' : 'Surplus'}
-                  </span>
-                </DataCell>
-              </DataRow>
-            ))}
-          </DataTable>
-        </Card>
+                  </Field>
+                  <Field label="Maturity Value">{formatCurrency(deposit.maturityValue)}</Field>
+                  <Field label="Interest Received">
+                    {formatCurrency(deposit.interestReceived)}
+                  </Field>
+                  <Field label="Fund">{deposit.fundName}</Field>
+                </dl>
+
+                {deposit.bookDifference !== 0 && (
+                  <p className="text-[11px] text-warning tabular">
+                    Books differ by {formatCurrency(Math.abs(deposit.bookDifference))}
+                    {deposit.placementVoucher && ` · ${deposit.placementVoucher.ref} not posted`}
+                  </p>
+                )}
+              </CardBody>
+
+              <CardFooter>
+                <LinkButton href={`${FINANCE_ROUTES.fixedDeposits}/${deposit.id}`}>
+                  View details
+                </LinkButton>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       )}
 
       {access.canManageDeposits && (
@@ -648,12 +507,6 @@ export function DepositsScreen({
         />
       )}
 
-      <DepositInterestDialog
-        deposit={viewing}
-        interest={interest}
-        onOpenChange={(open) => !open && setViewing(null)}
-      />
-
       {access.canManageDeposits && (
         <RecordInterestDialog
           open={closing !== null}
@@ -666,5 +519,14 @@ export function DepositsScreen({
         />
       )}
     </>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[11px] text-text-muted">{label}</dt>
+      <dd className="mt-0.5 truncate text-xs text-text-secondary">{children}</dd>
+    </div>
   );
 }
