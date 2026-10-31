@@ -81,6 +81,7 @@ const SOURCE_LABELS: Record<PlacementInput['source'], string> = {
 export type DepositPurpose = 'place' | 'edit' | 'renew';
 
 export interface DepositDraft {
+  name: string;
   certificateNo: string;
   bankName: string;
   branch: string;
@@ -116,6 +117,7 @@ function draftFrom(
 
   if (deposit) {
     return {
+      name: deposit.name ?? '',
       certificateNo: deposit.certificateNo,
       bankName: deposit.bankName,
       branch: deposit.branch,
@@ -125,7 +127,7 @@ function draftFrom(
       tenureMonths: deposit.tenureMonths,
       interestPayout: deposit.interestPayout,
       fundId: deposit.fundId,
-      forPooja: deposit.slotId !== null,
+      forPooja: deposit.purpose === 'pooja',
       slotId: deposit.slotId,
       notes: deposit.notes ?? '',
       ...placement,
@@ -133,6 +135,7 @@ function draftFrom(
   }
 
   return {
+    name: '',
     certificateNo: '',
     bankName: '',
     branch: '',
@@ -225,6 +228,12 @@ export function DepositFormDialog({
       return;
     }
 
+    // A renewal keeps the old certificate's name, so it isn't asked for.
+    if (purpose !== 'renew' && !result.data.name) {
+      setError('Give the deposit a name.');
+      return;
+    }
+
     if (draft.forPooja && result.data.slotId === null) {
       setError('Choose the pooja this deposit pays for.');
       return;
@@ -266,9 +275,9 @@ export function DepositFormDialog({
         <DialogHeader>
           <DialogTitle>
             {purpose === 'renew' && deposit
-              ? `Renew ${deposit.certificateNo}`
+              ? `Renew ${deposit.name ?? deposit.certificateNo}`
               : deposit
-                ? `Edit ${deposit.certificateNo}`
+                ? `Edit ${deposit.name ?? deposit.certificateNo}`
                 : 'Place Fixed Deposit'}
           </DialogTitle>
           <DialogDescription>
@@ -279,6 +288,17 @@ export function DepositFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {purpose !== 'renew' && (
+            <FormField id="deposit-name" label="Name" required>
+              <Input
+                id="deposit-name"
+                value={draft.name}
+                placeholder="Karthigai Vilakkeedu endowment"
+                onChange={(changeEvent) => update('name', changeEvent.target.value)}
+              />
+            </FormField>
+          )}
+
           <FormField
             id="deposit-certificate"
             label="Certificate Number"
@@ -286,7 +306,6 @@ export function DepositFormDialog({
           >
             <Input
               id="deposit-certificate"
-              disabled={purpose === 'edit'}
               value={draft.certificateNo}
               placeholder="HNB/FD/2026/1234"
               onChange={(changeEvent) =>
