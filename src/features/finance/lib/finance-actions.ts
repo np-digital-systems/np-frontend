@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 
 import { requireSession } from '@/features/auth/lib/session';
 import type { PaymentMode } from '@/features/accounting/types';
+
+import type { DepositPurpose } from '../types';
 import { api, ApiError } from '@/lib/api';
 
 
@@ -95,6 +97,7 @@ export async function updateProject(
 }
 
 export interface DepositInput {
+  name: string;
   certificateNo: string;
   bankName: string;
   branch: string;
@@ -105,6 +108,7 @@ export interface DepositInput {
   tenureMonths: number;
   interestPayout: 'monthly' | 'quarterly' | 'on-maturity';
   fundId: number;
+  purpose: DepositPurpose;
   slotId: number | null;
   notes?: string;
 }
@@ -140,17 +144,16 @@ export async function updateDeposit(
   id: number,
   input: Partial<DepositInput>,
 ): Promise<ActionResult> {
-  const { certificateNo, ...changes } = input;
-  void certificateNo;
-
   return guarded((a) => a.canManageDeposits, 'You cannot change fixed deposits.', () =>
-    api.patch(`/fixed-deposits/${id}`, { ...changes, notes: changes.notes || undefined }),
+    api.patch(`/fixed-deposits/${id}`, { ...input, notes: input.notes || undefined }),
   );
 }
 
 export async function renewDeposit(
   id: number,
-  input: Omit<DepositInput, 'fundId' | 'slotId'> & { manualVoucherNo: string },
+  input: Omit<DepositInput, 'name' | 'fundId' | 'purpose' | 'slotId'> & {
+    manualVoucherNo: string;
+  },
 ): Promise<ActionResult> {
   return guarded((a) => a.canManageDeposits, 'You cannot renew fixed deposits.', () =>
     api.post(`/fixed-deposits/${id}/renew`, { ...input, notes: input.notes || undefined }),
