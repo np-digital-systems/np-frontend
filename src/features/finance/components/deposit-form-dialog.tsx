@@ -286,6 +286,7 @@ export function DepositFormDialog({
           >
             <Input
               id="deposit-certificate"
+              disabled={purpose === 'edit'}
               value={draft.certificateNo}
               placeholder="HNB/FD/2026/1234"
               onChange={(changeEvent) =>
