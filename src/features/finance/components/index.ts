@@ -17,7 +17,7 @@ export {
   RecordInterestDialog,
   type InterestDraft,
 } from './record-interest-dialog';
-export { DepositInterestDialog } from './deposit-interest-dialog';
+export { PoojaFundingTable } from './pooja-funding-table';
 export { AssetFormDialog, type AssetDraft } from './asset-form-dialog';
 export {
   DisposeAssetDialog,
