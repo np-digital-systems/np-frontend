@@ -6,7 +6,6 @@ import { requireSession } from '@/features/auth/lib/session';
 import type { PaymentMode } from '@/features/accounting/types';
 import { api, ApiError } from '@/lib/api';
 
-import type { DepositInterest } from '../types';
 
 import { getFinanceAccess } from './finance-access';
 import { FINANCE_ROUTES } from './routes';
@@ -178,12 +177,6 @@ export async function recordDepositInterest(
       chequeNo: input.chequeNo || undefined,
     }),
   );
-}
-
-export async function loadDepositInterest(id: number): Promise<DepositInterest | null> {
-  await requireSession();
-
-  return api.get<DepositInterest>(`/fixed-deposits/${id}/interest`).catch(() => null);
 }
 
 export async function matureDeposit(id: number): Promise<ActionResult> {
