@@ -44,6 +44,8 @@ export type DepositStatus = 'active' | 'matured' | 'renewed' | 'closed';
 
 export type InterestPayout = 'monthly' | 'quarterly' | 'on-maturity';
 
+export type DepositPurpose = 'general' | 'pooja';
+
 /** Decides the entry that put the principal on the books; `opening` deposits needed none. */
 export type DepositSource = 'bank' | 'endowment' | 'renewal' | 'opening';
 
@@ -56,6 +58,8 @@ export interface DepositVoucherRef {
 export interface FixedDeposit {
   readonly id: number;
   readonly certificateNo: string;
+  /** Null on deposits recorded before names were kept. */
+  readonly name: string | null;
   readonly bankName: string;
   readonly branch: string;
   readonly principal: number;
@@ -65,7 +69,8 @@ export interface FixedDeposit {
   readonly tenureMonths: number;
   readonly interestPayout: InterestPayout;
     readonly fundId: number;
-  /** Null for a kovil deposit. */
+  readonly purpose: DepositPurpose;
+  /** Set only for a pooja deposit. */
   readonly slotId: number | null;
   readonly bankAccountId: number | null;
   readonly source: DepositSource;
