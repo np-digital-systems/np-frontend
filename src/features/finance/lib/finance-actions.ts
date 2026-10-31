@@ -141,8 +141,11 @@ export async function updateDeposit(
   id: number,
   input: Partial<DepositInput>,
 ): Promise<ActionResult> {
+  const { certificateNo, ...changes } = input;
+  void certificateNo;
+
   return guarded((a) => a.canManageDeposits, 'You cannot change fixed deposits.', () =>
-    api.patch(`/fixed-deposits/${id}`, { ...input, notes: input.notes || undefined }),
+    api.patch(`/fixed-deposits/${id}`, { ...changes, notes: changes.notes || undefined }),
   );
 }
 
