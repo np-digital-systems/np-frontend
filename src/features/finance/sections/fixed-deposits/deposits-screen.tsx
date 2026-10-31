@@ -143,6 +143,7 @@ export function DepositsScreen({
   function handleSubmit(draft: DepositDraft) {
     const target = editing;
     const input = {
+      name: draft.name,
       certificateNo: draft.certificateNo,
       bankName: draft.bankName,
       branch: draft.branch,
@@ -153,6 +154,7 @@ export function DepositsScreen({
       tenureMonths: draft.tenureMonths,
       interestPayout: draft.interestPayout,
       fundId: draft.fundId,
+      purpose: draft.forPooja ? ('pooja' as const) : ('general' as const),
       slotId: draft.slotId,
       notes: draft.notes,
     };
@@ -160,7 +162,9 @@ export function DepositsScreen({
     run(
       () => {
         if (renewing) {
-          const { fundId, slotId, ...renewal } = input;
+          const { name, fundId, purpose, slotId, ...renewal } = input;
+          void name;
+          void purpose;
           void fundId;
           void slotId;
 
@@ -306,8 +310,8 @@ export function DepositsScreen({
                 className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5"
               >
                 <div className="min-w-0">
-                  <p className="ref text-xs font-medium text-primary">
-                    {deposit.certificateNo}
+                  <p className="text-xs font-medium text-primary">
+                    {deposit.name ?? deposit.certificateNo}
                   </p>
                   <p className="mt-0.5 truncate text-[13px] text-text-primary">
                     {deposit.bankName} · {formatCurrency(deposit.principal)} at{' '}
@@ -369,8 +373,13 @@ export function DepositsScreen({
               )}
             >
               <CardHeader
-                title={deposit.certificateNo}
-                description={`${deposit.bankName}${deposit.branch ? `, ${deposit.branch}` : ''}`}
+                title={deposit.name ?? deposit.certificateNo}
+                description={[
+                  deposit.name ? deposit.certificateNo : null,
+                  deposit.branch ? `${deposit.bankName}, ${deposit.branch}` : deposit.bankName,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
                 action={
                   <div className="flex items-center gap-1.5">
                     <DepositStatusBadge status={deposit.status} />

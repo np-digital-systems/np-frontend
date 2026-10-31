@@ -91,8 +91,8 @@ export function DepositDetailScreen({ deposit, vouchers, interest }: DepositDeta
   return (
     <>
       <PortalPageHeader
-        title={deposit.certificateNo}
-        description={deposit.poojaName ?? 'General'}
+        title={deposit.name ?? deposit.certificateNo}
+        description={`${deposit.certificateNo} · ${deposit.poojaName ?? 'General'}`}
         meta={[
           <DepositStatusBadge key="status" status={deposit.status} />,
           deposit.bookDifference !== 0 ? (
