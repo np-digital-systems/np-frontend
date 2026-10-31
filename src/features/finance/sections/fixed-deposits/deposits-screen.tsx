@@ -80,7 +80,7 @@ import type {
 } from '../../types';
 
 const FUNDING_COLUMNS: DataColumn[] = [
-  { key: 'pooja', label: 'Pooja' },
+  { key: 'pooja', label: 'Purpose' },
   { key: 'deposits', label: 'Deposits', align: 'right' },
   { key: 'interest', label: 'Interest Received', align: 'right' },
   { key: 'topups', label: 'Sponsor Top-ups', align: 'right' },
@@ -235,7 +235,7 @@ export function DepositsScreen({
 
   const columns: DataColumn[] = [
     { key: 'certificate', label: 'Certificate' },
-    { key: 'pooja', label: 'Pooja' },
+    { key: 'pooja', label: 'Purpose' },
     { key: 'principal', label: 'Principal', align: 'right' },
     { key: 'rate', label: 'Rate', align: 'right' },
     { key: 'term', label: 'Term' },
@@ -275,8 +275,6 @@ export function DepositsScreen({
             >
               <SelectTrigger aria-label="Filter by status">
                 <SelectValue />
-
-      <ActionError message={actionError} />
               </SelectTrigger>
 
               <SelectContent>
@@ -304,6 +302,8 @@ export function DepositsScreen({
           </>
         }
       />
+
+      <ActionError message={actionError} />
 
       {!access.canManageDeposits && (
         <ReadOnlyNotice message={DEPOSIT_READ_ONLY_MESSAGE} />
@@ -424,7 +424,7 @@ export function DepositsScreen({
 
                 <DataCell nowrap className="text-xs text-text-secondary">
                   <span className="text-[13px] text-text-primary">
-                    {deposit.poojaName ?? 'Kovil'}
+                    {deposit.poojaName ?? 'General'}
                   </span>
                   <span className="mt-0.5 block text-[11px] text-text-muted">
                     {deposit.fundName}
@@ -576,7 +576,7 @@ export function DepositsScreen({
               <DataRow key={row.slotId ?? 'kovil'}>
                 <DataCell>
                   <p className="truncate text-[13px] text-text-primary">
-                    {row.poojaName ?? 'Kovil'}
+                    {row.poojaName ?? 'General'}
                   </p>
                   {row.sponsorName && (
                     <p className="mt-0.5 truncate text-[11px] text-text-muted">
