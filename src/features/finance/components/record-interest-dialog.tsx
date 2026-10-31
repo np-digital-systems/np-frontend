@@ -115,7 +115,7 @@ export function RecordInterestDialog({
             <DialogHeader>
               <DialogTitle>{closing ? 'Close Deposit' : 'Record Interest'}</DialogTitle>
               <DialogDescription>
-                {deposit.certificateNo} · {deposit.poojaName ?? 'Kovil'}.{' '}
+                {deposit.certificateNo} · {deposit.poojaName ?? 'General'}.{' '}
                 {closing
                   ? 'Enter everything the bank paid out; anything above the principal is interest.'
                   : 'Raised as a receipt voucher for approval.'}
