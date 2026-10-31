@@ -90,6 +90,7 @@ export interface DepositDraft {
   tenureMonths: number;
   interestPayout: InterestPayout;
   fundId: number;
+  forPooja: boolean;
   slotId: number | null;
   notes: string;
   source: PlacementInput['source'];
@@ -124,6 +125,7 @@ function draftFrom(
       tenureMonths: deposit.tenureMonths,
       interestPayout: deposit.interestPayout,
       fundId: deposit.fundId,
+      forPooja: deposit.slotId !== null,
       slotId: deposit.slotId,
       notes: deposit.notes ?? '',
       ...placement,
@@ -140,6 +142,7 @@ function draftFrom(
     tenureMonths: 12,
     interestPayout: 'on-maturity',
     fundId: funds[0]?.id ?? 0,
+    forPooja: false,
     slotId: null,
     notes: '',
     ...placement,
@@ -212,10 +215,18 @@ export function DepositFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const result = validate(depositSchema, draft);
+    const result = validate(depositSchema, {
+      ...draft,
+      slotId: draft.forPooja ? draft.slotId : null,
+    });
 
     if (!result.ok) {
       setError(result.message);
+      return;
+    }
+
+    if (draft.forPooja && result.data.slotId === null) {
+      setError('Choose the pooja this deposit pays for.');
       return;
     }
 
@@ -415,19 +426,39 @@ export function DepositFormDialog({
             </FormField>
           </div>
 
-          <FormField id="deposit-pooja" label="Pooja">
-            <EntityCombobox
-              id="deposit-pooja"
-              value={draft.slotId === null ? null : String(draft.slotId)}
-              groups={poojaGroups(slots)}
-              noneLabel="Kovil"
-              searchPlaceholder="Search pooja or sponsor…"
-              emptyMessage="No pooja matches that search."
-              onChange={(value) =>
-                update('slotId', value === null ? null : Number(value))
-              }
-            />
-          </FormField>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr]">
+            <FormField id="deposit-purpose" label="Purpose" required>
+              <Select
+                value={draft.forPooja ? 'pooja' : 'general'}
+                onValueChange={(value) => update('forPooja', value === 'pooja')}
+              >
+                <SelectTrigger id="deposit-purpose" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="pooja">Pooja</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            {draft.forPooja && (
+              <FormField id="deposit-pooja" label="Pooja" required>
+                <EntityCombobox
+                  id="deposit-pooja"
+                  value={draft.slotId === null ? null : String(draft.slotId)}
+                  groups={poojaGroups(slots)}
+                  placeholder="Choose the pooja"
+                  searchPlaceholder="Search pooja or sponsor…"
+                  emptyMessage="No pooja matches that search."
+                  onChange={(value) =>
+                    update('slotId', value === null ? null : Number(value))
+                  }
+                />
+              </FormField>
+            )}
+          </div>
 
           {purpose === 'place' && (
             <PlacementFields draft={draft} bankAccounts={bankAccounts} onChange={update} />

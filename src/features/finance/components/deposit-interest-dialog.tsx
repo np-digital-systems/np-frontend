@@ -34,7 +34,7 @@ export function DepositInterestDialog({
                 {interest && interest.certificates.length > 1
                   ? interest.certificates.join(' → ')
                   : deposit.certificateNo}{' '}
-                · {deposit.poojaName ?? 'Kovil'}
+                · {deposit.poojaName ?? 'General'}
               </DialogDescription>
             </DialogHeader>
 
