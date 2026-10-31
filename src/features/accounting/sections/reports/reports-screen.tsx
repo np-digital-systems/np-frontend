@@ -37,6 +37,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
+import { PoojaFundingTable } from '@/features/finance/components/pooja-funding-table';
+import type { PoojaFunding } from '@/features/finance/types';
+
 import { Amount } from '../../components/amount';
 import { AccountTypeBadge } from '../../components/account-type-badge';
 import { formatCurrency, monthName } from '../../lib/accounting-data';
@@ -52,6 +55,7 @@ interface ReportsScreenProps {
   statement: IncomeStatement;
   trialBalance: readonly TrialBalanceRow[];
   balanceSheet: BalanceSheet | null;
+  poojaFunding: PoojaFunding | null;
   funds: readonly FundPosition[];
   year: number;
     throughMonth: number;
@@ -119,6 +123,7 @@ export function ReportsScreen({
   statement,
   trialBalance,
   balanceSheet,
+  poojaFunding,
   funds,
   year,
   throughMonth,
@@ -192,6 +197,7 @@ export function ReportsScreen({
           <TabsTrigger value="trial">Trial Balance</TabsTrigger>
           <TabsTrigger value="balance-sheet">Balance Sheet</TabsTrigger>
           <TabsTrigger value="funds">Fund Summary</TabsTrigger>
+          <TabsTrigger value="pooja-funding">Pooja Funding</TabsTrigger>
           <TabsTrigger value="catalogue">All Reports</TabsTrigger>
         </TabsList>
 
@@ -250,6 +256,16 @@ export function ReportsScreen({
 
         <TabsContent value="funds">
           <FundSummaryTable funds={funds} />
+        </TabsContent>
+
+        <TabsContent value="pooja-funding">
+          {poojaFunding && poojaFunding.rows.length > 0 ? (
+            <PoojaFundingTable funding={poojaFunding} />
+          ) : (
+            <Card>
+              <EmptyState icon={Landmark} title="No fixed deposits recorded" />
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="catalogue">
