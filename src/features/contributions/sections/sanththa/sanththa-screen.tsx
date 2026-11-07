@@ -331,6 +331,11 @@ export function SanththaScreen({
                       {member.payment.receiptRef ? (
                         <span className="ref text-text-secondary">
                           {member.payment.receiptRef}
+                          {member.payment.manualVoucherNo && (
+                            <span className="block text-[11px] text-text-muted">
+                              Book #{member.payment.manualVoucherNo}
+                            </span>
+                          )}
                         </span>
                       ) : (
                         <span className="text-text-muted">
