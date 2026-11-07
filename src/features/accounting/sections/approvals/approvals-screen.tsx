@@ -269,6 +269,11 @@ function ApprovalCard({
       <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-3.5">
         <div className="min-w-0">
           <p className="ref text-xs font-medium text-primary">{voucher.ref}</p>
+          {voucher.manualVoucherNo && (
+            <span className="mt-0.5 block text-[11px] text-text-muted ref">
+              Book #{voucher.manualVoucherNo}
+            </span>
+          )}
           <p className="mt-0.5 text-[13px] font-medium text-text-primary">
             {VOUCHER_KIND_LABELS[voucher.kind]}
           </p>
@@ -386,6 +391,11 @@ function SettledTable({
                 >
                   {voucher.ref}
                 </button>
+                {voucher.manualVoucherNo && (
+                  <span className="mt-0.5 block text-[11px] text-text-muted ref">
+                    Book #{voucher.manualVoucherNo}
+                  </span>
+                )}
               </DataCell>
 
               <DataCell nowrap className="text-xs text-text-muted tabular">
