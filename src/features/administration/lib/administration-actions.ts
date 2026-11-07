@@ -37,13 +37,11 @@ async function guarded(
   }
 }
 
-// Accounts are credentials granted to a party; names are edited in the directory.
-
+// Staff logins carry their own name; they are not parties in the books.
 export interface UserInput {
-  /** Omit to register a new person. */
-  partyId?: number;
-  nameTa?: string;
+  nameTa: string;
   nameEn?: string;
+  phone?: string;
   email: string;
   password?: string;
   role: UserRole;
@@ -52,9 +50,9 @@ export interface UserInput {
 export async function createUser(input: UserInput): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot manage accounts.', () =>
     api.post('/user-accounts', {
-      partyId: input.partyId,
-      nameTa: input.partyId ? undefined : input.nameTa,
-      nameEn: input.partyId ? undefined : input.nameEn || undefined,
+      nameTa: input.nameTa,
+      nameEn: input.nameEn || undefined,
+      phone: input.phone || undefined,
       email: input.email,
       password: input.password,
       role: input.role,
@@ -62,9 +60,17 @@ export async function createUser(input: UserInput): Promise<ActionResult> {
   );
 }
 
-export async function updateUser(id: string, input: { email: string }): Promise<ActionResult> {
+export async function updateUser(
+  id: string,
+  input: Pick<UserInput, 'nameTa' | 'nameEn' | 'phone' | 'email'>,
+): Promise<ActionResult> {
   return guarded((a) => a.canManageUsers, 'You cannot manage accounts.', () =>
-    api.patch(`/user-accounts/${id}`, { email: input.email }),
+    api.patch(`/user-accounts/${id}`, {
+      nameTa: input.nameTa,
+      nameEn: input.nameEn ?? '',
+      phone: input.phone ?? '',
+      email: input.email,
+    }),
   );
 }
 

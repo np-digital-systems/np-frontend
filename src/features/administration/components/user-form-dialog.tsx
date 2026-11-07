@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { EntityCombobox } from '@/components/ui/entity-combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -28,16 +27,13 @@ import { USER_ROLES, type UserRole } from '@/features/auth/types/user-role';
 
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '../lib/administration-data';
 import { userSchema } from '../lib/administration-schemas';
-import type { DirectoryPerson, UserRecord } from '../types';
+import type { UserRecord } from '../types';
 
 export interface UserDraft {
-  /** Null registers a new person (and shows the name fields). */
-  partyId: number | null;
   fullName: string;
   nameTa: string;
   email: string;
   phone: string;
-  address: string;
   role: UserRole;
   isActive: boolean;
   /** Only for new staff accounts; the API ignores it on edit. */
@@ -48,12 +44,10 @@ export interface UserDraft {
 function draftFrom(user: UserRecord | null): UserDraft {
   if (user) {
     return {
-      partyId: user.partyId,
       fullName: user.fullName,
       nameTa: user.nameTa,
       email: user.email,
       phone: user.phone,
-      address: user.address,
       role: user.role,
       isActive: user.isActive,
       password: '',
@@ -62,12 +56,10 @@ function draftFrom(user: UserRecord | null): UserDraft {
   }
 
   return {
-    partyId: null,
     fullName: '',
     nameTa: '',
     email: '',
     phone: '',
-    address: '',
     role: 'member',
     isActive: true,
     password: '',
@@ -76,7 +68,6 @@ function draftFrom(user: UserRecord | null): UserDraft {
 }
 
 interface UserFormDialogProps {
-  directory: readonly DirectoryPerson[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: UserRecord | null;
@@ -87,7 +78,6 @@ interface UserFormDialogProps {
 }
 
 export function UserFormDialog({
-  directory,
   open,
   onOpenChange,
   user,
@@ -185,32 +175,6 @@ export function UserFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {!user && (
-            <FormField
-              id="user-party"
-              label="Grant the sign-in to"
-            >
-              <EntityCombobox
-                id="user-party"
-                value={draft.partyId === null ? null : String(draft.partyId)}
-                options={directory.map((person) => ({
-                  value: String(person.partyId),
-                  label: person.nameEn
-                    ? `${person.name} · ${person.nameEn}`
-                    : person.name,
-                }))}
-                noneLabel="Register someone new"
-                searchPlaceholder="Search the directory…"
-                emptyMessage="Nobody matches that search."
-                onChange={(value) =>
-                  update('partyId', value === null ? null : Number(value))
-                }
-              />
-            </FormField>
-          )}
-
-          {(user || draft.partyId === null) && (
-          <>
           <FormField id="user-name" label="Name (English)">
             <Input
               id="user-name"
@@ -232,9 +196,6 @@ export function UserFormDialog({
               }
             />
           </FormField>
-
-          </>
-          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
@@ -269,17 +230,6 @@ export function UserFormDialog({
               />
             </FormField>
           </div>
-
-          <FormField id="user-address" label="Address">
-            <Input
-              id="user-address"
-              value={draft.address}
-              placeholder="நல்லூர், யாழ்ப்பாணம்"
-              onChange={(changeEvent) =>
-                update('address', changeEvent.target.value)
-              }
-            />
-          </FormField>
 
           <FormField
             id="user-role"

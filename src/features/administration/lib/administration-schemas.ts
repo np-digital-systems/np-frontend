@@ -10,24 +10,20 @@ import {
 } from '@/lib/validation';
 
 export const userSchema = z.object({
-  /** Null when registering a new person. */
-  partyId: z.number().int().positive().nullable(),
-  // Optional: an existing party already has a name. Required below only for new people.
   nameTa: optionalText(160),
   fullName: optionalText(),
   email: optionalEmail,
   phone: optionalText(32),
-  address: optionalText(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
   password: optionalText(128),
   passwordConfirmation: optionalText(128),
 }).superRefine((value, ctx) => {
-  if (value.partyId === null && !value.nameTa?.trim()) {
+  if (!value.nameTa?.trim()) {
     ctx.addIssue({
       code: 'custom',
       path: ['nameTa'],
-      message: 'Pick somebody from the directory, or give a Tamil name to register them.',
+      message: 'Enter the user’s name in Tamil.',
     });
   }
 

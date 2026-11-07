@@ -7,7 +7,6 @@ import { formatLongDate, } from '@/lib/format';
 
 import type {
   AuditDay,
-  DirectoryPerson,
   AuditEntry,
   FinancialYearRecord,
   PermissionGroup,
@@ -19,16 +18,12 @@ import type {
 
 import { DEFAULT_SETTINGS } from './administration-data';
 
-// Accounts are credentials granted to a party; names are edited in the directory.
-
 interface ApiAccount {
   readonly id: string;
-  readonly partyId: number;
   readonly nameTa: string;
   readonly nameEn: string | null;
   readonly email: string;
   readonly phone: string | null;
-  readonly address: string | null;
   readonly role: UserRole;
   readonly isActive: boolean;
   readonly lastLoginAt: string | null;
@@ -38,12 +33,10 @@ interface ApiAccount {
 function toUserRecord(account: ApiAccount, sessions: readonly UserSession[]): UserRecord {
   return {
     id: account.id,
-    partyId: account.partyId,
     fullName: account.nameEn ?? account.nameTa,
     nameTa: account.nameTa,
     email: account.email,
     phone: account.phone ?? '',
-    address: account.address ?? '',
     role: account.role,
     isActive: account.isActive,
     lastLoginAt: account.lastLoginAt,
@@ -74,12 +67,10 @@ export async function getMyProfile(): Promise<UserRecord> {
   return toUserRecord(
     {
       id: me.id,
-      partyId: me.partyId ?? 0,
       nameTa: me.nameTa,
       nameEn: me.nameEn ?? null,
       email: me.email ?? '',
       phone: me.phone ?? null,
-      address: me.address ?? null,
       role: me.role,
       isActive: me.isActive ?? true,
       lastLoginAt: me.lastLoginAt ?? null,
@@ -87,25 +78,6 @@ export async function getMyProfile(): Promise<UserRecord> {
     },
     sessions.map((session) => ({ ...session, userId: me.id })),
   );
-}
-
-// Lets a sign-in be granted to an existing party instead of creating a duplicate.
-export async function getDirectory(): Promise<readonly DirectoryPerson[]> {
-  const parties = await api
-    .get<readonly { id: number; name: string; nameEn: string; accountId: string | null; type: string }[]>(
-      '/parties',
-      { query: { isActive: true, type: 'person' } },
-    )
-    .catch(() => []);
-
-  return parties
-    .filter((party) => party.accountId === null)
-    .map((party) => ({
-      partyId: party.id,
-      name: party.name,
-      nameEn: party.nameEn,
-      hasAccount: false,
-    }));
 }
 
 export async function countUsersByRole(): Promise<Record<UserRole, number>> {

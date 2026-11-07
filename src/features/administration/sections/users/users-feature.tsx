@@ -3,7 +3,7 @@ import { requireSession } from '@/features/auth/lib/session';
 import { getToday } from '@/lib/format';
 
 import { getAdministrationAccess } from '../../lib/administration-access';
-import { getDirectory, getUserRecords } from '../../lib/administration-service';
+import { getUserRecords } from '../../lib/administration-service';
 
 import { UsersScreen } from './users-screen';
 
@@ -20,13 +20,12 @@ export async function UsersFeature() {
   }
 
   const today = getToday();
-  const [initialUsers, directory] = await Promise.all([getUserRecords(), getDirectory()]);
+  const initialUsers = await getUserRecords();
 
   return (
     <PageShell>
       <UsersScreen
         initialUsers={initialUsers}
-        directory={directory}
         currentUserId={user.id}
         today={today}
       />
