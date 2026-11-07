@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Plus, Search, Users, X } from 'lucide-react';
 
 import {
+  ActionError,
   Card,
   DataCell,
   DataRow,
@@ -29,11 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Link, useRouter } from '@/i18n/routing';
+import { useRouter } from '@/i18n/routing';
 
-import { CONTRIBUTION_ROUTES } from '../../lib/routes';
-import { cn } from '@/lib/utils';
-
+import { AddToSanththaDialog } from '../../components/add-to-sanththa-dialog';
 import { RecordPaymentDialog } from '../../components/record-payment-dialog';
 import { SetRateDialog } from '../../components/set-rate-dialog';
 import type { ContributionAccess } from '../../lib/contributions-access';
@@ -44,7 +43,8 @@ import {
   formatShortDate,
 } from '../../lib/contributions-data';
 import { summarise } from '../../lib/contributions-data';
-import type { MemberRecord, SanththaPosting } from '../../types';
+import { removeFromSanththaList } from '../../lib/contributions-actions';
+import type { MemberRecord, SanththaPosting, SponsorRecord } from '../../types';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid';
 
@@ -55,6 +55,8 @@ interface SanththaScreenProps {
   /** Null until a rate is set. */
   rate: number | null;
   posting: SanththaPosting;
+  /** Active members not yet on this year's list. */
+  candidates: readonly SponsorRecord[];
   access: ContributionAccess;
 }
 
@@ -64,6 +66,7 @@ export function SanththaScreen({
   year,
   rate,
   posting,
+  candidates,
   access,
 }: SanththaScreenProps) {
   const router = useRouter();
@@ -83,6 +86,8 @@ export function SanththaScreen({
   const [status, setStatus] = useState<StatusFilter>('all');
 
   const [rateOpen, setRateOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
   const [paying, setPaying] = useState<MemberRecord | null>(null);
   const [editingPayment, setEditingPayment] = useState<MemberRecord | null>(null);
 
@@ -103,6 +108,13 @@ export function SanththaScreen({
     });
   }, [members, query, status]);
 
+  async function handleRemove(member: MemberRecord) {
+    const result = await removeFromSanththaList(Number(member.id), year);
+
+    setListError(result.ok ? null : result.message);
+    if (result.ok) router.refresh();
+  }
+
   function handleRecorded() {
     setPaying(null);
     setEditingPayment(null);
@@ -110,8 +122,8 @@ export function SanththaScreen({
   }
 
   const columns: DataColumn[] = [
-    { key: 'no', label: 'Sponsor No' },
-    { key: 'name', label: 'Sponsor' },
+    { key: 'no', label: 'Membership No' },
+    { key: 'name', label: 'Member' },
     ...(access.canSeeContact
       ? [{ key: 'phone', label: 'Phone' } as const]
       : []),
@@ -130,7 +142,7 @@ export function SanththaScreen({
         description={
           rate === null
             ? `No sanththa has been set for ${year} yet.`
-            : `${formatCurrency(rate)} per sponsor.`
+            : `${formatCurrency(rate)} per member.`
         }
         meta={[
           <span key="year" className="tabular">
@@ -146,18 +158,20 @@ export function SanththaScreen({
           ) : null,
         ].filter(Boolean)}
         actions={
-          access.canManage && (
+          (access.canManage || access.canRecord) && (
             <div className="flex items-center gap-2">
-              <Button variant="secondary" onClick={() => setRateOpen(true)}>
-                {rate === null ? `Set ${year} sanththa` : `Sanththa ${formatCurrency(rate)}`}
-              </Button>
+              {access.canManage && (
+                <Button variant="secondary" onClick={() => setRateOpen(true)}>
+                  {rate === null ? `Set ${year} sanththa` : `Sanththa ${formatCurrency(rate)}`}
+                </Button>
+              )}
 
-              <Button asChild variant="secondary">
-                <Link href={CONTRIBUTION_ROUTES.members}>
+              {access.canRecord && (
+                <Button onClick={() => setAddOpen(true)}>
                   <Plus />
-                  Sponsor register
-                </Link>
-              </Button>
+                  Add Member
+                </Button>
+              )}
             </div>
           )
         }
@@ -166,6 +180,8 @@ export function SanththaScreen({
       {!access.canManage && (
         <ReadOnlyNotice message={REGISTER_READ_ONLY_MESSAGE} />
       )}
+
+      {listError && <ActionError message={listError} />}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
@@ -197,7 +213,7 @@ export function SanththaScreen({
           <InputGroupInput
             type="search"
             value={query}
-            placeholder="Search sponsor no, name or phone…"
+            placeholder="Search membership no, name or phone…"
             aria-label="Search members"
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -212,7 +228,7 @@ export function SanththaScreen({
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="all">All sponsors</SelectItem>
+            <SelectItem value="all">All members</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="unpaid">Not paid</SelectItem>
           </SelectContent>
@@ -272,10 +288,7 @@ export function SanththaScreen({
             </DataTableEmpty>
           ) : (
             filtered.map((member) => (
-              <DataRow
-                key={member.id}
-                className={cn(!member.subscribes && 'opacity-60')}
-              >
+              <DataRow key={member.id}>
                 <DataCell nowrap className="ref text-xs text-text-muted">
                   {member.memberNo}
                 </DataCell>
@@ -289,6 +302,9 @@ export function SanththaScreen({
                       {member.nameTa}
                     </p>
                   )}
+                  <p className="mt-0.5 text-[11px] text-text-muted">
+                    {member.isPoojaSponsor ? 'Pooja sponsor' : member.isEnrolled ? 'Added' : 'Paid'}
+                  </p>
                 </DataCell>
 
                 {access.canSeeContact && (
@@ -306,17 +322,13 @@ export function SanththaScreen({
                       />
                       Paid {formatCurrency(member.payment?.amount ?? 0)}
                     </span>
-                  ) : member.subscribes ? (
+                  ) : (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-subtle px-2 py-0.5 text-[11px] font-medium text-warning">
                       <span
                         className="size-1.5 rounded-full bg-current"
                         aria-hidden
                       />
                       Not paid
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-text-disabled">
-                      Exempt
                     </span>
                   )}
                 </DataCell>
@@ -354,7 +366,7 @@ export function SanththaScreen({
 
                 <DataCell align="right" nowrap>
                   <div className="flex items-center justify-end gap-1.5">
-                    {access.canRecord && !member.hasPaid && member.subscribes && (
+                    {access.canRecord && !member.hasPaid && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -365,6 +377,19 @@ export function SanththaScreen({
                     )}
 
                     {/* Hidden once the receipt is approved or posted. */}
+                    {access.canRecord &&
+                      member.isEnrolled &&
+                      !member.isPoojaSponsor &&
+                      !member.hasPaid && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => void handleRemove(member)}
+                        >
+                          Remove
+                        </Button>
+                      )}
+
                     {access.canRecord && member.payment?.editable && (
                       <Button
                         variant="ghost"
@@ -390,6 +415,16 @@ export function SanththaScreen({
           current={rate}
           subscribing={summary.subscribing}
           onSaved={() => router.refresh()}
+        />
+      )}
+
+      {access.canRecord && (
+        <AddToSanththaDialog
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          year={year}
+          candidates={candidates}
+          onAdded={() => router.refresh()}
         />
       )}
 

@@ -11,8 +11,10 @@ export interface SanththaMember {
   readonly phone: string;
   readonly address: string;
   readonly joinedOn: string;
-  /** Whether sanththa is due. Exempt sponsors can still be active. */
-  readonly subscribes: boolean;
+  /** Sponsors a pooja this year, so owes the sanththa. */
+  readonly isPoojaSponsor: boolean;
+  /** Added to this year's sanththa list by choice. */
+  readonly isEnrolled: boolean;
   readonly notes: string | null;
 }
 
