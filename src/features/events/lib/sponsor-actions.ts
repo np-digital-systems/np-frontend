@@ -47,8 +47,8 @@ export type RegisterSponsorResult =
   | { ok: true; id: number }
   | { ok: false; message: string };
 
-// Creates a party (not a user account), then the sponsorship. These are two calls,
-// so a failed second call leaves the party on record and the message says so.
+// Enrols a new member (a pooja sponsor must be one), then the sponsorship. These are two calls,
+// so a failed second call leaves the member on record and the message says so.
 export async function registerSponsor(
   input: RegisterSponsorInput,
 ): Promise<RegisterSponsorResult> {
@@ -67,14 +67,13 @@ export async function registerSponsor(
   let partyId: number;
 
   try {
-    const party = await api.post<{ id: number }>('/parties', {
+    const member = await api.post<{ partyId: number }>('/sponsors', {
       nameTa,
       nameEn: input.nameEn?.trim() || undefined,
       phone: input.phone?.trim() || undefined,
-      roles: ['sponsor'],
     });
 
-    partyId = party.id;
+    partyId = member.partyId;
   } catch (error) {
     return { ok: false, message: messageFor(error) };
   }
@@ -90,7 +89,7 @@ export async function registerSponsor(
 
     return {
       ok: false,
-      message: `${nameTa} was added to the parties list, but not registered as a sponsor: ${messageFor(error)}`,
+      message: `${nameTa} was enrolled as a member, but not assigned as the sponsor: ${messageFor(error)}`,
     };
   }
 

@@ -328,8 +328,8 @@ export function SponsorFormDialog({
                 groups={directoryGroups}
                 placeholder="Search or type a name"
                 searchPlaceholder="Search by name…"
-                emptyMessage="Nobody matches that search."
-                createLabel={(typed) => `Add “${typed}” as a new sponsor`}
+                emptyMessage="No member matches that search."
+                createLabel={(typed) => `Enrol “${typed}” as a new member`}
                 onCreate={startNewParty}
                 onChange={(value) =>
                   update('partyId', value === null ? null : Number(value))
