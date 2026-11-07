@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-import { PARTY_KIND_LABELS } from '../lib/accounting-data';
+import { partyRoleLabels } from '../lib/accounting-data';
 import type { PartyRef } from '../types';
 
 interface PartyPickerProps {
@@ -143,9 +143,7 @@ export function PartyPicker({
 
                     <span className="ml-auto flex items-center gap-2">
                       <span className="text-[10px] tracking-[0.06em] text-text-muted uppercase">
-                        {party.roles
-                          .map((role) => PARTY_KIND_LABELS[role])
-                          .join(' · ')}
+                        {partyRoleLabels(party).join(' · ')}
                       </span>
 
                       <Check

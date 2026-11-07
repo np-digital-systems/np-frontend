@@ -42,6 +42,7 @@ import type { AccountingAccess } from '../../lib/accounting-access';
 import {
   PARTY_KINDS,
   PARTY_KIND_LABELS,
+  partyRoleLabels,
   formatCurrency,
 } from '../../lib/accounting-data';
 import {
@@ -272,7 +273,7 @@ export function PartiesScreen({
                 </DataCell>
 
                 <DataCell nowrap className="text-xs text-text-secondary">
-                  {party.roles.map((role) => PARTY_KIND_LABELS[role]).join(', ')}
+                  {partyRoleLabels(party).join(', ')}
                 </DataCell>
 
                 <DataCell align="right" nowrap className="text-xs tabular">

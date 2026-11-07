@@ -79,6 +79,14 @@ export const PARTY_KIND_LABELS: Record<PartyKind, string> = {
   staff: 'Staff',
 };
 
+// `isSponsor` is the API's flag for a member-register entry.
+export function partyRoleLabels(party: {
+  roles: readonly PartyKind[];
+  isSponsor: boolean;
+}): string[] {
+  return [...(party.isSponsor ? ['Member'] : []), ...party.roles.map((role) => PARTY_KIND_LABELS[role])];
+}
+
 export const PARTY_TYPE_LABELS: Record<PartyType, string> = {
   person: 'Person',
   organisation: 'Organisation',
