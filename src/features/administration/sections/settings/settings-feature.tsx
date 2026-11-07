@@ -35,10 +35,12 @@ export async function SettingsFeature() {
   );
 
   // Cash and bank heads are refused: deposits would land in the cash or bank book.
-  const depositAccounts = cashAccounts.filter((account) => account.moneyHead === null);
+  const depositAccounts = cashAccounts.filter(
+    (account) => account.isPostable && account.moneyHead === null,
+  );
 
   const equityAccounts = chart.filter(
-    (account) => account.type === 'equity' && account.isActive,
+    (account) => account.type === 'equity' && account.isActive && account.isPostable,
   );
 
   if (!record) {

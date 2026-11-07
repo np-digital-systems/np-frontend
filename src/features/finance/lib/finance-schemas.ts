@@ -46,6 +46,7 @@ export const projectSchema = z
   );
 
 export const depositSchema = z.object({
+  name: optionalText(120),
   certificateNo: requiredText('The certificate number', 64),
   bankName: requiredText('The bank name'),
   branch: optionalText(),

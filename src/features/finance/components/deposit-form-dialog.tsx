@@ -81,6 +81,7 @@ const SOURCE_LABELS: Record<PlacementInput['source'], string> = {
 export type DepositPurpose = 'place' | 'edit' | 'renew';
 
 export interface DepositDraft {
+  name: string;
   certificateNo: string;
   bankName: string;
   branch: string;
@@ -90,6 +91,7 @@ export interface DepositDraft {
   tenureMonths: number;
   interestPayout: InterestPayout;
   fundId: number;
+  forPooja: boolean;
   slotId: number | null;
   notes: string;
   source: PlacementInput['source'];
@@ -115,6 +117,7 @@ function draftFrom(
 
   if (deposit) {
     return {
+      name: deposit.name ?? '',
       certificateNo: deposit.certificateNo,
       bankName: deposit.bankName,
       branch: deposit.branch,
@@ -124,6 +127,7 @@ function draftFrom(
       tenureMonths: deposit.tenureMonths,
       interestPayout: deposit.interestPayout,
       fundId: deposit.fundId,
+      forPooja: deposit.purpose === 'pooja',
       slotId: deposit.slotId,
       notes: deposit.notes ?? '',
       ...placement,
@@ -131,6 +135,7 @@ function draftFrom(
   }
 
   return {
+    name: '',
     certificateNo: '',
     bankName: '',
     branch: '',
@@ -140,6 +145,7 @@ function draftFrom(
     tenureMonths: 12,
     interestPayout: 'on-maturity',
     fundId: funds[0]?.id ?? 0,
+    forPooja: false,
     slotId: null,
     notes: '',
     ...placement,
@@ -212,10 +218,24 @@ export function DepositFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const result = validate(depositSchema, draft);
+    const result = validate(depositSchema, {
+      ...draft,
+      slotId: draft.forPooja ? draft.slotId : null,
+    });
 
     if (!result.ok) {
       setError(result.message);
+      return;
+    }
+
+    // A renewal keeps the old certificate's name, so it isn't asked for.
+    if (purpose !== 'renew' && !result.data.name) {
+      setError('Give the deposit a name.');
+      return;
+    }
+
+    if (draft.forPooja && result.data.slotId === null) {
+      setError('Choose the pooja this deposit pays for.');
       return;
     }
 
@@ -255,9 +275,9 @@ export function DepositFormDialog({
         <DialogHeader>
           <DialogTitle>
             {purpose === 'renew' && deposit
-              ? `Renew ${deposit.certificateNo}`
+              ? `Renew ${deposit.name ?? deposit.certificateNo}`
               : deposit
-                ? `Edit ${deposit.certificateNo}`
+                ? `Edit ${deposit.name ?? deposit.certificateNo}`
                 : 'Place Fixed Deposit'}
           </DialogTitle>
           <DialogDescription>
@@ -268,6 +288,17 @@ export function DepositFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {purpose !== 'renew' && (
+            <FormField id="deposit-name" label="Name" required>
+              <Input
+                id="deposit-name"
+                value={draft.name}
+                placeholder="Karthigai Vilakkeedu endowment"
+                onChange={(changeEvent) => update('name', changeEvent.target.value)}
+              />
+            </FormField>
+          )}
+
           <FormField
             id="deposit-certificate"
             label="Certificate Number"
@@ -415,19 +446,39 @@ export function DepositFormDialog({
             </FormField>
           </div>
 
-          <FormField id="deposit-pooja" label="Pooja">
-            <EntityCombobox
-              id="deposit-pooja"
-              value={draft.slotId === null ? null : String(draft.slotId)}
-              groups={poojaGroups(slots)}
-              noneLabel="Kovil"
-              searchPlaceholder="Search pooja or sponsor…"
-              emptyMessage="No pooja matches that search."
-              onChange={(value) =>
-                update('slotId', value === null ? null : Number(value))
-              }
-            />
-          </FormField>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr]">
+            <FormField id="deposit-purpose" label="Purpose" required>
+              <Select
+                value={draft.forPooja ? 'pooja' : 'general'}
+                onValueChange={(value) => update('forPooja', value === 'pooja')}
+              >
+                <SelectTrigger id="deposit-purpose" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="pooja">Pooja</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            {draft.forPooja && (
+              <FormField id="deposit-pooja" label="Pooja" required>
+                <EntityCombobox
+                  id="deposit-pooja"
+                  value={draft.slotId === null ? null : String(draft.slotId)}
+                  groups={poojaGroups(slots)}
+                  placeholder="Choose the pooja"
+                  searchPlaceholder="Search pooja or sponsor…"
+                  emptyMessage="No pooja matches that search."
+                  onChange={(value) =>
+                    update('slotId', value === null ? null : Number(value))
+                  }
+                />
+              </FormField>
+            )}
+          </div>
 
           {purpose === 'place' && (
             <PlacementFields draft={draft} bankAccounts={bankAccounts} onChange={update} />

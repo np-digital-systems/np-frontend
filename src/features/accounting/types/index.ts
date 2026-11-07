@@ -193,6 +193,8 @@ export interface LedgerEntry {
     readonly voucherId: number;
   readonly date: string;
   readonly ref: string;
+  /** Number from the temple's physical voucher book. */
+  readonly manualVoucherNo: string | null;
   readonly description: string;
   readonly accountId: number;
   readonly fundId: number;

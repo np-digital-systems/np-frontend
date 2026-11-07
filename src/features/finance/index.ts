@@ -2,6 +2,7 @@ export {
   FundsFeature,
   ProjectsFeature,
   FixedDepositsFeature,
+  DepositDetailFeature,
   AssetsFeature,
 } from './sections';
 

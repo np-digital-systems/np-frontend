@@ -8,7 +8,9 @@ import type { LedgerRecord } from '@/features/accounting';
 import type {
   AssetCategoryTotal,
   AssetRecord,
+  DepositInterest,
   DepositRecord,
+  DepositVoucher,
   FinanceSummary,
   FundBreakdownLine,
   FundDetail,
@@ -67,6 +69,18 @@ export async function getProjectRecords(): Promise<readonly ProjectRecord[]> {
 
 export async function getDepositRecords(): Promise<readonly DepositRecord[]> {
   return api.get<readonly DepositRecord[]>('/fixed-deposits');
+}
+
+export async function getDepositRecord(id: number): Promise<DepositRecord | null> {
+  return api.get<DepositRecord>(`/fixed-deposits/${id}`).catch(() => null);
+}
+
+export async function getDepositVouchers(id: number): Promise<readonly DepositVoucher[]> {
+  return api.get<readonly DepositVoucher[]>(`/fixed-deposits/${id}/vouchers`);
+}
+
+export async function getDepositInterestByYear(id: number): Promise<DepositInterest> {
+  return api.get<DepositInterest>(`/fixed-deposits/${id}/interest`);
 }
 
 export async function getSlotOptions(): Promise<readonly SlotOption[]> {

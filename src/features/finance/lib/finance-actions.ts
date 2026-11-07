@@ -4,9 +4,10 @@ import { revalidatePath } from 'next/cache';
 
 import { requireSession } from '@/features/auth/lib/session';
 import type { PaymentMode } from '@/features/accounting/types';
+
+import type { DepositPurpose } from '../types';
 import { api, ApiError } from '@/lib/api';
 
-import type { DepositInterest } from '../types';
 
 import { getFinanceAccess } from './finance-access';
 import { FINANCE_ROUTES } from './routes';
@@ -96,6 +97,7 @@ export async function updateProject(
 }
 
 export interface DepositInput {
+  name: string;
   certificateNo: string;
   bankName: string;
   branch: string;
@@ -106,6 +108,7 @@ export interface DepositInput {
   tenureMonths: number;
   interestPayout: 'monthly' | 'quarterly' | 'on-maturity';
   fundId: number;
+  purpose: DepositPurpose;
   slotId: number | null;
   notes?: string;
 }
@@ -148,7 +151,9 @@ export async function updateDeposit(
 
 export async function renewDeposit(
   id: number,
-  input: Omit<DepositInput, 'fundId' | 'slotId'> & { manualVoucherNo: string },
+  input: Omit<DepositInput, 'name' | 'fundId' | 'purpose' | 'slotId'> & {
+    manualVoucherNo: string;
+  },
 ): Promise<ActionResult> {
   return guarded((a) => a.canManageDeposits, 'You cannot renew fixed deposits.', () =>
     api.post(`/fixed-deposits/${id}/renew`, { ...input, notes: input.notes || undefined }),
@@ -175,12 +180,6 @@ export async function recordDepositInterest(
       chequeNo: input.chequeNo || undefined,
     }),
   );
-}
-
-export async function loadDepositInterest(id: number): Promise<DepositInterest | null> {
-  await requireSession();
-
-  return api.get<DepositInterest>(`/fixed-deposits/${id}/interest`).catch(() => null);
 }
 
 export async function matureDeposit(id: number): Promise<ActionResult> {
