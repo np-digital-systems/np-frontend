@@ -55,7 +55,7 @@ function draftFrom(party: PartyRecord | null): PartyDraft {
     type: 'person',
     nameTa: '',
     nameEn: '',
-    roles: ['devotee'],
+    roles: [],
     phone: '',
     email: '',
     address: '',

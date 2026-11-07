@@ -71,11 +71,10 @@ export const ACTIVITY_KIND_LABELS: Record<ActivityKind, string> = {
   general: 'General',
 };
 
-// Sponsorship is a profile, not a role, so it isn't listed.
-export const PARTY_KINDS: readonly PartyKind[] = ['devotee', 'vendor', 'staff'];
+// Membership is the member register, not a role, so it isn't listed.
+export const PARTY_KINDS: readonly PartyKind[] = ['vendor', 'staff'];
 
 export const PARTY_KIND_LABELS: Record<PartyKind, string> = {
-  devotee: 'Devotee',
   vendor: 'Vendor',
   staff: 'Staff',
 };

@@ -269,7 +269,7 @@ export type ActivityRef = Pick<
   | 'defaultAccountId'
 >;
 
-export type PartyKind = 'devotee' | 'vendor' | 'staff';
+export type PartyKind = 'vendor' | 'staff';
 
 export type PartyType = 'person' | 'organisation';
 
