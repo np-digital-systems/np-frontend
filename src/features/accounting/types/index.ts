@@ -283,7 +283,6 @@ export interface Party {
   readonly roles: readonly PartyKind[];
   /** Sponsorship is a profile, not a role. */
   readonly isSponsor: boolean;
-  readonly accountId: string | null;
   readonly phone: string | null;
   readonly email: string | null;
   readonly address: string | null;

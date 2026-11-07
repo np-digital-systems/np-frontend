@@ -121,8 +121,6 @@ export function PartyFormDialog({
     onOpenChange(false);
   }
 
-  const hasAccount = party?.accountId != null;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
@@ -164,11 +162,6 @@ export function PartyFormDialog({
             id="party-name-ta"
             label="Name (Tamil)"
             required
-            hint={
-              hasAccount
-                ? 'Linked to a sign-in; renaming here does not rename the account.'
-                : undefined
-            }
           >
             <Input
               id="party-name-ta"
