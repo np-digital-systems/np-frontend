@@ -14,7 +14,6 @@ export interface SponsorInput {
   phone?: string;
   email?: string;
   address?: string;
-  subscribes: boolean;
   notes?: string;
 }
 
@@ -88,7 +87,6 @@ export async function enrolSponsor(input: SponsorInput): Promise<SponsorResult> 
       phone: blank(input.phone),
       email: blank(input.email),
       address: blank(input.address),
-      subscribes: input.subscribes,
       notes: blank(input.notes),
     }),
   );
@@ -106,7 +104,6 @@ export async function updateSponsor(
       phone: blank(input.phone),
       email: blank(input.email),
       address: blank(input.address),
-      subscribes: input.subscribes,
       isActive: input.isActive,
       notes: blank(input.notes),
     }),

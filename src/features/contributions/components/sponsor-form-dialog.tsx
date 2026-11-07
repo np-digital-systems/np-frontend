@@ -24,7 +24,6 @@ export interface SponsorDraft {
   phone: string;
   email: string;
   address: string;
-  subscribes: boolean;
   isActive: boolean;
   notes: string;
 }
@@ -36,7 +35,6 @@ function draftFrom(sponsor: SponsorRecord | null): SponsorDraft {
     phone: sponsor?.phone ?? '',
     email: sponsor?.email ?? '',
     address: sponsor?.address ?? '',
-    subscribes: sponsor?.subscribes ?? true,
     isActive: sponsor?.isActive ?? true,
     notes: sponsor?.notes ?? '',
   };
@@ -158,22 +156,6 @@ export function SponsorFormDialog({
               onChange={(event) => update('notes', event.target.value)}
             />
           </FormField>
-
-          <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">
-            <div className="min-w-0 pr-4">
-              <Label htmlFor="sponsor-subscribes" className="text-xs font-medium text-text-secondary">
-                Pays the annual sanththa
-              </Label>
-              <p className="mt-0.5 text-[11px] text-text-tertiary">
-                Clear for exempt sponsors.
-              </p>
-            </div>
-            <Checkbox
-              id="sponsor-subscribes"
-              checked={draft.subscribes}
-              onCheckedChange={(checked) => update('subscribes', checked === true)}
-            />
-          </div>
 
           {sponsor && (
             <div className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5">

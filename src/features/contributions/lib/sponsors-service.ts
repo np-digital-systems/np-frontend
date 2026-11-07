@@ -13,7 +13,6 @@ interface ApiSponsor {
   readonly email: string | null;
   readonly address: string | null;
   readonly sponsorSince: string;
-  readonly subscribes: boolean;
   readonly isActive: boolean;
   readonly notes: string | null;
   readonly sponsorships: number;
@@ -32,7 +31,6 @@ function toRecord(row: ApiSponsor): SponsorRecord {
     email: row.email ?? '',
     address: row.address ?? '',
     sponsorSince: row.sponsorSince?.slice(0, 10) ?? '',
-    subscribes: row.subscribes,
     isActive: row.isActive,
     notes: row.notes,
     sponsorships: row.sponsorships,

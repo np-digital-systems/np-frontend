@@ -62,7 +62,6 @@ export interface SponsorRecord {
   readonly email: string;
   readonly address: string;
   readonly sponsorSince: string;
-  readonly subscribes: boolean;
   readonly isActive: boolean;
   readonly notes: string | null;
   readonly sponsorships: number;
