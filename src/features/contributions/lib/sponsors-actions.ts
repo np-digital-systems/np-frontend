@@ -53,6 +53,32 @@ async function guarded(
   }
 }
 
+// Enrolled from a receipt; sanththa is decided year by year on the Sanththa page.
+export async function enrolMemberByName(
+  nameTa: string,
+): Promise<{ ok: true; partyId: number } | { ok: false; message: string }> {
+  const { permissions } = await requireSession();
+
+  if (!getContributionAccess(permissions).canManage) {
+    return { ok: false, message: 'You cannot change the member register.' };
+  }
+
+  try {
+    const member = await api.post<SponsorResponse>('/sponsors', {
+      nameTa: nameTa.trim(),
+    });
+
+    revalidatePath(CONTRIBUTION_ROUTES.members);
+
+    return { ok: true, partyId: member.partyId };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
+    };
+  }
+}
+
 // The database allocates the sponsor number atomically and creates the party in the same step.
 export async function enrolSponsor(input: SponsorInput): Promise<SponsorResult> {
   return guarded(() =>
