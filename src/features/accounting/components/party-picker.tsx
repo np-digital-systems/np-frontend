@@ -30,6 +30,8 @@ interface PartyPickerProps {
   parties: readonly PartyRef[];
   placeholder: string;
   onChange: (value: { name: string; partyId: number | null }) => void;
+  /** When given, an unmatched name can be enrolled as a member; resolves to the new party id. */
+  onCreateMember?: (name: string) => Promise<number | null>;
 }
 
 // Pick a party to link the entry, or keep a typed name for one-off donors. The name is
@@ -41,9 +43,11 @@ export function PartyPicker({
   parties,
   placeholder,
   onChange,
+  onCreateMember,
 }: PartyPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [enrolling, setEnrolling] = useState(false);
 
   const linked = parties.find((party) => party.id === partyId);
   const typed = search.trim();
@@ -61,6 +65,22 @@ export function PartyPicker({
 
   function keepAsTyped() {
     onChange({ name: typed, partyId: null });
+    setSearch('');
+    setOpen(false);
+  }
+
+  async function enrolTyped() {
+    if (!onCreateMember || enrolling) return;
+
+    const name = typed;
+
+    setEnrolling(true);
+    const newPartyId = await onCreateMember(name);
+    setEnrolling(false);
+
+    if (newPartyId === null) return;
+
+    onChange({ name, partyId: newPartyId });
     setSearch('');
     setOpen(false);
   }
@@ -114,6 +134,19 @@ export function PartyPicker({
 
             {canKeepTyped && (
               <CommandGroup>
+                {onCreateMember && (
+                  <CommandItem
+                    value={`member-${typed}`}
+                    disabled={enrolling}
+                    onSelect={() => void enrolTyped()}
+                  >
+                    <UserPlus className="text-text-muted" />
+                    <span className="truncate">
+                      {enrolling ? 'Enrolling…' : `Add “${typed}” as a new member`}
+                    </span>
+                  </CommandItem>
+                )}
+
                 <CommandItem value={`keep-${typed}`} onSelect={keepAsTyped}>
                   <UserPlus className="text-text-muted" />
                   <span className="truncate">
