@@ -198,3 +198,34 @@ export async function updateMember(id: string, input: MemberInput): Promise<Memb
     };
   }
 }
+
+export type ListResult = { ok: true } | { ok: false; message: string };
+
+async function changeList(write: () => Promise<unknown>): Promise<ListResult> {
+  const { permissions } = await requireSession();
+
+  if (!getContributionAccess(permissions).canRecord) {
+    return { ok: false, message: 'You cannot change the sanththa list.' };
+  }
+
+  try {
+    await write();
+    revalidatePath(CONTRIBUTION_ROUTES.sanththa);
+
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
+    };
+  }
+}
+
+// A member who chooses to pay this year; next year's list starts without them.
+export async function addToSanththaList(memberId: number, year: number): Promise<ListResult> {
+  return changeList(() => api.post('/sanththa/enrolments', { memberId, year }));
+}
+
+export async function removeFromSanththaList(memberId: number, year: number): Promise<ListResult> {
+  return changeList(() => api.delete(`/sanththa/enrolments/${memberId}/${year}`));
+}
