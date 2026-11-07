@@ -36,14 +36,17 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
     ? requested
     : getActiveYear(getToday());
 
-  const [members, summary, posting, register] = await Promise.all([
+  const [records, summary, posting, register] = await Promise.all([
     getMemberRecords(selected),
     getSanththaSummary(selected),
     getSanththaPosting(),
     access.canRecord ? getSponsorRecords(selected) : [],
   ]);
 
-  // Anyone already on this year's list can't be added again.
+  // The API returns the whole register; the year's list is who owes or has paid.
+  const members = records.filter(
+    (member) => member.isPoojaSponsor || member.isEnrolled || member.hasPaid,
+  );
   const listed = new Set(members.map((member) => member.id));
   const candidates = register.filter(
     (member) => member.isActive && !listed.has(String(member.partyId)),
