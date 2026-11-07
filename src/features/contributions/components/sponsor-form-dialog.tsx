@@ -13,12 +13,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormField } from '@/components/portal/ui';
+import { EntityCombobox } from '@/components/ui/entity-combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { partyRoleLabels } from '@/features/accounting/lib/accounting-data';
+import type { PartyRef } from '@/features/accounting/types';
 
 import type { SponsorRecord } from '../types';
 
 export interface SponsorDraft {
+  /** An existing party to enrol; null registers someone new. */
+  partyId: number | null;
   nameTa: string;
   nameEn: string;
   phone: string;
@@ -30,6 +35,7 @@ export interface SponsorDraft {
 
 function draftFrom(sponsor: SponsorRecord | null): SponsorDraft {
   return {
+    partyId: null,
     nameTa: sponsor?.name ?? '',
     nameEn: sponsor?.nameEn ?? '',
     phone: sponsor?.phone ?? '',
@@ -44,6 +50,7 @@ interface SponsorFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sponsor: SponsorRecord | null;
+  people: readonly PartyRef[];
   pending: boolean;
   onSubmit: (draft: SponsorDraft) => void;
 }
@@ -52,6 +59,7 @@ export function SponsorFormDialog({
   open,
   onOpenChange,
   sponsor,
+  people,
   pending,
   onSubmit,
 }: SponsorFormDialogProps) {
@@ -74,7 +82,7 @@ export function SponsorFormDialog({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!draft.nameTa.trim()) {
+    if (draft.partyId === null && !draft.nameTa.trim()) {
       setError('A Tamil name is required.');
       return;
     }
@@ -98,6 +106,26 @@ export function SponsorFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {!sponsor && (
+            <FormField id="sponsor-person" label="Person">
+              <EntityCombobox
+                id="sponsor-person"
+                value={draft.partyId === null ? null : String(draft.partyId)}
+                options={people.map((person) => ({
+                  value: String(person.id),
+                  label: person.nameEn ? `${person.name} · ${person.nameEn}` : person.name,
+                  description: partyRoleLabels(person).join(' · ') || undefined,
+                }))}
+                noneLabel="Someone new"
+                searchPlaceholder="Search parties…"
+                emptyMessage="Nobody in Parties matches that search."
+                onChange={(value) => update('partyId', value === null ? null : Number(value))}
+              />
+            </FormField>
+          )}
+
+          {draft.partyId === null && (
+          <>
           <FormField
             id="sponsor-name-ta"
             label="Name (Tamil)"
@@ -119,6 +147,8 @@ export function SponsorFormDialog({
               onChange={(event) => update('nameEn', event.target.value)}
             />
           </FormField>
+          </>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="sponsor-phone" label="Phone">

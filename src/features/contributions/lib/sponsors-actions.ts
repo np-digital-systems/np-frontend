@@ -9,6 +9,8 @@ import { getContributionAccess } from './contributions-access';
 import { CONTRIBUTION_ROUTES } from './routes';
 
 export interface SponsorInput {
+  /** An existing party to enrol; null registers a new person. */
+  partyId?: number | null;
   nameTa: string;
   nameEn?: string;
   phone?: string;
@@ -82,8 +84,9 @@ export async function enrolMemberByName(
 export async function enrolSponsor(input: SponsorInput): Promise<SponsorResult> {
   return guarded(() =>
     api.post<SponsorResponse>('/sponsors', {
-      nameTa: input.nameTa,
-      nameEn: blank(input.nameEn),
+      partyId: input.partyId ?? undefined,
+      nameTa: input.partyId ? undefined : input.nameTa,
+      nameEn: input.partyId ? undefined : blank(input.nameEn),
       phone: blank(input.phone),
       email: blank(input.email),
       address: blank(input.address),

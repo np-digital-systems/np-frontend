@@ -34,6 +34,7 @@ import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
 import { SponsorFormDialog, type SponsorDraft } from '../../components/sponsor-form-dialog';
+import type { PartyRef } from '@/features/accounting/types';
 import type { ContributionAccess } from '../../lib/contributions-access';
 import { REGISTER_READ_ONLY_MESSAGE } from '../../lib/contributions-access';
 import { formatShortDate } from '../../lib/contributions-data';
@@ -77,11 +78,12 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 interface SponsorsScreenProps {
   sponsors: readonly SponsorRecord[];
-  year: number;
+  /** People in Parties who can be enrolled without creating a duplicate. */
+  people: readonly PartyRef[];
   access: ContributionAccess;
 }
 
-export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) {
+export function SponsorsScreen({ sponsors, people, access }: SponsorsScreenProps) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -331,6 +333,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
             if (!open) setEditing(null);
           }}
           sponsor={editing}
+          people={people}
           pending={pending}
           onSubmit={handleSubmit}
         />
