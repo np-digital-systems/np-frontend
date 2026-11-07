@@ -205,11 +205,11 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         requiredPermission: 'voucher:approve',
       },
       {
-        id: 'sponsors',
-        label: 'Sponsors',
+        id: 'members',
+        label: 'Members',
         href: CONTRIBUTION_ROUTES.members,
         icon: 'user',
-        description: 'The sponsor register — who sponsors what, and their details',
+        description: 'The member register — membership numbers and sanththa',
         requiredPermission: 'sponsor:view',
       },
       {
@@ -359,7 +359,7 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         label: 'Parties',
         href: ACCOUNTING_ROUTES.parties,
         icon: 'user',
-        description: 'Sponsors, staff and vendors entries are with',
+        description: 'Members, vendors and staff the books deal with',
         requiredPermission: 'party:view',
       },
       {

@@ -25,6 +25,7 @@ const routeLabels: Record<string, string> = {
   contras: 'Contra Vouchers',
   journals: 'Journal Vouchers',
   approvals: 'Approval Center',
+  members: 'Members',
   reports: 'Reports',
 
   finance: 'Financial Management',
