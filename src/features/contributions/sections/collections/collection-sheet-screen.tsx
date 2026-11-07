@@ -32,9 +32,9 @@ import type { CollectionEvent, Contributor, ContributorReason } from '../../type
 
 const REASON_LABEL: Record<ContributorReason, string> = {
   'gave-before': 'Gave last time',
-  sponsor: 'Sponsor',
+  member: 'Member',
   vendor: 'Vendor',
-  devotee: 'Devotee',
+  staff: 'Staff',
 };
 
 interface CollectionSheetScreenProps {
@@ -249,7 +249,7 @@ export function CollectionSheetScreen({
                 description={
                   query
                     ? 'No contributor matches that search.'
-                    : 'No past contributors, sponsors or vendors yet.'
+                    : 'No past contributors, members or vendors yet.'
                 }
               />
             </DataTableEmpty>

@@ -71,7 +71,7 @@ export interface SponsorRecord {
   readonly paidThisYear: boolean;
 }
 
-export type ContributorReason = 'gave-before' | 'sponsor' | 'vendor' | 'devotee';
+export type ContributorReason = 'gave-before' | 'member' | 'vendor' | 'staff';
 
 export interface Contributor {
   readonly partyId: number;
