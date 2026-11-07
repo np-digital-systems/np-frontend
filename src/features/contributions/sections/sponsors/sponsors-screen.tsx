@@ -138,8 +138,8 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
   }
 
   const columns: DataColumn[] = [
-    { key: 'no', label: 'No.' },
-    { key: 'name', label: 'Sponsor' },
+    { key: 'no', label: 'Membership No' },
+    { key: 'name', label: 'Member' },
     ...(access.canSeeContact ? [{ key: 'phone', label: 'Phone' } as const] : []),
     { key: 'since', label: 'Since' },
     { key: 'sponsorships', label: 'Poojas sponsored', align: 'right' as const },
@@ -150,7 +150,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
   return (
     <>
       <PortalPageHeader
-        title="Sponsors"
+        title="Members"
         meta={[
           <span key="count" className="tabular">
             {summary.total} active
@@ -160,7 +160,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
           access.canManage ? (
             <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
               <Plus className="size-4" />
-              Enrol sponsor
+              Enrol member
             </Button>
           ) : null
         }
@@ -183,7 +183,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
             </InputGroupAddon>
             <InputGroupInput
               value={query}
-              placeholder="Search sponsors"
+              placeholder="Search members"
               onChange={(changeEvent) => setQuery(changeEvent.target.value)}
             />
           </InputGroup>
@@ -223,7 +223,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
             <DataTableEmpty colSpan={columns.length}>
               <EmptyState
                 icon={HeartHandshake}
-                title="No sponsors match"
+                title="No members match"
                 description={
                   query || filter !== 'all'
                     ? 'Try a different search or filter.'
@@ -295,10 +295,10 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
       <ConfirmDialog
         open={retiring !== null}
         onOpenChange={(open) => !open && setRetiring(null)}
-        title="Retire this sponsor?"
+        title="Retire this member?"
         description={
           retiring
-            ? `${retiring.name} (${retiring.sponsorNo}) won't be offered for new sponsorships or sanththa. Existing records are unchanged; reactivate from Edit.`
+            ? `${retiring.name} (${retiring.sponsorNo}) won't be offered for pooja sponsorships or sanththa. Existing records are unchanged; reactivate from Edit.`
             : ''
         }
         confirmLabel="Retire"

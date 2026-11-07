@@ -88,12 +88,12 @@ export function SponsorFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {sponsor ? `Edit ${sponsor.sponsorNo}` : 'Enrol a sponsor'}
+            {sponsor ? `Edit ${sponsor.sponsorNo}` : 'Enrol a member'}
           </DialogTitle>
           <DialogDescription>
             {sponsor
               ? 'Changes apply everywhere this person appears.'
-              : 'Adds them to the directory with a sponsor number.'}
+              : 'Adds them to the register with a membership number.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -164,7 +164,7 @@ export function SponsorFormDialog({
                   Active
                 </Label>
                 <p className="mt-0.5 text-[11px] text-text-tertiary">
-                  Inactive sponsors are hidden from pickers.
+                  Inactive members are hidden from pickers.
                 </p>
               </div>
               <Checkbox
@@ -186,7 +186,7 @@ export function SponsorFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? 'Saving…' : sponsor ? 'Save changes' : 'Enrol sponsor'}
+              {pending ? 'Saving…' : sponsor ? 'Save changes' : 'Enrol member'}
             </Button>
           </DialogFooter>
         </form>
