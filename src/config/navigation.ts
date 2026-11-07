@@ -207,7 +207,7 @@ export const portalNavigation: readonly PortalNavGroup[] = [
       {
         id: 'sponsors',
         label: 'Sponsors',
-        href: CONTRIBUTION_ROUTES.sponsors,
+        href: CONTRIBUTION_ROUTES.members,
         icon: 'user',
         description: 'The sponsor register — who sponsors what, and their details',
         requiredPermission: 'sponsor:view',

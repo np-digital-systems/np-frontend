@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import { SponsorsFeature } from '@/features/contributions';
 
 export const metadata: Metadata = {
-  title: 'Sponsors',
+  title: 'Members',
 };
 
-export default function SponsorsPage() {
+export default function MembersPage() {
   return <SponsorsFeature />;
 }

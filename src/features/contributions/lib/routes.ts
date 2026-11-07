@@ -1,5 +1,5 @@
 export const CONTRIBUTION_ROUTES = {
-  sponsors: '/contributions/sponsors',
+  members: '/contributions/members',
   sanththa: '/contributions/sanththa',
   collections: '/contributions/collections',
 } as const;

@@ -35,13 +35,13 @@ async function guarded(
   const { permissions } = await requireSession();
 
   if (!getContributionAccess(permissions).canManage) {
-    return { ok: false, message: 'You cannot change the sponsor register.' };
+    return { ok: false, message: 'You cannot change the member register.' };
   }
 
   try {
     const sponsor = await run();
 
-    revalidatePath(CONTRIBUTION_ROUTES.sponsors);
+    revalidatePath(CONTRIBUTION_ROUTES.members);
     revalidatePath(CONTRIBUTION_ROUTES.sanththa);
 
     return { ok: true, sponsorNo: sponsor.sponsorNo };

@@ -32,7 +32,7 @@ export async function setSanththaRate(year: number, amount: number): Promise<Set
   }
 
   revalidatePath(CONTRIBUTION_ROUTES.sanththa);
-  revalidatePath(CONTRIBUTION_ROUTES.sponsors);
+  revalidatePath(CONTRIBUTION_ROUTES.members);
 
   return { ok: true };
 }

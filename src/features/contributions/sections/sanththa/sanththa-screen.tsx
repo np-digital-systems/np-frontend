@@ -153,7 +153,7 @@ export function SanththaScreen({
               </Button>
 
               <Button asChild variant="secondary">
-                <Link href={CONTRIBUTION_ROUTES.sponsors}>
+                <Link href={CONTRIBUTION_ROUTES.members}>
                   <Plus />
                   Sponsor register
                 </Link>
