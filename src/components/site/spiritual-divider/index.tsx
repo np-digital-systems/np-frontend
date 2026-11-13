@@ -12,17 +12,17 @@ export function SpiritualDivider({
   return (
     <div className={cn("flex items-center justify-center py-8", className)}>
       <div className="flex items-center gap-4 w-full max-w-xs">
-        <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]/40" />
+        <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent to-temple-gold/40" />
         <div className="relative">
           {variant === "om" ? (
-            <span className="text-[#D4AF37] text-xl font-heading">ॐ</span>
+            <span className="text-temple-gold text-xl font-heading">ॐ</span>
           ) : variant === "lotus" ? (
             <svg
               width="24"
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              className="text-[#D4AF37]"
+              className="text-temple-gold"
             >
               <path
                 d="M12 2C12 2 8 8 8 12C8 14.21 9.79 16 12 16C14.21 16 16 14.21 16 12C16 8 12 2 12 2Z"
@@ -49,10 +49,10 @@ export function SpiritualDivider({
               />
             </svg>
           ) : (
-            <div className="w-3 h-3 rounded-full border-2 border-[#D4AF37] bg-[#D4AF37]/20" />
+            <div className="w-3 h-3 rounded-full border-2 border-temple-gold bg-temple-gold/20" />
           )}
         </div>
-        <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]/40" />
+        <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent to-temple-gold/40" />
       </div>
     </div>
   );
