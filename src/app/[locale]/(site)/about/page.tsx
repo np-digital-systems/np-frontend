@@ -5,6 +5,8 @@ import { SpiritualDivider } from "@/components/site/spiritual-divider";
 import { TEMPLE_STATS } from "@/features/home/constants/temple-info";
 import { TempleStat } from "@/features/home/components/temple-stat";
 import { useTranslations } from "next-intl";
+import { PageHero } from "@/components/site/page-hero";
+import { ScrollReveal } from "@/features/home/components/scroll-reveal";
 
 export const metadata: Metadata = {
   title: "About",
@@ -38,32 +40,18 @@ export default function AboutPage() {
 
   return (
     <>
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
-        <Image
-          src="/images/temple-lamps.png"
-          alt="Temple interior"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
+      <ScrollReveal />
+      <PageHero
+        title={tAbout("title")}
+        subtitle={tAbout("subtitle")}
+        image="/images/temple-lamps.png"
+        archImage="/images/deity-shrine.png"
+        archAlt={tTempleInfo("shortName")}
+      />
 
-        <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
+      <PageContainer className="overflow-hidden bg-temple-paper">
 
-        <div className="relative z-10 text-center px-4">
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            {tAbout("title")}
-          </h1>
-
-          <p className="text-white/80 text-lg font-sans max-w-2xl mx-auto">
-            {tAbout("subtitle")}
-          </p>
-        </div>
-      </section>
-
-      <PageContainer className="bg-[#FAF9F6]">
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 ">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 reveal">
           {[
             "/images/temple-hero.png",
             "/images/deity-shrine.png",
@@ -71,14 +59,14 @@ export default function AboutPage() {
           ].map((src, i) => (
             <div
               key={src}
-              className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg"
+              className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-temple-sand shadow-[0_20px_50px_rgba(74,16,22,0.14)]"
             >
               <Image
                 src={src}
                 alt={`Temple image ${i + 1}`}
                 fill
-                className="object-cover"
-                sizes="400px"
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                sizes="(max-width: 768px) 100vw, 400px"
               />
             </div>
           ))}
@@ -86,13 +74,13 @@ export default function AboutPage() {
 
         <div className="mt-24">
 
-          <div className="max-w-3xl mx-auto  mb-16">
-            <h2 className="font-heading text-3xl text-center md:text-4xl font-semibold text-[#1A1C1C]">
+          <div className="max-w-3xl mx-auto mb-16 reveal">
+            <h2 className="font-heading text-3xl text-center md:text-4xl font-semibold text-temple-ink">
               {tHistory("title")}
             </h2>
 
-            <blockquote className="border-l-3 border-[#D4AF37] pl-6 my-8">
-              <p className="font-heading text-xl align-left text-[#4D4635] italic leading-relaxed">
+            <blockquote className="border-l-3 border-temple-kumkum/70 bg-temple-sand/50 rounded-r-2xl py-5 pl-6 pr-5 my-8">
+              <p className="font-heading text-xl align-left text-temple-soft italic leading-relaxed">
                 &ldquo;{tHistory("intro")}&rdquo;
               </p>
             </blockquote>
@@ -104,25 +92,25 @@ export default function AboutPage() {
             {historySections.map((sectionKey, index) => (
               <section
                 key={sectionKey}
-                className="relative"
+                className="relative reveal"
               >
                 <div className="flex gap-6">
 
                   <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full border-2 border-[#D4AF37] bg-[#FAF9F6] flex items-center justify-center">
-                      <span className="font-heading text-sm font-semibold text-[#8B0000]">
+                    <div className="w-11 h-11 rounded-full border-2 border-temple-gold bg-temple-night shadow-[0_0_0_6px_rgba(217,164,58,0.12)] flex items-center justify-center">
+                      <span className="font-heading text-sm font-semibold text-temple-gold-soft">
                         {String(index + 1).padStart(2, "0")}
                       </span>
                     </div>
 
                     {index !== historySections.length - 1 && (
-                      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full bg-[#D4AF37]/40" />
+                      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full bg-gradient-to-b from-temple-gold/60 to-temple-gold/10" />
                     )}
                   </div>
 
                   <div className="flex-1 pb-16">
 
-                    <h3 className="font-heading text-2xl md:text-3xl font-semibold text-[#1A1C1C] mb-6">
+                    <h3 className="font-heading text-2xl md:text-3xl font-semibold text-temple-ink mb-6">
                       {tHistory(
                         `sections.${sectionKey}.title`
                       )}
@@ -133,7 +121,7 @@ export default function AboutPage() {
                         (paragraph, paragraphIndex) => (
                           <p
                             key={paragraphIndex}
-                            className="text-base md:text-lg text-[#4D4635] leading-relaxed font-sans"
+                            className="text-base md:text-lg text-temple-soft leading-relaxed font-sans"
                           >
                             {paragraph}
                           </p>
@@ -148,13 +136,13 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-20 reveal">
           {TEMPLE_STATS.map((stat) => (
             <TempleStat
               key={stat.label}
               value={stat.value}
               label={tTempleInfo(`stats.${stat.id}`)}
-              icon={stat.icon}
+              icon={stat.id}
             />
           ))}
         </div>
