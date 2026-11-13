@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 
 import {
@@ -12,6 +11,8 @@ import {
   getUpcomingPublicEvents,
   readPublicEvents,
 } from '@/features/events/lib/public-event-service';
+import { PageHero } from '@/components/site/page-hero';
+import { ScrollReveal } from '@/features/home/components/scroll-reveal';
 
 const UPCOMING_COUNT = 6;
 
@@ -35,25 +36,13 @@ export default async function EventsPage() {
 
   return (
     <>
-      <section className="relative flex h-[50vh] min-h-[400px] items-center justify-center overflow-hidden">
-        <Image
-          src="/images/festival-navaratri.png"
-          alt=""
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
-        <div className="relative z-10 px-4 text-center">
-          <h1 className="font-heading mb-4 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
-            {t('title')}
-          </h1>
-          <p className="font-sans mx-auto max-w-xl text-lg text-white/80">
-            {t('subtitle')}
-          </p>
-        </div>
-      </section>
+      <ScrollReveal />
+      <PageHero
+        title={t('title')}
+        subtitle={t('subtitle')}
+        image="/images/festival-navaratri.png"
+        archImage="/images/ceremony-puja.png"
+      />
 
       <UpcomingEvents
         events={upcoming.events}
