@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { PageContainer } from "@/components/site/page-container";
 import { SpiritualDivider } from "@/components/site/spiritual-divider";
-import { TEMPLE_STATS } from "@/features/home/constants/temple-info";
-import { TempleStat } from "@/features/home/components/temple-stat";
+import { TempleStats } from "@/features/home/components/temple-stat";
 import { useTranslations } from "next-intl";
 import { PageHero } from "@/components/site/page-hero";
 import { ScrollReveal } from "@/features/home/components/scroll-reveal";
+import { AutoSlide } from "@/components/site/auto-slide";
 
 export const metadata: Metadata = {
   title: "About",
@@ -51,7 +51,7 @@ export default function AboutPage() {
 
       <PageContainer className="overflow-hidden bg-temple-paper">
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 reveal">
+        <AutoSlide className="flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 -mx-4 scrollbar-hide md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:gap-8 reveal">
           {[
             "/images/temple-hero.png",
             "/images/deity-shrine.png",
@@ -59,7 +59,7 @@ export default function AboutPage() {
           ].map((src, i) => (
             <div
               key={src}
-              className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-temple-sand shadow-[0_20px_50px_rgba(74,16,22,0.14)]"
+              className="group relative aspect-[4/3] w-[82%] shrink-0 snap-center overflow-hidden rounded-2xl md:w-auto border border-temple-sand shadow-[0_20px_50px_rgba(74,16,22,0.14)]"
             >
               <Image
                 src={src}
@@ -70,7 +70,7 @@ export default function AboutPage() {
               />
             </div>
           ))}
-        </div>
+        </AutoSlide>
 
         <div className="mt-24">
 
@@ -136,16 +136,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-20 reveal">
-          {TEMPLE_STATS.map((stat) => (
-            <TempleStat
-              key={stat.label}
-              value={stat.value}
-              label={tTempleInfo(`stats.${stat.id}`)}
-              icon={stat.id}
-            />
-          ))}
-        </div>
+        <TempleStats className="mt-20 reveal" />
 
       </PageContainer>
     </>
