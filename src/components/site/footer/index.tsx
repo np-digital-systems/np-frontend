@@ -4,6 +4,7 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { footerNavItems } from "@/config/navigation";
 import Image from "next/image";
+import { KolamBorder, KolamMandala } from "@/components/site/kolam";
 import { useTranslations } from "next-intl";
 
 export function Footer() {
@@ -57,11 +58,12 @@ export function Footer() {
   return (
     <footer
       id="site-footer"
-      className="bg-[#1A1C1C] text-white/80 relative overflow-hidden"
+      className="bg-temple-night text-white/80 relative overflow-hidden"
     >
-      <div className="h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
+      <KolamBorder className="opacity-70" />
+      <KolamMandala className="temple-spin-slow absolute -bottom-40 -right-40 w-[460px] text-temple-gold/10" />
 
-      <div className="mx-auto max-w-[1280px] px-4 md:px-16 py-16">
+      <div className="relative mx-auto max-w-[1280px] px-4 md:px-16 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-6">
@@ -88,7 +90,7 @@ export function Footer() {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#D4AF37] transition-colors duration-300 text-white/60 hover:text-white"
+                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-temple-gold transition-colors duration-300 text-white/60 hover:text-white"
                   aria-label={name}
                   title={name}
                 >
@@ -101,7 +103,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
+            <h4 className="font-heading text-sm font-semibold text-temple-gold uppercase tracking-wider mb-6">
               {tFooter("quickLinks")}
             </h4>
             <ul className="space-y-3">
@@ -109,7 +111,7 @@ export function Footer() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-white/60 hover:text-[#D4AF37] transition-colors duration-300"
+                    className="text-sm text-white/60 hover:text-temple-gold transition-colors duration-300"
                   >
                     {tFooter(`links.${item.id}`)}
                   </Link>
@@ -119,7 +121,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
+            <h4 className="font-heading text-sm font-semibold text-temple-gold uppercase tracking-wider mb-6">
               {tFooter("services")}
             </h4>
             <ul className="space-y-3">
@@ -127,7 +129,7 @@ export function Footer() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-white/60 hover:text-[#D4AF37] transition-colors duration-300"
+                    className="text-sm text-white/60 hover:text-temple-gold transition-colors duration-300"
                   >
                     {tFooter(`links.${item.id}`)}
                   </Link>
@@ -137,34 +139,34 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-heading text-sm font-semibold text-[#D4AF37] uppercase tracking-wider mb-6">
+            <h4 className="font-heading text-sm font-semibold text-temple-gold uppercase tracking-wider mb-6">
               {tFooter("contactInfo")}
             </h4>
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-white/60">
-                <MapPin className="w-4 h-4 text-[#D4AF37] mt-0.5 shrink-0" />
+                <MapPin className="w-4 h-4 text-temple-gold mt-0.5 shrink-0" />
                 {tTempleInfo("address")}
               </li>
               <li className="flex items-center gap-3 text-sm text-white/60">
-                <Phone className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <Phone className="w-4 h-4 text-temple-gold shrink-0" />
                 <a
                   href={`tel:${siteConfig.contact.phone}`}
-                  className="hover:text-[#D4AF37] transition-colors"
+                  className="hover:text-temple-gold transition-colors"
                 >
                   {siteConfig.contact.phone}
                 </a>
               </li>
               <li className="flex items-center gap-3 text-sm text-white/60">
-                <Mail className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <Mail className="w-4 h-4 text-temple-gold shrink-0" />
                 <a
                   href={`mailto:${siteConfig.contact.email}`}
-                  className="hover:text-[#D4AF37] transition-colors"
+                  className="hover:text-temple-gold transition-colors"
                 >
                   {siteConfig.contact.email}
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-white/60">
-                <Clock className="w-4 h-4 text-[#D4AF37] mt-0.5 shrink-0" />
+                <Clock className="w-4 h-4 text-temple-gold mt-0.5 shrink-0" />
                 <div>
                   <p>{tTempleInfo("templeHours.morning")}</p>
                   <p>{tTempleInfo("templeHours.afternoon")}</p>
@@ -184,7 +186,7 @@ export function Footer() {
             <a
               href="https://github.com/Keeththi2003"
               target="_blank"
-              className="text-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
+              className="text-temple-gold/60 hover:text-temple-gold transition-colors"
             >
               Keeththi
             </a>
