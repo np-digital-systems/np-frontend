@@ -4,9 +4,9 @@ import { ArrowRight } from "lucide-react";
 import { PageContainer } from "@/components/site/page-container";
 import { SpiritualDivider } from "@/components/site/spiritual-divider";
 import { KolamMandala } from "@/components/site/kolam";
-import { TEMPLE_STATS } from "../constants/temple-info";
-import { TempleStat } from "../components/temple-stat";
+import { TempleStats } from "../components/temple-stat";
 import { useTranslations } from 'next-intl';
+import { AutoSlide } from "@/components/site/auto-slide";
 
 export function AboutSection() {
 const t = useTranslations('Home.About');
@@ -70,37 +70,27 @@ const tTemple = useTranslations('TempleInfo');
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-20 reveal">
-        {TEMPLE_STATS.map((stat, index) => (
-          <TempleStat
-            key={stat.label}
-            value={stat.value}
-            label={tTemple(`stats.${stat.id}`)}
-            icon={stat.id}
-            className={`delay-${(index + 1) * 100}`}
-          />
-        ))}
-      </div>
+      <TempleStats className="mt-20 reveal" />
 
-      <div className="grid grid-cols-3 gap-4 mt-16 reveal">
+      <AutoSlide className="flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 -mx-4 scrollbar-hide md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 mt-10 md:mt-16 md:gap-4 reveal">
         {["/images/temple-rangoli.png", "/images/ceremony-puja.png", "/images/festival-navaratri.png"].map(
           (src, index) => (
             <div
               key={src}
-              className="relative aspect-[3/2] rounded-2xl overflow-hidden group cursor-pointer"
+              className="relative aspect-[4/3] w-[82%] shrink-0 snap-center rounded-2xl overflow-hidden group cursor-pointer md:w-auto md:aspect-[3/2]"
             >
               <Image
                 src={src}
                 alt={`Temple gallery image ${index + 1}`}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 768px) 33vw, 400px"
+                sizes="(max-width: 768px) 82vw, 400px"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
             </div>
           )
         )}
-      </div>
+      </AutoSlide>
     </PageContainer>
   );
 }
