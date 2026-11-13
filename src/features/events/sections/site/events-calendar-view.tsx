@@ -85,13 +85,13 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:gap-8">
-      <div className="overflow-hidden rounded-2xl border border-[#E8E0CC] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-        <div className="flex items-center justify-between gap-4 border-b border-[#E8E0CC] bg-gradient-to-r from-[#FFF8E1] to-white px-5 py-4">
+      <div className="overflow-hidden rounded-2xl border border-temple-sand bg-white shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center justify-between gap-4 border-b border-temple-sand bg-gradient-to-r from-temple-sand to-white px-5 py-4">
           <div className="min-w-0">
-            <h3 className="font-heading truncate text-lg font-semibold text-[#1A1C1C] md:text-xl">
+            <h3 className="font-heading truncate text-lg font-semibold text-temple-ink md:text-xl">
               {formatMonthTitle(cursor.year, cursor.month, locale)}
             </h3>
-            <p className="mt-0.5 text-xs text-[#7F7663]">
+            <p className="mt-0.5 text-xs text-temple-soft">
               {t('eventsThisMonth', { count: monthCount })}
             </p>
           </div>
@@ -117,7 +117,7 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
             {weekdays.map((weekday, index) => (
               <div
                 key={index}
-                className="px-1 text-center text-[11px] font-semibold tracking-wide text-[#7F7663] uppercase"
+                className="px-1 text-center text-[11px] font-semibold tracking-wide text-temple-soft uppercase"
               >
                 {weekday}
               </div>
@@ -140,22 +140,22 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
                   aria-label={`${formatEventDate(day.iso, locale)} — ${t('eventCount', { count: dayEvents.length })}`}
                   className={cn(
                     'relative flex min-h-[52px] flex-col items-center justify-start gap-1 rounded-lg border p-1.5 transition-all duration-200 md:min-h-[76px]',
-                    'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#D4AF37]',
+                    'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-temple-gold',
                     day.inMonth
-                      ? 'border-[#EFE9DA] bg-white'
-                      : 'border-transparent bg-[#FAF9F6]',
-                    hasEvents && day.inMonth && 'border-[#D4AF37]/35 bg-[#FFFDF5]',
-                    isToday && 'ring-1 ring-[#8B0000]/30',
+                      ? 'border-temple-sand bg-white'
+                      : 'border-transparent bg-temple-paper',
+                    hasEvents && day.inMonth && 'border-temple-gold/35 bg-temple-card',
+                    isToday && 'ring-1 ring-temple-kumkum/30',
                     isSelected &&
-                      'border-[#D4AF37] bg-[#FFF8E1] shadow-[0_2px_10px_rgba(212,175,55,0.2)]',
-                    day.inMonth && 'hover:border-[#D4AF37]/60 hover:bg-[#FFF8E1]/60',
+                      'border-temple-gold bg-temple-sand shadow-[0_2px_10px_rgba(217,164,58,0.2)]',
+                    day.inMonth && 'hover:border-temple-gold/60 hover:bg-temple-sand/60',
                   )}
                 >
                   <span
                     className={cn(
                       'text-xs font-medium md:text-sm',
-                      day.inMonth ? 'text-[#1A1C1C]' : 'text-[#C4BDAC]',
-                      isToday && 'font-bold text-[#8B0000]',
+                      day.inMonth ? 'text-temple-ink' : 'text-[#C4BDAC]',
+                      isToday && 'font-bold text-temple-kumkum',
                     )}
                   >
                     {day.day}
@@ -168,12 +168,12 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
                           key={event.id}
                           className={cn(
                             'block h-1.5 w-1.5 rounded-full',
-                            event.isCompleted ? 'bg-[#C4BDAC]' : 'bg-[#D4AF37]',
+                            event.isCompleted ? 'bg-[#C4BDAC]' : 'bg-temple-gold',
                           )}
                         />
                       ))}
                       {dayEvents.length > 3 && (
-                        <span className="text-[9px] leading-none font-semibold text-[#735C00]">
+                        <span className="text-[9px] leading-none font-semibold text-temple-gold-ink">
                           +{dayEvents.length - 3}
                         </span>
                       )}
@@ -186,18 +186,18 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#E8E0CC] bg-white p-5 shadow-[0_4px_24px_rgba(0,0,0,0.04)] md:p-6">
+      <div className="rounded-2xl border border-temple-sand bg-white p-5 shadow-[0_4px_24px_rgba(0,0,0,0.04)] md:p-6">
         {selected ? (
           <>
-            <p className="text-xs font-semibold tracking-[0.15em] text-[#D4AF37] uppercase">
+            <p className="text-xs font-semibold tracking-[0.15em] text-temple-gold uppercase">
               {formatWeekday(selected, locale)}
             </p>
-            <h3 className="font-heading mt-1 text-xl font-semibold text-[#1A1C1C]">
+            <h3 className="font-heading mt-1 text-xl font-semibold text-temple-ink">
               {formatEventDate(selected, locale)}
             </h3>
             <div className="mt-4 mb-5 flex items-center gap-2">
-              <span className="h-[2px] w-8 bg-[#D4AF37]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+              <span className="h-[2px] w-8 bg-temple-gold" />
+              <span className="h-1.5 w-1.5 rounded-full bg-temple-gold" />
             </div>
 
             {selectedEvents.length > 0 ? (
@@ -210,32 +210,32 @@ export function EventsCalendarView({ events, today }: EventsCalendarViewProps) {
                   <li key={event.id}>
                     <Link
                       href={`/events/${event.id}`}
-                      className="group block rounded-xl border border-[#EFE9DA] bg-[#FAF9F6] p-4 transition-all duration-300 hover:border-[#D4AF37]/60 hover:bg-[#FFF8E1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4AF37]"
+                      className="group block rounded-xl border border-temple-sand bg-temple-paper p-4 transition-all duration-300 hover:border-temple-gold/60 hover:bg-temple-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-temple-gold"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <h4 className="font-heading text-base leading-snug font-semibold text-[#1A1C1C]">
+                        <h4 className="font-heading text-base leading-snug font-semibold text-temple-ink">
                           {eventName(event, locale)}
                         </h4>
-                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[#D4AF37] transition-transform group-hover:translate-x-0.5" />
+                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-temple-gold transition-transform group-hover:translate-x-0.5" />
                       </div>
 
                       {slot && (
-                        <p className="mt-1.5 text-xs font-medium text-[#735C00]">
+                        <p className="mt-1.5 text-xs font-medium text-temple-gold-ink">
                           {slot}
                         </p>
                       )}
 
-                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#7F7663]">
-                        <Clock className="h-3.5 w-3.5 text-[#D4AF37]" />
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-temple-soft">
+                        <Clock className="h-3.5 w-3.5 text-temple-gold" />
                         {formatTimeRange(event.startTime, event.endTime, locale)}
                       </p>
 
                       {sponsor && (
-                        <p className="mt-1.5 inline-flex items-start gap-1.5 text-xs text-[#7F7663]">
-                          <HeartHandshake className="mt-px h-3.5 w-3.5 shrink-0 text-[#D4AF37]" />
+                        <p className="mt-1.5 inline-flex items-start gap-1.5 text-xs text-temple-soft">
+                          <HeartHandshake className="mt-px h-3.5 w-3.5 shrink-0 text-temple-gold" />
                           <span>
                             {t('sponsoredBy')}{' '}
-                            <span className="font-semibold text-[#735C00]">
+                            <span className="font-semibold text-temple-gold-ink">
                               {sponsor}
                             </span>
                           </span>
@@ -273,7 +273,7 @@ function CalendarNavButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E8E0CC] bg-white text-[#735C00] transition-all duration-300 hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4AF37]"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-temple-sand bg-white text-temple-gold-ink transition-all duration-300 hover:border-temple-gold hover:bg-temple-gold hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-temple-gold"
     >
       {children}
     </button>
@@ -283,8 +283,8 @@ function CalendarNavButton({
 function EmptyPanel({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-      <CalendarDays className="h-8 w-8 text-[#D4AF37]/50" />
-      <p className="max-w-[22ch] text-sm text-[#7F7663]">{message}</p>
+      <CalendarDays className="h-8 w-8 text-temple-gold/50" />
+      <p className="max-w-[22ch] text-sm text-temple-soft">{message}</p>
     </div>
   );
 }
