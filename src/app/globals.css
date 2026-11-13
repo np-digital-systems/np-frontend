@@ -94,6 +94,22 @@
   --color-ring: var(--ring);
 
 
+  /* Website landing palette */
+
+  --color-temple-night: var(--temple-night);
+  --color-temple-maroon: var(--temple-maroon);
+  --color-temple-kumkum: var(--temple-kumkum);
+  --color-temple-saffron: var(--temple-saffron);
+  --color-temple-gold: var(--temple-gold);
+  --color-temple-gold-soft: var(--temple-gold-soft);
+  --color-temple-gold-ink: var(--temple-gold-ink);
+  --color-temple-paper: var(--temple-paper);
+  --color-temple-sand: var(--temple-sand);
+  --color-temple-card: var(--temple-card);
+  --color-temple-ink: var(--temple-ink);
+  --color-temple-soft: var(--temple-soft);
+
+
   /* Semantic surfaces */
 
   --color-surface: var(--surface);

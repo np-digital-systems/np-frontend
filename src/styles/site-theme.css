@@ -116,6 +116,57 @@
 }
 
 
+/* Landing palette: kumkum maroon, turmeric gold and sandalwood cream. */
+
+:root {
+  --temple-night: #1d0b0d;
+  --temple-maroon: #4a1016;
+  --temple-kumkum: #a01f28;
+  --temple-saffron: #e2861f;
+  --temple-gold: #d9a43a;
+  --temple-gold-soft: #f3d79a;
+  --temple-gold-ink: #8a5a12;
+  --temple-paper: #f8f1e3;
+  --temple-sand: #efe3cc;
+  --temple-card: #fffaf0;
+  --temple-ink: #2b1416;
+  --temple-soft: #6e5650;
+}
+
+
+/* Site fonts come from next/font in the site layout. Heading and Para are Tamil-only
+   (unicode-range), so Latin text falls through to Abhaya Libre and Lora. The
+   shared font variables are pointed at them here so existing font utilities pick them
+   up on the website only. */
+
+.site-shell {
+  --font-inter: var(--font-site-sans);
+  --font-playfair: var(--font-site-display);
+  --font-noto-sans-tamil: var(--font-site-tamil-para), var(--font-site-tamil-text);
+  --font-noto-serif-tamil: var(--font-site-tamil-heading), var(--font-site-tamil-display);
+
+  font-family:
+    var(--font-site-sans),
+    var(--font-site-tamil-para),
+    var(--font-site-tamil-text),
+    system-ui,
+    sans-serif;
+  font-synthesis: none;
+  overflow-x: clip;
+  background-color: var(--temple-paper);
+  color: var(--temple-ink);
+}
+
+html[lang="ta"] .site-shell {
+  font-family:
+    var(--font-site-tamil-para),
+    var(--font-site-sans),
+    var(--font-site-tamil-text),
+    system-ui,
+    sans-serif;
+}
+
+
 /* Public website dark */
 
 .dark {
