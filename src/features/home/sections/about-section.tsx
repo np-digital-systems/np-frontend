@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageContainer } from "@/components/site/page-container";
 import { SpiritualDivider } from "@/components/site/spiritual-divider";
+import { KolamMandala } from "@/components/site/kolam";
 import { TEMPLE_STATS } from "../constants/temple-info";
 import { TempleStat } from "../components/temple-stat";
 import { useTranslations } from 'next-intl';
@@ -12,10 +13,11 @@ const t = useTranslations('Home.About');
 const tTemple = useTranslations('TempleInfo');
 
   return (
-    <PageContainer id="about-section" className="bg-[#FAF9F6]">
+    <PageContainer id="about-section" className="overflow-hidden bg-temple-paper">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        <div className="relative reveal-left">
-          <div className="relative rounded-3xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.08)] aspect-[4/5]">
+        <div className="relative isolate reveal-left">
+          <KolamMandala className="temple-spin-slow absolute left-1/2 top-1/2 -z-10 w-[120%] -translate-x-1/2 -translate-y-1/2 text-temple-gold/20" />
+          <div className="relative overflow-hidden rounded-2xl border border-temple-sand shadow-[0_24px_60px_rgba(74,16,22,0.18)] aspect-[4/5]">
             <Image
               src="/images/temple-lamps.png"
               alt="Temple interior with sacred oil lamps"
@@ -35,24 +37,23 @@ const tTemple = useTranslations('TempleInfo');
             />
           </div>
 
-          <div className="absolute -top-4 -left-4 w-24 h-24 border-t-2 border-l-2 border-[#D4AF37]/40 rounded-tl-3xl" />
         </div>
 
         <div className="reveal-right">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#D4AF37] mb-4 font-sans">
+          <p className="text-sm font-semibold uppercase tracking-[0.15em] text-temple-kumkum mb-4 font-sans">
             {t('aboutOurTemple')}
           </p>
 
-          <h2 className="font-heading text-3xl md:text-4xl lg:text-[48px] font-semibold text-[#1A1C1C] leading-[1.2] mb-6 whitespace-pre-line">
+          <h2 className="font-heading text-3xl md:text-4xl lg:text-[48px] font-semibold text-temple-ink leading-[1.2] mb-6 whitespace-pre-line">
             {tTemple('aboutTitle')}
           </h2>
 
-          <p className="text-base md:text-lg text-[#4D4635] leading-relaxed mb-6 font-sans">
+          <p className="text-base md:text-lg text-temple-soft leading-relaxed mb-6 font-sans">
             {tTemple('aboutDescription')}
           </p>
 
-          <blockquote className="border-l-3 border-[#D4AF37] pl-5 my-8">
-            <p className="font-heading text-lg md:text-xl text-[#4D4635] italic leading-relaxed">
+          <blockquote className="border-l-3 border-temple-kumkum/70 bg-temple-sand/50 rounded-r-2xl py-4 pl-5 pr-4 my-8">
+            <p className="font-heading text-lg md:text-xl text-temple-soft italic leading-relaxed">
               &ldquo;{tTemple('aboutQuote')}&rdquo;
             </p>
           </blockquote>
@@ -61,7 +62,7 @@ const tTemple = useTranslations('TempleInfo');
 
           <Link
             href="/about"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#D4AF37] hover:text-[#735C00] transition-colors duration-300 group mt-4"
+            className="inline-flex items-center gap-2 text-base font-semibold text-temple-kumkum hover:text-temple-maroon transition-colors duration-300 group mt-4"
           >
             {t('discoverOurHistory')}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
@@ -75,7 +76,7 @@ const tTemple = useTranslations('TempleInfo');
             key={stat.label}
             value={stat.value}
             label={tTemple(`stats.${stat.id}`)}
-            icon={stat.icon}
+            icon={stat.id}
             className={`delay-${(index + 1) * 100}`}
           />
         ))}
