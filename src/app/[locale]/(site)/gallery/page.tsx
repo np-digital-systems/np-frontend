@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { PageContainer } from "@/components/site/page-container";
 import { SectionHeader } from "@/components/site/section-header";
 import { GalleryCard } from "@/features/home/components/gallery-card";
 import { GALLERY_IMAGES } from "@/features/home/constants/gallery";
 import { useTranslations } from "next-intl";
+import { PageHero } from "@/components/site/page-hero";
+import { ScrollReveal } from "@/features/home/components/scroll-reveal";
 
 export const metadata: Metadata = {
   title: "Gallery",
@@ -17,34 +18,22 @@ export default function GalleryPage() {
 
   return (
     <>
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
-        <Image
-          src="/images/temple-rangoli.png"
-          alt="Sacred flower rangoli"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            {tGallery("title")}
-          </h1>
-          <p className="text-white/80 text-lg font-sans max-w-xl mx-auto">
-            {tGallery("subtitle")}
-          </p>
-        </div>
-      </section>
+      <ScrollReveal />
+      <PageHero
+        title={tGallery("title")}
+        subtitle={tGallery("subtitle")}
+        image="/images/temple-rangoli.png"
+        archImage="/images/festival-navaratri.png"
+      />
 
-      <PageContainer className="bg-[#FAF9F6]">
+      <PageContainer className="bg-temple-paper">
         <SectionHeader
           subtitle={tGallery("section1.subtitle")}
           title={tGallery("section1.title")}
           description={tGallery("section1.description")}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 reveal">
           {GALLERY_IMAGES.map((image, index) => (
             <GalleryCard
               key={image.id}

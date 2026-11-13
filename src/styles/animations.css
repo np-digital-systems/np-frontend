@@ -207,3 +207,160 @@
   opacity: 1;
   transform: scale(1);
 }
+
+@keyframes temple-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes temple-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes temple-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes temple-kenburns {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes temple-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes temple-flame {
+  0%,
+  100% {
+    transform: scaleY(1) rotate(-3deg);
+  }
+  50% {
+    transform: scaleY(1.15) rotate(3deg);
+  }
+}
+
+@keyframes temple-shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.temple-marquee-track {
+  animation: temple-marquee 40s linear infinite;
+}
+
+.temple-marquee:hover .temple-marquee-track {
+  animation-play-state: paused;
+}
+
+.temple-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: temple-draw 1.6s 0.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.temple-rise {
+  opacity: 0;
+  animation: temple-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.temple-kenburns {
+  animation: temple-kenburns 16s ease-out forwards;
+}
+
+.temple-breathe {
+  animation: temple-breathe 6s ease-in-out infinite;
+}
+
+.temple-spin-slow {
+  animation: spin-slow 80s linear infinite;
+}
+
+.temple-spin-reverse {
+  animation: spin-slow 120s linear infinite reverse;
+}
+
+.temple-flame {
+  transform-origin: 50% 100%;
+  animation: temple-flame 1.4s ease-in-out infinite;
+}
+
+.temple-gold-text {
+  background-image: linear-gradient(
+    90deg,
+    var(--temple-gold) 0%,
+    var(--temple-gold-soft) 25%,
+    var(--temple-saffron) 50%,
+    var(--temple-gold-soft) 75%,
+    var(--temple-gold) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: temple-shine 8s linear infinite;
+}
+
+.temple-kolam-dots {
+  background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.6px);
+  background-size: 28px 28px;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .temple-marquee-track,
+  .temple-kenburns,
+  .temple-breathe,
+  .temple-spin-slow,
+  .temple-spin-reverse,
+  .temple-flame,
+  .temple-gold-text,
+  .animate-float {
+    animation: none;
+  }
+
+  .temple-rise {
+    opacity: 1;
+    animation: none;
+  }
+
+  .temple-draw {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .reveal,
+  .reveal-left,
+  .reveal-right,
+  .reveal-scale {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

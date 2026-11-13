@@ -19,7 +19,7 @@ export function EventsCalendarSection({
   const t = useTranslations('Events.calendar');
 
   return (
-    <PageContainer id="calendar" className="bg-white">
+    <PageContainer id="calendar" className="border-t border-temple-sand bg-temple-card">
       <SectionHeader
         subtitle={t('subtitle')}
         title={t('title')}

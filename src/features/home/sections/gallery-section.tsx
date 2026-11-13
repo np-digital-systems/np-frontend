@@ -9,7 +9,7 @@ import {useTranslations} from "next-intl";
 export function GallerySection() {
   const tGallery=useTranslations("Home.Gallery");
   return (
-    <PageContainer id="gallery-section" className="bg-[#FAF9F6]">
+    <PageContainer id="gallery-section" className="bg-temple-paper">
       <SectionHeader
         subtitle={tGallery("subtitle")}
         title={tGallery("title")}
@@ -37,7 +37,7 @@ export function GallerySection() {
       <div className="flex justify-center mt-12 reveal">
         <Link
           href="/gallery"
-          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border-2 border-[#D4AF37] text-sm font-semibold text-[#735C00] hover:bg-[#D4AF37] hover:text-white transition-all duration-300 group"
+          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border-2 border-temple-gold text-sm font-semibold text-temple-gold-ink hover:bg-temple-gold hover:text-white transition-all duration-300 group"
         >
           {tGallery("viewAll")}
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
