@@ -66,7 +66,7 @@ export function Navbar() {
         className={cn(
           "fixed inset-x-0 top-0 z-50 transition-all duration-500",
           isScrolled || isMobileMenuOpen
-            ? "bg-[#FAF9F6]/95 backdrop-blur-xl shadow-[0_8px_32px_rgba(26,28,28,0.08)] "
+            ? "bg-temple-paper/95 backdrop-blur-xl shadow-[0_8px_32px_rgba(43,20,22,0.08)] "
             : "bg-transparent "
         )}
       >
@@ -77,16 +77,9 @@ export function Navbar() {
             onClick={closeMobileMenu}
             aria-label={tTempleInfo('shortName')}
           >
-            <div
-              className={cn(
-                "flex items-center justify-center overflow-hidden rounded-2xl border transition-all duration-300",
-                isDarkOnTop
-                  ? "border-white/20 bg-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
-                  : "border-[#D4AF37]/20 bg-gradient-to-br from-[#D4AF37] to-[#F4C430] shadow-[0_10px_24px_rgba(212,175,55,0.22)]"
-              )}
-            >
+            <div className="flex items-center justify-center overflow-hidden rounded-full">
               <Image
-                src="/logo-dark.png"
+                src={isDarkOnTop ? "/logo-light.png" : "/logo-dark.png"}
                 alt={tTempleInfo('shortName')}
                 width={40}
                 height={40}
@@ -98,7 +91,7 @@ export function Navbar() {
               <p
                 className={cn(
                   "font-heading text-sm font-semibold md:text-base transition-colors duration-300",
-                  isDarkOnTop ? "text-white" : "text-[#1A1C1C]"
+                  isDarkOnTop ? "text-white" : "text-temple-ink"
                 )}
               >
                 {tTempleInfo('shortName')}
@@ -118,11 +111,11 @@ export function Navbar() {
                     "relative rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
                     isDarkOnTop
                       ? "text-white/80 hover:bg-white/10 hover:text-white"
-                      : "text-[#4D4635] hover:bg-[#FFFFFF] hover:text-[#735C00]",
+                      : "text-temple-soft hover:bg-temple-card hover:text-temple-gold-ink",
                     isActive &&
                     (isDarkOnTop
                       ? "bg-white/12 text-white"
-                      : "bg-[#FFF8E1] text-[#735C00]")
+                      : "bg-temple-sand text-temple-gold-ink")
                   )}
                   onClick={closeMobileMenu}
                 >
@@ -139,7 +132,7 @@ export function Navbar() {
                 "hidden items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 lg:inline-flex",
                 isDarkOnTop
                   ? "border border-white/20 bg-white/10 text-white backdrop-blur-sm hover:border-white/35 hover:bg-white/20"
-                  : "border border-transparent bg-gradient-to-br from-[#D4AF37] to-[#F4C430] text-[#1A1C1C] shadow-[0_10px_24px_rgba(212,175,55,0.28)] hover:shadow-[0_14px_30px_rgba(212,175,55,0.4)]"
+                  : "border border-transparent bg-gradient-to-br from-temple-gold to-temple-saffron text-temple-ink shadow-[0_10px_24px_rgba(217,164,58,0.28)] hover:shadow-[0_14px_30px_rgba(217,164,58,0.4)]"
               )}
             >
               <LogIn className="h-4 w-4" />
@@ -155,10 +148,10 @@ export function Navbar() {
               className={cn(
                 "inline-flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 lg:hidden",
                 isMobileMenuOpen
-                  ? "border-[#D4AF37]/20 bg-[#FFF8E1] text-[#1A1C1C]"
+                  ? "border-temple-gold/20 bg-temple-sand text-temple-ink"
                   : isDarkOnTop
                     ? "border-white/15 bg-white/10 text-white"
-                    : "border-[#D4AF37]/20 bg-white text-[#1A1C1C]"
+                    : "border-temple-gold/20 bg-white text-temple-ink"
               )}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}
@@ -181,7 +174,7 @@ export function Navbar() {
           type="button"
           aria-label="Close mobile menu"
           className={cn(
-            "absolute inset-0 bg-[#1A1C1C]/55 backdrop-blur-sm transition-opacity duration-300",
+            "absolute inset-0 bg-temple-night/55 backdrop-blur-sm transition-opacity duration-300",
             isMobileMenuOpen ? "opacity-100" : "opacity-0"
           )}
           onClick={closeMobileMenu}
@@ -191,15 +184,15 @@ export function Navbar() {
         <aside
           id="mobile-navigation"
           className={cn(
-            "absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col bg-[#FAF9F6] px-6 pb-8 pt-6 shadow-[0_24px_80px_rgba(26,28,28,0.2)] transition-transform duration-300",
+            "absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col bg-temple-paper px-6 pb-8 pt-6 shadow-[0_24px_80px_rgba(43,20,22,0.2)] transition-transform duration-300",
             isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           )}
         >
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3" onClick={closeMobileMenu}>
-              <div className="flex  items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#F4C430] shadow-[0_10px_24px_rgba(212,175,55,0.22)]">
+              <div className="flex items-center justify-center overflow-hidden rounded-full">
                 <Image
-                  src="/logo-dark.png"
+                  src="/logo-light.png"
                   alt={tTempleInfo('shortName')}
                   width={34}
                   height={34}
@@ -207,7 +200,7 @@ export function Navbar() {
                 />
               </div>
               <div>
-                <p className="font-heading text-sm font-semibold text-[#1A1C1C]">
+                <p className="font-heading text-sm font-semibold text-temple-ink">
                   {tTempleInfo('shortName')}
                 </p>
               </div>
@@ -216,7 +209,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={closeMobileMenu}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#D4AF37]/20 bg-white text-[#1A1C1C]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-temple-gold/20 bg-white text-temple-ink"
               aria-label="Close mobile menu"
             >
               <X className="h-5 w-5" />
@@ -237,8 +230,8 @@ export function Navbar() {
                   className={cn(
                     "group flex items-center justify-between rounded-[22px] border px-5 py-4 transition-all duration-300",
                     isActive
-                      ? "border-[#D4AF37]/25 bg-[#FFF8E1] text-[#735C00]"
-                      : "border-transparent bg-white text-[#1A1C1C] shadow-[0_8px_24px_rgba(26,28,28,0.04)] hover:border-[#D4AF37]/15 hover:bg-[#FFFCF1]",
+                      ? "border-temple-gold/25 bg-temple-sand text-temple-gold-ink"
+                      : "border-transparent bg-white text-temple-ink shadow-[0_8px_24px_rgba(43,20,22,0.04)] hover:border-temple-gold/15 hover:bg-temple-card",
                     "animate-[fadeIn_0.35s_ease-out_both]"
                   )}
                   style={{ animationDelay: `${index * 0.05}s` }}
@@ -254,7 +247,7 @@ export function Navbar() {
           <Link
             href={AUTH_ROUTES.signIn}
             onClick={closeMobileMenu}
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F4C430] px-5 py-3.5 text-sm font-semibold text-[#1A1C1C] shadow-[0_10px_24px_rgba(212,175,55,0.28)] transition-shadow hover:shadow-[0_14px_30px_rgba(212,175,55,0.4)]"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-temple-gold to-temple-saffron px-5 py-3.5 text-sm font-semibold text-temple-ink shadow-[0_10px_24px_rgba(217,164,58,0.28)] transition-shadow hover:shadow-[0_14px_30px_rgba(217,164,58,0.4)]"
           >
             <LogIn className="h-4 w-4" />
             {t('portalLogin')}
@@ -263,7 +256,7 @@ export function Navbar() {
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <a
               href={`tel:${siteConfig.contact.phone}`}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1A1C1C] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#2A2C2C]"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-temple-night px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-temple-maroon"
             >
               <Phone className="h-4 w-4" />
               {t('callTemple')}
@@ -271,7 +264,7 @@ export function Navbar() {
             <Link
               href="/contact"
               onClick={closeMobileMenu}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D4AF37]/20 bg-white px-5 py-3 text-sm font-medium text-[#4D4635] transition-colors hover:border-[#D4AF37]/35 hover:text-[#735C00]"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-temple-gold/20 bg-white px-5 py-3 text-sm font-medium text-temple-soft transition-colors hover:border-temple-gold/35 hover:text-temple-gold-ink"
             >
               {t('visitUs')}
             </Link>
