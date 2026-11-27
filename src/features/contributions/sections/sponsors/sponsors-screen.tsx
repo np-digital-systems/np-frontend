@@ -153,11 +153,7 @@ export function SponsorsScreen({ sponsors, people, access }: SponsorsScreenProps
     <>
       <PortalPageHeader
         title="Members"
-        meta={[
-          <span key="count" className="tabular">
-            {summary.total} active
-          </span>,
-        ]}
+        description='Manage your members and their contributions.'
         actions={
           access.canManage ? (
             <Button onClick={() => { setEditing(null); setFormOpen(true); }}>

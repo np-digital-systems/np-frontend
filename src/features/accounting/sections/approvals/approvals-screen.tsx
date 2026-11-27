@@ -61,7 +61,6 @@ export function ApprovalsScreen({
   initialVouchers,
   access,
   user,
-  year,
 }: ApprovalsScreenProps) {
   const vouchers = initialVouchers;
   const params = useSearchParams();
@@ -103,19 +102,7 @@ export function ApprovalsScreen({
     <>
       <PortalPageHeader
         title="Approval Center"
-        meta={[
-          <span key="year" className="tabular">
-            Financial year {year}
-          </span>,
-          <span key="pending" className="tabular">
-            {queues.pending.length} pending
-          </span>,
-          queues.approved.length > 0 ? (
-            <span key="unposted" className="text-warning tabular">
-              {queues.approved.length} approved, not posted
-            </span>
-          ) : null,
-        ].filter(Boolean)}
+        description='Review and approve vouchers.'
       />
 
       <ActionError message={actionError} />

@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useRouter } from '@/i18n/routing';
+import type { ServerActionResult } from '@/hooks/use-server-action';
 import { Download, MoreHorizontal, Plus, Receipt } from 'lucide-react';
 
 import {
@@ -222,7 +223,10 @@ export function VoucherRegister({
     return result.partyId;
   }
 
-  function handleSave(draft: VoucherDraft, thenSubmit: boolean) {
+  async function handleSave(
+    draft: VoucherDraft,
+    thenSubmit: boolean,
+  ): Promise<ServerActionResult> {
     const input = {
       date: draft.date,
       description: draft.description,
@@ -245,7 +249,16 @@ export function VoucherRegister({
       notes: draft.notes || null,
     };
 
-    save(input, thenSubmit);
+    const result = editing
+      ? await updateVoucher(editing.id, { ...input, kind }, thenSubmit)
+      : await createVoucher({ ...input, kind }, thenSubmit);
+
+    if (result.ok) {
+      setActionError(null);
+      router.refresh();
+    }
+
+    return result;
   }
 
   const columns: DataColumn[] = [
@@ -265,19 +278,6 @@ export function VoucherRegister({
       <PortalPageHeader
         title={title}
         description={description}
-        meta={[
-          <span key="year" className="tabular">
-            Financial year {year}
-          </span>,
-          <span key="count" className="tabular">
-            {vouchers.length} entries
-          </span>,
-          totals.pending.length > 0 ? (
-            <span key="pending" className="text-warning tabular">
-              {totals.pending.length} awaiting approval
-            </span>
-          ) : null,
-        ].filter(Boolean)}
         actions={
           <>
             {access.canExportTransactions && (
@@ -289,7 +289,7 @@ export function VoucherRegister({
 
             {canCreate && (
               <Button
-                onClick={() => {
+                onClick={()=> {
                   setEditing(null);
                   setFormOpen(true);
                 }}
@@ -534,10 +534,8 @@ export function VoucherRegister({
           activities={activities}
           parties={parties}
           poojas={poojas}
-          onSubmit={(draft) => handleSave(draft, false)}
-          onSubmitForApproval={
-            access.canSubmit ? (draft) => handleSave(draft, true) : undefined
-          }
+          onSave={handleSave}
+          canSubmit={access.canSubmit}
           onCreateMember={access.canManageMembers ? createMember : undefined}
         />
       )}

@@ -86,12 +86,8 @@ export function SetRateDialog({
           <FormField
             id="rate-amount"
             label={`Amount per sponsor (${year})`}
+            hint={`Currently ${current === null ? 'not set' : formatCurrency(current)}. ${subscribing} sponsors are currently subscribing.`}  
             required
-            hint={
-              valid
-                ? `${subscribing} subscribing sponsor(s) — ${formatCurrency(parsed * subscribing)} for the year.`
-                : undefined
-            }
           >
             <Input
               id="rate-amount"
