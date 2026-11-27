@@ -71,14 +71,21 @@ export const ACTIVITY_KIND_LABELS: Record<ActivityKind, string> = {
   general: 'General',
 };
 
-// Sponsorship is a profile, not a role, so it isn't listed.
-export const PARTY_KINDS: readonly PartyKind[] = ['devotee', 'vendor', 'staff'];
+// Membership is the member register, not a role, so it isn't listed.
+export const PARTY_KINDS: readonly PartyKind[] = ['vendor', 'staff'];
 
 export const PARTY_KIND_LABELS: Record<PartyKind, string> = {
-  devotee: 'Devotee',
   vendor: 'Vendor',
   staff: 'Staff',
 };
+
+// `isSponsor` is the API's flag for a member-register entry.
+export function partyRoleLabels(party: {
+  roles: readonly PartyKind[];
+  isSponsor: boolean;
+}): string[] {
+  return [...(party.isSponsor ? ['Member'] : []), ...party.roles.map((role) => PARTY_KIND_LABELS[role])];
+}
 
 export const PARTY_TYPE_LABELS: Record<PartyType, string> = {
   person: 'Person',

@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { PortalUser } from '@/features/auth/types/user';
+import { enrolMemberByName } from '@/features/contributions/lib/sponsors-actions';
 
 import {
   formatCurrency,
@@ -206,6 +207,19 @@ export function VoucherRegister({
 
     setEditing(null);
     setFormOpen(false);
+  }
+
+  async function createMember(name: string): Promise<number | null> {
+    const result = await enrolMemberByName(name);
+
+    if (!result.ok) {
+      setActionError(result.message);
+      return null;
+    }
+
+    router.refresh();
+
+    return result.partyId;
   }
 
   function handleSave(draft: VoucherDraft, thenSubmit: boolean) {
@@ -524,6 +538,7 @@ export function VoucherRegister({
           onSubmitForApproval={
             access.canSubmit ? (draft) => handleSave(draft, true) : undefined
           }
+          onCreateMember={access.canManageMembers ? createMember : undefined}
         />
       )}
 

@@ -123,45 +123,20 @@ export async function updateSanththaPayment(
   return { ok: true, receiptRef: payment.receiptVoucherRef };
 }
 
-export interface MemberInput {
-  fullName: string;
-  nameTa: string;
-  phone: string;
-  address: string;
-  notes: string;
-  isActive: boolean;
-}
+export type ListResult = { ok: true } | { ok: false; message: string };
 
-export type MemberResult =
-  | { ok: true; memberNo: string }
-  | { ok: false; message: string };
-
-interface SponsorResponse {
-  readonly partyId: number;
-  readonly sponsorNo: string;
-}
-
-// The database allocates the sponsor number atomically and creates the party in the same step.
-export async function enrolMember(input: MemberInput): Promise<MemberResult> {
+async function changeList(write: () => Promise<unknown>): Promise<ListResult> {
   const { permissions } = await requireSession();
 
-  if (!getContributionAccess(permissions).canManage) {
-    return { ok: false, message: 'You cannot change the register.' };
+  if (!getContributionAccess(permissions).canRecord) {
+    return { ok: false, message: 'You cannot change the sanththa list.' };
   }
 
   try {
-    const sponsor = await api.post<SponsorResponse>('/sponsors', {
-      nameTa: input.nameTa || input.fullName,
-      nameEn: input.fullName || undefined,
-      phone: input.phone || undefined,
-      address: input.address || undefined,
-      notes: input.notes || undefined,
-      subscribes: input.isActive,
-    });
-
+    await write();
     revalidatePath(CONTRIBUTION_ROUTES.sanththa);
 
-    return { ok: true, memberNo: sponsor.sponsorNo };
+    return { ok: true };
   } catch (error) {
     return {
       ok: false,
@@ -170,31 +145,11 @@ export async function enrolMember(input: MemberInput): Promise<MemberResult> {
   }
 }
 
-export async function updateMember(id: string, input: MemberInput): Promise<MemberResult> {
-  const { permissions } = await requireSession();
+// A member who chooses to pay this year; next year's list starts without them.
+export async function addToSanththaList(memberId: number, year: number): Promise<ListResult> {
+  return changeList(() => api.post('/sanththa/enrolments', { memberId, year }));
+}
 
-  if (!getContributionAccess(permissions).canManage) {
-    return { ok: false, message: 'You cannot change the register.' };
-  }
-
-  try {
-    // Name and contact go to the party; the subscription flag to the sponsor profile.
-    const sponsor = await api.patch<SponsorResponse>(`/sponsors/${id}`, {
-      nameTa: input.nameTa || input.fullName,
-      nameEn: input.fullName || undefined,
-      phone: input.phone || undefined,
-      address: input.address || undefined,
-      notes: input.notes || undefined,
-      subscribes: input.isActive,
-    });
-
-    revalidatePath(CONTRIBUTION_ROUTES.sanththa);
-
-    return { ok: true, memberNo: sponsor.sponsorNo };
-  } catch (error) {
-    return {
-      ok: false,
-      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
-    };
-  }
+export async function removeFromSanththaList(memberId: number, year: number): Promise<ListResult> {
+  return changeList(() => api.delete(`/sanththa/enrolments/${memberId}/${year}`));
 }

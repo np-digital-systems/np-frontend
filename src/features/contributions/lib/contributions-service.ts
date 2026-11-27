@@ -21,7 +21,8 @@ interface ApiRegisterRow {
   readonly phone: string | null;
   readonly address: string | null;
   readonly sponsorSince: string | null;
-  readonly subscribes: boolean;
+  readonly isPoojaSponsor: boolean;
+  readonly isEnrolled: boolean;
   readonly paidYears: readonly number[];
   readonly totalPaid: number;
   readonly paidThisYear: boolean;
@@ -62,7 +63,8 @@ export async function getMemberRecords(
       phone: member.phone ?? '',
       address: member.address ?? '',
       joinedOn: member.sponsorSince ?? '',
-      subscribes: member.subscribes,
+      isPoojaSponsor: member.isPoojaSponsor,
+      isEnrolled: member.isEnrolled,
       notes: null,
       hasPaid: member.paidThisYear,
       payment: payment

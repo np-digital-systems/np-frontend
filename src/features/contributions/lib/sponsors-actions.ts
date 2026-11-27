@@ -9,12 +9,13 @@ import { getContributionAccess } from './contributions-access';
 import { CONTRIBUTION_ROUTES } from './routes';
 
 export interface SponsorInput {
+  /** An existing party to enrol; null registers a new person. */
+  partyId?: number | null;
   nameTa: string;
   nameEn?: string;
   phone?: string;
   email?: string;
   address?: string;
-  subscribes: boolean;
   notes?: string;
 }
 
@@ -35,16 +36,42 @@ async function guarded(
   const { permissions } = await requireSession();
 
   if (!getContributionAccess(permissions).canManage) {
-    return { ok: false, message: 'You cannot change the sponsor register.' };
+    return { ok: false, message: 'You cannot change the member register.' };
   }
 
   try {
     const sponsor = await run();
 
-    revalidatePath(CONTRIBUTION_ROUTES.sponsors);
+    revalidatePath(CONTRIBUTION_ROUTES.members);
     revalidatePath(CONTRIBUTION_ROUTES.sanththa);
 
     return { ok: true, sponsorNo: sponsor.sponsorNo };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof ApiError ? error.message : 'The portal could not reach the server.',
+    };
+  }
+}
+
+// Enrolled from a receipt; sanththa is decided year by year on the Sanththa page.
+export async function enrolMemberByName(
+  nameTa: string,
+): Promise<{ ok: true; partyId: number } | { ok: false; message: string }> {
+  const { permissions } = await requireSession();
+
+  if (!getContributionAccess(permissions).canManage) {
+    return { ok: false, message: 'You cannot change the member register.' };
+  }
+
+  try {
+    const member = await api.post<SponsorResponse>('/sponsors', {
+      nameTa: nameTa.trim(),
+    });
+
+    revalidatePath(CONTRIBUTION_ROUTES.members);
+
+    return { ok: true, partyId: member.partyId };
   } catch (error) {
     return {
       ok: false,
@@ -57,12 +84,12 @@ async function guarded(
 export async function enrolSponsor(input: SponsorInput): Promise<SponsorResult> {
   return guarded(() =>
     api.post<SponsorResponse>('/sponsors', {
-      nameTa: input.nameTa,
-      nameEn: blank(input.nameEn),
+      partyId: input.partyId ?? undefined,
+      nameTa: input.partyId ? undefined : input.nameTa,
+      nameEn: input.partyId ? undefined : blank(input.nameEn),
       phone: blank(input.phone),
       email: blank(input.email),
       address: blank(input.address),
-      subscribes: input.subscribes,
       notes: blank(input.notes),
     }),
   );
@@ -80,7 +107,6 @@ export async function updateSponsor(
       phone: blank(input.phone),
       email: blank(input.email),
       address: blank(input.address),
-      subscribes: input.subscribes,
       isActive: input.isActive,
       notes: blank(input.notes),
     }),

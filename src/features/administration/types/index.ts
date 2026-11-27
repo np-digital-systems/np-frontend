@@ -3,25 +3,14 @@ import type { UserRole } from '@/features/auth/types/user-role';
 
 export interface AdminUser {
   readonly id: string;
-  /** Names are edited on the party. */
-  readonly partyId: number;
   readonly fullName: string;
   readonly nameTa: string;
   readonly email: string;
-  /** Read-only here; edited in the directory. */
   readonly phone: string;
-  readonly address: string;
   readonly role: UserRole;
   readonly isActive: boolean;
   readonly lastLoginAt: string | null;
   readonly createdAt: string;
-}
-
-export interface DirectoryPerson {
-  readonly partyId: number;
-  readonly name: string;
-  readonly nameEn: string;
-  readonly hasAccount: boolean;
 }
 
 export interface UserSession {
