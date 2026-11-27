@@ -9,6 +9,7 @@ import {
   getSanththaSummary,
   getYears,
 } from '../../lib/contributions-service';
+import { getSponsorRecords } from '../../lib/sponsors-service';
 
 import { SanththaScreen } from './sanththa-screen';
 
@@ -35,11 +36,21 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
     ? requested
     : getActiveYear(getToday());
 
-  const [members, summary, posting] = await Promise.all([
+  const [records, summary, posting, register] = await Promise.all([
     getMemberRecords(selected),
     getSanththaSummary(selected),
     getSanththaPosting(),
+    access.canRecord ? getSponsorRecords(selected) : [],
   ]);
+
+  // The API returns the whole register; the year's list is who owes or has paid.
+  const members = records.filter(
+    (member) => member.isPoojaSponsor || member.isEnrolled || member.hasPaid,
+  );
+  const listed = new Set(members.map((member) => member.id));
+  const candidates = register.filter(
+    (member) => member.isActive && !listed.has(String(member.partyId)),
+  );
 
   return (
     <PageShell>
@@ -49,6 +60,7 @@ export async function SanththaFeature({ year }: SanththaFeatureProps) {
         year={selected}
         rate={summary.rate}
         posting={posting}
+        candidates={candidates}
         access={access}
       />
     </PageShell>

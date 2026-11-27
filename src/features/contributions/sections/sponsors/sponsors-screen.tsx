@@ -34,9 +34,10 @@ import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
 import { SponsorFormDialog, type SponsorDraft } from '../../components/sponsor-form-dialog';
+import type { PartyRef } from '@/features/accounting/types';
 import type { ContributionAccess } from '../../lib/contributions-access';
 import { REGISTER_READ_ONLY_MESSAGE } from '../../lib/contributions-access';
-import { formatCurrency, formatShortDate } from '../../lib/contributions-data';
+import { formatShortDate } from '../../lib/contributions-data';
 import { enrolSponsor, retireSponsor, updateSponsor } from '../../lib/sponsors-actions';
 import type { SponsorRecord } from '../../types';
 
@@ -67,22 +68,22 @@ function Pill({
   );
 }
 
-type Filter = 'all' | 'subscribing' | 'exempt' | 'retired';
+type Filter = 'all' | 'active' | 'retired';
 
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All sponsors' },
-  { key: 'subscribing', label: 'Subscribing' },
-  { key: 'exempt', label: 'Exempt' },
+  { key: 'all', label: 'All members' },
+  { key: 'active', label: 'Active' },
   { key: 'retired', label: 'Retired' },
 ];
 
 interface SponsorsScreenProps {
   sponsors: readonly SponsorRecord[];
-  year: number;
+  /** People in Parties who can be enrolled without creating a duplicate. */
+  people: readonly PartyRef[];
   access: ContributionAccess;
 }
 
-export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) {
+export function SponsorsScreen({ sponsors, people, access }: SponsorsScreenProps) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -94,16 +95,11 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
 
   const summary = useMemo(() => {
     const active = sponsors.filter((sponsor) => sponsor.isActive);
-    const subscribing = active.filter((sponsor) => sponsor.subscribes);
 
     return {
       total: active.length,
-      subscribing: subscribing.length,
+      retired: sponsors.length - active.length,
       sponsorships: active.reduce((sum, sponsor) => sum + sponsor.sponsorships, 0),
-      collected: sponsors.reduce(
-        (sum, sponsor) => sum + (sponsor.paidThisYear ? sponsor.totalPaid : 0),
-        0,
-      ),
     };
   }, [sponsors]);
 
@@ -113,8 +109,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
     const needle = query.trim().toLowerCase();
 
     return sponsors.filter((sponsor) => {
-      if (filter === 'subscribing' && !(sponsor.isActive && sponsor.subscribes)) return false;
-      if (filter === 'exempt' && !(sponsor.isActive && !sponsor.subscribes)) return false;
+      if (filter === 'active' && !sponsor.isActive) return false;
       if (filter === 'retired' && sponsor.isActive) return false;
       if (!needle) return true;
 
@@ -145,25 +140,25 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
   }
 
   const columns: DataColumn[] = [
-    { key: 'no', label: 'No.' },
-    { key: 'name', label: 'Sponsor' },
+    { key: 'no', label: 'Membership No' },
+    { key: 'name', label: 'Member' },
     ...(access.canSeeContact ? [{ key: 'phone', label: 'Phone' } as const] : []),
     { key: 'since', label: 'Since' },
-    { key: 'sponsorships', label: 'Observances', align: 'right' as const },
-    { key: 'sanththa', label: `Sanththa ${year}` },
+    { key: 'sponsorships', label: 'Poojas sponsored', align: 'right' as const },
+    { key: 'status', label: 'Status' },
     ...(access.canManage ? [{ key: 'actions', label: '', align: 'right' as const }] : []),
   ];
 
   return (
     <>
       <PortalPageHeader
-        title="Sponsors"
-        description='Manage your sponsors and their contributions.'
+        title="Members"
+        description='Manage your members and their contributions.'
         actions={
           access.canManage ? (
             <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
               <Plus className="size-4" />
-              Enrol sponsor
+              Enrol member
             </Button>
           ) : null
         }
@@ -172,11 +167,10 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
       {!access.canManage && <ReadOnlyNotice message={REGISTER_READ_ONLY_MESSAGE} />}
       {error && <ActionError message={error} />}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Active sponsors" value={String(summary.total)} />
-        <StatCard label="Owe the sanththa" value={String(summary.subscribing)} />
-        <StatCard label="Standing observances" value={String(summary.sponsorships)} />
-        <StatCard label={`Collected ${year}`} value={formatCurrency(summary.collected)} />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <StatCard label="Active members" value={String(summary.total)} />
+        <StatCard label="Retired" value={String(summary.retired)} />
+        <StatCard label="Poojas sponsored" value={String(summary.sponsorships)} />
       </div>
 
       <Card>
@@ -187,7 +181,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
             </InputGroupAddon>
             <InputGroupInput
               value={query}
-              placeholder="Search sponsors"
+              placeholder="Search members"
               onChange={(changeEvent) => setQuery(changeEvent.target.value)}
             />
           </InputGroup>
@@ -227,7 +221,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
             <DataTableEmpty colSpan={columns.length}>
               <EmptyState
                 icon={HeartHandshake}
-                title="No sponsors match"
+                title="No members match"
                 description={
                   query || filter !== 'all'
                     ? 'Try a different search or filter.'
@@ -257,14 +251,10 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
                   {sponsor.sponsorships}
                 </DataCell>
                 <DataCell nowrap>
-                  {!sponsor.isActive ? (
-                    <span className="text-[11px] text-text-disabled">Retired</span>
-                  ) : !sponsor.subscribes ? (
-                    <Pill tone="neutral">Exempt</Pill>
-                  ) : sponsor.paidThisYear ? (
-                    <Pill tone="success">Paid</Pill>
+                  {sponsor.isActive ? (
+                    <Pill tone="success">Active</Pill>
                   ) : (
-                    <Pill tone="warning">Due</Pill>
+                    <span className="text-[11px] text-text-disabled">Retired</span>
                   )}
                 </DataCell>
                 {access.canManage && (
@@ -303,10 +293,10 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
       <ConfirmDialog
         open={retiring !== null}
         onOpenChange={(open) => !open && setRetiring(null)}
-        title="Retire this sponsor?"
+        title="Retire this member?"
         description={
           retiring
-            ? `${retiring.name} (${retiring.sponsorNo}) won't be offered for new sponsorships or sanththa. Existing records are unchanged; reactivate from Edit.`
+            ? `${retiring.name} (${retiring.sponsorNo}) won't be offered for pooja sponsorships or sanththa. Existing records are unchanged; reactivate from Edit.`
             : ''
         }
         confirmLabel="Retire"
@@ -339,6 +329,7 @@ export function SponsorsScreen({ sponsors, year, access }: SponsorsScreenProps) 
             if (!open) setEditing(null);
           }}
           sponsor={editing}
+          people={people}
           pending={pending}
           onSubmit={handleSubmit}
         />

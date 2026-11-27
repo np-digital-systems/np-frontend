@@ -22,7 +22,7 @@ export function summarise(
   records: readonly MemberRecord[],
   rate: number | null,
 ): SanththaSummary {
-  const expected = records.filter((member) => member.subscribes);
+  const expected = records.filter((member) => member.isPoojaSponsor || member.isEnrolled);
   const paid = records.filter((member) => member.hasPaid);
   const unpaid = expected.filter((member) => !member.hasPaid).length;
 

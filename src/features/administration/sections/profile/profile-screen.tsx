@@ -33,7 +33,6 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
     fullName: user.fullName,
     nameTa: user.nameTa,
     phone: user.phone,
-    address: user.address,
   });
   const [error, setError] = useState<string | null>(null);
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -41,8 +40,7 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
   const isDirty =
     draft.fullName !== user.fullName ||
     draft.nameTa !== user.nameTa ||
-    draft.phone !== user.phone ||
-    draft.address !== user.address;
+    draft.phone !== user.phone;
 
   function update(key: keyof typeof draft, value: string) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -158,14 +156,6 @@ export function ProfileScreen({ user, embedded = false }: ProfileScreenProps) {
                     <Input id="profile-email" value={user.email} disabled />
                   </FormField>
                 </div>
-
-                <FormField id="profile-address" label="Address">
-                  <Input
-                    id="profile-address"
-                    value={draft.address}
-                    onChange={(event) => update('address', event.target.value)}
-                  />
-                </FormField>
 
                 {error && (
                   <p

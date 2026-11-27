@@ -568,6 +568,8 @@ interface VoucherFormDialogProps {
   poojas: readonly PoojaRef[];
   onSave: (draft: VoucherDraft, thenSubmit: boolean) => Promise<ServerActionResult>;
   canSubmit: boolean;
+  /** Receipts only: enrol an unmatched payer as a member. */
+  onCreateMember?: (name: string) => Promise<number | null>;
 }
 
 export function VoucherFormDialog({
@@ -584,6 +586,7 @@ export function VoucherFormDialog({
   poojas,
   onSave,
   canSubmit,
+  onCreateMember,
 }: VoucherFormDialogProps) {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -815,12 +818,13 @@ export function VoucherFormDialog({
               parties={parties}
               placeholder={
                 kind === 'receipt'
-                  ? 'Devotee, trust or collection point'
+                  ? 'Member, trust or collection point'
                   : 'Vendor, contractor or payee'
               }
               onChange={({ name, partyId }) =>
                 setDraft((current) => ({ ...current, party: name, partyId }))
               }
+              onCreateMember={kind === 'receipt' ? onCreateMember : undefined}
             />
           </FormField>
 

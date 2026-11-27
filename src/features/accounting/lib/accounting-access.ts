@@ -42,6 +42,9 @@ export interface AccountingAccess {
 
   readonly canGenerateReports: boolean;
 
+  /** Enrol members from a receipt. */
+  readonly canManageMembers: boolean;
+
     readonly canCreateVouchers: boolean;
 }
 
@@ -86,6 +89,8 @@ export function getAccountingAccess(granted: readonly Permission[]): AccountingA
     canManageFunds: can(granted, 'fund:manage'),
 
     canGenerateReports: can(granted, 'report:generate'),
+
+    canManageMembers: can(granted, 'sponsor:manage'),
 
     canCreateVouchers: canCreateReceipts || canCreatePayments,
   };

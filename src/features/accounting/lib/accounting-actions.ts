@@ -275,7 +275,7 @@ export interface PartyInput {
   nameTa: string;
   nameEn?: string;
   /** May be empty. */
-  roles?: readonly ('devotee' | 'vendor' | 'staff')[];
+  roles?: readonly ('vendor' | 'staff')[];
   phone?: string | null;
   email?: string | null;
   address?: string | null;

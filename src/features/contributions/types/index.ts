@@ -11,8 +11,10 @@ export interface SanththaMember {
   readonly phone: string;
   readonly address: string;
   readonly joinedOn: string;
-  /** Whether sanththa is due. Exempt sponsors can still be active. */
-  readonly subscribes: boolean;
+  /** Sponsors a pooja this year, so owes the sanththa. */
+  readonly isPoojaSponsor: boolean;
+  /** Added to this year's sanththa list by choice. */
+  readonly isEnrolled: boolean;
   readonly notes: string | null;
 }
 
@@ -62,7 +64,6 @@ export interface SponsorRecord {
   readonly email: string;
   readonly address: string;
   readonly sponsorSince: string;
-  readonly subscribes: boolean;
   readonly isActive: boolean;
   readonly notes: string | null;
   readonly sponsorships: number;
@@ -71,7 +72,7 @@ export interface SponsorRecord {
   readonly paidThisYear: boolean;
 }
 
-export type ContributorReason = 'gave-before' | 'sponsor' | 'vendor' | 'devotee';
+export type ContributorReason = 'gave-before' | 'member' | 'vendor' | 'staff';
 
 export interface Contributor {
   readonly partyId: number;

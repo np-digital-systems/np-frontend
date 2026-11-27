@@ -111,9 +111,9 @@ export function ActivitiesScreen({
 
   const { run, error: actionError } = useServerAction();
 
-  // Created as a devotee, the least specific role; it can be changed on the parties screen.
+  // Created with no role; roles can be added on the parties screen.
   async function handleCreateParty(name: string): Promise<number | null> {
-    const result = await createParty({ nameTa: name, roles: ['devotee'] });
+    const result = await createParty({ nameTa: name, roles: [] });
 
     return result.ok ? result.data.id : null;
   }
