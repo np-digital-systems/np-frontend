@@ -1,4 +1,8 @@
-import { codingSummary } from '@/features/accounting/lib/accounting-data';
+import {
+  VOUCHER_KIND_LABELS,
+  codingSummary,
+} from '@/features/accounting/lib/accounting-data';
+import type { VoucherKind } from '@/features/accounting/types';
 import 'server-only';
 
 import type { BadgeStatus } from '@/components/portal/ui';
@@ -28,6 +32,13 @@ import type {
   TempleEvent,
   Transaction,
 } from '../constants/dashboard-shapes';
+
+const SHORT_KIND = {
+  receipt: 'Receipt',
+  payment: 'Payment',
+  contra: 'Contra',
+  journal: 'Journal',
+} as const satisfies Record<VoucherKind, string>;
 
 const currency = (value: number) => value;
 
@@ -102,7 +113,7 @@ export async function getApprovalSummary(): Promise<ApprovalSummary> {
   return {
     items: pending.slice(0, 5).map((voucher) => ({
       ref: voucher.ref,
-      type: voucher.kind === 'receipt' ? 'Receipt Voucher' : 'Payment Voucher',
+      type: VOUCHER_KIND_LABELS[voucher.kind],
       amount: currency(voucher.amount),
       payee: voucher.party,
       fund: codingSummary(voucher).fund,
@@ -111,7 +122,7 @@ export async function getApprovalSummary(): Promise<ApprovalSummary> {
     })),
     queue: pending.slice(0, 3).map((voucher) => ({
       ref: voucher.ref,
-      type: voucher.kind === 'receipt' ? 'Receipt' : 'Payment',
+      type: SHORT_KIND[voucher.kind],
       amount: currency(voucher.amount),
     })),
     total: summary.pendingApprovals,
@@ -188,7 +199,7 @@ export async function getMySubmissions(limit = 4): Promise<readonly Submission[]
 
   return vouchers.slice(0, limit).map((voucher) => ({
     ref: voucher.ref,
-    type: voucher.kind === 'receipt' ? 'Receipt' : 'Payment',
+    type: SHORT_KIND[voucher.kind],
     amount: currency(voucher.amount),
     date: new Date(voucher.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
     status: voucher.status as BadgeStatus,
@@ -207,8 +218,8 @@ export async function getQueueSplit(): Promise<{ receipts: number; payments: num
 // Read from the cashier's vouchers because they can't see the audit trail.
 export async function getMyActivity(limit = 4): Promise<readonly CashierActivityItem[]> {
   const vouchers = await getVouchers();
-  const kind = (voucher: { kind: string }) =>
-    voucher.kind === 'receipt' ? 'Receipt' : 'Payment voucher';
+  const kind = (voucher: { kind: VoucherKind }) =>
+    voucher.kind === 'receipt' ? 'Receipt' : `${SHORT_KIND[voucher.kind]} voucher`;
 
   return vouchers
     .filter((voucher) => voucher.submittedAt !== null)

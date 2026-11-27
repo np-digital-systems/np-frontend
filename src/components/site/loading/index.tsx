@@ -23,16 +23,16 @@ export function Loading({ className, size = "md", text }: LoadingProps) {
       <div className="relative">
         <div
           className={cn(
-            "rounded-full border-2 border-[#D4AF37]/20 border-t-[#D4AF37] animate-spin",
+            "rounded-full border-2 border-temple-gold/20 border-t-temple-gold animate-spin",
             sizeMap[size]
           )}
         />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[#D4AF37] text-xs font-heading">ॐ</span>
+          <span className="text-temple-gold text-xs font-heading">ॐ</span>
         </div>
       </div>
       {text && (
-        <p className="text-sm text-[#4D4635] font-sans animate-pulse">
+        <p className="text-sm text-temple-soft font-sans animate-pulse">
           {text}
         </p>
       )}
@@ -42,7 +42,7 @@ export function Loading({ className, size = "md", text }: LoadingProps) {
 
 export function PageLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
+    <div className="min-h-screen flex items-center justify-center bg-temple-paper">
       <Loading size="lg" text="Loading sacred content..." />
     </div>
   );

@@ -9,6 +9,8 @@ import {
   requiredText,
 } from '@/lib/validation';
 
+import { PAYMENT_MODES } from '@/features/accounting/lib/accounting-data';
+
 import {
   ASSET_CATEGORIES,
   ASSET_CONDITIONS,
@@ -44,6 +46,7 @@ export const projectSchema = z
   );
 
 export const depositSchema = z.object({
+  name: optionalText(120),
   certificateNo: requiredText('The certificate number', 64),
   bankName: requiredText('The bank name'),
   branch: optionalText(),
@@ -60,8 +63,45 @@ export const depositSchema = z.object({
     .max(120, 'The tenure cannot exceed ten years.'),
   interestPayout: z.enum(INTEREST_PAYOUTS),
   fundId: z.number().int().positive('Choose a fund.'),
+  slotId: z.number().int().positive().nullable(),
   notes: optionalText(1000),
 });
+
+export const placementSchema = z
+  .object({
+    source: z.enum(['bank', 'endowment', 'opening']),
+    mode: z.enum(PAYMENT_MODES),
+    fromBankAccountId: z.number().int().positive().nullable(),
+    chequeNo: optionalText(40),
+    manualVoucherNo: optionalText(60),
+  })
+  .refine((draft) => draft.source === 'opening' || draft.manualVoucherNo.length > 0, {
+    message: 'Enter the manual voucher number.',
+    path: ['manualVoucherNo'],
+  })
+  .refine(
+    (draft) =>
+      draft.source !== 'bank' || draft.mode === 'cash' || draft.fromBankAccountId !== null,
+    { message: 'Choose the bank account the principal left.', path: ['fromBankAccountId'] },
+  )
+  .refine(
+    (draft) => draft.source !== 'bank' || draft.mode !== 'cheque' || draft.chequeNo.length > 0,
+    { message: 'Enter the cheque number.', path: ['chequeNo'] },
+  );
+
+export const interestSchema = z
+  .object({
+    amount: positiveAmount('The interest'),
+    receivedOn: isoDate,
+    mode: z.enum(PAYMENT_MODES),
+    bankAccountId: z.number().int().positive().nullable(),
+    chequeNo: optionalText(40),
+    manualVoucherNo: requiredText('The manual voucher number', 60),
+  })
+  .refine((draft) => draft.mode === 'cash' || draft.bankAccountId !== null, {
+    message: 'Choose the bank account it was paid into.',
+    path: ['bankAccountId'],
+  });
 
 export const assetSchema = z.object({
   tag: requiredText('An asset tag', 32).transform((value) =>
@@ -89,4 +129,5 @@ export const disposalSchema = z.object({
 export type FundInput = z.input<typeof fundSchema>;
 export type ProjectInput = z.input<typeof projectSchema>;
 export type DepositInput = z.input<typeof depositSchema>;
+export type InterestInput = z.input<typeof interestSchema>;
 export type AssetInput = z.input<typeof assetSchema>;

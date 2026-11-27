@@ -12,13 +12,13 @@ export function DonationSection() {
   const locale = useLocale() as Locale;
   const currentTiers = DONATION_TIERS[locale] || DONATION_TIERS.ta;
   return (
-    <PageContainer id="donation-section" className="bg-white relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.02]">
+    <PageContainer id="donation-section" className="bg-temple-card relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.06]">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage:
-              'url(\'data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="1.5" fill="%23D4AF37"/></svg>\')',
+              'url(\'data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="1.5" fill="%23a01f28"/></svg>\')',
             backgroundRepeat: "repeat",
           }}
         />
@@ -32,7 +32,7 @@ export function DonationSection() {
         />
 
         <div className="flex justify-center mb-16 reveal">
-          <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-3xl overflow-hidden shadow-[0_16px_48px_rgba(212,175,55,0.15)] border-2 border-[#D4AF37]/10">
+          <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden shadow-[0_16px_48px_rgba(74,16,22,0.15)] border border-temple-sand">
             <Image
               src="/images/temple-rangoli.png"
               alt="Sacred flower rangoli"
@@ -41,7 +41,7 @@ export function DonationSection() {
               sizes="320px"
             />
             <div className="absolute inset-x-4 bottom-4 p-4 rounded-xl bg-white/90 backdrop-blur-md shadow-lg">
-              <p className="text-center text-sm font-heading font-semibold text-[#735C00]">
+              <p className="text-center text-sm font-heading font-semibold text-temple-gold-ink">
                 {tDonation("tag")}
               </p>
             </div>

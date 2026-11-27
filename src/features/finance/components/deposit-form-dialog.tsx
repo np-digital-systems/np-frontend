@@ -3,6 +3,11 @@
 import { useState } from 'react';
 
 import { FormField } from '@/components/portal/ui';
+import {
+  EntityCombobox,
+  type EntityGroup,
+  type EntityOption,
+} from '@/components/ui/entity-combobox';
 import { validate } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +27,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  PAYMENT_MODES,
+  PAYMENT_MODE_LABELS,
+} from '@/features/accounting/lib/accounting-data';
+import type { BankAccountRef, PaymentMode } from '@/features/accounting/types';
 
 import {
   INTEREST_PAYOUTS,
@@ -32,10 +42,46 @@ import {
   simpleInterest,
   yearsBetween,
 } from '../lib/finance-data';
-import { depositSchema } from '../lib/finance-schemas';
-import type { DepositRecord, FundRecord, InterestPayout } from '../types';
+import { depositSchema, placementSchema } from '../lib/finance-schemas';
+import type { PlacementInput } from '../lib/finance-actions';
+import type {
+  DepositRecord,
+  FundRecord,
+  InterestPayout,
+  SlotOption,
+} from '../types';
+
+function poojaGroups(slots: readonly SlotOption[]): EntityGroup[] {
+  const groups = new Map<number, { heading: string; options: EntityOption[] }>();
+
+  for (const slot of slots) {
+    const group = groups.get(slot.poojaTypeId) ?? {
+      heading: slot.poojaTypeName,
+      options: [],
+    };
+
+    group.options.push({
+      value: String(slot.id),
+      label: slot.poojaName,
+      description: slot.sponsorName ?? undefined,
+      keywords: slot.poojaTypeName,
+    });
+    groups.set(slot.poojaTypeId, group);
+  }
+
+  return [...groups.values()];
+}
+
+const SOURCE_LABELS: Record<PlacementInput['source'], string> = {
+  bank: 'Kovil money',
+  endowment: 'Sponsor placed it',
+  opening: 'Held before go-live',
+};
+
+export type DepositPurpose = 'place' | 'edit' | 'renew';
 
 export interface DepositDraft {
+  name: string;
   certificateNo: string;
   bankName: string;
   branch: string;
@@ -45,16 +91,33 @@ export interface DepositDraft {
   tenureMonths: number;
   interestPayout: InterestPayout;
   fundId: number;
+  forPooja: boolean;
+  slotId: number | null;
   notes: string;
+  source: PlacementInput['source'];
+  mode: PaymentMode;
+  fromBankAccountId: number | null;
+  chequeNo: string;
+  manualVoucherNo: string;
 }
 
 function draftFrom(
   deposit: DepositRecord | null,
   funds: readonly FundRecord[],
+  bankAccounts: readonly BankAccountRef[],
   today: string,
 ): DepositDraft {
+  const placement = {
+    source: 'bank' as const,
+    mode: 'bank' as const,
+    fromBankAccountId: deposit?.bankAccountId ?? bankAccounts[0]?.id ?? null,
+    chequeNo: '',
+    manualVoucherNo: '',
+  };
+
   if (deposit) {
     return {
+      name: deposit.name ?? '',
       certificateNo: deposit.certificateNo,
       bankName: deposit.bankName,
       branch: deposit.branch,
@@ -64,11 +127,15 @@ function draftFrom(
       tenureMonths: deposit.tenureMonths,
       interestPayout: deposit.interestPayout,
       fundId: deposit.fundId,
+      forPooja: deposit.purpose === 'pooja',
+      slotId: deposit.slotId,
       notes: deposit.notes ?? '',
+      ...placement,
     };
   }
 
   return {
+    name: '',
     certificateNo: '',
     bankName: '',
     branch: '',
@@ -78,7 +145,10 @@ function draftFrom(
     tenureMonths: 12,
     interestPayout: 'on-maturity',
     fundId: funds[0]?.id ?? 0,
+    forPooja: false,
+    slotId: null,
     notes: '',
+    ...placement,
   };
 }
 
@@ -89,8 +159,11 @@ export function maturityDate(placedOn: string, tenureMonths: number): string {
 interface DepositFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  purpose: DepositPurpose;
   deposit: DepositRecord | null;
   funds: readonly FundRecord[];
+  bankAccounts: readonly BankAccountRef[];
+  slots: readonly SlotOption[];
   existing: readonly DepositRecord[];
   onSubmit: (draft: DepositDraft) => void;
 }
@@ -98,24 +171,27 @@ interface DepositFormDialogProps {
 export function DepositFormDialog({
   open,
   onOpenChange,
+  purpose,
   deposit,
   funds,
+  bankAccounts,
+  slots,
   existing,
   onSubmit,
 }: DepositFormDialogProps) {
   const today = new Date().toISOString().slice(0, 10);
 
   const [draft, setDraft] = useState<DepositDraft>(() =>
-    draftFrom(deposit, funds, today),
+    draftFrom(deposit, funds, bankAccounts, today),
   );
   const [error, setError] = useState<string | null>(null);
 
-  const seed = `${open}|${deposit?.id ?? 'new'}`;
+  const seed = `${open}|${purpose}|${deposit?.id ?? 'new'}`;
   const [lastSeed, setLastSeed] = useState(seed);
 
   if (lastSeed !== seed) {
     setLastSeed(seed);
-    setDraft(draftFrom(deposit, funds, today));
+    setDraft(draftFrom(deposit, funds, bankAccounts, today));
     setError(null);
   }
 
@@ -142,10 +218,24 @@ export function DepositFormDialog({
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
-    const result = validate(depositSchema, draft);
+    const result = validate(depositSchema, {
+      ...draft,
+      slotId: draft.forPooja ? draft.slotId : null,
+    });
 
     if (!result.ok) {
       setError(result.message);
+      return;
+    }
+
+    // A renewal keeps the old certificate's name, so it isn't asked for.
+    if (purpose !== 'renew' && !result.data.name) {
+      setError('Give the deposit a name.');
+      return;
+    }
+
+    if (draft.forPooja && result.data.slotId === null) {
+      setError('Choose the pooja this deposit pays for.');
       return;
     }
 
@@ -160,8 +250,22 @@ export function DepositFormDialog({
       return;
     }
 
+    if (purpose === 'place') {
+      const placement = validate(placementSchema, draft);
+
+      if (!placement.ok) {
+        setError(placement.message);
+        return;
+      }
+    }
+
+    if (purpose === 'renew' && !draft.manualVoucherNo.trim()) {
+      setError('Enter the manual voucher number for the renewal.');
+      return;
+    }
+
     setError(null);
-    onSubmit(result.data);
+    onSubmit({ ...draft, ...result.data, manualVoucherNo: draft.manualVoucherNo.trim() });
     onOpenChange(false);
   }
 
@@ -170,14 +274,31 @@ export function DepositFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {deposit ? `Edit ${deposit.certificateNo}` : 'Place Fixed Deposit'}
+            {purpose === 'renew' && deposit
+              ? `Renew ${deposit.name ?? deposit.certificateNo}`
+              : deposit
+                ? `Edit ${deposit.name ?? deposit.certificateNo}`
+                : 'Place Fixed Deposit'}
           </DialogTitle>
           <DialogDescription>
-            Record it against the fund the money came from.
+            {purpose === 'renew'
+              ? 'Enter the new certificate. A journal moves the principal across.'
+              : 'Record it against the fund the money came from.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {purpose !== 'renew' && (
+            <FormField id="deposit-name" label="Name" required>
+              <Input
+                id="deposit-name"
+                value={draft.name}
+                placeholder="Karthigai Vilakkeedu endowment"
+                onChange={(changeEvent) => update('name', changeEvent.target.value)}
+              />
+            </FormField>
+          )}
+
           <FormField
             id="deposit-certificate"
             label="Certificate Number"
@@ -325,6 +446,54 @@ export function DepositFormDialog({
             </FormField>
           </div>
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr]">
+            <FormField id="deposit-purpose" label="Purpose" required>
+              <Select
+                value={draft.forPooja ? 'pooja' : 'general'}
+                onValueChange={(value) => update('forPooja', value === 'pooja')}
+              >
+                <SelectTrigger id="deposit-purpose" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="pooja">Pooja</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            {draft.forPooja && (
+              <FormField id="deposit-pooja" label="Pooja" required>
+                <EntityCombobox
+                  id="deposit-pooja"
+                  value={draft.slotId === null ? null : String(draft.slotId)}
+                  groups={poojaGroups(slots)}
+                  placeholder="Choose the pooja"
+                  searchPlaceholder="Search pooja or sponsor…"
+                  emptyMessage="No pooja matches that search."
+                  onChange={(value) =>
+                    update('slotId', value === null ? null : Number(value))
+                  }
+                />
+              </FormField>
+            )}
+          </div>
+
+          {purpose === 'place' && (
+            <PlacementFields draft={draft} bankAccounts={bankAccounts} onChange={update} />
+          )}
+
+          {purpose === 'renew' && (
+            <FormField id="deposit-voucher-no" label="Manual Voucher No" required>
+              <Input
+                id="deposit-voucher-no"
+                value={draft.manualVoucherNo}
+                onChange={(changeEvent) => update('manualVoucherNo', changeEvent.target.value)}
+              />
+            </FormField>
+          )}
+
           {matures && draft.principal > 0 && draft.interestRate > 0 && (
             <dl className="grid grid-cols-3 gap-x-4 rounded-lg bg-surface-2 px-3.5 py-3">
               <Projection label="Matures on" value={formatLongDate(matures)} />
@@ -372,12 +541,117 @@ export function DepositFormDialog({
             </Button>
 
             <Button type="submit">
-              {deposit ? 'Save Changes' : 'Place Deposit'}
+              {purpose === 'renew'
+                ? 'Renew Deposit'
+                : purpose === 'edit'
+                  ? 'Save Changes'
+                  : 'Place Deposit'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function PlacementFields({
+  draft,
+  bankAccounts,
+  onChange,
+}: {
+  draft: DepositDraft;
+  bankAccounts: readonly BankAccountRef[];
+  onChange: <K extends keyof DepositDraft>(key: K, value: DepositDraft[K]) => void;
+}) {
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormField id="deposit-source" label="Money From" required>
+          <Select
+            value={draft.source}
+            onValueChange={(value) => onChange('source', value as DepositDraft['source'])}
+          >
+            <SelectTrigger id="deposit-source" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent>
+              {(Object.keys(SOURCE_LABELS) as DepositDraft['source'][]).map((source) => (
+                <SelectItem key={source} value={source}>
+                  {SOURCE_LABELS[source]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        {draft.source !== 'opening' && (
+          <FormField id="deposit-voucher-no" label="Manual Voucher No" required>
+            <Input
+              id="deposit-voucher-no"
+              value={draft.manualVoucherNo}
+              onChange={(changeEvent) => onChange('manualVoucherNo', changeEvent.target.value)}
+            />
+          </FormField>
+        )}
+      </div>
+
+      {draft.source === 'bank' && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <FormField id="deposit-mode" label="Mode" required>
+            <Select
+              value={draft.mode}
+              onValueChange={(value) => onChange('mode', value as PaymentMode)}
+            >
+              <SelectTrigger id="deposit-mode" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                {PAYMENT_MODES.map((mode) => (
+                  <SelectItem key={mode} value={mode}>
+                    {PAYMENT_MODE_LABELS[mode]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          {draft.mode !== 'cash' && (
+            <FormField id="deposit-from-bank" label="From Account" required>
+              <Select
+                value={
+                  draft.fromBankAccountId === null ? undefined : String(draft.fromBankAccountId)
+                }
+                onValueChange={(value) => onChange('fromBankAccountId', Number(value))}
+              >
+                <SelectTrigger id="deposit-from-bank" className="w-full">
+                  <SelectValue placeholder="Choose an account" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {bankAccounts.map((account) => (
+                    <SelectItem key={account.id} value={String(account.id)}>
+                      {account.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+
+          {draft.mode === 'cheque' && (
+            <FormField id="deposit-cheque" label="Cheque No" required>
+              <Input
+                id="deposit-cheque"
+                value={draft.chequeNo}
+                onChange={(changeEvent) => onChange('chequeNo', changeEvent.target.value)}
+              />
+            </FormField>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 

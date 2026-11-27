@@ -116,8 +116,13 @@ export function BookTable({
                   {formatShortDate(row.date)}
                 </DataCell>
 
-                <DataCell nowrap className="ref text-xs font-medium text-primary">
-                  {row.ref}
+                <DataCell nowrap>
+                  <span className="ref text-xs font-medium text-primary">{row.ref}</span>
+                  {row.manualVoucherNo && (
+                    <span className="mt-0.5 block text-[11px] text-text-muted ref">
+                      Book #{row.manualVoucherNo}
+                    </span>
+                  )}
                 </DataCell>
 
                 <DataCell>

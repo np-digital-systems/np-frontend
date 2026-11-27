@@ -3,6 +3,7 @@ import type {
   LedgerRecord,
   Project,
   ProjectStatus,
+  VoucherStatus,
 } from '@/features/accounting/types';
 
 export type { Fund, Project, ProjectStatus };
@@ -43,9 +44,22 @@ export type DepositStatus = 'active' | 'matured' | 'renewed' | 'closed';
 
 export type InterestPayout = 'monthly' | 'quarterly' | 'on-maturity';
 
+export type DepositPurpose = 'general' | 'pooja';
+
+/** Decides the entry that put the principal on the books; `opening` deposits needed none. */
+export type DepositSource = 'bank' | 'endowment' | 'renewal' | 'opening';
+
+export interface DepositVoucherRef {
+  readonly id: number;
+  readonly ref: string;
+  readonly status: string;
+}
+
 export interface FixedDeposit {
   readonly id: number;
   readonly certificateNo: string;
+  /** Null on deposits recorded before names were kept. */
+  readonly name: string | null;
   readonly bankName: string;
   readonly branch: string;
   readonly principal: number;
@@ -55,6 +69,11 @@ export interface FixedDeposit {
   readonly tenureMonths: number;
   readonly interestPayout: InterestPayout;
     readonly fundId: number;
+  readonly purpose: DepositPurpose;
+  /** Set only for a pooja deposit. */
+  readonly slotId: number | null;
+  readonly bankAccountId: number | null;
+  readonly source: DepositSource;
   readonly status: DepositStatus;
     readonly renewedFromId: number | null;
   readonly notes: string | null;
@@ -68,6 +87,70 @@ export interface DepositRecord extends FixedDeposit {
     readonly daysToMaturity: number;
     readonly isMaturingSoon: boolean;
   readonly isOverdue: boolean;
+  readonly poojaName: string | null;
+  readonly interestReceived: number;
+  readonly placementVoucher: DepositVoucherRef | null;
+  readonly closureVoucher: DepositVoucherRef | null;
+  /** Posted principal on the deposit head; differs from the register until vouchers post. */
+  readonly bookBalance: number;
+  readonly bookDifference: number;
+}
+
+export type DepositVoucherRole = 'placement' | 'interest' | 'renewal' | 'closure' | 'other';
+
+/** A voucher raised for a deposit or another certificate in its renewal chain. */
+export interface DepositVoucher {
+  readonly id: number;
+  readonly ref: string;
+  readonly kind: 'receipt' | 'payment' | 'contra' | 'journal';
+  readonly date: string;
+  readonly manualVoucherNo: string | null;
+  readonly description: string;
+  readonly party: string;
+  readonly amount: number;
+  readonly status: VoucherStatus;
+  readonly certificateNo: string;
+  readonly role: DepositVoucherRole;
+}
+
+export interface SlotOption {
+  readonly id: number;
+  readonly poojaName: string;
+  readonly poojaTypeId: number;
+  readonly poojaTypeName: string;
+  /** Null when the pooja type has a single slot. */
+  readonly slotName: string | null;
+  readonly sponsorName: string | null;
+}
+
+export interface DepositInterest {
+  readonly depositId: number;
+  readonly certificates: readonly string[];
+  readonly years: readonly {
+    readonly financialYearId: number;
+    readonly label: string;
+    readonly amount: number;
+  }[];
+  readonly total: number;
+}
+
+export interface PoojaFundingRow {
+  readonly slotId: number | null;
+  readonly poojaName: string | null;
+  readonly sponsorName: string | null;
+  readonly deposits: number;
+  readonly principal: number;
+  readonly interestReceived: number;
+  readonly sponsorTopUps: number;
+  readonly spent: number;
+  /** Positive is surplus, negative a shortfall. */
+  readonly balance: number;
+}
+
+export interface PoojaFunding {
+  readonly financialYearId: number;
+  readonly financialYearLabel: string;
+  readonly rows: readonly PoojaFundingRow[];
 }
 
 export type AssetCategory =

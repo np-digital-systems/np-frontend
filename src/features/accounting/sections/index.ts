@@ -8,5 +8,7 @@ export { BankBookFeature } from './bank-book/bank-book-feature';
 export { BankAccountsFeature } from './bank-accounts/bank-accounts-feature';
 export { ReceiptVouchersFeature } from './vouchers/receipts-feature';
 export { PaymentVouchersFeature } from './vouchers/payments-feature';
+export { ContraVouchersFeature } from './vouchers/contras-feature';
+export { JournalVouchersFeature } from './vouchers/journals-feature';
 export { ApprovalsFeature } from './approvals/approvals-feature';
 export { ReportsFeature } from './reports/reports-feature';

@@ -1,4 +1,5 @@
 import { HeroSection } from "@/features/home/sections/hero-section";
+import { TempleMarquee } from "@/features/home/sections/temple-marquee";
 import { AboutSection } from "@/features/home/sections/about-section";
 import { EventsSection } from "@/features/home/sections/events-section";
 import { GallerySection } from "@/features/home/sections/gallery-section";
@@ -24,13 +25,12 @@ export default async function HomePage() {
     <>
       <ScrollReveal />
       <HeroSection />
+      <TempleMarquee />
       <AboutSection />
-      <SpiritualDivider variant="om" />
       <EventsSection
         events={preview.events}
         unavailable={preview.unavailable}
       />
-      <SpiritualDivider variant="lotus" />
       <GallerySection />
       <SpiritualDivider variant="om" />
       <DonationSection />

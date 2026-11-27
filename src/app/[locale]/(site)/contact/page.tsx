@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import { PageContainer } from "@/components/site/page-container";
 import { siteConfig } from "@/config/site";
 import { useTranslations } from "next-intl";
+import { PageHero } from "@/components/site/page-hero";
+import { ScrollReveal } from "@/features/home/components/scroll-reveal";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -16,33 +17,22 @@ export default function ContactPage() {
   const tTempleInfo = useTranslations("TempleInfo");
   return (
     <>
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
-        <Image
-          src="/images/temple-hero.png"
-          alt="Temple gopuram"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/60 to-black/50" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            {tContact("title")}
-          </h1>
-          <p className="text-white/80 text-lg font-sans max-w-xl mx-auto">
-            {tContact("subtitle")}
-          </p>
-        </div>
-      </section>
+      <ScrollReveal />
+      <PageHero
+        title={tContact("title")}
+        subtitle={tContact("subtitle")}
+        image="/images/temple-hero.png"
+        archImage="/images/temple-lamps.png"
+        archAlt={tTempleInfo("shortName")}
+      />
 
-      <PageContainer className="bg-[#FAF9F6]">
+      <PageContainer className="bg-temple-paper">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          <div>
-            <h2 className="font-heading text-3xl font-semibold text-[#1A1C1C] mb-2">
+          <div className="reveal-left rounded-3xl border border-temple-sand bg-temple-card p-6 shadow-[0_20px_60px_rgba(74,16,22,0.08)] md:p-10">
+            <h2 className="font-heading text-3xl font-semibold text-temple-ink mb-2">
               {tContact("form.title")}
             </h2>
-            <p className="text-[#4D4635] font-sans mb-8">
+            <p className="text-temple-soft font-sans mb-8">
                   {tContact("form.subtitle")}
             </p>
 
@@ -51,7 +41,7 @@ export default function ContactPage() {
                 <div>
                   <label
                     htmlFor="contact-name"
-                    className="block text-sm font-semibold text-[#1A1C1C] mb-2"
+                    className="block text-sm font-semibold text-temple-ink mb-2"
                   >
                     {tContact("form.fullName")}
                   </label>
@@ -59,13 +49,13 @@ export default function ContactPage() {
                     id="contact-name"
                     type="text"
                     placeholder="Your name"
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-[#D0C5AF]/50 text-[#1A1C1C] placeholder:text-[#7F7663]/50 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition-all duration-300 font-sans text-sm"
+                    className="w-full px-4 py-3 rounded-xl bg-temple-paper border border-temple-sand text-temple-ink placeholder:text-temple-soft/50 focus:outline-none focus:border-temple-gold focus:ring-1 focus:ring-temple-gold/30 transition-all duration-300 font-sans text-sm"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="contact-email"
-                    className="block text-sm font-semibold text-[#1A1C1C] mb-2"
+                    className="block text-sm font-semibold text-temple-ink mb-2"
                   >
                     {tContact("form.email")}
                   </label>
@@ -73,7 +63,7 @@ export default function ContactPage() {
                     id="contact-email"
                     type="email"
                     placeholder="your@email.com"
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-[#D0C5AF]/50 text-[#1A1C1C] placeholder:text-[#7F7663]/50 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition-all duration-300 font-sans text-sm"
+                    className="w-full px-4 py-3 rounded-xl bg-temple-paper border border-temple-sand text-temple-ink placeholder:text-temple-soft/50 focus:outline-none focus:border-temple-gold focus:ring-1 focus:ring-temple-gold/30 transition-all duration-300 font-sans text-sm"
                   />
                 </div>
               </div>
@@ -81,7 +71,7 @@ export default function ContactPage() {
               <div>
                 <label
                   htmlFor="contact-subject"
-                  className="block text-sm font-semibold text-[#1A1C1C] mb-2"
+                  className="block text-sm font-semibold text-temple-ink mb-2"
                 >
                   {tContact("form.subject")}
                 </label>
@@ -89,14 +79,14 @@ export default function ContactPage() {
                   id="contact-subject"
                   type="text"
                   placeholder="How can we help?"
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-[#D0C5AF]/50 text-[#1A1C1C] placeholder:text-[#7F7663]/50 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition-all duration-300 font-sans text-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-temple-paper border border-temple-sand text-temple-ink placeholder:text-temple-soft/50 focus:outline-none focus:border-temple-gold focus:ring-1 focus:ring-temple-gold/30 transition-all duration-300 font-sans text-sm"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="contact-message"
-                  className="block text-sm font-semibold text-[#1A1C1C] mb-2"
+                  className="block text-sm font-semibold text-temple-ink mb-2"
                 >
                   {tContact("form.message")}
                 </label>
@@ -104,13 +94,13 @@ export default function ContactPage() {
                   id="contact-message"
                   rows={5}
                   placeholder="Tell us more..."
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-[#D0C5AF]/50 text-[#1A1C1C] placeholder:text-[#7F7663]/50 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition-all duration-300 font-sans text-sm resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-temple-paper border border-temple-sand text-temple-ink placeholder:text-temple-soft/50 focus:outline-none focus:border-temple-gold focus:ring-1 focus:ring-temple-gold/30 transition-all duration-300 font-sans text-sm resize-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-white font-semibold text-sm hover:shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-all duration-300 hover:scale-[1.01]"
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-temple-gold to-temple-saffron text-temple-night font-semibold text-sm hover:shadow-[0_4px_16px_rgba(217,164,58,0.3)] transition-all duration-300 hover:scale-[1.01]"
               >
                 <Send className="w-4 h-4" />
                 {tContact("form.sendMeassage")}
@@ -118,32 +108,32 @@ export default function ContactPage() {
             </form>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-8 reveal-right">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-                <MapPin className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("templeAddress")}</h4>
-                <p className="text-xs text-[#4D4635]">{tTempleInfo("address")}</p>
+              <div className="group p-6 rounded-2xl border border-temple-sand bg-temple-card shadow-[0_4px_16px_rgba(74,16,22,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-temple-gold/50 hover:shadow-[0_16px_40px_rgba(217,164,58,0.18)]">
+                <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-temple-night text-temple-gold transition-transform duration-300 group-hover:scale-110"><MapPin className="h-5 w-5" /></span>
+                <h4 className="font-heading text-sm font-semibold text-temple-ink mb-1">{tContact("templeAddress")}</h4>
+                <p className="text-xs text-temple-soft">{tTempleInfo("address")}</p>
               </div>
-              <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-                <Phone className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("phone")}</h4>
-                <p className="text-xs text-[#4D4635]">{siteConfig.contact.phone}</p>
+              <div className="group p-6 rounded-2xl border border-temple-sand bg-temple-card shadow-[0_4px_16px_rgba(74,16,22,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-temple-gold/50 hover:shadow-[0_16px_40px_rgba(217,164,58,0.18)]">
+                <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-temple-night text-temple-gold transition-transform duration-300 group-hover:scale-110"><Phone className="h-5 w-5" /></span>
+                <h4 className="font-heading text-sm font-semibold text-temple-ink mb-1">{tContact("phone")}</h4>
+                <p className="text-xs text-temple-soft">{siteConfig.contact.phone}</p>
               </div>
-              <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-                <Mail className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("email")}</h4>
-                <p className="text-xs text-[#4D4635]">{siteConfig.contact.email}</p>
+              <div className="group p-6 rounded-2xl border border-temple-sand bg-temple-card shadow-[0_4px_16px_rgba(74,16,22,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-temple-gold/50 hover:shadow-[0_16px_40px_rgba(217,164,58,0.18)]">
+                <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-temple-night text-temple-gold transition-transform duration-300 group-hover:scale-110"><Mail className="h-5 w-5" /></span>
+                <h4 className="font-heading text-sm font-semibold text-temple-ink mb-1">{tContact("email")}</h4>
+                <p className="text-xs text-temple-soft">{siteConfig.contact.email}</p>
               </div>
-              <div className="p-6 rounded-2xl bg-white shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-                <Clock className="w-6 h-6 text-[#D4AF37] mb-3" />
-                <h4 className="font-heading text-sm font-semibold text-[#1A1C1C] mb-1">{tContact("hours")}</h4>
-                <p className="text-xs text-[#4D4635]">{tTempleInfo("templeHours.morning")}</p>
-                <p className="text-xs text-[#4D4635]">{tTempleInfo("templeHours.evening")}</p>
+              <div className="group p-6 rounded-2xl border border-temple-sand bg-temple-card shadow-[0_4px_16px_rgba(74,16,22,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-temple-gold/50 hover:shadow-[0_16px_40px_rgba(217,164,58,0.18)]">
+                <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-temple-night text-temple-gold transition-transform duration-300 group-hover:scale-110"><Clock className="h-5 w-5" /></span>
+                <h4 className="font-heading text-sm font-semibold text-temple-ink mb-1">{tContact("hours")}</h4>
+                <p className="text-xs text-temple-soft">{tTempleInfo("templeHours.morning")}</p>
+                <p className="text-xs text-temple-soft">{tTempleInfo("templeHours.evening")}</p>
               </div>
             </div>
 
-            <div className="relative h-[350px] rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-[#D0C5AF]/20">
+            <div className="relative h-[350px] rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(74,16,22,0.15)] border-[5px] border-temple-gold/40">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3932.061618582315!2d80.0182781!3d9.7608483!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3affab4e1c493f45%3A0x841075c87fa8270a!2z4K6u4K6y4K-N4K6y4K6-4K6V4K6u4K-NIOCuqOCvgOCusuCuv-Cur-CuruCvjeCuquCuqeCviCDgrqrgrr_grrPgr43grrPgr4jgrq_grr7grrDgr40g4K6G4K6y4K6v4K6u4K-NIHwgTWFsbGFrYW0gTmVlbGl5YW1wYW5haSBQaWxsYWl5YXIgS292aWw!5e0!3m2!1sen!2slk!4v1779983305229!5m2!1sen!2slk"
                 width="100%"

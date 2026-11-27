@@ -29,9 +29,18 @@ export async function SettingsFeature() {
     (account) => account.type === 'asset' && account.isActive,
   );
 
-  // Income heads only; the API rejects any other type for sanththa.
+  // Income heads only; the API rejects any other type for sanththa and deposit interest.
   const incomeAccounts = chart.filter(
     (account) => account.type === 'income' && account.isActive,
+  );
+
+  // Cash and bank heads are refused: deposits would land in the cash or bank book.
+  const depositAccounts = cashAccounts.filter(
+    (account) => account.isPostable && account.moneyHead === null,
+  );
+
+  const equityAccounts = chart.filter(
+    (account) => account.type === 'equity' && account.isActive && account.isPostable,
   );
 
   if (!record) {
@@ -54,6 +63,8 @@ export async function SettingsFeature() {
         today={today}
         cashAccounts={cashAccounts}
         incomeAccounts={incomeAccounts}
+        depositAccounts={depositAccounts}
+        equityAccounts={equityAccounts}
         initialSettings={
           access.canManageSettings ? (await getPortalSettings()) : null
         }

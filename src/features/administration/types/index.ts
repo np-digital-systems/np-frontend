@@ -127,6 +127,9 @@ export interface AccountingSettings {
   /** Required for the cash book; the API refuses the report until it is set. */
   readonly cashAccountId: number | null;
   readonly sanththaAccountId: number | null;
+  readonly depositInterestAccountId: number | null;
+  readonly depositAccountId: number | null;
+  readonly endowmentAccountId: number | null;
   readonly receiptPrefix: string;
   readonly paymentPrefix: string;
     readonly yearStartMonth: number;

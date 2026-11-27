@@ -13,6 +13,8 @@ export interface CollectionLine {
   partyId: number;
   name: string;
   amount: number;
+  /** The number on the paper receipt handed to the contributor. */
+  manualVoucherNo: string;
 }
 
 export interface CollectionInput {
@@ -64,6 +66,7 @@ export async function recordCollection(input: CollectionInput): Promise<Collecti
         mode: 'cash',
         party: line.name,
         partyId: line.partyId,
+        manualVoucherNo: line.manualVoucherNo.trim(),
         lines: [
           {
             accountId: input.accountId,

@@ -351,8 +351,13 @@ export function TransactionsScreen({
                     {formatShortDate(entry.date)}
                   </DataCell>
 
-                  <DataCell nowrap className="ref text-xs font-medium text-primary">
-                    {entry.ref}
+                  <DataCell nowrap>
+                    <span className="ref text-xs font-medium text-primary">{entry.ref}</span>
+                    {entry.manualVoucherNo && (
+                      <span className="mt-0.5 block text-[11px] text-text-muted ref">
+                        Book #{entry.manualVoucherNo}
+                      </span>
+                    )}
                   </DataCell>
 
                   <DataCell>

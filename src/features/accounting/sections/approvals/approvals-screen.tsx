@@ -40,11 +40,13 @@ import {
   type AccountingAccess,
 } from '../../lib/accounting-access';
 import {
-  PAYMENT_MODE_LABELS,
   VOUCHER_KIND_LABELS,
   codingSummary,
   formatCurrency,
   formatShortDate,
+  kindTone,
+  modeLabel,
+  partyLabel,
 } from '../../lib/accounting-data';
 import type { VoucherRecord } from '../../types';
 
@@ -59,7 +61,6 @@ export function ApprovalsScreen({
   initialVouchers,
   access,
   user,
-  year,
 }: ApprovalsScreenProps) {
   const vouchers = initialVouchers;
   const params = useSearchParams();
@@ -255,6 +256,11 @@ function ApprovalCard({
       <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-3.5">
         <div className="min-w-0">
           <p className="ref text-xs font-medium text-primary">{voucher.ref}</p>
+          {voucher.manualVoucherNo && (
+            <span className="mt-0.5 block text-[11px] text-text-muted ref">
+              Book #{voucher.manualVoucherNo}
+            </span>
+          )}
           <p className="mt-0.5 text-[13px] font-medium text-text-primary">
             {VOUCHER_KIND_LABELS[voucher.kind]}
           </p>
@@ -276,12 +282,12 @@ function ApprovalCard({
         <DetailGrid
           items={[
             {
-              label: voucher.kind === 'receipt' ? 'From' : 'To',
+              label: partyLabel(voucher.kind),
               value: voucher.party,
             },
             { label: 'Account', value: codingSummary(voucher).account },
             { label: 'Fund', value: codingSummary(voucher).fund },
-            { label: 'Mode', value: PAYMENT_MODE_LABELS[voucher.mode] },
+            { label: 'Mode', value: modeLabel(voucher.mode) },
             { label: 'Raised by', value: voucher.createdBy.name },
           ]}
         />
@@ -372,6 +378,11 @@ function SettledTable({
                 >
                   {voucher.ref}
                 </button>
+                {voucher.manualVoucherNo && (
+                  <span className="mt-0.5 block text-[11px] text-text-muted ref">
+                    Book #{voucher.manualVoucherNo}
+                  </span>
+                )}
               </DataCell>
 
               <DataCell nowrap className="text-xs text-text-muted tabular">
@@ -398,7 +409,7 @@ function SettledTable({
               <DataCell align="right" nowrap>
                 <Amount
                   value={voucher.amount}
-                  tone={voucher.kind === 'receipt' ? 'in' : 'out'}
+                  tone={kindTone(voucher.kind)}
                 />
               </DataCell>
 

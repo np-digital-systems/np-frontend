@@ -19,13 +19,13 @@ export function GalleryCard({ image, className, priority }: GalleryCardProps) {
       className={cn(
         "group relative overflow-hidden rounded-2xl cursor-pointer",
         "transition-all duration-500",
-        "hover:shadow-[0_12px_40px_rgba(212,175,55,0.2)]",
+        "hover:shadow-[0_12px_40px_rgba(217,164,58,0.2)]",
         className
       )}
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         {!isLoaded && (
-          <div className="absolute inset-0 bg-[#E8E8E8] animate-pulse" />
+          <div className="absolute inset-0 bg-temple-sand animate-pulse" />
         )}
 
         <Image
@@ -50,7 +50,7 @@ export function GalleryCard({ image, className, priority }: GalleryCardProps) {
               {image.caption}
             </p>
           )}
-          <span className="inline-block mt-1 text-xs font-semibold uppercase tracking-wider text-[#F4C430]">
+          <span className="inline-block mt-1 text-xs font-semibold uppercase tracking-wider text-temple-saffron">
             {image.category}
           </span>
         </div>

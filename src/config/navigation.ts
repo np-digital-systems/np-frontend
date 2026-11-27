@@ -181,6 +181,22 @@ export const portalNavigation: readonly PortalNavGroup[] = [
         requiredPermission: 'payment-voucher:view',
       },
       {
+        id: 'contra-vouchers',
+        label: 'Contra Vouchers',
+        href: ACCOUNTING_ROUTES.contras,
+        icon: 'transfer',
+        description: 'Cash banked and withdrawn',
+        requiredPermission: 'voucher:create',
+      },
+      {
+        id: 'journal-vouchers',
+        label: 'Journal Vouchers',
+        href: ACCOUNTING_ROUTES.journals,
+        icon: 'clipboard',
+        description: 'Entries where no money moves',
+        requiredPermission: 'voucher:journal',
+      },
+      {
         id: 'approval-center',
         label: 'Approval Center',
         href: ACCOUNTING_ROUTES.approvals,

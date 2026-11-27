@@ -64,6 +64,7 @@ export interface VoucherDraftLine {
   activityId: number | null;
   /** Set when a pooja occurrence is chosen. */
   eventId: number | null;
+  fixedDepositId: number | null;
 }
 
 export interface VoucherDraft {
@@ -179,6 +180,7 @@ function LineEditor({
         projectId: null,
         activityId: null,
         eventId: null,
+        fixedDepositId: null,
       },
     ]);
   }
@@ -496,8 +498,9 @@ function draftFrom(
         projectId: line.projectId,
         activityId: line.activityId,
         eventId: line.eventId,
+        fixedDepositId: line.fixedDepositId,
       })),
-      mode: voucher.mode,
+      mode: voucher.mode ?? 'cash',
       bankAccountId: voucher.bankAccountId,
       chequeNo: voucher.chequeNo ?? '',
       partyId: voucher.partyId,
@@ -523,6 +526,7 @@ function draftFrom(
         projectId: null,
         activityId: null,
         eventId: null,
+        fixedDepositId: null,
       },
     ],
     mode: 'cash',

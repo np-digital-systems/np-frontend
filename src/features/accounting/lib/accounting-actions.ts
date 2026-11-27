@@ -5,9 +5,9 @@ import { revalidatePath } from 'next/cache';
 import { requireSession } from '@/features/auth/lib/session';
 import { api, ApiError } from '@/lib/api';
 
-import type { PaymentMode, VoucherKind } from '../types';
+import type { EntrySide, PaymentMode, VoucherKind } from '../types';
 
-import { getAccountingAccess } from './accounting-access';
+import { canCreateKind, getAccountingAccess } from './accounting-access';
 import { ACCOUNTING_ROUTES } from './routes';
 
 export type ActionResult<T = void> =
@@ -50,6 +50,9 @@ export interface VoucherLineInput {
   projectId: number | null;
   activityId: number | null;
   eventId: number | null;
+  fixedDepositId: number | null;
+  /** Journal lines only. */
+  side: EntrySide | null;
 }
 
 export interface VoucherInput {
@@ -58,7 +61,8 @@ export interface VoucherInput {
   description: string;
   /** The total is their sum. */
   lines: readonly VoucherLineInput[];
-  mode: PaymentMode;
+  /** Null for a journal. */
+  mode: PaymentMode | null;
   bankAccountId: number | null;
   chequeNo: string | null;
   partyId?: number | null;
@@ -82,8 +86,10 @@ function voucherBody(input: VoucherInput) {
       projectId: line.projectId ?? undefined,
       activityId: line.activityId ?? undefined,
       eventId: line.eventId ?? undefined,
+      fixedDepositId: line.fixedDepositId ?? undefined,
+      side: line.side ?? undefined,
     })),
-    mode: input.mode,
+    mode: input.mode ?? undefined,
     bankAccountId: input.bankAccountId ?? undefined,
     chequeNo: input.chequeNo || undefined,
     partyId: input.partyId ?? undefined,
@@ -101,7 +107,7 @@ export async function createVoucher(
   thenSubmit = false,
 ): Promise<ActionResult<{ id: number; ref: string }>> {
   return guarded(
-    (access) => (input.kind === 'receipt' ? access.canCreateReceipts : access.canCreatePayments),
+    (access) => canCreateKind(access, input.kind),
     `You cannot raise ${input.kind} vouchers.`,
     async () => {
       const voucher = await api.post<{ id: number; ref: string }>('/vouchers', voucherBody(input));
@@ -119,8 +125,8 @@ export async function updateVoucher(
   thenSubmit = false,
 ): Promise<ActionResult<{ id: number; ref: string }>> {
   return guarded(
-    (access) => access.canCreateVouchers,
-    'You cannot edit vouchers.',
+    (access) => canCreateKind(access, input.kind),
+    `You cannot edit ${input.kind} vouchers.`,
     async () => {
       const voucher = await api.patch<{ id: number; ref: string }>(
         `/vouchers/${id}`,

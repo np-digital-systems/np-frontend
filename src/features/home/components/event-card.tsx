@@ -24,7 +24,7 @@ export function EventCard({ event, className }: EventCardProps) {
     <div
       className={cn(
         "group bg-white rounded-2xl overflow-hidden transition-all duration-500",
-        "shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(212,175,55,0.15)]",
+        "shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(217,164,58,0.15)]",
         "hover:-translate-y-1",
         className
       )}
@@ -42,20 +42,20 @@ export function EventCard({ event, className }: EventCardProps) {
       </div>
 
       <div className="p-6">
-        <h3 className="font-heading text-xl font-semibold text-[#1A1C1C] mb-2 line-clamp-1">
+        <h3 className="font-heading text-xl font-semibold text-temple-ink mb-2 line-clamp-1">
           {event.title}
         </h3>
-        <p className="text-sm text-[#4D4635] leading-relaxed mb-4 line-clamp-2">
+        <p className="text-sm text-temple-soft leading-relaxed mb-4 line-clamp-2">
           {event.description}
         </p>
 
-        <div className="flex items-center gap-4 mb-5 text-xs text-[#7F7663]">
+        <div className="flex items-center gap-4 mb-5 text-xs text-temple-soft">
           <span className="inline-flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <Calendar className="w-3.5 h-3.5 text-temple-gold" />
             {formattedDate}
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <Clock className="w-3.5 h-3.5 text-temple-gold" />
             {event.time}
           </span>
         </div>
@@ -63,7 +63,7 @@ export function EventCard({ event, className }: EventCardProps) {
         <div className="flex items-center gap-3">
           <Link
             href={`/events/${event.id}#register`}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F4C430] text-sm font-semibold text-white hover:shadow-[0_4px_16px_rgba(212,175,55,0.3)] transition-all duration-300"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-temple-gold to-temple-saffron text-sm font-semibold text-white hover:shadow-[0_4px_16px_rgba(217,164,58,0.3)] transition-all duration-300"
           >
             {tEvents("details")}
             <ArrowRight className="w-3.5 h-3.5" />

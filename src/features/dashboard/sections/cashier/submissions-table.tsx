@@ -41,7 +41,9 @@ export async function SubmissionsTable() {
                     className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
                       row.type === 'Receipt'
                         ? 'bg-success-subtle text-success'
-                        : 'bg-danger-subtle text-danger'
+                        : row.type === 'Payment'
+                          ? 'bg-danger-subtle text-danger'
+                          : 'bg-neutral-subtle text-text-secondary'
                     }`}
                   >
                     {row.type}

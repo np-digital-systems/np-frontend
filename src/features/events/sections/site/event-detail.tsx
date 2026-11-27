@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import {
   ArrowLeft,
   CalendarDays,
@@ -11,6 +10,7 @@ import {
 import { useLocale, useTranslations } from 'next-intl';
 
 import { PageContainer } from '@/components/site/page-container';
+import { PageHero } from '@/components/site/page-hero';
 import { SpiritualDivider } from '@/components/site/spiritual-divider';
 import { Link, type Locale } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -45,9 +45,9 @@ function standingOf(event: PublicEvent, today: string): Standing {
 
 const STANDING_STYLES: Record<Standing, string> = {
   completed: 'bg-[#EDF6EF] text-[#256B3A] border-[#256B3A]/20',
-  today: 'bg-[#FDE8E4] text-[#8B0000] border-[#8B0000]/20',
-  upcoming: 'bg-[#FFF8E1] text-[#735C00] border-[#D4AF37]/40',
-  past: 'bg-[#F3F3F4] text-[#6F6757] border-[#D0C5AF]/50',
+  today: 'bg-[#FDE8E4] text-temple-kumkum border-temple-kumkum/20',
+  upcoming: 'bg-temple-sand text-temple-gold-ink border-temple-gold/40',
+  past: 'bg-temple-sand text-temple-soft border-temple-sand/50',
 };
 
 export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
@@ -87,51 +87,41 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
 
   return (
     <>
-      <section className="relative flex h-[46vh] min-h-[360px] items-end overflow-hidden">
-        <Image
-          src={eventImage(event.eventTypeId)}
-          alt=""
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/50 via-black/40 to-black/75" />
-
-        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 pb-10 md:px-16 md:pb-14">
-          <Link
-            href="/events"
-            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-white/85 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4AF37]"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('backToEvents')}
-          </Link>
-
-          <div className="flex flex-wrap items-center gap-3">
+      <PageHero
+        title={title}
+        image={eventImage(event.eventTypeId)}
+        archImage={eventImage(event.eventTypeId)}
+      >
+        <div className="flex flex-col items-center gap-4 lg:items-start">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             {slot && (
-              <span className="rounded-full bg-[#D4AF37] px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase">
+              <span className="rounded-full bg-temple-gold px-3 py-1 text-[11px] font-semibold tracking-wider text-temple-night uppercase">
                 {slot}
               </span>
             )}
-            <span className="rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wider text-white uppercase backdrop-blur-sm">
+            <span className="rounded-full border border-temple-gold/30 bg-temple-gold/10 px-3 py-1 text-[11px] font-semibold tracking-wider text-temple-gold-soft uppercase backdrop-blur-sm">
               {t(`standing.${standing}`)}
             </span>
           </div>
 
-          <h1 className="font-heading mt-4 max-w-3xl text-3xl font-bold text-white md:text-5xl">
-            {title}
-          </h1>
-
-          <p className="mt-3 inline-flex items-center gap-2 text-base text-white/85">
-            <CalendarDays className="h-4 w-4 text-[#D4AF37]" />
+          <p className="inline-flex flex-wrap items-center justify-center gap-2 text-base text-temple-paper/85">
+            <CalendarDays className="h-4 w-4 text-temple-gold" />
             {formatEventDate(event.scheduledDate, locale)}
-            <span className="text-white/40">·</span>
+            <span className="text-temple-paper/40">·</span>
             {formatTimeRange(event.startTime, event.endTime, locale)}
           </p>
-        </div>
-      </section>
 
-      <PageContainer className="bg-[#FAF9F6] !py-12 md:!py-16">
+          <Link
+            href="/events"
+            className="inline-flex items-center gap-2 rounded-full border border-temple-gold/40 px-5 py-2.5 text-sm font-semibold text-temple-paper transition-all duration-300 hover:border-temple-gold hover:bg-temple-gold/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-temple-gold"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t('backToEvents')}
+          </Link>
+        </div>
+      </PageHero>
+
+      <PageContainer className="bg-temple-paper !py-12 md:!py-16">
         <div
           className={cn(
             'grid grid-cols-1 gap-4 sm:grid-cols-2',
@@ -141,52 +131,52 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
           {facts.map((fact) => (
             <div
               key={fact.label}
-              className="rounded-2xl border border-[#E8E0CC] bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+              className="rounded-2xl border border-temple-sand bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
             >
-              <fact.icon className="h-5 w-5 text-[#D4AF37]" />
-              <p className="mt-3 text-[11px] font-semibold tracking-[0.12em] text-[#7F7663] uppercase">
+              <fact.icon className="h-5 w-5 text-temple-gold" />
+              <p className="mt-3 text-[11px] font-semibold tracking-[0.12em] text-temple-soft uppercase">
                 {fact.label}
               </p>
-              <p className="font-heading mt-1 text-lg font-semibold text-[#1A1C1C]">
+              <p className="font-heading mt-1 text-lg font-semibold text-temple-ink">
                 {fact.value}
               </p>
               {fact.hint && (
-                <p className="mt-0.5 text-xs text-[#7F7663]">{fact.hint}</p>
+                <p className="mt-0.5 text-xs text-temple-soft">{fact.hint}</p>
               )}
             </div>
           ))}
         </div>
 
         {sponsor && (
-          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-r from-[#FFF8E1] to-white px-6 py-5">
-            <HeartHandshake className="h-6 w-6 shrink-0 text-[#D4AF37]" />
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-temple-gold/35 bg-gradient-to-r from-temple-sand to-white px-6 py-5">
+            <HeartHandshake className="h-6 w-6 shrink-0 text-temple-gold" />
             <div>
-              <p className="text-[11px] font-semibold tracking-[0.12em] text-[#7F7663] uppercase">
+              <p className="text-[11px] font-semibold tracking-[0.12em] text-temple-soft uppercase">
                 {t('sponsoredBy')}
               </p>
-              <p className="font-heading mt-0.5 text-xl font-semibold text-[#735C00]">
+              <p className="font-heading mt-0.5 text-xl font-semibold text-temple-gold-ink">
                 {sponsor}
               </p>
             </div>
           </div>
         )}
 
-        <div className="mt-10 rounded-2xl border border-[#E8E0CC] bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:p-10">
-          <h2 className="font-heading text-2xl font-semibold text-[#1A1C1C] md:text-3xl">
+        <div className="mt-10 rounded-2xl border border-temple-sand bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:p-10">
+          <h2 className="font-heading text-2xl font-semibold text-temple-ink md:text-3xl">
             {t('about')}
           </h2>
 
           <div className="mt-4 mb-6 flex items-center gap-2">
-            <span className="h-[2px] w-8 bg-[#D4AF37]" />
-            <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+            <span className="h-[2px] w-8 bg-temple-gold" />
+            <span className="h-1.5 w-1.5 rounded-full bg-temple-gold" />
           </div>
 
           {event.notes ? (
-            <p className="text-base leading-relaxed whitespace-pre-line text-[#4D4635] md:text-lg">
+            <p className="text-base leading-relaxed whitespace-pre-line text-temple-soft md:text-lg">
               {event.notes}
             </p>
           ) : (
-            <p className="text-base leading-relaxed text-[#7F7663] italic">
+            <p className="text-base leading-relaxed text-temple-soft italic">
               {t('noDescription', { name: title })}
             </p>
           )}
@@ -209,7 +199,7 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
 
       {alsoUpcoming.length > 0 && (
         <PageContainer className="bg-white !pt-0">
-          <h2 className="font-heading mb-8 text-center text-2xl font-semibold text-[#1A1C1C] md:text-3xl">
+          <h2 className="font-heading mb-8 text-center text-2xl font-semibold text-temple-ink md:text-3xl">
             {t('alsoUpcoming')}
           </h2>
 
@@ -222,7 +212,7 @@ export function EventDetail({ event, alsoUpcoming, today }: EventDetailProps) {
           <div className="mt-12 flex justify-center">
             <Link
               href="/events"
-              className="inline-flex items-center gap-2 rounded-full border-2 border-[#D4AF37] px-8 py-3.5 text-sm font-semibold text-[#735C00] transition-all duration-300 hover:bg-[#D4AF37] hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-temple-gold px-8 py-3.5 text-sm font-semibold text-temple-gold-ink transition-all duration-300 hover:bg-temple-gold hover:text-white"
             >
               {t('viewCalendar')}
             </Link>

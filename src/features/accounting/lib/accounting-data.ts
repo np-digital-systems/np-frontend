@@ -1,6 +1,7 @@
 import type { BadgeStatus } from '@/components/portal/ui';
 
 import type {
+  AccountRef,
   AccountType,
   ActivityKind,
   PartyKind,
@@ -121,17 +122,60 @@ export function statusToBadge(status: VoucherStatus): BadgeStatus {
   return status;
 }
 
-export const VOUCHER_KIND_LABELS: Record<VoucherKind, string> = {
+export const VOUCHER_KIND_LABELS = {
   receipt: 'Receipt Voucher',
   payment: 'Payment Voucher',
+  contra: 'Contra Voucher',
+  journal: 'Journal Voucher',
+} as const satisfies Record<VoucherKind, string>;
+
+const PARTY_LABELS: Record<VoucherKind, string> = {
+  receipt: 'Received From',
+  payment: 'Paid To',
+  contra: 'Particulars',
+  journal: 'Particulars',
 };
 
 export function partyLabel(kind: VoucherKind): string {
-  return kind === 'receipt' ? 'Received From' : 'Paid To';
+  return PARTY_LABELS[kind];
 }
 
+const REFERENCE_PREFIXES: Record<VoucherKind, string> = {
+  receipt: 'RV',
+  payment: 'PV',
+  contra: 'CV',
+  journal: 'JV',
+};
+
 export function referencePrefix(kind: VoucherKind): string {
-  return kind === 'receipt' ? 'RV' : 'PV';
+  return REFERENCE_PREFIXES[kind];
+}
+
+// Mirrors the API's rule so the form only offers heads it will accept; cash and bank heads are never
+// offered because they move through the voucher's cash/bank side or a contra.
+const HEAD_TYPES: Record<'receipt' | 'payment', readonly AccountType[]> = {
+  receipt: ['income', 'asset', 'liability', 'equity'],
+  payment: ['expense', 'asset', 'liability', 'equity'],
+};
+
+export function headsFor(
+  kind: 'receipt' | 'payment',
+  accounts: readonly AccountRef[],
+): AccountRef[] {
+  return accounts.filter(
+    (account) => account.moneyHead === null && HEAD_TYPES[kind].includes(account.type),
+  );
+}
+
+// Contras and journals move no money into or out of the temple.
+export function kindTone(kind: VoucherKind): 'in' | 'out' | 'neutral' {
+  if (kind === 'receipt') return 'in';
+  if (kind === 'payment') return 'out';
+  return 'neutral';
+}
+
+export function modeLabel(mode: PaymentMode | null): string {
+  return mode === null ? '—' : PAYMENT_MODE_LABELS[mode];
 }
 
 export function nextReference(

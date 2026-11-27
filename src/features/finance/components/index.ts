@@ -13,6 +13,11 @@ export {
   maturityDate,
   type DepositDraft,
 } from './deposit-form-dialog';
+export {
+  RecordInterestDialog,
+  type InterestDraft,
+} from './record-interest-dialog';
+export { PoojaFundingTable } from './pooja-funding-table';
 export { AssetFormDialog, type AssetDraft } from './asset-form-dialog';
 export {
   DisposeAssetDialog,

@@ -22,6 +22,8 @@ const routeLabels: Record<string, string> = {
   'bank-accounts': 'Bank Accounts',
   receipts: 'Receipt Vouchers',
   payments: 'Payment Vouchers',
+  contras: 'Contra Vouchers',
+  journals: 'Journal Vouchers',
   approvals: 'Approval Center',
   reports: 'Reports',
 

@@ -19,6 +19,7 @@ import {
   CardFooter,
   CardHeader,
   DataCell,
+  EmptyState,
   DataRow,
   DataTable,
   PortalPageHeader,
@@ -36,10 +37,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
+import { PoojaFundingTable } from '@/features/finance/components/pooja-funding-table';
+import type { PoojaFunding } from '@/features/finance/types';
+
 import { Amount } from '../../components/amount';
 import { AccountTypeBadge } from '../../components/account-type-badge';
 import { formatCurrency, monthName } from '../../lib/accounting-data';
 import type {
+  BalanceLine,
+  BalanceSheet,
   FundPosition,
   IncomeStatement,
   TrialBalanceRow,
@@ -48,6 +54,8 @@ import type {
 interface ReportsScreenProps {
   statement: IncomeStatement;
   trialBalance: readonly TrialBalanceRow[];
+  balanceSheet: BalanceSheet | null;
+  poojaFunding: PoojaFunding | null;
   funds: readonly FundPosition[];
   year: number;
     throughMonth: number;
@@ -114,6 +122,8 @@ const REPORTS: readonly ReportDefinition[] = [
 export function ReportsScreen({
   statement,
   trialBalance,
+  balanceSheet,
+  poojaFunding,
   funds,
   year,
   throughMonth,
@@ -185,7 +195,9 @@ export function ReportsScreen({
         <TabsList>
           <TabsTrigger value="statement">Income &amp; Expenditure</TabsTrigger>
           <TabsTrigger value="trial">Trial Balance</TabsTrigger>
+          <TabsTrigger value="balance-sheet">Balance Sheet</TabsTrigger>
           <TabsTrigger value="funds">Fund Summary</TabsTrigger>
+          <TabsTrigger value="pooja-funding">Pooja Funding</TabsTrigger>
           <TabsTrigger value="catalogue">All Reports</TabsTrigger>
         </TabsList>
 
@@ -232,8 +244,28 @@ export function ReportsScreen({
           <TrialBalanceTable rows={trialBalance} balanced={balanced} />
         </TabsContent>
 
+        <TabsContent value="balance-sheet">
+          {balanceSheet ? (
+            <BalanceSheetCard sheet={balanceSheet} />
+          ) : (
+            <Card>
+              <EmptyState icon={Scale} title="The balance sheet could not be loaded" />
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="funds">
           <FundSummaryTable funds={funds} />
+        </TabsContent>
+
+        <TabsContent value="pooja-funding">
+          {poojaFunding && poojaFunding.rows.length > 0 ? (
+            <PoojaFundingTable funding={poojaFunding} />
+          ) : (
+            <Card>
+              <EmptyState icon={Landmark} title="No fixed deposits recorded" />
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="catalogue">
@@ -430,6 +462,107 @@ function TrialBalanceTable({
         </tr>
       </DataTable>
     </Card>
+  );
+}
+
+function BalanceSheetCard({ sheet }: { sheet: BalanceSheet }) {
+  return (
+    <Card>
+      <CardHeader
+        title="Balance Sheet"
+        description={`As at ${sheet.asOf} · ${sheet.financialYearLabel}`}
+        action={
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-[11px] font-medium',
+              sheet.balanced
+                ? 'bg-success-subtle text-success'
+                : 'bg-danger-subtle text-danger',
+            )}
+          >
+            {sheet.balanced ? 'Balanced' : 'Does not balance'}
+          </span>
+        }
+      />
+
+      <div className="grid grid-cols-1 divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
+        <div>
+          <BalanceGroup title="Assets" lines={sheet.assets} />
+          <BalanceTotal label="Total assets" amount={sheet.totalAssets} />
+        </div>
+
+        <div>
+          <BalanceGroup title="Liabilities" lines={sheet.liabilities} />
+          <BalanceGroup title="Equity" lines={sheet.equity} />
+          <BalanceRow label="Accumulated surplus" amount={sheet.accumulatedSurplus} />
+          {sheet.openingDifference !== 0 && (
+            <BalanceRow
+              label="Difference in opening balances"
+              amount={sheet.openingDifference}
+              tone="danger"
+            />
+          )}
+          <BalanceTotal
+            label="Total liabilities and equity"
+            amount={sheet.totalLiabilitiesAndEquity}
+          />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function BalanceGroup({ title, lines }: { title: string; lines: readonly BalanceLine[] }) {
+  return (
+    <div className="border-b border-border">
+      <h3 className="bg-surface-2 px-5 py-2 text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+        {title}
+      </h3>
+
+      {lines.length === 0 ? (
+        <p className="px-5 py-2.5 text-xs text-text-muted">None</p>
+      ) : (
+        lines.map((line) => (
+          <BalanceRow
+            key={line.account.id}
+            label={`${line.account.code} · ${line.account.name}`}
+            amount={line.amount}
+          />
+        ))
+      )}
+    </div>
+  );
+}
+
+function BalanceRow({
+  label,
+  amount,
+  tone,
+}: {
+  label: string;
+  amount: number;
+  tone?: 'danger';
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 px-5 py-2">
+      <span className={cn('min-w-0 truncate text-[13px] text-text-primary', tone && 'text-danger')}>
+        {label}
+      </span>
+      <span className={cn('shrink-0 text-[13px] tabular', tone && 'text-danger')}>
+        {formatCurrency(amount)}
+      </span>
+    </div>
+  );
+}
+
+function BalanceTotal({ label, amount }: { label: string; amount: number }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-t border-border-strong bg-surface-2 px-5 py-2.5">
+      <span className="text-[13px] font-semibold text-text-primary">{label}</span>
+      <span className="text-[13px] font-semibold text-text-primary tabular">
+        {formatCurrency(amount)}
+      </span>
+    </div>
   );
 }
 

@@ -58,6 +58,7 @@ export function CollectionSheetScreen({
   const [query, setQuery] = useState('');
   const [paidOn, setPaidOn] = useState(today);
   const [amounts, setAmounts] = useState<Record<number, string>>({});
+  const [receiptNos, setReceiptNos] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ count: number; total: number } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -108,6 +109,11 @@ export function CollectionSheetScreen({
   function handleSubmit() {
     const byId = new Map(contributors.map((person) => [person.partyId, person]));
 
+    if (entered.rows.some((row) => !receiptNos[row.partyId]?.trim())) {
+      setError('Enter the receipt book number for every amount.');
+      return;
+    }
+
     startTransition(async () => {
       const result = await recordCollection({
         eventId: event.id,
@@ -120,6 +126,7 @@ export function CollectionSheetScreen({
           partyId: row.partyId,
           name: byId.get(row.partyId)?.name ?? '',
           amount: row.amount,
+          manualVoucherNo: receiptNos[row.partyId] ?? '',
         })),
       });
 
@@ -140,6 +147,7 @@ export function CollectionSheetScreen({
 
       setDone({ count: result.receipts.length, total: entered.total });
       setAmounts({});
+      setReceiptNos({});
       router.refresh();
     });
   }
@@ -149,6 +157,7 @@ export function CollectionSheetScreen({
     { key: 'reason', label: 'Why listed' },
     { key: 'last', label: 'Last time', align: 'right' },
     { key: 'amount', label: 'Giving now', align: 'right' },
+    { key: 'receipt', label: 'Receipt No', align: 'right' },
   ];
 
   return (
@@ -296,6 +305,23 @@ export function CollectionSheetScreen({
                       value={amounts[person.partyId] ?? ''}
                       onChange={(changeEvent) =>
                         setAmount(person.partyId, changeEvent.target.value)
+                      }
+                    />
+                  )}
+                </DataCell>
+                <DataCell align="right">
+                  {person.paidThisTime ? (
+                    <span className="text-text-tertiary">—</span>
+                  ) : (
+                    <Input
+                      aria-label={`Receipt number for ${person.name}`}
+                      className="ml-auto w-24 text-right"
+                      value={receiptNos[person.partyId] ?? ''}
+                      onChange={(changeEvent) =>
+                        setReceiptNos((current) => ({
+                          ...current,
+                          [person.partyId]: changeEvent.target.value,
+                        }))
                       }
                     />
                   )}

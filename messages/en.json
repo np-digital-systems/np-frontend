@@ -38,10 +38,10 @@
     "history": "With centuries of unbroken tradition, this temple has been the spiritual heart of Mallakam, witnessing and nurturing the faith of countless families across generations.",
     "address": "Neeliyampanai, Mallakam, Jaffna, Sri Lanka",
     "stats": {
-      "heritage": "500+ Years of Heritage",
-      "devotees": "1000+ Annual Devotees",
-      "festivals": "100+ Annual Festivals",
-      "worship": "365 Days of Worship"
+      "heritage": "Years of Heritage",
+      "devotees": "Annual Devotees",
+      "festivals": "Annual Festivals",
+      "worship": "Days of Worship"
     },
     "templeHours": {
       "morning": "06:30 AM – 08:00 AM",
@@ -188,7 +188,8 @@
     "Hero": {
       "about": "About Us",
       "upcomingEvents": "Upcoming Events",
-      "explore": "Explore"
+      "explore": "Explore",
+      "eyebrow": "Om Ganapathy"
     },
     "About": {
       "aboutOurTemple": "About Our Temple",
@@ -227,6 +228,13 @@
       "morning": "Morning",
       "afternoon": "Afternoon",
       "evening": "Evening"
+    },
+    "Marquee": {
+      "ganeshaya": "Om Ganeshaya Namaha",
+      "gamGanapataye": "Om Gam Ganapataye Namaha",
+      "vinayakaya": "Om Vinayakaya Namaha",
+      "vighneshwaraya": "Om Vighneshwaraya Namaha",
+      "ekadantaya": "Om Ekadantaya Namaha"
     }
   },
   "About": {

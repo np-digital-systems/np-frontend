@@ -9,6 +9,8 @@ export {
   BankAccountsFeature,
   ReceiptVouchersFeature,
   PaymentVouchersFeature,
+  ContraVouchersFeature,
+  JournalVouchersFeature,
   ApprovalsFeature,
   ReportsFeature,
 } from './sections';
@@ -25,6 +27,7 @@ export { ACCOUNTING_ROUTES } from './lib/routes';
 export {
   getAccounts,
   getActivityOptions,
+  getBankAccountOptions,
   getBankAccounts,
   getCashBook,
   getFunds,

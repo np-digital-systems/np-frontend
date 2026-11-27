@@ -1,9 +1,11 @@
 import { AccessDenied, PageShell } from '@/components/portal/ui';
 import { requireSession } from '@/features/auth/lib/session';
+import { getPoojaFunding } from '@/features/finance/lib/finance-service';
 import { getActiveYear, getToday } from '@/lib/format';
 
 import { getAccountingAccess } from '../../lib/accounting-access';
 import {
+  getBalanceSheet,
   getFundPositions,
   getIncomeStatement,
   getTrialBalance,
@@ -28,11 +30,15 @@ export async function ReportsFeature() {
   const [
     statement,
     trialBalance,
+    balanceSheet,
     funds,
+    poojaFunding,
   ] = await Promise.all([
     getIncomeStatement(),
     getTrialBalance(),
+    getBalanceSheet(),
     getFundPositions(),
+    getPoojaFunding(),
   ]);
 
   return (
@@ -40,6 +46,8 @@ export async function ReportsFeature() {
       <ReportsScreen
         statement={statement}
         trialBalance={trialBalance}
+        balanceSheet={balanceSheet}
+        poojaFunding={poojaFunding}
         funds={funds}
         year={getActiveYear(today)}
         throughMonth={Number(today.slice(5, 7))}
